@@ -1,23 +1,21 @@
 import React from 'react';
 
 // colors
-const darkBlue = "#1c416b";
+const darkBlue = "#080e2e";
 
-const Sidebar = () => {
+const Sidebar = ({ toggleFiles }) => {
   return (
     <div
       className="sidebar"
       style={{
         width: '55px',
-        height: '94.5vh',
+        height: '100vh',
         backgroundColor: darkBlue, 
         color: '#fff',
         position: 'fixed',
         top: '0',
         left: '0',
         paddingTop: '15px', 
-        margin: '6px',
-        borderRadius: '9px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -27,7 +25,7 @@ const Sidebar = () => {
       <div
         className="sidebar-item"
         style={{
-          marginBottom: '20px',
+          marginBottom: '35px',
           cursor: 'pointer',
         }}
       >
@@ -35,8 +33,8 @@ const Sidebar = () => {
           src="/assets/CStarLogo.png" 
           alt="Logo"
           style={{
-            width: '38px',
-            height: '38px',
+            width: '36px',
+            height: '36px',
           }}
         />
       </div>
@@ -44,12 +42,12 @@ const Sidebar = () => {
       {/* Files Icon */}
       <div
         className="sidebar-item"
+        onClick={toggleFiles}
         style={{
           padding: '10px',
           marginBottom: '10px',
           cursor: 'pointer',
         }}
-        onClick={() => alert('Files clicked')} 
       >
         <img 
           src="/assets/folder.png"

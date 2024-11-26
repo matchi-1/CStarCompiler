@@ -1,43 +1,69 @@
 import React, { useState } from 'react';
-import Sidebar from '../components/Sidebar'; 
-import '../styles/Compiler.css'; 
+import Sidebar from '../components/Sidebar';
+import FileExplorer from '../components/FileExplorer'; 
+import TokenTables from '../components/TokenTables';
+import MonacoEditor from '@monaco-editor/react';
+import '../styles/Compiler.css';
 
 const CompilerPage = () => {
   const [code, setCode] = useState('');
   const [output, setOutput] = useState('');
+  const [isFilesVisible, setIsFilesVisible] = useState(false); 
+  const [files, setFiles] = useState([]); 
 
   const handleCompile = () => {
     const compiledOutput = code.split('').reverse().join('');
     setOutput(compiledOutput);
   };
 
-  return (
-    <div style={{ display: 'flex' }}>
-      <Sidebar /> {/* Sidebar */}
-      <div style={{ marginLeft: '200px', padding: '20px', flex: 1 }}>
-        <h1>Compiler Page</h1>
-        <textarea
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Enter code here"
-          rows="10"
-          style={{ width: '100%', padding: '10px', fontSize: '16px' }}
-        />
-        <button
-          onClick={handleCompile}
-          style={{
-            marginTop: '10px',
-            padding: '10px 20px',
-            fontSize: '16px',
-            cursor: 'pointer',
-          }}
-        >
-          Compile
-        </button>
+  const toggleFiles = () => {
+    setIsFilesVisible(!isFilesVisible); // Toggle visibility when Files button is clicked
+  };
 
-        <div style={{ marginTop: '20px' }}>
-          <h2>Output</h2>
-          <pre>{output}</pre>
+  const addFile = () => {
+    const newFile = prompt('Enter file name');
+    if (newFile) {
+      setFiles([...files, { name: newFile, type: 'file' }]);
+    }
+  };
+
+  const addFolder = () => {
+    const newFolder = prompt('Enter folder name');
+    if (newFolder) {
+      setFiles([...files, { name: newFolder, type: 'folder' }]);
+    }
+  };
+
+  return (
+    <div className="compiler-page">
+        <div className="sidebar-container">
+            <Sidebar toggleFiles={toggleFiles} /> {/* Pass toggle function to Sidebar */}
+        </div>
+      
+      <div className="compiler-main-container">
+        {/* Monaco Editor */}
+        <div className="compiler-content">
+          <MonacoEditor
+            height="100%" 
+            language="javascript" 
+            theme="vs-dark"
+            value={code}
+            onChange={(value) => setCode(value)}
+            options={{
+              selectOnLineNumbers: true,
+            }}
+          />
+        </div>
+
+        {/* Right-side content for file explorer and token tables */}
+        <div className="right-segment">
+          <FileExplorer 
+            isVisible={isFilesVisible} 
+            files={files} 
+            addFile={addFile} 
+            addFolder={addFolder} 
+          />
+          <TokenTables />
         </div>
       </div>
     </div>

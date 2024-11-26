@@ -1,11 +1,158 @@
-.sidebar-item {
-    padding: 10px;
+.compiler-page {
     display: flex;
-    align-items: center;
-    cursor: pointer;
+    flex-direction: row;
+    background-color: #111842;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
   }
+
   
   .sidebar-item:hover {
-    background-color: #444;
+    background-color: #22194a; 
   }
   
+  .compiler-main-container {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+  }
+
+
+
+    .compiler-content {
+    flex-grow: 1;
+    background-color: #111842;
+    overflow: hidden;
+    position: relative;
+    }
+
+.sidebar-container{
+    width: 55px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.right-segment {
+    width: 320px;
+    background-color: #222;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  .monaco-editor-container {
+    height: 100%; 
+    width: 100%;
+  }
+
+  .token-tables {
+    flex: 1;
+    padding: 20px;
+    background-color: #222;
+    color: white;
+    border-radius: 5px;
+    overflow-y: auto;
+  }
+
+
+  .compiler-textarea {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #333; 
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+  }
+  
+  .compiler-textarea::placeholder {
+    color: #bbb; 
+  }
+  
+ 
+  .compile-button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #444; 
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .compile-button:hover {
+    background-color: #666; 
+  }
+  
+
+  .output-section {
+    margin-top: 20px;
+    background-color: #222; 
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  output-section pre {
+    color: #ddd; 
+  }
+  
+
+  /* File Explorer Sliding Effect */
+.file-explorer {
+    transform: translateX(-100%); /* Initially hidden */
+    transition: transform 0.3s ease;
+    background-color: #111842; 
+    color: #fff;
+    padding: 20px;
+    z-index: 1000;
+  }
+  
+  .file-explorer.visible {
+    transform: translateX(0);
+  }
+  
+  .file-explorer-header button {
+    margin-left: 10px;
+  }
+  
+  .file-explorer-content ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .file-explorer-content li {
+    margin-bottom: 10px;
+  }
+  
+  button {
+    cursor: pointer;
+    background-color: #444;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    margin-top: 10px;
+  }
+  
+
+
+  .token-tables table {
+    width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+  }
+  
+  .token-tables th, .token-tables td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #444;
+  }
+  
+  .token-tables th {
+    background-color: #333;
+  }
