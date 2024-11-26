@@ -1,0 +1,13 @@
+# Node.js
+node_modules/
+build/
+.env
+
+# Python
+backend/venv/
+__pycache__/
+
+# OS/Editor files
+.DS_Store
+Thumbs.db
+.vscode/
