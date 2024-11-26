@@ -20,12 +20,14 @@
 
 
 
-    .compiler-content {
+  .compiler-content {
     flex-grow: 1;
-    background-color: #111842;
-    overflow: hidden;
     position: relative;
-    }
+    min-height: 0; 
+    min-width: 0;  
+    overflow: hidden;
+  }
+  
 
 .sidebar-container{
     width: 55px; 

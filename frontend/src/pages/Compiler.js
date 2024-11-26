@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import FileExplorer from '../components/FileExplorer'; 
 import TokenTables from '../components/TokenTables';
@@ -6,15 +6,22 @@ import MonacoEditor from '@monaco-editor/react';
 import '../styles/Compiler.css';
 
 const CompilerPage = () => {
-  const [code, setCode] = useState('');
+  const editorRef = useRef();
+  const [code, setValue] = useState('');
   const [output, setOutput] = useState('');
   const [isFilesVisible, setIsFilesVisible] = useState(false); 
   const [files, setFiles] = useState([]); 
 
+  const onMount = (editor) => {
+    editorRef.current = editor;
+    editor.focus();
+  };
+
+
   const handleCompile = () => {
     const compiledOutput = code.split('').reverse().join('');
     setOutput(compiledOutput);
-  };
+  };    
 
   const toggleFiles = () => {
     setIsFilesVisible(!isFilesVisible); // Toggle visibility when Files button is clicked
@@ -48,9 +55,13 @@ const CompilerPage = () => {
             language="javascript" 
             theme="vs-dark"
             value={code}
-            onChange={(value) => setCode(value)}
+            onChange={(value) => setValue(value)}
+            onMount={onMount}
             options={{
               selectOnLineNumbers: true,
+              minimap: {
+                enabled: false,
+                },
             }}
           />
         </div>
