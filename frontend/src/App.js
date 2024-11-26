@@ -1,25 +1,12 @@
 import React from 'react';
-import { useState } from 'react';
-import Editor from '@monaco-editor/react';
+import CompilerPage from './pages/Compiler'; 
 
-function App() {
-  const [code, setCode] = useState('// Write your code here!');
-
-  const handleEditorChange = (value) => {
-    setCode(value);
-
-  };
-
+const App = () => {
   return (
-    <div style={{ height: '100vh' }}>
-      <Editor
-        height="90vh"
-        defaultLanguage="javascript"
-        defaultValue="// Write your code here!"
-        onChange={handleEditorChange}
-      />
+    <div>
+      <CompilerPage /> 
     </div>
   );
-}
+};
 
 export default App;
