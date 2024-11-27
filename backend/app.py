@@ -108,7 +108,7 @@ transitions = {
     },
     's420':{
         '_':'s420'
-        # alphanumeric:s420
+        # HELPER: alphanumeric:s420
     }
 }
 #---GRAPH HELPERS---
