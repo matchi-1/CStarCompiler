@@ -12,8 +12,8 @@ const CompilerPage = () => {
   const [isFilesVisible, setIsFilesVisible] = useState(false); 
   const [files, setFiles] = useState([]); 
   const [lexerResults, setLexerResults] = useState([])
-  const [tokens, setTokens] = useState({})
-  const [errors, setErrors] = useState({})
+  const [tokens, setTokens] = useState([])
+  const [errors, setErrors] = useState([])
 
   const onMount = (editor) => {
     editorRef.current = editor;
@@ -98,7 +98,7 @@ useEffect(() => {
             addFile={addFile} 
             addFolder={addFolder} 
           />
-          <TokenTables tokensRaw={tokens} errorsRaw={errors}/>
+          <TokenTables tokens={tokens} errors={errors}/>
         </div>
       </div>
     </div>

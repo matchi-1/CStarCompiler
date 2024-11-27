@@ -17,8 +17,8 @@ const darkBlue = "#080e2e";
 
 
 const RightSegment = (props) => {
-  var tokens = Object.entries(props.tokensRaw);
-  var errors = Object.entries(props.errorsRaw);
+  var tokens = props.tokens
+  var errors = props.errors
   console.log(tokens)
   return (
     <div

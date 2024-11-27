@@ -4,7 +4,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # cross-origin requests
 
-#definitions
+#---DEFINITIONS---
 type_iden_delim = [')', ' ', '\n']
 alphabetic_chars = [
     "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
@@ -12,12 +12,16 @@ alphabetic_chars = [
     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", 
     "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
 ]
+newline_delim = [' ', '\n']
+iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';'] + newline_delim
 numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 alphanumeric = alphabetic_chars + numbers
-
 NULL = ''
-WHITESPACE= ' '
-#transitions graph
+
+#---TOKEN STATES---
+data_type = ['BOOL_CHECK', 'CHAR_CHECK', 'DOUBLE_CHECK', 'FLOAT_CHECK', 'INT_CHECK', 'LONG_CHECK', 'STRING_CHECK']
+
+#---GRAPH TRANSITIONS---
 transitions = {
     's0':{
         'b':'s45',
@@ -101,82 +105,88 @@ transitions = {
     },
     's373':{
         'g':'STRING_CHECK'
+    },
+    's420':{
+        '_':'s420'
+        # alphanumeric:s420
     }
 }
+#---GRAPH HELPERS---
+#s420 -alphanumeric> s420
+for i in alphanumeric:
+    transitions['s420'][i] = 's420'
 
-#extracting and classifying tokens
+#---TOKEN EXTRACTION AND CLASSIFICATION---
 def extractTokens(code):
-    tokens = {} #tokens dict [token:tokenType]
-    errors = {} #NOTE: CANNOT!! BE DICT, IT PREVENTS DUPLICATES (it slipped my mind :sob:)
+    tokens = [] #tokens dict [token:tokenType]
+    errors = [] #NOTE: CANNOT!! BE DICT, IT PREVENTS DUPLICATES (it slipped my mind :sob:)
     currToken = ''
     currState = 's0'
 
     for i in range(len(code)): #need index for fuckery later
+        print('state: ', currState)
         print(code[i])
-        #if no transitions, it means it's time for delim cheking
+        #if no transitions, it means it's time for delim checking
         if (currState not in transitions):
             #data type keywords
-            if (currState == 'BOOL_CHECK'):
+            if (currState in data_type):
                 if (code[i] in type_iden_delim):
-                    tokens[currToken] = '<data_type>'
+                    tokens.append((currToken, '<data_type>'))
                     currToken = ''
                     currState = 's0'
                     continue
-            if (currState == 'CHAR_CHECK'):
-                if (code[i] in type_iden_delim):
-                    tokens[currToken] = '<data_type>'
+                elif (code[i] in alphanumeric or code[i] == '_'):
+                    currToken += code[i]
+                    currState ='s420'
+                    print('now in state 420')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append((currToken, 'Incorrect delimiter'))
                     currToken = ''
                     currState = 's0'
                     continue
-            if (currState == 'DOUBLE_CHECK'):
-                if (code[i] in type_iden_delim):
-                    tokens[currToken] = '<data_type>'
-                    currToken = ''
-                    currState = 's0'
-                    continue
-            if (currState == 'FLOAT_CHECK'):
-                if (code[i] in type_iden_delim):
-                    tokens[currToken] = '<data_type>'
-                    currToken = ''
-                    currState = 's0'
-                    continue
-            if (currState == 'INT_CHECK'):
-                if (code[i] in type_iden_delim):
-                    tokens[currToken] = '<data_type>'
-                    currToken = ''
-                    currState = 's0'
-                    continue
-            if (currState == 'LONG_CHECK'):
-                if (code[i] in type_iden_delim):
-                    tokens[currToken] = '<data_type>'
-                    currToken = ''
-                    currState = 's0'
-                    continue
-            if (currState == 'STRING_CHECK'):
-                if (code[i] in type_iden_delim):
-                    tokens[currToken] = '<data_type>'
-                    currToken = ''
-                    currState = 's0'
-                    continue
-            
-            #check for identifiers or errors, figure this part out too
-            errors[currToken] = 'either an error or an identifier lol'
-            currToken = ''
-            currState = 's0'
 
+        #identifier state
+        if (currState == 's420'):
+            print('in identifier check state now')
+            if (code[i] in iden_delim):
+                print('correct delim')
+                if (currToken[0] not in alphabetic_chars): #check first if first character is ok
+                    errors.append((currToken, 'Identifier should start with alpha'))
+                    currToken = ''
+                    currState = 's0'
+                    continue
+                tokens.append((currToken, 'Identifier'))
+                currToken = ''
+                currState = 's0'
+                continue
+            elif (code[i] in alphanumeric or code[i] == '_'):
+                    currToken += code[i]
+                    currState ='s420'
+                    print('now in state 420')
+                    continue
+            else:
+                currToken += code[i]
+                errors.append((currToken, 'Incorrect delimiter')) #can be expanded with conditions to check what error
+                currToken = ''
+                currState = 's0'
+                continue
+    
         #iterating through chars
+        if (code[i] == ' ' or code[i] == '\n'):
+            continue
         if (code[i] in transitions[currState]):
             currToken += code[i]
             currState = transitions[currState][code[i]]
         else: #figure out this part
-            errors[currToken] = 'either an error or an identifier lol'
-            currToken = ''
-            currState = 's0'
+            currToken += code[i]
+            currState = 's420'
     
     lexerResults = [tokens, errors] 
     return lexerResults
 
-
+#---FLASK ROUTES---
 @app.route('/api/hello', methods=['GET'])
 def hello():
     return jsonify({'message': 'Hello from Flask!'})
@@ -185,7 +195,9 @@ def hello():
 def compile_code():
     data = request.json
     code = data.get('code', '')
-    return jsonify(extractTokens(code))
+    lexres = extractTokens(code)
+    print(lexres)
+    return jsonify(lexres)
 
 if __name__ == '__main__':
     app.run(debug=True)
