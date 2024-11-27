@@ -124,8 +124,8 @@ def extractTokens(code):
     currState = 's0'
 
     for i in range(len(code)): #need index for fuckery later
-        print('state: ', currState)
-        print(code[i])
+        print('(dbg) state: ', currState)
+        print('(dbg) ', code[i])
         #if no transitions, it means it's time for delim checking
         if (currState not in transitions):
             #data type keywords
@@ -138,7 +138,7 @@ def extractTokens(code):
                 elif (code[i] in alphanumeric or code[i] == '_'):
                     currToken += code[i]
                     currState ='s420'
-                    print('now in state 420')
+                    print('(dbg) now in state 420')
                     continue
                 else:
                     currToken += code[i]
@@ -149,9 +149,9 @@ def extractTokens(code):
 
         #identifier state
         if (currState == 's420'):
-            print('in identifier check state now')
+            print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
-                print('correct delim')
+                print('(dbg) correct delim')
                 if (currToken[0] not in alphabetic_chars): #check first if first character is ok
                     errors.append((currToken, 'Identifier should start with alpha'))
                     currToken = ''
@@ -161,10 +161,9 @@ def extractTokens(code):
                 currToken = ''
                 currState = 's0'
                 continue
-            elif (code[i] in alphanumeric or code[i] == '_'):
+            elif (code[i] in alphanumeric or code[i] == '_'): #if not delim but still valid, keep looping
                     currToken += code[i]
                     currState ='s420'
-                    print('now in state 420')
                     continue
             else:
                 currToken += code[i]
@@ -179,7 +178,7 @@ def extractTokens(code):
         if (code[i] in transitions[currState]):
             currToken += code[i]
             currState = transitions[currState][code[i]]
-        else: #figure out this part
+        else: #if not in s0 transitions assume identifier, go to state 420
             currToken += code[i]
             currState = 's420'
     
@@ -196,7 +195,7 @@ def compile_code():
     data = request.json
     code = data.get('code', '')
     lexres = extractTokens(code)
-    print(lexres)
+    # print(lexres)
     return jsonify(lexres)
 
 if __name__ == '__main__':
