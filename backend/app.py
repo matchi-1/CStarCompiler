@@ -4,6 +4,179 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # cross-origin requests
 
+#definitions
+type_iden_delim = [')', ' ', '\n']
+alphabetic_chars = [
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+    "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", 
+    "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+]
+numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+alphanumeric = alphabetic_chars + numbers
+
+NULL = ''
+WHITESPACE= ' '
+#transitions graph
+transitions = {
+    's0':{
+        'b':'s45',
+        'c':'s55',
+        'd':'s126',
+        'f':'s155',
+        'i':'s183',
+        'l':'s200',
+        's':'s297'
+    },
+    's45':{
+        'o':'s46'
+    },
+    's46':{
+        'o':'s47'
+    },
+    's47':{
+        'l':'BOOL_CHECK'
+    },
+    's55':{
+        'h':'s68'
+    },
+    's68':{
+        'a':'s69'
+    },
+    's69':{
+        'r':'CHAR_CHECK'  
+    },
+    's126':{
+        'o':'s139'
+    },
+    's139':{
+        'u':'s141'
+    },
+    's141':{
+        'b':'s142'
+    },
+    's142':{
+        'l':'s143'
+    },
+    's143':{
+        'e':'DOUBLE_CHECK'  
+    },
+    's155':{
+        'l':'s161'
+    },
+    's161':{
+        'o':'s162'
+    },
+    's162':{
+        'a':'s163'
+    },
+    's163':{
+        't':'FLOAT_CHECK'
+    },
+    's183':{
+        'n':'s192'
+    },
+    's192':{
+        't':'INT_CHECK'
+    },
+    's200':{
+        'o':'s201'
+    },
+    's201':{
+        'n':'s202'
+    },'s202':{
+        'g':'LONG_CHECK'
+    },
+    's297':{
+        't':'s305'
+    },
+    's305':{
+        'r':'s311'
+    },
+    's311':{
+        'i':'s372'
+    },
+    's372':{
+        'n':'s373'
+    },
+    's373':{
+        'g':'STRING_CHECK'
+    }
+}
+
+#extracting and classifying tokens
+def extractTokens(code):
+    tokens = {} #tokens dict [token:tokenType]
+    errors = {} #NOTE: CANNOT!! BE DICT, IT PREVENTS DUPLICATES (it slipped my mind :sob:)
+    currToken = ''
+    currState = 's0'
+
+    for i in range(len(code)): #need index for fuckery later
+        print(code[i])
+        #if no transitions, it means it's time for delim cheking
+        if (currState not in transitions):
+            #data type keywords
+            if (currState == 'BOOL_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens[currToken] = '<data_type>'
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            if (currState == 'CHAR_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens[currToken] = '<data_type>'
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            if (currState == 'DOUBLE_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens[currToken] = '<data_type>'
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            if (currState == 'FLOAT_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens[currToken] = '<data_type>'
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            if (currState == 'INT_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens[currToken] = '<data_type>'
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            if (currState == 'LONG_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens[currToken] = '<data_type>'
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            if (currState == 'STRING_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens[currToken] = '<data_type>'
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            
+            #check for identifiers or errors, figure this part out too
+            errors[currToken] = 'either an error or an identifier lol'
+            currToken = ''
+            currState = 's0'
+
+        #iterating through chars
+        if (code[i] in transitions[currState]):
+            currToken += code[i]
+            currState = transitions[currState][code[i]]
+        else: #figure out this part
+            errors[currToken] = 'either an error or an identifier lol'
+            currToken = ''
+            currState = 's0'
+    
+    lexerResults = [tokens, errors] 
+    return lexerResults
+
+
 @app.route('/api/hello', methods=['GET'])
 def hello():
     return jsonify({'message': 'Hello from Flask!'})
@@ -12,7 +185,7 @@ def hello():
 def compile_code():
     data = request.json
     code = data.get('code', '')
-    return jsonify({'output': f'You submitted: {code}'})
+    return jsonify(extractTokens(code))
 
 if __name__ == '__main__':
     app.run(debug=True)

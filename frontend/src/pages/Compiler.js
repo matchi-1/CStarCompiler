@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import FileExplorer from '../components/FileExplorer'; 
 import TokenTables from '../components/TokenTables';
@@ -11,6 +11,9 @@ const CompilerPage = () => {
   const [output, setOutput] = useState('');
   const [isFilesVisible, setIsFilesVisible] = useState(false); 
   const [files, setFiles] = useState([]); 
+  const [lexerResults, setLexerResults] = useState([])
+  const [tokens, setTokens] = useState({})
+  const [errors, setErrors] = useState({})
 
   const onMount = (editor) => {
     editorRef.current = editor;
@@ -40,6 +43,27 @@ const CompilerPage = () => {
       setFiles([...files, { name: newFolder, type: 'folder' }]);
     }
   };
+
+//uesEffects
+useEffect(() => {
+  const fetchTokens = async() => {
+    const params = {
+      method:'POST',
+      headers: {
+          'Content-Type':'application/json' 
+      },
+      body: JSON.stringify({code})
+    };
+    var response = await fetch('http://127.0.0.1:5000/api/compile', params);
+    var data = await response.json();
+    setTokens(data[0]);
+    setErrors(data[1]);
+  }
+
+  const fetchTimer = setTimeout(fetchTokens, 50);
+  return () => clearTimeout(fetchTimer);
+}, [code])
+
 
   return (
     <div className="compiler-page">
@@ -74,7 +98,7 @@ const CompilerPage = () => {
             addFile={addFile} 
             addFolder={addFolder} 
           />
-          <TokenTables />
+          <TokenTables tokensRaw={tokens} errorsRaw={errors}/>
         </div>
       </div>
     </div>
