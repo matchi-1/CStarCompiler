@@ -6,8 +6,9 @@ const Terminal = ({ logs }) => {
     <div className="terminal">
       <div className="tab-containers">
         <div className="tab-item">
-            <p>{/*compiler logs*/}</p>
+            <p>compiler logs</p>
         </div>
+        <div className="tab-filler"></div>
       </div>
       <div className="terminal-body">
         <div className = "table-container">
