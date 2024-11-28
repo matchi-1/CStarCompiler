@@ -170,26 +170,35 @@ transitions = {
         # HELPER: alphanumeric:s420
     }
 }
-
 #---GRAPH HELPERS---
 #s420 -alphanumeric> s420
 for i in alphanumeric:
     transitions['s420'][i] = 's420'
 
-#---TOKEN EXTRACTION AND CLASSIFICATION---
-def extractTokens(code):
+#---TOKEN EXTRACTION AND CLASSIFICATION---\
+def lexer(code):
     code = code.replace('\r\n', '\n')
     for char in code:
         print(f'(debug) {char} : {ord(char)}')
-    tokens = [] #tokens dict [token:tokenType]
-    errors = [] #NOTE: CANNOT!! BE DICT, IT PREVENTS DUPLICATES (it slipped my mind :sob:)
+    tokens = [] #will hold token, tokentype tuple
+    errors = [] #whill hold strings of error msges
     currToken = ''
     currState = 's0'
-
+    lineContent = ''
+    currLine = 1
+    currCol = 1
     for i in range(len(code)): #need index for fuckery later
         print('(dbg) state: ', currState)
         print('(dbg) ', code[i])
         print('(dbg) ascii: ', ord(code[i]))
+        #update line and col
+        if (code[i] == '\n'): 
+            currLine += 1
+            currCol = 1
+            lineContent = ''
+        else:
+            currCol += 1
+            lineContent += code[i]
         #if no transitions, it means it's time for delim checking
         if (currState not in transitions):
             #data type keywords
@@ -206,18 +215,17 @@ def extractTokens(code):
                     continue
                 else:
                     currToken += code[i]
-                    errors.append((currToken, 'Incorrect delimiter'))
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                     currToken = ''
                     currState = 's0'
                     continue
-
         #identifier state
         if (currState == 's420'):
             print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
                 print('(dbg) correct delim')
                 if (currToken[0] not in alphabetic_chars): #check first if first character is ok
-                    errors.append((currToken, 'Identifier should start with alpha'))
+                    errors.append(idenFirstError(currToken, currLine, currCol, lineContent))
                     currToken = ''
                     currState = 's0'
                     continue
@@ -231,14 +239,24 @@ def extractTokens(code):
                     continue
             else:
                 currToken += code[i]
-                errors.append((currToken, 'Incorrect delimiter')) #can be expanded with conditions to check what error
+                # errors.append((currToken, f'Lexical Error: In line {currLine}, column {currCol-len(currToken)}; Unexpected \'{code[i]}\' for \'{currToken[:-1]}\'')) #can be expanded with conditions to check what error
+                errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                 currToken = ''
                 currState = 's0'
                 continue
     
         #iterating through chars
-        if (code[i] == ' ' or code[i] == '\n'):
+        #check whitespaces
+        if (code[i] == ' '):
+            tokens.append(('\' \' ', 'Space'))
             continue
+        if (code[i] == '\n'):
+            tokens.append(('\\n', 'New line'))
+            continue
+        if (code[i] == '\t'):
+            tokens.append(('   ', 'Tab'))
+            continue
+        #check states
         if (code[i] in transitions[currState]):
             currToken += code[i]
             currState = transitions[currState][code[i]]
@@ -249,6 +267,19 @@ def extractTokens(code):
     lexerResults = [tokens, errors] 
     return lexerResults
 
+#---LEXER HELPER---
+def delimError(currToken, currLine, currCol, incorrectDelim, lineContent):
+    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Unexpected \'{incorrectDelim}\' for \'{currToken}\'\n' 
+    errorMsg += lineContent +'\n'
+    errorMsg += '_'*(currCol-len(currToken)-1) + '^'
+    print("(debug) ", errorMsg)
+    return errorMsg
+def idenFirstError(currToken, currLine, currCol, lineContent):
+    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Identifier {currToken} must start with an alpha character\n'
+    errorMsg += lineContent + '\n'
+    errorMsg += '_'*(currCol-len(currToken)-1) + '^'
+    print("(debug) ", errorMsg)
+    return errorMsg
 #---FLASK ROUTES---
 @app.route('/api/hello', methods=['GET'])
 def hello():
@@ -258,9 +289,9 @@ def hello():
 def compile_code():
     data = request.json
     code = data.get('code', '')
-    lexres = extractTokens(code)
+    lexres = lexer(code)
     # print(lexres)
     return jsonify(lexres)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 
