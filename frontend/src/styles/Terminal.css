@@ -41,7 +41,7 @@
 
 .table-container{
     width: 100%;
-    height: 300px;
+    height: 245px;
     overflow-y: auto; 
     font-family: 'JetBrains Mono', monospace;
 }
@@ -52,8 +52,8 @@ table {
 }
 
 td {
-    padding: 10px;
-    font-size: 12px;
+    padding: 1rem;
+    font-size: 0.8rem;
     border-bottom: 1px solid #162643;
     white-space: pre-line;
     line-height: 1rem;

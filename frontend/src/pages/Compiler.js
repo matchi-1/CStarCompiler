@@ -15,25 +15,6 @@ const CompilerPage = () => {
   const [lexerResults, setLexerResults] = useState([])
   const [tokens, setTokens] = useState([])
   const [errorLogs, setErrors] = useState([])
-  
-  // SAMPLE ERRORS -- pls remove
-  // const errorLogs = [
-  //   'Error: Cannot find module "fs"\n\n \tsajdadjsdaj',
-  //   'Warning: Unused variable "x"',
-  //   'Error: SyntaxError: Unexpected token',
-  //   'Warning: Deprecated API usage',
-  //   'Error: Failed to compile',
-  //   'Error: Cannot find module "fs"',
-  //   'Warning: Unused variable "x"',
-  //   'Error: SyntaxError: Unexpected token',
-  //   'Warning: Deprecated API usage',
-  //   'Error: Failed to compile',
-  //   'Error: Cannot find module "fs"',
-  //   'Warning: Unused variable "x"',
-  //   'Error: SyntaxError: Unexpected token',
-  //   'Warning: Deprecated API usage',
-  //   'Error: Failed to compile'
-  // ];
 
   const onMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -44,7 +25,7 @@ const CompilerPage = () => {
       base: 'vs-dark', // Base theme (dark mode)
       inherit: true,
       rules: [
-        { token: '', background: '1E1E3F', foreground: 'FFFFFF' },
+        { token: '', background: '181F39', foreground: 'A1ADD5' },
         { token: 'comment', foreground: '5C6370', fontStyle: 'italic' },
         { token: 'keyword', foreground: '569CD6' },
         { token: 'number', foreground: 'B5CEA8' },
@@ -52,8 +33,8 @@ const CompilerPage = () => {
         { token: 'variable', foreground: '9CDCFE' },
       ],
       colors: {
-        'editor.background': '#1E1E3F',
-        'editor.foreground': '#FFFFFF',
+        'editor.background': '#181F39',
+        'editor.foreground': '#A1ADD5',
         'editorLineNumber.foreground': '#858585',
         'editorCursor.foreground': '#A7A7A7',
       },
