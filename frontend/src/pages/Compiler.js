@@ -27,7 +27,7 @@ const CompilerPage = () => {
   };    
 
   const toggleFiles = () => {
-    setIsFilesVisible(!isFilesVisible); // Toggle visibility when Files button is clicked
+    //setIsFilesVisible(!isFilesVisible); // Toggle visibility when Files button is clicked
   };
 
   const addFile = () => {

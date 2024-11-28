@@ -61,9 +61,9 @@ iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|
 closing_delim = arithmetic_operator + relational_operator + whitespace + ['&', '|']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator[',', ')', ']', '}', '=']
+num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=']
 string_delim = newline_delim + ['+', ';']
-bool_delim = whitespace + logical_operator [';', ',', ')', '=', '!']
+bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!']
 
 # control flow delim
 loop_delim = newline_delim+['(']
@@ -73,7 +73,7 @@ block_delim = newline_delim+['{']
 func_delim = newline_delim + ['(']
 
 # other delim
-single_delim = NULL + newline
+single_delim = newline
 comment_delim = ascii + whitespace
 
 
