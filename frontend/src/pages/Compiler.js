@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import FileExplorer from '../components/FileExplorer'; 
 import TokenTables from '../components/TokenTables';
-import MonacoEditor from '@monaco-editor/react';
+import MonacoEditor, { loader } from '@monaco-editor/react';
 import Terminal from '../components/Terminal';
 import '../styles/Compiler.css';
 
@@ -35,11 +35,34 @@ const CompilerPage = () => {
   //   'Error: Failed to compile'
   // ];
 
-  const onMount = (editor) => {
+  const onMount = (editor, monaco) => {
     editorRef.current = editor;
     editor.focus();
+  
+    // Define and apply the custom theme
+    const blueTheme = {
+      base: 'vs-dark', // Base theme (dark mode)
+      inherit: true,
+      rules: [
+        { token: '', background: '1E1E3F', foreground: 'FFFFFF' },
+        { token: 'comment', foreground: '5C6370', fontStyle: 'italic' },
+        { token: 'keyword', foreground: '569CD6' },
+        { token: 'number', foreground: 'B5CEA8' },
+        { token: 'string', foreground: 'D69D85' },
+        { token: 'variable', foreground: '9CDCFE' },
+      ],
+      colors: {
+        'editor.background': '#1E1E3F',
+        'editor.foreground': '#FFFFFF',
+        'editorLineNumber.foreground': '#858585',
+        'editorCursor.foreground': '#A7A7A7',
+      },
+    };
+  
+    monaco.editor.defineTheme('blue-theme', blueTheme);
+    monaco.editor.setTheme('blue-theme'); // Apply the theme
   };
-
+  
 
   const handleCompile = () => {
     const compiledOutput = code.split('').reverse().join('');
@@ -95,9 +118,8 @@ useEffect(() => {
         {/* Monaco Editor */}
         <div className="compiler-content">
           <MonacoEditor
-            height="65%" 
-            language="javascript" 
-            theme="vs-dark"
+            height="65%"
+            language="javascript"
             value={code}
             onChange={(value) => setValue(value)}
             onMount={onMount}
@@ -105,12 +127,10 @@ useEffect(() => {
               selectOnLineNumbers: true,
               minimap: {
                 enabled: false,
-                },
+              },
             }}
           />
           <Terminal logs = {errorLogs}/>
-
-
         </div>
 
         {/* Right-side content for file explorer and token tables */}

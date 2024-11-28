@@ -56,7 +56,7 @@ td {
     font-size: 12px;
     border-bottom: 1px solid #162643;
     white-space: pre-line;
-    line-height: 14x;
+    line-height: .5rem;
 }
 
 tr:hover {
