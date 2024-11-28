@@ -18,7 +18,6 @@ const darkBlue = "#080e2e";
 
 const RightSegment = (props) => {
   var tokens = props.tokens
-  var errors = props.errors
   console.log(tokens)
   return (
     <div
@@ -74,12 +73,12 @@ const RightSegment = (props) => {
           </tr>
         </thead>
         <tbody>
-          {errors.map(([error, errorType], index) => (
+          {/* {errors.map(([error, errorType], index) => (
             <tr key={index}>
               <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{error}</td>
               <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{errorType}</td>
             </tr>
-          ))}
+          ))} */}
         </tbody>
       </table>
     </div>
