@@ -14,32 +14,32 @@ const CompilerPage = () => {
   const [files, setFiles] = useState([]); 
   const [lexerResults, setLexerResults] = useState([])
   const [tokens, setTokens] = useState([])
-  const [errorLogs, setErrors] = useState([])
-
+  const [errors, setErrors] = useState([])
+  
   // SAMPLE ERRORS -- pls remove
-  // const errorLogs = [
-  //   'Error: Cannot find module "fs"\n\n \tsajdadjsdaj',
-  //   'Warning: Unused variable "x"',
-  //   'Error: SyntaxError: Unexpected token',
-  //   'Warning: Deprecated API usage',
-  //   'Error: Failed to compile',
-  //   'Error: Cannot find module "fs"',
-  //   'Warning: Unused variable "x"',
-  //   'Error: SyntaxError: Unexpected token',
-  //   'Warning: Deprecated API usage',
-  //   'Error: Failed to compile',
-  //   'Error: Cannot find module "fs"',
-  //   'Warning: Unused variable "x"',
-  //   'Error: SyntaxError: Unexpected token',
-  //   'Warning: Deprecated API usage',
-  //   'Error: Failed to compile'
-  // ];
+  const errorLogs = [
+    'Error: Cannot find module "fs"\n\n \tsajdadjsdaj',
+    'Warning: Unused variable "x"',
+    'Error: SyntaxError: Unexpected token',
+    'Warning: Deprecated API usage',
+    'Error: Failed to compile',
+    'Error: Cannot find module "fs"',
+    'Warning: Unused variable "x"',
+    'Error: SyntaxError: Unexpected token',
+    'Warning: Deprecated API usage',
+    'Error: Failed to compile',
+    'Error: Cannot find module "fs"',
+    'Warning: Unused variable "x"',
+    'Error: SyntaxError: Unexpected token',
+    'Warning: Deprecated API usage',
+    'Error: Failed to compile'
+  ];
 
   const onMount = (editor, monaco) => {
     editorRef.current = editor;
     editor.focus();
   
-    // Define and apply the custom theme
+    // MONACO CUSTOM BLUE THEME (TEST -- WE NEED TO REGISTER OUR PL FIRST B4 WE CAN CUSTOMIZE THIS SATIN)
     const blueTheme = {
       base: 'vs-dark', // Base theme (dark mode)
       inherit: true,
@@ -141,7 +141,7 @@ useEffect(() => {
             addFile={addFile} 
             addFolder={addFolder} 
           />*/}
-          <TokenTables tokens={tokens}/>
+          <TokenTables tokens={tokens} errors={errors}/>
         </div>
       </div>
     </div>
