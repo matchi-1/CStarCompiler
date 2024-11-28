@@ -5,7 +5,7 @@ const Sidebar = ({ toggleFiles }) => {
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
-        <img src="/assets/CStarLogo.png" alt="Logo" />
+        <img src="/assets/CStarLogo1.png" alt="Logo" />
       </div>
 
       <div className="sidebar-item" onClick={toggleFiles}>

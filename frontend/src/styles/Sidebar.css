@@ -1,9 +1,13 @@
 :root {
+  --terminal-blue: #0D1329;
   --sideBar-blue: #13182D;
   --header-blue: #0D1222;
   --body-blue: #181F39;
+  --font-darkerLightBlue: #626D9E;
+  --table-darkBlueLine: #162643;
   --gradient-start: #ffffff;
   --gradient-end: #07306A;
+  --outline-lightBlue: #5F70A9;
   --sidebar-width: 3.3rem;
 }
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import FileExplorer from '../components/FileExplorer'; 
-import TokenTables from '../components/TokenTables';
+import AnalyzerSegment from '../components/AnalyzerSegment';
 import MonacoEditor, { loader } from '@monaco-editor/react';
 import Terminal from '../components/Terminal';
 import '../styles/Compiler.css';
@@ -122,7 +122,7 @@ useEffect(() => {
             addFile={addFile} 
             addFolder={addFolder} 
           />*/}
-          <TokenTables tokens={tokens}/>
+          <AnalyzerSegment tokens={tokens}/>
         </div>
       </div>
     </div>
