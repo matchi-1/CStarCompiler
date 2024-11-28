@@ -5,18 +5,77 @@ app = Flask(__name__)
 CORS(app)  # cross-origin requests
 
 #---DEFINITIONS---
-type_iden_delim = [')', ' ', '\n']
-alphabetic_chars = [
-    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
-    "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
-    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", 
-    "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
-]
-newline_delim = [' ', '\n']
-iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';'] + newline_delim
-numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-alphanumeric = alphabetic_chars + numbers
 NULL = ''
+whitespace = [' ']
+
+ # alphabet characters
+alpha_small = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+alpha_capital = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", 
+"N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+alphabetic_chars = alpha_small+alpha_capital
+
+# numbers
+zero = ['0']
+digit = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+numbers = zero + digit
+
+# alphanum and special symbols
+alphanumeric = alphabetic_chars + numbers
+punc_symbols = ['@', '#', '$', '^', '"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';']
+escape_seq = ['\'', '\"', '\\', '\t', '\b', '\n']
+format_spec = ['%c', '%s', '%d', '%ld', '%f', '%lf']
+ascii = alphanumeric+punc_symbols
+
+# data types
+data_type = ['int', 'bool', 'string', 'float', 'double', 'char', 'long', 'void']
+
+# operators
+arithmetic_operator = ['+', '-', '*', '/', '%']
+relational_operator = ['>', '<', '==', '<=', '>=', '!=']
+logical_operator = ['!', '&&', '||']
+unary_operator = ['++', '-']
+assignment_operator = ['=', '+=', '-=', '*=', '/=']
+
+# others
+boolean = ['true', 'false']
+comment = ['//', '/*', '*/']
+
+#---DELIMETERS---
+# escape sequence delim
+newline = ['\n']
+
+# reserved symbols delim
+plaintext_delim = whitespace + alphanumeric
+equal_delim = whitespace + ['=']
+arithmetic_delim = plaintext_delim + ['(']
+str_lit_delim = whitespace + ['+', ')', ',', ';']
+newline_delim = [' ', '\n']
+index_delim = [']'] + digit
+default_delim = newline_delim + [':']
+type_iden_delim = [')', ' ', '\n']
+get_set_delim = newline_delim + ['{', ';']
+
+# identifier delim
+iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';'] + newline_delim
+closing_delim = arithmetic_operator + relational_operator + whitespace + ['&', '|']
+
+# literals delim
+num_delim = arithmetic_operator + whitespace + relational_operator[',', ')', ']', '}', '=']
+string_delim = newline_delim + ['+', ';']
+bool_delim = whitespace + logical_operator [';', ',', ')', '=', '!']
+
+# control flow delim
+loop_delim = newline_delim+['(']
+block_delim = newline_delim+['{']
+
+# methods delim
+func_delim = newline_delim + ['(']
+
+# other delim
+single_delim = NULL + newline
+comment_delim = ascii + whitespace
+
 
 #---TOKEN STATES---
 data_type = ['BOOL_CHECK', 'CHAR_CHECK', 'DOUBLE_CHECK', 'FLOAT_CHECK', 'INT_CHECK', 'LONG_CHECK', 'STRING_CHECK']
@@ -111,6 +170,7 @@ transitions = {
         # HELPER: alphanumeric:s420
     }
 }
+
 #---GRAPH HELPERS---
 #s420 -alphanumeric> s420
 for i in alphanumeric:
