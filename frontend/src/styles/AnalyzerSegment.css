@@ -102,7 +102,7 @@
   .analyzer-table-container {
     background-color: var(--body-blue); /* Original background color */
     padding: 0.8rem;
-    height: 37rem;
+    height: 81vh;
     width: 18rem;
     border-radius: 0.5rem;
     position: relative;
