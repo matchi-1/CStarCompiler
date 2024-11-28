@@ -118,6 +118,9 @@ for i in alphanumeric:
 
 #---TOKEN EXTRACTION AND CLASSIFICATION---
 def extractTokens(code):
+    code = code.replace('\r\n', '\n')
+    for char in code:
+        print(f'(debug) {char} : {ord(char)}')
     tokens = [] #tokens dict [token:tokenType]
     errors = [] #NOTE: CANNOT!! BE DICT, IT PREVENTS DUPLICATES (it slipped my mind :sob:)
     currToken = ''
@@ -126,6 +129,7 @@ def extractTokens(code):
     for i in range(len(code)): #need index for fuckery later
         print('(dbg) state: ', currState)
         print('(dbg) ', code[i])
+        print('(dbg) ascii: ', ord(code[i]))
         #if no transitions, it means it's time for delim checking
         if (currState not in transitions):
             #data type keywords
