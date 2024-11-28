@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import FileExplorer from '../components/FileExplorer'; 
 import TokenTables from '../components/TokenTables';
 import MonacoEditor from '@monaco-editor/react';
+import Terminal from '../components/Terminal';
 import '../styles/Compiler.css';
 
 const CompilerPage = () => {
@@ -14,6 +15,25 @@ const CompilerPage = () => {
   const [lexerResults, setLexerResults] = useState([])
   const [tokens, setTokens] = useState([])
   const [errors, setErrors] = useState([])
+
+  // SAMPLE ERRORS -- pls remove
+  const errorLogs = [
+    'Error: Cannot find module "fs"',
+    'Warning: Unused variable "x"',
+    'Error: SyntaxError: Unexpected token',
+    'Warning: Deprecated API usage',
+    'Error: Failed to compile',
+    'Error: Cannot find module "fs"',
+    'Warning: Unused variable "x"',
+    'Error: SyntaxError: Unexpected token',
+    'Warning: Deprecated API usage',
+    'Error: Failed to compile',
+    'Error: Cannot find module "fs"',
+    'Warning: Unused variable "x"',
+    'Error: SyntaxError: Unexpected token',
+    'Warning: Deprecated API usage',
+    'Error: Failed to compile'
+  ];
 
   const onMount = (editor) => {
     editorRef.current = editor;
@@ -75,7 +95,7 @@ useEffect(() => {
         {/* Monaco Editor */}
         <div className="compiler-content">
           <MonacoEditor
-            height="100%" 
+            height="65%" 
             language="javascript" 
             theme="vs-dark"
             value={code}
@@ -88,16 +108,19 @@ useEffect(() => {
                 },
             }}
           />
+          <Terminal logs = {errorLogs}/>
+
+
         </div>
 
         {/* Right-side content for file explorer and token tables */}
         <div className="right-segment">
-          <FileExplorer 
+          {/*<FileExplorer 
             isVisible={isFilesVisible} 
             files={files} 
             addFile={addFile} 
             addFolder={addFolder} 
-          />
+          />*/}
           <TokenTables tokens={tokens} errors={errors}/>
         </div>
       </div>

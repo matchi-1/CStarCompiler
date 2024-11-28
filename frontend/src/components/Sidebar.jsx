@@ -1,12 +1,10 @@
 import React from 'react';
 import '../styles/Sidebar.css';
 
-const darkBlue = "#080e2e";
-
 const Sidebar = ({ toggleFiles }) => {
   return (
     <div className="sidebar">
-      <div className="sidebar-item">
+      <div className="sidebar-logo">
         <img src="/assets/CStarLogo.png" alt="Logo" />
       </div>
 

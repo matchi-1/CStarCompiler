@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+:root {
+    --terminal-blue: #0D1329;
+    --sideBar-blue: #13182D;
+    --header-blue: #0D1222;
+    --body-blue: #181F39;
+    --gradient-start: #ffffff;
+    --gradient-end: #07306A;
+}
+
+.terminal {
+    width: 100%;
+    height: 100%;
+    background-color: var(--terminal-blue);
+    color: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tab-containers {
+    height: 25px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--sideBar-blue);
+}
+
+.tab-item {
+    background-color: var(--terminal-blue);
+    width: 100px;
+    height: 100%;
+}
+
+.terminal-body {
+    width: 100%;
+    height: 100%; 
+}
+
+.table-container{
+    width: 100%;
+    height: 300px;
+    overflow-y: auto; 
+    font-family: 'JetBrains Mono', monospace;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+td {
+    padding: 10px;
+    font-size: 12px;
+    border-bottom: 1px solid #162643;
+}
+
+tr:hover {
+    background-color: var(--header-blue);
+}

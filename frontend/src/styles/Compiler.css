@@ -8,17 +8,11 @@
   }
 
   
-  .sidebar-item:hover {
-    background-color: #22194a; 
-  }
-  
   .compiler-main-container {
     display: flex;
     flex-direction: row;
     flex-grow: 1;
   }
-
-
 
   .compiler-content {
     flex-grow: 1;
@@ -28,13 +22,6 @@
     overflow: hidden;
   }
   
-
-.sidebar-container{
-    width: 55px; 
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
 .right-segment {
     width: 320px;
     background-color: #222;
