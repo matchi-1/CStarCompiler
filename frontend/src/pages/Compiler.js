@@ -18,7 +18,7 @@ const CompilerPage = () => {
 
   // SAMPLE ERRORS -- pls remove
   const errorLogs = [
-    'Error: Cannot find module "fs"',
+    'Error: Cannot find module "fs"\n\n \tsajdadjsdaj',
     'Warning: Unused variable "x"',
     'Error: SyntaxError: Unexpected token',
     'Warning: Deprecated API usage',
