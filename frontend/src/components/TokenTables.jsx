@@ -3,19 +3,23 @@ import React from 'react';
 const darkBlue = "#080e2e";
 
 // Sample Data
-const tokens = [
-  { lexeme: 'let', token: 'Keyword' },
-  { lexeme: 'x', token: 'Identifier' },
-  { lexeme: '=', token: 'Operator' },
-  { lexeme: '10', token: 'Literal' },
-];
+// const tokens = [
+//   { lexeme: 'let', token: 'Keyword' },
+//   { lexeme: 'x', token: 'Identifier' },
+//   { lexeme: '=', token: 'Operator' },
+//   { lexeme: '10', token: 'Literal' },
+// ];
 
-const errors = [
-  { lexeme: 'x', error: 'Unexpected token x' },
-  { lexeme: '=', error: 'Assignment without declaration' },
-];
+// const errors = [
+//   { lexeme: 'x', error: 'Unexpected token x' },
+//   { lexeme: '=', error: 'Assignment without declaration' },
+// ];
 
-const RightSegment = () => {
+
+const RightSegment = (props) => {
+  var tokens = props.tokens
+  var errors = props.errors
+  console.log(tokens)
   return (
     <div
       className="right-segment"
@@ -47,10 +51,10 @@ const RightSegment = () => {
           </tr>
         </thead>
         <tbody>
-          {tokens.map((token, index) => (
+          {tokens.map(([token, tokenType], index) => (
             <tr key={index}>
-              <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{token.lexeme}</td>
-              <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{token.token}</td>
+              <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{token}</td>
+              <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{tokenType}</td>
             </tr>
           ))}
         </tbody>
@@ -70,10 +74,10 @@ const RightSegment = () => {
           </tr>
         </thead>
         <tbody>
-          {errors.map((error, index) => (
+          {errors.map(([error, errorType], index) => (
             <tr key={index}>
-              <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{error.lexeme}</td>
-              <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{error.error}</td>
+              <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{error}</td>
+              <td style={{ padding: '8px', borderBottom: '1px solid #444' }}>{errorType}</td>
             </tr>
           ))}
         </tbody>
