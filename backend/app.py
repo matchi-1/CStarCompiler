@@ -79,101 +79,166 @@ comment_delim = ascii + whitespace
 
 #---TOKEN STATES---
 data_type = ['BOOL_CHECK', 'CHAR_CHECK', 'DOUBLE_CHECK', 'FLOAT_CHECK', 'INT_CHECK', 'LONG_CHECK', 'STRING_CHECK']
-
+builtin_func = ['ABS_CHECK', 'ARR_FORITEMS_CHECK', 'ARR_LENGTH_CHECK']
 #---GRAPH TRANSITIONS---
 transitions = {
     's0':{
-        'b':'s45',
-        'c':'s55',
-        'd':'s126',
-        'f':'s155',
-        'i':'s183',
-        'l':'s200',
-        's':'s297'
+	  'a':'s1',
+        'b':'s24',
+        'c':'s34',
+        'd':'s97',
+        'f':'s117',
+        'i':'s138',
+        'l':'s155',
+        's':'s233'
     },
-    's45':{
-        'o':'s46'
+    's1':{
+        'b':'s2',
+	  'r':'s5'
     },
-    's46':{
-        'o':'s47'
+    's2':{
+        's':'ABS_CHECK'
     },
-    's47':{
+    's5':{
+        'r':'s6'
+    },
+    's6':{
+        '_':'s7'
+    },
+    's7':{
+        'f':'s8',
+        'l':'s17'
+    },
+    's8':{
+        'o':'s9'
+    },
+    's9':{
+        'r':'s10'
+    },
+    's10':{
+        'I':'s11'
+    },
+    's11':{
+        't':'s12'
+    },
+    's12':{
+        'e':'s13'
+    },
+    's13':{
+        'm':'s14'
+    },
+    's14':{
+        's':'ARR_FORITEMS_CHECK'
+    },
+    's17':{
+        'e':'s18'
+    },
+    's18':{
+        'n':'s19'
+    },
+    's19':{
+        'g':'s20'
+    },
+    's20':{
+        't':'s21'
+    },
+    's21':{
+        'h':'ARR_LENGTH_CHECK'
+    },
+    's24':{
+        'o':'s25',
+        'r':'s29'
+    },
+    's25':{
+        'o':'s26'
+    },
+    's26':{
         'l':'BOOL_CHECK'
     },
-    's55':{
-        'h':'s68'
+    's29':{
+        'e':'s30'
     },
-    's68':{
-        'a':'s69'
+    's30':{
+        'a':'s31'
     },
-    's69':{
+    's31':{
+        'k':'BREAK_CHECK'
+    },
+    's34':{
+        'h':'s43'
+    },
+    's43':{
+        'a':'s44'
+    },
+    's44':{
         'r':'CHAR_CHECK'  
     },
-    's126':{
-        'o':'s139'
+    's97':{
+        'o':'s105'
     },
-    's139':{
-        'u':'s141'
+    's105':{
+        'u':'s107'
     },
-    's141':{
-        'b':'s142'
+    's107':{
+        'b':'s108'
     },
-    's142':{
-        'l':'s143'
+    's108':{
+        'l':'s109'
     },
-    's143':{
+    's109':{
         'e':'DOUBLE_CHECK'  
     },
-    's155':{
-        'l':'s161'
+    's117':{
+        'l':'s123'
     },
-    's161':{
-        'o':'s162'
+    's123':{
+        'o':'s124'
     },
-    's162':{
-        'a':'s163'
+    's124':{
+        'a':'s125'
     },
-    's163':{
+    's125':{
         't':'FLOAT_CHECK'
     },
-    's183':{
-        'n':'s192'
+    's138':{
+        'n':'s147'
     },
-    's192':{
+    's147':{
         't':'INT_CHECK'
     },
-    's200':{
-        'o':'s201'
+    's155':{
+        'o':'s156'
     },
-    's201':{
-        'n':'s202'
-    },'s202':{
+    's156':{
+        'n':'s157'
+    },'s157':{
         'g':'LONG_CHECK'
     },
-    's297':{
-        't':'s305'
+    's233':{
+        't':'s241'
     },
-    's305':{
-        'r':'s311'
+    's241':{
+        'r':'s247'
     },
-    's311':{
-        'i':'s372'
+    's247':{
+        'i':'s308'
     },
-    's372':{
-        'n':'s373'
+    's308':{
+        'n':'s309'
     },
-    's373':{
+    's309':{
         'g':'STRING_CHECK'
     },
-    's420':{
-        '_':'s420'
-        # HELPER: alphanumeric:s420
+    's421':{
+        '_':'s421'
+        # HELPER: alphanumeric:s421
     }
 }
+
 #---GRAPH HELPERS---
-#s420 -alphanumeric> s420
+#s421 -alphanumeric> s421
 for i in alphanumeric:
-    transitions['s420'][i] = 's420'
+    transitions['s421'][i] = 's421'
 
 #---TOKEN EXTRACTION AND CLASSIFICATION---\
 def lexer(code):
@@ -188,6 +253,7 @@ def lexer(code):
     currLine = 1
     currCol = 1
     for i in range(len(code)): #need index for fuckery later
+        print('(dbg) ---NEW CHAR---')
         print('(dbg) state: ', currState)
         print('(dbg) ', code[i])
         print('(dbg) ascii: ', ord(code[i]))
@@ -210,7 +276,43 @@ def lexer(code):
                     continue
                 elif (code[i] in alphanumeric or code[i] == '_'):
                     currToken += code[i]
-                    currState ='s420'
+                    currState ='s421'
+                    print('(dbg) now in state 420')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            #built-in funcs spit out as identifiers 
+            if (currState in builtin_func):
+                if (code[i] in func_delim):
+                    tokens.append((currToken, 'Identifier'))
+                    currToken = ''
+                    currState = 's0'
+                    continue
+                elif (code[i] in alphanumeric or code[i] == '_'):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 420')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            #break statement
+            if (currState in 'BREAK_CHECK'):
+                if (code[i] in func_delim):
+                    tokens.append((currToken, 'break'))
+                    currToken = ''
+                    currState = 's0'
+                    continue
+                elif (code[i] in alphanumeric or code[i] == '_'):
+                    currToken += code[i]
+                    currState ='s421'
                     print('(dbg) now in state 420')
                     continue
                 else:
@@ -220,22 +322,18 @@ def lexer(code):
                     currState = 's0'
                     continue
         #identifier state
-        if (currState == 's420'):
+        if (currState == 's421'):
             print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
                 print('(dbg) correct delim')
-                if (currToken[0] not in alphabetic_chars): #check first if first character is ok
-                    errors.append(idenFirstError(currToken, currLine, currCol, lineContent))
-                    currToken = ''
-                    currState = 's0'
-                    continue
                 tokens.append((currToken, 'Identifier'))
                 currToken = ''
                 currState = 's0'
                 continue
             elif (code[i] in alphanumeric or code[i] == '_'): #if not delim but still valid, keep looping
                     currToken += code[i]
-                    currState ='s420'
+                    print('(dbg) accepted for iden')
+                    currState ='s421'
                     continue
             else:
                 currToken += code[i]
@@ -253,16 +351,40 @@ def lexer(code):
         if (code[i] == '\n'):
             tokens.append(('\\n', 'New line'))
             continue
-        if (code[i] == '\t'):
-            tokens.append(('   ', 'Tab'))
-            continue
         #check states
         if (code[i] in transitions[currState]):
             currToken += code[i]
             currState = transitions[currState][code[i]]
+            continue
         else: #if not in s0 transitions assume identifier, go to state 420
-            currToken += code[i]
-            currState = 's420'
+            print("(dbg) entering s421")
+            if (currState == 's0'):
+                if (code[i] in alphabetic_chars or code[i] == '_'):
+                    currToken += code[i]
+                    currState = 's421'
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+                    continue
+            else:
+                if (code[i] in alphanumeric or code[i] == '_'):
+                    currToken += code[i]
+                    currState = 's421'
+                    continue
+                elif (code[i] in iden_delim): #check delim
+                    tokens.append((currToken, 'Identifier'))
+                    currToken = ''
+                    currState = 's0'
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+                    continue
     
     lexerResults = [tokens, errors] 
     return lexerResults
