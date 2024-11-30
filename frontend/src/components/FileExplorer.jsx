@@ -12,12 +12,18 @@ const FileExplorer = ({ isVisible, files, addFile, addFolder, toggleFiles }) => 
       </button>
 
       <div className="file-explorer-header">
-        <h3>EXPLORER</h3>
-        <h3>X</h3>
+        <p>EXPLORER</p>
+        <p>X</p>
       </div>
-
-      <button onClick={addFile}>Add File</button>
-      <button onClick={addFolder}>Add Folder</button>
+      <div className="files-menu-container">
+        <p>Your Files</p>
+        <div className="files-menu-btns-containter">
+          <img src="/assets/upload.png" alt="Upload Files" />
+          <img src="/assets/new-document.png" alt="New Document" />
+          <img src="/assets/new-folder.png" alt="New Folder" />
+          <img src="/assets/refresh.png" alt="Refresh" />
+        </div>
+      </div>
       <div className="file-explorer-content">
         {files.length === 0 ? (
           <p>No files or folders available</p>

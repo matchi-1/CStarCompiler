@@ -4,11 +4,14 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: 300px;
+    width: 13.5rem;
     background-color: var(--tabFiles-blue);
     color: white;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
+    border-right: 1px solid var(--font-darkerLightBlue);
+    font-family: 'Inter', sans-serif;
+    color: var(--font-darkerLightBlue);
     z-index: 1000;
   }
   
@@ -16,37 +19,54 @@
     transform: translateX(0);
   }
   
+  .file-explorer-header, .files-menu-container, .files-menu-btns-containter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
   /* Header styles */
   .file-explorer-header {
     height: 1.5rem;
     background-color: var(--sideBar-blue);
     border-bottom: 1px solid var(--table-darkBlueLine);
-    font-family: 'Inter', sans-serif;
     font-weight: lighter;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
     justify-content: space-between;
-    padding: 0.5rem 1rem;
-    color: var(--font-lightBlue);
+    padding: 0.35rem 1rem;
+    cursor: default;
   }
 
-  .file-explorer-header h3 {
+  .file-explorer-header p {
     font-size: 0.70rem;
     font-weight: normal;
     letter-spacing: 0.2rem;
   }
-  
-  
-  .file-explorer-header button {
-    margin-right: 5px;
-    padding: 5px 10px;
-    border: none;
-    background-color: #555;
-    color: white;
-    cursor: pointer;
-    border-radius: 4px;
+
+  .files-menu-container{
+    justify-content: space-between;
+    height: 1rem;
+    font-weight: normal;
+    font-size: 0.85em;
+    padding: 0.75rem 0.5rem 0.75rem 1rem;
+    cursor: default;
   }
+
+  .files-menu-btns-containter{
+    justify-content: space-around;
+    height: 100%;
+    width: 6.5rem;
+  }
+  .files-menu-btns-containter img{
+    height: 1rem;
+    width: auto;
+    cursor: pointer;
+  }
+
+  .files-menu-btns-containter img:hover{
+    filter: brightness(1000%) contrast(1000%);
+    transition: filter 0.3s ease;
+  }
+  
   
   .file-explorer-header button:hover {
     background-color: #777;
@@ -54,7 +74,7 @@
   
   /* Content styles */
   .file-explorer-content {
-    padding: 10px;
+    padding: 0.75rem 0.5rem 0.75rem 1rem;
   }
   
   .file-explorer-content ul {
@@ -73,7 +93,7 @@
   }
   
   .file-explorer-content p {
-    margin: 0;
+    font-size: 0.75rem;
   }
   
 
