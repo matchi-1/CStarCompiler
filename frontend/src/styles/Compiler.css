@@ -24,6 +24,12 @@
     overflow: hidden;
   }
 
+  .sidebar-container{
+    display: flex;
+    flex-direction: row;
+    
+  }
+
 
   /* File Explorer Sliding Effect */
 .file-explorer {
