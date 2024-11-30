@@ -80,9 +80,9 @@ const CompilerPage = () => {
         <FileTabs />
 
         <div className="compiler-content">
-          
+         
           <MonacoEditor
-            height="65%"
+            height="100%"
             language="javascript"
             value={code}
             onChange={(value) => setValue(value)}

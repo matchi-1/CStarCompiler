@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaFolder, FaFile } from 'react-icons/fa';
+import { FaFolder, FaFile, FaEdit, FaTrash } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io'; 
 import '../styles/FileExplorer.css';
 import { db, getDocs, collection } from '../firebaseConfig';  
@@ -10,6 +10,7 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
 
   const [files, setFiles] = useState([]); 
   const [fileData, setFileData] = useState([]);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   useEffect(() => {
     fetchFiles();
@@ -91,6 +92,22 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
     }
   };
 
+  const handleRename = (index) => {
+    const newName = prompt('Enter new name:', fileData[index].name);
+    if (newName && newName !== fileData[index].name) {
+      const updatedFiles = [...fileData];
+      updatedFiles[index].name = newName;
+      setFileData(updatedFiles);
+    }
+  };
+
+  const handleDelete = (index) => {
+    if (window.confirm(`Are you sure you want to delete "${fileData[index].name}"?`)) {
+      const updatedFiles = fileData.filter((_, i) => i !== index);
+      setFileData(updatedFiles);
+    }
+  };
+
   return (
     <div className={`file-explorer ${isVisible ? 'visible' : ''}`}>
       <div className="file-explorer-header">
@@ -137,9 +154,34 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
         ) : (
           <ul>
             {fileData.map((file, index) => (
-              <li key={index}>
-                {file.type === 'folder' ? <FaFolder size={12} /> : <FaFile size={12} />}
-                {file.name}
+              <li
+                key={index}
+                onMouseEnter={() => setHoveredIndex(index)} // Set hovered index
+                onMouseLeave={() => setHoveredIndex(null)} // Clear hovered index
+                className="file-item"
+              >
+                {file.type === 'folder' ? (
+                    <FaFolder size={12} />
+                  ) : (
+                    <img src="/assets/CStarLogo2.png" alt="Cstar" className="CStar-file-icon" />
+                  )}
+                  <span className="file-name">{file.name}</span>
+
+
+                {hoveredIndex === index && ( // Show buttons only if this file is hovered
+                  <span className="file-actions">
+                    <FaEdit 
+                      className="file-action-icon" 
+                      onClick={() => handleRename(index)} 
+                      title="Edit" 
+                    />
+                    <FaTrash 
+                      className="file-action-icon" 
+                      onClick={() => handleDelete(index)} 
+                      title="Delete" 
+                  />
+                </span>                
+                )}
               </li>
             ))}
           </ul>

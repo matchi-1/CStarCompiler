@@ -28,7 +28,7 @@
 
   /* Header styles */
   .file-explorer-header {
-    height: 1.5rem;
+    height: 1rem;
     background-color: var(--sideBar-blue);
     border-bottom: 1px solid var(--table-darkBlueLine);
     font-weight: lighter;
@@ -38,7 +38,7 @@
   }
 
   .file-explorer-header p {
-    font-size: 0.70rem;
+    font-size: 0.65rem;
     font-weight: normal;
     letter-spacing: 0.2rem;
   }
@@ -88,10 +88,59 @@
     color: var(--font-mediumLightBlue);
   }
   
-  .file-explorer-content li svg {
-    margin-right: 0.7rem;
+  .file-explorer-content li:hover{
+    background-color: var(--sideBar-blue);
+    color: var(--font-mediumLightBlue);
+  }
+
+  .file-explorer-content svg {
+    margin-right: 0.5rem;
+  }
+
+  .CStar-file-icon {
+    width: 0.85rem;
+    height:  0.85rem;
+    margin-right: 0.5rem;
   }
   
-  #explorer-collapse-btn{
+
+  .file-name {
+    width: 7rem; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    display: inline-block;
+  }
+  
+  .file-actions {
+    position: fixed;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-self: flex-end;
+    width: 2rem;
+    gap: 0.4rem;
+    margin-right: 1rem;
+  }
+
+  .file-actions svg {
+    margin-right: 0rem;
+  }
+  
+  .file-action-icon {
     cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--font-darkBlue); 
+    transition: color 0.1s;
+  }
+  
+  .file-action-icon:hover {
+    color: var(--font-mediumLightBlue);  /* Highlight color on hover */
+  }
+  
+  
+  #explorer-collapse-btn:hover{
+    cursor: pointer;
+    color: var(--font-mediumLightBlue);
   }

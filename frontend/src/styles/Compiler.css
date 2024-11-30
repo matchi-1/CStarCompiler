@@ -13,7 +13,6 @@
     flex-direction: column;
     flex-grow: 1;
     height: 100%;
-    transition: transform 0.3s ease-in-out;
   }
 
   .compiler-content {
