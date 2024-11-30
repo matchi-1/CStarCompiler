@@ -10,6 +10,8 @@ import '../styles/Compiler.css';
 
 const CompilerPage = () => {
   const editorRef = useRef();
+  const editorContainerRef = useRef();
+  const resizeObserver = useRef();
   const [code, setValue] = useState('');
   const [output, setOutput] = useState('');
   const [isFilesVisible, setIsFilesVisible] = useState(false); 
@@ -20,6 +22,13 @@ const CompilerPage = () => {
   const onMount = (editor, monaco) => {
     editorRef.current = editor;
     editor.focus();
+
+    if (editorContainerRef.current) {
+      resizeObserver.current = new ResizeObserver(() => {
+        editor.layout(); // Trigger layout update
+      });
+      resizeObserver.current.observe(editorContainerRef.current);
+    }
   
     // MONACO CUSTOM BLUE THEME (TEST -- WE NEED TO REGISTER OUR PL FIRST B4 WE CAN CUSTOMIZE THIS SATIN)
     const blueTheme = {
@@ -68,6 +77,15 @@ const CompilerPage = () => {
     return () => clearTimeout(fetchTimer);
   }, [code]);
 
+  // Cleanup ResizeObserver on unmount
+  useEffect(() => {
+    return () => {
+      if (resizeObserver.current) {
+        resizeObserver.current.disconnect();
+      }
+    };
+  }, []);
+
   return (
     <div className="compiler-page">
       <div className="sidebar-container">
@@ -79,7 +97,10 @@ const CompilerPage = () => {
         <Header editorRef={editorRef} />
         <FileTabs />
 
-        <div className="compiler-content">
+        <div
+          className="compiler-content"
+          ref={editorContainerRef} // Attach ref to the editor container
+        >
          
           <MonacoEditor
             height="100%"
@@ -88,6 +109,7 @@ const CompilerPage = () => {
             onChange={(value) => setValue(value)}
             onMount={onMount}
             options={{
+              automaticLayout: false,
               selectOnLineNumbers: true,
               minimap: {
                 enabled: false,
