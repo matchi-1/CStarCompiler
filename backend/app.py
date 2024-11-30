@@ -90,7 +90,10 @@ transitions = {
         'f':'s117',
         'i':'s138',
         'l':'s155',
-        's':'s233'
+        's':'s233',
+        '(':'OPEN_PAREN_CHECK',
+        ')':'CLOSING_PAREN_CHECK',
+        ';':'SEMICOLON_CHECK'
     },
     's1':{
         'b':'s2',
@@ -273,8 +276,7 @@ def lexer(code):
                     tokens.append((currToken, '<data_type>'))
                     currToken = ''
                     currState = 's0'
-                    continue
-                elif (code[i] in alphanumeric or code[i] == '_'):
+                elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
                     print('(dbg) now in state 420')
@@ -284,15 +286,13 @@ def lexer(code):
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                     currToken = ''
                     currState = 's0'
-                    continue
             #built-in funcs spit out as identifiers 
             if (currState in builtin_func):
                 if (code[i] in func_delim):
                     tokens.append((currToken, 'Identifier'))
                     currToken = ''
                     currState = 's0'
-                    continue
-                elif (code[i] in alphanumeric or code[i] == '_'):
+                elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
                     print('(dbg) now in state 420')
@@ -302,15 +302,13 @@ def lexer(code):
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                     currToken = ''
                     currState = 's0'
-                    continue
             #break statement
-            if (currState in 'BREAK_CHECK'):
-                if (code[i] in func_delim):
+            if (currState == 'BREAK_CHECK'):
+                if (code[i] in newline_delim + [';']):
                     tokens.append((currToken, 'break'))
                     currToken = ''
                     currState = 's0'
-                    continue
-                elif (code[i] in alphanumeric or code[i] == '_'):
+                elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
                     print('(dbg) now in state 420')
@@ -320,17 +318,53 @@ def lexer(code):
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                     currToken = ''
                     currState = 's0'
-                    continue
+            # ( symbol
+            if (currState == 'OPEN_PAREN_CHECK'):
+                if (code[i] in arithmetic_delim + ['\"', '!', ')']):
+                    tokens.append((currToken, '('))
+                    currToken = ''
+                    currState = 's0'
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # ) symbol
+            if (currState == 'CLOSING_PAREN_CHECK'):
+                if (code[i] in closing_delim + [';']):
+                    tokens.append((currToken, ')'))
+                    currToken = ''  
+                    currState = 's0'
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # ; symbol
+            if (currState == 'SEMICOLON_CHECK'):
+                if (code[i] in plaintext_delim + newline):
+                    tokens.append((currToken, ';'))
+                    currToken = ''  
+                    currState = 's0'
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+        # end of delim checking if statement
+
         #identifier state
         if (currState == 's421'):
             print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
-                print('(dbg) correct delim')
-                tokens.append((currToken, 'Identifier'))
+                print('(dbg) correct delim')    
+                if (currToken[0] not in alphabetic_chars + ['_']):
+                        errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
+                else:
+                    tokens.append((currToken, 'Identifier'))
                 currToken = ''
                 currState = 's0'
-                continue
-            elif (code[i] in alphanumeric or code[i] == '_'): #if not delim but still valid, keep looping
+            elif (code[i] in alphanumeric + ['_']): #if not delim but still valid, keep looping
                     currToken += code[i]
                     print('(dbg) accepted for iden')
                     currState ='s421'
@@ -341,8 +375,8 @@ def lexer(code):
                 errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                 currToken = ''
                 currState = 's0'
-                continue
-    
+        #end of identifier looping
+
         #iterating through chars
         #check whitespaces
         if (code[i] == ' '):
@@ -359,32 +393,33 @@ def lexer(code):
         else: #if not in s0 transitions assume identifier, go to state 420
             print("(dbg) entering s421")
             if (currState == 's0'):
-                if (code[i] in alphabetic_chars or code[i] == '_'):
-                    currToken += code[i]
-                    currState = 's421'
-                    continue
-                else:
-                    currToken += code[i]
-                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
-                    currToken = ''
-                    currState = 's0'
-                    continue
+                # if (code[i] in alphabetic_chars + ['_']):
+                    #check if valid first char
+                currToken += code[i]
+                currState = 's421'
+                continue
+                # else:
+                #     currToken += code[i]
+                #     errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
+                #     currToken = ''
+                #     currState = 's0'  
             else:
-                if (code[i] in alphanumeric or code[i] == '_'):
+                if (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState = 's421'
                     continue
                 elif (code[i] in iden_delim): #check delim
-                    tokens.append((currToken, 'Identifier'))
+                    if (currToken[0] not in alphabetic_chars + ['_']):
+                        errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
+                    else:
+                        tokens.append((currToken, 'Identifier'))
                     currToken = ''
                     currState = 's0'
-                    continue
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                     currToken = ''
                     currState = 's0'
-                    continue
     
     lexerResults = [tokens, errors] 
     return lexerResults
