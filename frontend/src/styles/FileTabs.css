@@ -28,6 +28,15 @@
     font-size: .9rem;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
+
+    /*
+    TODO: make container for file name text + x btn 
+    
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    */
+    
 }
 
 .file-unselected-tab-item {

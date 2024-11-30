@@ -9,7 +9,7 @@ const FileTabs = ({  }) => {
             <p>x</p>
         </div>
         <div className="file-unselected-tab-item">
-            <p>prog1.cstar</p>
+            <p>prog1ssdadsadsadasdsadasdsadsa.cstar</p>
             <p>x</p>
         </div>
         <div className="file-unselected-tab-item">
