@@ -1,0 +1,86 @@
+/* Container styles */
+.file-explorer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    background-color: #080e2e; /* Use darkBlue color */
+    color: white;
+    transform: translateX(-130%);
+    transition: transform 0.3s ease;
+  }
+  
+  .file-explorer.visible {
+    transform: translateX(0);
+  }
+  
+  /* Header styles */
+  .file-explorer-header {
+    padding: 10px;
+    border-bottom: 1px solid #444;
+  }
+  
+  .file-explorer-header h3 {
+    margin: 0;
+  }
+  
+  .file-explorer-header button {
+    margin-right: 5px;
+    padding: 5px 10px;
+    border: none;
+    background-color: #555;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .file-explorer-header button:hover {
+    background-color: #777;
+  }
+  
+  /* Content styles */
+  .file-explorer-content {
+    padding: 10px;
+  }
+  
+  .file-explorer-content ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .file-explorer-content li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .file-explorer-content li svg {
+    margin-right: 10px;
+  }
+  
+  .file-explorer-content p {
+    margin: 0;
+  }
+  
+
+  /* Collapse button */
+.collapse-button {
+    position: absolute;
+    top: 10px;
+    right: -25px;
+    width: 25px;
+    height: 25px;
+    background-color: #080e2e;
+    border: none;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .collapse-button:hover {
+    background-color: #444;
+  }

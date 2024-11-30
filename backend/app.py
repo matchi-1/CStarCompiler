@@ -358,71 +358,69 @@ def lexer(code):
             print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
                 print('(dbg) correct delim')    
-                if (currToken[0] not in alphabetic_chars + ['_']):
-                        errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
-                else:
-                    tokens.append((currToken, 'Identifier'))
-                currToken = ''
-                currState = 's0'
-            elif (code[i] in alphanumeric + ['_']): #if not delim but still valid, keep looping
-                    currToken += code[i]
-                    print('(dbg) accepted for iden')
-                    currState ='s421'
-                    continue
-            else:
-                currToken += code[i]
-                # errors.append((currToken, f'Lexical Error: In line {currLine}, column {currCol-len(currToken)}; Unexpected \'{code[i]}\' for \'{currToken[:-1]}\'')) #can be expanded with conditions to check what error
-                errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
-                currToken = ''
-                currState = 's0'
-        #end of identifier looping
-
-        #iterating through chars
-        #check whitespaces
-        if (code[i] == ' '):
-            tokens.append(('\' \' ', 'Space'))
-            continue
-        if (code[i] == '\n'):
-            tokens.append(('\\n', 'New line'))
-            continue
-        #check states
-        if (code[i] in transitions[currState]):
-            currToken += code[i]
-            currState = transitions[currState][code[i]]
-            continue
-        else: #if not in s0 transitions assume identifier, go to state 420
-            print("(dbg) entering s421")
-            if (currState == 's0'):
-                # if (code[i] in alphabetic_chars + ['_']):
-                    #check if valid first char
-                currToken += code[i]
-                currState = 's421'
-                continue
-                # else:
-                #     currToken += code[i]
-                #     errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
-                #     currToken = ''
-                #     currState = 's0'  
-            else:
-                if (code[i] in alphanumeric + ['_']):
-                    currToken += code[i]
-                    currState = 's421'
-                    continue
-                elif (code[i] in iden_delim): #check delim
+            # identifier state
+            if (currState == 's421'):
+                print('(dbg) in identifier check state now')
+                if (code[i] in iden_delim):
+                    print('(dbg) correct delim')
                     if (currToken[0] not in alphabetic_chars + ['_']):
-                        errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
+                        errors.append(idenFirstError(currToken, currLine, currCol, lineContent))
                     else:
                         tokens.append((currToken, 'Identifier'))
                     currToken = ''
                     currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):  # if not delim but still valid, keep looping
+                    currToken += code[i]
+                    print('(dbg) accepted for iden')
+                    currState = 's421'
+                    continue
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                     currToken = ''
                     currState = 's0'
-    
+
+            # iterating through chars
+            # check whitespaces
+            if (code[i] == ' '):
+                tokens.append(('\' \' ', 'Space'))
+                continue
+            if (code[i] == '\n'):
+                tokens.append(('\\n', 'New line'))
+                continue
+            # check states
+            if (code[i] in transitions[currState]):
+                currToken += code[i]
+                currState = transitions[currState][code[i]]
+                continue
+            else:  # if not in s0 transitions assume identifier, go to state 420
+                print("(dbg) entering s421")
+                if (currState == 's0'):
+                    # Check if valid first character
+                    currToken += code[i]
+                    currState = 's421'
+                    continue
+                else:
+                    if (code[i] in alphanumeric + ['_']):
+                        currToken += code[i]
+                        currState = 's421'
+                        continue
+                    elif (code[i] in iden_delim):  # check delim
+                        if (currToken[0] not in alphabetic_chars + ['_']):
+                            errors.append(idenFirstError(currToken, currLine, currCol, lineContent))
+                        else:
+                            tokens.append((currToken, 'Identifier'))
+                        currToken = ''
+                        currState = 's0'
+                    else:
+                        currToken += code[i]
+                        errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                        currToken = ''
+                        currState = 's0'
+
     lexerResults = [tokens, errors] 
     return lexerResults
+
 
 #---LEXER HELPER---
 def delimError(currToken, currLine, currCol, incorrectDelim, lineContent):

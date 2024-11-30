@@ -1,0 +1,31 @@
+.header{
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--header-blue);
+    /*background: linear-gradient(to right, var(--header-blue), var(--sideBar-blue));*/
+    height: 2.25rem;
+    width: 100%;
+    border-bottom: 1px solid var(--table-darkBlueLine);
+}
+
+.header-item{
+    position: relative;
+    display: flex;
+    justify-content:center;
+    align-items:center;
+    height: 100%;
+    padding-left: 1.5rem;
+    padding-right: .5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    color: var(--font-darkerLightBlue);
+}
+.header-item p{
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.header-item p:hover{
+    color: var(--font-lightBlue);
+}
