@@ -108,6 +108,17 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
     const newFolder = prompt('Enter folder name');
     if (newFolder) {
 
+      const filesCollectionRef = collection(db, 'files');
+
+      // Check for duplicates
+      const q = query(filesCollectionRef, where('name', '==', newFolder));
+      const querySnapshot = await getDocs(q);
+  
+      if (!querySnapshot.empty) {
+        alert('A folder with this name already exists. Please choose a different name.');
+        return;
+      }
+
       try {
         const foldersCollectionRef = collection(db, 'files'); 
         
@@ -139,14 +150,17 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
   if (newName) {
     newName = newName.trim(); // Trim spaces from the beginning and end
 
-    if (!newName.endsWith('.cstr')) {
-      newName += '.cstr';
-    }
+    if(newName.type == 'file')
+      {
+          if (!newName.endsWith('.cstr')) {
+          newName += '.cstr';
+        }
+      }
 
-    if (newName === fileData[index].name) {
-      alert('The file name is unchanged.');
-      return;
-    }
+      if (newName === fileData[index].name) {
+        alert('The file name is unchanged.');
+        return;
+      }
 
     const filesCollectionRef = collection(db, 'files');
 
