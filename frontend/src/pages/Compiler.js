@@ -6,9 +6,34 @@ import FileExplorer from '../components/FileExplorer';
 import AnalyzerSegment from '../components/AnalyzerSegment';
 import MonacoEditor, { loader } from '@monaco-editor/react';
 import Terminal from '../components/Terminal';
+import { initializeApp } from 'firebase/app';
+import { getAnalytics } from "firebase/analytics";
+import { getStorage } from 'firebase/storage';
+import { getDatabase } from 'firebase/database';
 import '../styles/Compiler.css';
 
 const CompilerPage = () => {
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCK3i8_VWMzXV1HQnSANH1K0JEMiuna73U",
+    authDomain: "cstar-compiler.firebaseapp.com",
+    databaseURL: "https://cstar-compiler-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "cstar-compiler",
+    storageBucket: "cstar-compiler.firebasestorage.app",
+    messagingSenderId: "893952768568",
+    appId: "1:893952768568:web:57f14acf00c05626a584cd",
+    measurementId: "G-GYVZ4F33W6"
+  };
+  
+  
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  
+  const storage = getStorage(app);
+  const database = getDatabase(app);
+
+
+  const [uploading, setUploading] = useState(false);
   const editorRef = useRef();
   const [code, setValue] = useState('');
   const [output, setOutput] = useState('');
@@ -56,11 +81,22 @@ const CompilerPage = () => {
     setIsFilesVisible(!isFilesVisible); // Toggle visibility when Files button is clicked
   };
 
-  const addFile = () => {
-    const newFile = prompt('Enter file name');
-    if (newFile) {
-      setFiles([...files, { name: newFile, type: 'file' }]);
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0]; 
+    if (file && file.name.endsWith('.cstr')) {
+      const newFile = {
+        name: file.name,  
+        type: 'file',     
+        fileContent: file,
+      };
+      addFile(newFile); 
+    } else {
+      alert('Please select a .cstr file only'); 
     }
+  };
+
+  const addFile = (newFile) => {
+    setFiles((prevFiles) => [...prevFiles, newFile]); // Adds the new file to the state
   };
 
   const addFolder = () => {
@@ -100,7 +136,8 @@ useEffect(() => {
               files={files} 
               addFile={addFile} 
               addFolder={addFolder} 
-              toggleFiles={toggleFiles} // Pass the toggle function
+              toggleFiles={toggleFiles} 
+               handleFileUpload={handleFileUpload}
             />
 
         </div>
