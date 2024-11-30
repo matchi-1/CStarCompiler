@@ -20,7 +20,7 @@
     transform: translateX(0);
   }
   
-  .file-explorer-header, .files-menu-container, .files-menu-btns-containter {
+  .file-explorer-header, .files-menu-container, .files-menu-btns-container {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -52,18 +52,18 @@
     cursor: default;
   }
 
-  .files-menu-btns-containter{
+  .files-menu-btns-container{
     justify-content: space-around;
     height: 100%;
     width: 6.5rem;
   }
-  .files-menu-btns-containter img{
+  .files-menu-btns-container img{
     height: 1rem;
     width: auto;
     cursor: pointer;
   }
 
-  .files-menu-btns-containter img:hover{
+  .files-menu-btns-container img:hover{
     filter: brightness(1000%) contrast(1000%);
     transition: filter 0.3s ease;
   }
