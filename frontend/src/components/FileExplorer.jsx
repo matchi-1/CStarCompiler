@@ -3,7 +3,7 @@ import { FaFolder, FaFile, FaEdit, FaTrash } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io'; 
 import '../styles/FileExplorer.css';
 import { db, getDocs, collection } from '../firebaseConfig';  
-import { doc, setDoc } from 'firebase/firestore';  
+import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase/firestore';  
 
 
 const FileExplorer = ({ isVisible, toggleFiles }) => {
@@ -18,16 +18,13 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
 
   const fetchFiles = async () => {
     try {
-      // Get reference to the 'files' collection
       const filesCollectionRef = collection(db, 'files');
-      // Fetch the documents from the collection
       const filesSnapshot = await getDocs(filesCollectionRef);
-      // Map through the snapshot to get the data
       const filesList = filesSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
       }));
-      // Set the file data in state
+
       setFileData(filesList);
     } catch (error) {
       console.error('Error fetching files: ', error);
@@ -38,43 +35,65 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
     const file = event.target.files[0];
   
     if (file && file.name.endsWith('.cstr')) {
-      const reader = new FileReader();
+      let fileName = file.name;
+
+      const baseName = fileName.slice(0, -5); 
+      const extension = '.cstr';
   
-      reader.onload = async () => {
-        const fileContent = reader.result;
+      const filesCollectionRef = collection(db, 'files');
   
-        try {
-          // Save file data to Firestore
-          await setDoc(doc(db, 'files', file.name), {
-            name: file.name,
-            content: fileContent,
-            uploadedAt: new Date().toISOString(),
-            size: file.size,
-          });
+      let newFileName = fileName;
+      let counter = 1;
   
-            const newFile = {
-            name: file.name,
-            type: 'file',
-            content: fileContent,
-          };
+      while (true) {
+        const q = query(filesCollectionRef, where('name', '==', newFileName));
+        const querySnapshot = await getDocs(q);
   
-          addFile(newFile); 
-          alert('File uploaded successfully!');
-        } catch (error) {
-          console.error('Error uploading file to Firestore:', error);
-          alert('Failed to upload the file.');
+        if (querySnapshot.empty) {
+          break;
         }
-      };
   
-      reader.readAsText(file);  
+        newFileName = `${baseName} (${counter})${extension}`;
+        counter++;
+      }
+  
+      try {
+        const fileContent = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+  
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (error) => reject(error);
+  
+          reader.readAsText(file);
+        });
+  
+        await addDoc(filesCollectionRef, {
+          name: newFileName,
+          content: fileContent,
+          type: 'file',
+          createdAt: new Date(),
+        });
+
+
+        fetchFiles(); 
+        console.log(`File uploaded successfully as ${newFileName}.`);
+        event.target.value = null;
+
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        alert('Failed to upload file.');
+      }
     } else {
-      alert('Please select a .cstr file only');
+      alert('Please select a .cstr file only.');
     }
   };
+  
 
   const handleRefresh = () => {
     fetchFiles(); 
   };
+
+  
 
   const fileInputRef = useRef(null); 
   const handleAddFileClick = () => {
@@ -85,26 +104,94 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
     setFiles((prevFiles) => [...prevFiles, newFile]); 
   };
 
-  const addFolder = () => {
+  const addFolder = async () => {
     const newFolder = prompt('Enter folder name');
     if (newFolder) {
-      setFiles([...files, { name: newFolder, type: 'folder' }]);
+
+      try {
+        const foldersCollectionRef = collection(db, 'files'); 
+        
+        // Add folder document to Firestore
+        await addDoc(foldersCollectionRef, {
+          name: newFolder,
+          type: 'folder',
+          createdAt: new Date(), 
+        });
+  
+        setFiles((prevFiles) => [
+          ...prevFiles,
+          { name: newFolder, type: 'folder' }
+        ]);
+
+        fetchFiles();
+  
+        console.log(`Folder '${newFolder}' created successfully.`);
+      } catch (error) {
+        console.error('Error adding folder to Firestore:', error);
+        alert('Failed to create folder.');
+      }
     }
   };
 
-  const handleRename = (index) => {
-    const newName = prompt('Enter new name:', fileData[index].name);
-    if (newName && newName !== fileData[index].name) {
+  const handleRename = async (index) => {
+    let newName = prompt('Enter new name:', fileData[index].name);
+
+  if (newName) {
+    newName = newName.trim(); // Trim spaces from the beginning and end
+
+    if (!newName.endsWith('.cstr')) {
+      newName += '.cstr';
+    }
+
+    if (newName === fileData[index].name) {
+      alert('The file name is unchanged.');
+      return;
+    }
+
+    const filesCollectionRef = collection(db, 'files');
+
+    // Check for duplicates
+    const q = query(filesCollectionRef, where('name', '==', newName));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      alert('A file with this name already exists. Please choose a different name.');
+      return;
+    }
+
+    try {
+      // Rename in Firestore
+      const fileRef = doc(db, 'files', fileData[index].id);
+      await updateDoc(fileRef, { name: newName });
+
+      // Update local state
       const updatedFiles = [...fileData];
       updatedFiles[index].name = newName;
       setFileData(updatedFiles);
-    }
-  };
 
-  const handleDelete = (index) => {
-    if (window.confirm(`Are you sure you want to delete "${fileData[index].name}"?`)) {
-      const updatedFiles = fileData.filter((_, i) => i !== index);
-      setFileData(updatedFiles);
+      console.log(`File renamed to ${newName} in Firestore.`);
+    } catch (error) {
+      console.error('Error renaming file in Firestore:', error);
+      alert('Failed to rename file in Firestore.');
+    }
+  }
+};
+
+  const handleDelete = async (index) => {
+    const fileToDelete = fileData[index];
+    
+    if (window.confirm(`Are you sure you want to delete "${fileToDelete.name}"?`)) {
+      try {
+        const fileRef = doc(db, "files", fileToDelete.id); 
+        
+        await deleteDoc(fileRef);
+  
+        const updatedFiles = fileData.filter((_, i) => i !== index);
+        setFileData(updatedFiles);
+      } catch (error) {
+        console.error("Error deleting file from Firestore:", error);
+        alert("There was an error deleting the file.");
+      }
     }
   };
 
@@ -147,6 +234,22 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
 
         </div>
       </div>
+
+
+      {/*   
+      TODO:
+
+      - add dowload button
+      
+
+
+
+       (folder stuff)
+         -add dropdown icon for folders
+         -Make folder collapsible.
+         -select and deselect folders
+         -upload only on specific folders when selected
+      */}
 
       <div className="file-explorer-content">
         {fileData.length === 0 ? (
