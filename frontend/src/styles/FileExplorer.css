@@ -5,10 +5,11 @@
     left: 0;
     bottom: 0;
     width: 300px;
-    background-color: #080e2e; /* Use darkBlue color */
+    background-color: var(--tabFiles-blue);
     color: white;
-    transform: translateX(-130%);
+    transform: translateX(-100%);
     transition: transform 0.3s ease;
+    z-index: 1000;
   }
   
   .file-explorer.visible {
@@ -17,13 +18,25 @@
   
   /* Header styles */
   .file-explorer-header {
-    padding: 10px;
-    border-bottom: 1px solid #444;
+    height: 1.5rem;
+    background-color: var(--sideBar-blue);
+    border-bottom: 1px solid var(--table-darkBlueLine);
+    font-family: 'Inter', sans-serif;
+    font-weight: lighter;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    color: var(--font-lightBlue);
+  }
+
+  .file-explorer-header h3 {
+    font-size: 0.70rem;
+    font-weight: normal;
+    letter-spacing: 0.2rem;
   }
   
-  .file-explorer-header h3 {
-    margin: 0;
-  }
   
   .file-explorer-header button {
     margin-right: 5px;
@@ -84,3 +97,7 @@
   .collapse-button:hover {
     background-color: #444;
   }
+
+
+
+

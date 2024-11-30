@@ -27,34 +27,5 @@
   .sidebar-container{
     display: flex;
     flex-direction: row;
-    
   }
 
-
-  /* File Explorer Sliding Effect */
-.file-explorer {
-    transform: translateX(-100%); /* Initially hidden */
-    transition: transform 0.3s ease;
-    background-color: #111842; 
-    color: #fff;
-    padding: 20px;
-    z-index: 1000;
-  }
-  
-  .file-explorer.visible {
-    transform: translateX(0);
-  }
-  
-  .file-explorer-header button {
-    margin-left: 10px;
-  }
-  
-  .file-explorer-content ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .file-explorer-content li {
-    margin-bottom: 10px;
-  }
-  

@@ -1,42 +1,23 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import { FaFolder, FaFile } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io'; 
-import { initializeApp } from 'firebase/app';
-import { getStorage } from 'firebase/storage';
-import { getDatabase } from 'firebase/database';
 import '../styles/FileExplorer.css'; 
 
-const FileExplorer = ({ isVisible, files, addFolder, toggleFiles, handleFileUpload }) => {
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef(null); 
-  const handleAddFileClick = () => {
-      fileInputRef.current.click(); 
-    };
-
+const FileExplorer = ({ isVisible, files, addFile, addFolder, toggleFiles }) => {
   return (
     <div className={`file-explorer ${isVisible ? 'visible' : ''}`}>
+      {/* Collapse button */}
       <button className="collapse-button" onClick={toggleFiles}>
         <IoIosArrowBack />
       </button>
 
       <div className="file-explorer-header">
-        <h3>File Explorer</h3>
-       
-        <button onClick={handleAddFileClick}>Add File</button>
-        <button onClick={addFolder}>Add Folder</button>
+        <h3>EXPLORER</h3>
+        <h3>X</h3>
       </div>
 
-
-      <div className="file-upload">
-        <input
-          ref={fileInputRef}  
-          type="file"
-          accept=".cstr"  
-          onChange={handleFileUpload}  
-          style={{ display: 'none' }}  
-        />
-      </div>
-
+      <button onClick={addFile}>Add File</button>
+      <button onClick={addFolder}>Add Folder</button>
       <div className="file-explorer-content">
         {files.length === 0 ? (
           <p>No files or folders available</p>
