@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaFolder, FaFile } from 'react-icons/fa';
+import { initializeApp } from "firebase/app";
 import { IoIosArrowBack } from 'react-icons/io'; // Icon for the collapse button
 import '../styles/FileExplorer.css'; // Import the CSS file
 
