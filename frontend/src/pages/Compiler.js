@@ -80,6 +80,7 @@ const CompilerPage = () => {
         <FileTabs />
 
         <div className="compiler-content">
+          
           <MonacoEditor
             height="65%"
             language="javascript"

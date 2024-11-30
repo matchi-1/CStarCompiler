@@ -93,14 +93,9 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
 
   return (
     <div className={`file-explorer ${isVisible ? 'visible' : ''}`}>
-      {/* Collapse button */}
-      <button className="collapse-button" onClick={toggleFiles}>
-        <IoIosArrowBack />
-      </button>
-
       <div className="file-explorer-header">
         <p>EXPLORER</p>
-        <p>X</p>
+        <p id="explorer-collapse-btn" onClick={toggleFiles}>X</p>
       </div>
       <div className="files-menu-container">
         <p>Your Files</p>

@@ -26,6 +26,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  user-select: none;
+  z-index: 1;
 }
 
 .sidebar::after {
@@ -42,7 +44,7 @@
 .sidebar-logo {
     cursor: pointer;
     height: 50px;
-    padding: 1rem;
+    padding: 1rem 0.75rem;
     display: flex;
     justify-content: center;
     align-items: center;
