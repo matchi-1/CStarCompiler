@@ -47,7 +47,7 @@
     height: 1rem;
     font-weight: normal;
     font-size: 0.85em;
-    padding: 0.75rem 0.5rem 0.75rem 1rem;
+    padding: 0.75rem 0.5rem 0.2rem 1rem;
     cursor: default;
   }
 
@@ -68,14 +68,7 @@
   }
   
   
-  .file-explorer-header button:hover {
-    background-color: #777;
-  }
-  
   /* Content styles */
-  .file-explorer-content {
-    padding: 0.75rem 0.5rem 0.75rem 1rem;
-  }
   
   .file-explorer-content ul {
     list-style: none;
@@ -85,16 +78,19 @@
   .file-explorer-content li {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    padding: 0.2rem 0rem 0.2rem 0.75rem;
+    font-size: .85rem;
+    cursor: pointer;
+  }
+  .file-explorer-content li:hover{
+    background-color: var(--sideBar-blue);
+    color: var(--font-mediumLightBlue);
   }
   
   .file-explorer-content li svg {
-    margin-right: 10px;
+    margin-right: 0.7rem;
   }
   
-  .file-explorer-content p {
-    font-size: 0.75rem;
-  }
   
 
   /* Collapse button */

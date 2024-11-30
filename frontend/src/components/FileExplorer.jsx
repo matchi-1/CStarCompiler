@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaFolder, FaFile } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io'; 
-import '../styles/FileExplorer.css'; 
+import '../styles/FileExplorer.css';
 
-const FileExplorer = ({ isVisible, files, addFile, addFolder, toggleFiles }) => {
+const FileExplorer = ({ isVisible, toggleFiles }) => {
+  const [files, setFiles] = useState([]); // Manage files/folders state locally muna
+
+  const addFile = () => {
+    const newFile = prompt('Enter file name');
+    if (newFile) {
+      setFiles([...files, { name: newFile, type: 'file' }]);
+    }
+  };
+
+  const addFolder = () => {
+    const newFolder = prompt('Enter folder name');
+    if (newFolder) {
+      setFiles([...files, { name: newFolder, type: 'folder' }]);
+    }
+  };
+
   return (
     <div className={`file-explorer ${isVisible ? 'visible' : ''}`}>
       {/* Collapse button */}
@@ -18,10 +34,26 @@ const FileExplorer = ({ isVisible, files, addFile, addFolder, toggleFiles }) => 
       <div className="files-menu-container">
         <p>Your Files</p>
         <div className="files-menu-btns-containter">
-          <img src="/assets/upload.png" alt="Upload Files" />
-          <img src="/assets/new-document.png" alt="New Document" />
-          <img src="/assets/new-folder.png" alt="New Folder" />
-          <img src="/assets/refresh.png" alt="Refresh" />
+          <img
+            src="/assets/upload.png"
+            alt="Upload Files"
+            onClick={() => alert('wala pa')}
+          />
+          <img
+            src="/assets/new-document.png"
+            alt="New Document"
+            onClick={addFile} 
+          />
+          <img
+            src="/assets/new-folder.png"
+            alt="New Folder"
+            onClick={addFolder} 
+          />
+          <img
+            src="/assets/refresh.png"
+            alt="Refresh"
+            onClick={() => alert('wala pa')}
+          />
         </div>
       </div>
       <div className="file-explorer-content">
@@ -31,7 +63,7 @@ const FileExplorer = ({ isVisible, files, addFile, addFolder, toggleFiles }) => 
           <ul>
             {files.map((file, index) => (
               <li key={index}>
-                {file.type === 'folder' ? <FaFolder size={20} /> : <FaFile size={20} />}
+                {file.type === 'folder' ? <FaFolder size={12} /> : <FaFile size={12} />}
                 {file.name}
               </li>
             ))}
