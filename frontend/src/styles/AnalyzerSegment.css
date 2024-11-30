@@ -9,6 +9,7 @@
     overflow-y: auto;
     z-index: 2;
     position: relative; 
+    
 }
 
 /* Gradient border on the left */
@@ -71,6 +72,7 @@
     font-size: 0.85rem;
     font-family: 'Inter', sans-serif;
     color: var(--font-darkerLightBlue);
+    user-select: none;
 }
 
 /* White border on the right */
@@ -114,6 +116,7 @@
     font-weight: normal;
     font-size: 1rem;
     letter-spacing: 0.1rem;
+    user-select: none;
 }
 
 .analyzer-table-container::before {
@@ -163,6 +166,7 @@
     border-right: 1px solid var(--outline-lightBlue); 
     word-wrap: break-word; /* text breaks onto new line if too long */
     white-space: normal; /* Allow wrapping inside cells */
+    user-select: none;
 }
 
 .analyzer-segment th:last-child {

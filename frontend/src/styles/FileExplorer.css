@@ -13,6 +13,7 @@
     font-family: 'Inter', sans-serif;
     color: var(--font-darkerLightBlue);
     z-index: 1000;
+    user-select: none;
   }
   
   .file-explorer.visible {

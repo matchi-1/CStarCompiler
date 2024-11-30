@@ -32,6 +32,7 @@
     display: flex;
     flex-direction: row;
     background-color: var(--sideBar-blue);
+    user-select: none;
 }
 
 /* Gradient border only at the bottom for filler */

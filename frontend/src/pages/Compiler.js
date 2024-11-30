@@ -23,7 +23,7 @@ const CompilerPage = () => {
   
     // MONACO CUSTOM BLUE THEME (TEST -- WE NEED TO REGISTER OUR PL FIRST B4 WE CAN CUSTOMIZE THIS SATIN)
     const blueTheme = {
-      base: 'vs-dark', // Base theme (dark mode)
+      base: 'vs-dark', 
       inherit: true,
       rules: [
         { token: '', background: '181F39', foreground: 'A1ADD5' },
@@ -76,7 +76,7 @@ const CompilerPage = () => {
       </div>
 
       <div className="compiler-main-container">
-        <Header />
+        <Header editorRef={editorRef} />
         <FileTabs />
 
         <div className="compiler-content">
