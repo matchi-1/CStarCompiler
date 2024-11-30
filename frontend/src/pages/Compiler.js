@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import FileTabs from '../components/FileTabs';
 import FileExplorer from '../components/FileExplorer'; 
 import AnalyzerSegment from '../components/AnalyzerSegment';
 import MonacoEditor, { loader } from '@monaco-editor/react';
@@ -96,8 +98,11 @@ useEffect(() => {
         </div>
       
       <div className="compiler-main-container">
-        {/* Monaco Editor */}
+        <Header/>
+        <FileTabs/>
+        
         <div className="compiler-content">
+          {/* Monaco Editor */}
           <MonacoEditor
             height="65%"
             language="javascript"
@@ -113,18 +118,19 @@ useEffect(() => {
           />
           <Terminal logs = {errorLogs}/>
         </div>
-
-        {/* Right-side content for file explorer and token tables */}
-        <div className="right-segment">
-          {/*<FileExplorer 
-            isVisible={isFilesVisible} 
-            files={files} 
-            addFile={addFile} 
-            addFolder={addFolder} 
-          />*/}
-          <AnalyzerSegment tokens={tokens}/>
-        </div>
       </div>
+      
+      {/* Right-side content for file explorer and token tables */}
+      <div className="right-segment">
+        {/*<FileExplorer 
+          isVisible={isFilesVisible} 
+          files={files} 
+          addFile={addFile} 
+          addFolder={addFolder} 
+        />*/}
+        <AnalyzerSegment tokens={tokens}/>
+      </div>
+      
     </div>
   );
 };

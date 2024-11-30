@@ -1,7 +1,7 @@
 .compiler-page {
     display: flex;
     flex-direction: row;
-    background-color: #111842;
+    background-color: var(--body-blue);
     color: white;
     height: 100vh;
     overflow: hidden;
@@ -10,11 +10,13 @@
 
   .compiler-main-container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-grow: 1;
+    height: 100%;
   }
 
   .compiler-content {
+    
     flex-grow: 1;
     position: relative;
     min-height: 0; 
