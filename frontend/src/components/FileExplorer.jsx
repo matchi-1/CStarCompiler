@@ -1,16 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaFolder, FaFile } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io'; 
 import '../styles/FileExplorer.css';
+import { db, getDocs, collection } from '../firebaseConfig';  
+import { doc, setDoc } from 'firebase/firestore';  
+
 
 const FileExplorer = ({ isVisible, toggleFiles }) => {
-  const [files, setFiles] = useState([]); // Manage files/folders state locally muna
 
-  const addFile = () => {
-    const newFile = prompt('Enter file name');
-    if (newFile) {
-      setFiles([...files, { name: newFile, type: 'file' }]);
+  const [files, setFiles] = useState([]); 
+  const [fileData, setFileData] = useState([]);
+
+  useEffect(() => {
+    fetchFiles();
+  }, []); 
+
+  const fetchFiles = async () => {
+    try {
+      // Get reference to the 'files' collection
+      const filesCollectionRef = collection(db, 'files');
+      // Fetch the documents from the collection
+      const filesSnapshot = await getDocs(filesCollectionRef);
+      // Map through the snapshot to get the data
+      const filesList = filesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      // Set the file data in state
+      setFileData(filesList);
+    } catch (error) {
+      console.error('Error fetching files: ', error);
     }
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+  
+    if (file && file.name.endsWith('.cstr')) {
+      const reader = new FileReader();
+  
+      reader.onload = async () => {
+        const fileContent = reader.result;
+  
+        try {
+          // Save file data to Firestore
+          await setDoc(doc(db, 'files', file.name), {
+            name: file.name,
+            content: fileContent,
+            uploadedAt: new Date().toISOString(),
+            size: file.size,
+          });
+  
+            const newFile = {
+            name: file.name,
+            type: 'file',
+            content: fileContent,
+          };
+  
+          addFile(newFile); 
+          alert('File uploaded successfully!');
+        } catch (error) {
+          console.error('Error uploading file to Firestore:', error);
+          alert('Failed to upload the file.');
+        }
+      };
+  
+      reader.readAsText(file);  
+    } else {
+      alert('Please select a .cstr file only');
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchFiles(); 
+  };
+
+  const fileInputRef = useRef(null); 
+  const handleAddFileClick = () => {
+      fileInputRef.current.click(); 
+    };
+
+  const addFile = (newFile) => {
+    setFiles((prevFiles) => [...prevFiles, newFile]); 
   };
 
   const addFolder = () => {
@@ -33,12 +104,19 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
       </div>
       <div className="files-menu-container">
         <p>Your Files</p>
-        <div className="files-menu-btns-containter">
+        <div className="files-menu-btns-container">
           <img
             src="/assets/upload.png"
             alt="Upload Files"
-            onClick={() => alert('wala pa')}
+            onClick={handleAddFileClick}
           />
+        <input
+          ref={fileInputRef}  
+          type="file"
+          accept=".cstr"  
+          onChange={handleFileUpload}  
+          style={{ display: 'none' }}  
+        />
           <img
             src="/assets/new-document.png"
             alt="New Document"
@@ -52,16 +130,18 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
           <img
             src="/assets/refresh.png"
             alt="Refresh"
-            onClick={() => alert('wala pa')}
+            onClick={handleRefresh}
           />
+
         </div>
       </div>
+
       <div className="file-explorer-content">
-        {files.length === 0 ? (
+        {fileData.length === 0 ? (
           <p>No files or folders available</p>
         ) : (
           <ul>
-            {files.map((file, index) => (
+            {fileData.map((file, index) => (
               <li key={index}>
                 {file.type === 'folder' ? <FaFolder size={12} /> : <FaFile size={12} />}
                 {file.name}
@@ -70,6 +150,8 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
           </ul>
         )}
       </div>
+
+
     </div>
   );
 };
