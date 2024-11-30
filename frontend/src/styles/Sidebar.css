@@ -17,6 +17,7 @@
   width: var(--sidebar-width);
   height: 100vh;
   background-color: var(--sideBar-blue);
+  /*background: linear-gradient(to right, var(--body-blue), var(--sideBar-blue));*/
   color: #fff;
   position: relative;
   top: 0;

@@ -3,6 +3,7 @@
     display: flex;
     flex-direction: row;
     background-color: var(--header-blue);
+    /*background: linear-gradient(to right, var(--header-blue), var(--sideBar-blue));*/
     height: 2.25rem;
     width: 100%;
     border-bottom: 1px solid var(--table-darkBlueLine);

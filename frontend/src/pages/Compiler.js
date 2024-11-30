@@ -116,8 +116,8 @@ useEffect(() => {
               },
             }}
           />
-          <Terminal logs = {errorLogs}/>
         </div>
+        <Terminal logs = {errorLogs}/>
       </div>
       
       {/* Right-side content for file explorer and token tables */}

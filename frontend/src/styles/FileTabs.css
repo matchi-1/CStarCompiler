@@ -26,6 +26,7 @@
     padding-right: .8rem;
     font-size: .9rem;
     font-family: 'Inter', sans-serif;
+    cursor: pointer;
 }
 
 .file-unselected-tab-item {
