@@ -1,28 +1,36 @@
 import React from 'react';
 import '../styles/FileTabs.css';
 
-const FileTabs = ({  }) => {
+const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, fileData, setFileData  }) => {
+  const closeTab = (tabToClose) => {
+    setOpenTabs(openTabs.filter((tab) => tab !== tabToClose));
+    if (activeTab === tabToClose) {
+      setActiveTab(openTabs[0] || null); // Set a new active tab or null if none left
+    }
+  };
+
   return (
     <div className="file-tab-containers">
-        <div className="file-selected-tab-item">
-            <p>main.cstar</p>
-            <p>x</p>
+      {openTabs.map((tab, index) => (
+        <div
+          key={index}
+          className={`file-tab-item ${tab === activeTab ? 'file-selected-tab-item' : 'file-unselected-tab-item'}`}
+          onClick={() => setActiveTab(tab)}
+        >
+          <p>{tab}</p>
+          <p
+            onClick={(e) => {
+              e.stopPropagation();
+              closeTab(tab);
+            }}
+          >
+            x       {/* put the icon hereee */}
+          </p>
         </div>
-        <div className="file-unselected-tab-item">
-            <p>prog1ssdadsadsadasdsadasdsadsa.cstar</p>
-            <p>x</p>
-        </div>
-        <div className="file-unselected-tab-item">
-            <p>prog2.cstar</p>
-            <p>x</p>
-        </div>
-        <div className="file-tab-filler"></div>
+      ))}
+      <div className="file-tab-filler"></div>
     </div>
   );
 };
 
 export default FileTabs;
-
-
-
-

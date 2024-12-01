@@ -6,15 +6,38 @@ import { db, getDocs, collection } from '../firebaseConfig';
 import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase/firestore';  
 
 
-const FileExplorer = ({ isVisible, toggleFiles }) => {
+const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab, setActiveTab
+   , fileData, setFileData 
+}) => {
 
   const [files, setFiles] = useState([]); 
-  const [fileData, setFileData] = useState([]);
+  
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const fileInputRef = useRef(null); 
 
   useEffect(() => {
     fetchFiles();
-  }, []); 
+  }, []);
+
+  const handleRefresh = () => {
+    fetchFiles(); 
+  };
+  
+  const handleAddFileClick = () => {
+      fileInputRef.current.click(); 
+    };
+
+  const addFile = (newFile) => {
+    setFiles((prevFiles) => [...prevFiles, newFile]); 
+  };
+
+  const handleFileClick = (fileName) => {
+    if (!openTabs.includes(fileName)) {
+      setOpenTabs([...openTabs, fileName]);
+      }
+      setActiveTab(fileName);
+    
+  };
 
   const fetchFiles = async () => {
     try {
@@ -87,22 +110,6 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
       alert('Please select a .cstr file only.');
     }
   };
-  
-
-  const handleRefresh = () => {
-    fetchFiles(); 
-  };
-
-  
-
-  const fileInputRef = useRef(null); 
-  const handleAddFileClick = () => {
-      fileInputRef.current.click(); 
-    };
-
-  const addFile = (newFile) => {
-    setFiles((prevFiles) => [...prevFiles, newFile]); 
-  };
 
   const addFolder = async () => {
     const newFolder = prompt('Enter folder name');
@@ -147,30 +154,31 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
   const handleRename = async (index) => {
     let newName = prompt('Enter new name:', fileData[index].name);
 
-  if (newName) {
-    newName = newName.trim(); // Trim spaces from the beginning and end
+    if (newName) {
+      newName = newName.trim();
 
-    if(newName.type == 'file')
-      {
-          if (!newName.endsWith('.cstr')) {
-          newName += '.cstr';
+      if(fileData[index].type == 'file')
+        {
+            if (!newName.endsWith('.cstr')) {
+              console.log("appended");
+            newName += '.cstr';
+          }
         }
-      }
 
-      if (newName === fileData[index].name) {
-        alert('The file name is unchanged.');
+        if (newName === fileData[index].name) {
+          alert('The file name is unchanged.');
+          return;
+        }
+
+      const filesCollectionRef = collection(db, 'files');
+
+      // Check for duplicates
+      const q = query(filesCollectionRef, where('name', '==', newName));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        alert('A file with this name already exists. Please choose a different name.');
         return;
-      }
-
-    const filesCollectionRef = collection(db, 'files');
-
-    // Check for duplicates
-    const q = query(filesCollectionRef, where('name', '==', newName));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      alert('A file with this name already exists. Please choose a different name.');
-      return;
     }
 
     try {
@@ -178,12 +186,15 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
       const fileRef = doc(db, 'files', fileData[index].id);
       await updateDoc(fileRef, { name: newName });
 
+
+
       // Update local state
       const updatedFiles = [...fileData];
       updatedFiles[index].name = newName;
       setFileData(updatedFiles);
 
       console.log(`File renamed to ${newName} in Firestore.`);
+      
     } catch (error) {
       console.error('Error renaming file in Firestore:', error);
       alert('Failed to rename file in Firestore.');
@@ -208,6 +219,7 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
       }
     }
   };
+
 
   return (
     <div className={`file-explorer ${isVisible ? 'visible' : ''}`}>
@@ -249,14 +261,11 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
         </div>
       </div>
 
-
       {/*   
       TODO:
 
       - add dowload button
       
-
-
 
        (folder stuff)
          -add dropdown icon for folders
@@ -275,6 +284,7 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
                 key={index}
                 onMouseEnter={() => setHoveredIndex(index)} // Set hovered index
                 onMouseLeave={() => setHoveredIndex(null)} // Clear hovered index
+                onClick={() => handleFileClick(file.name)} // Add click handler
                 className="file-item"
               >
                 {file.type === 'folder' ? (
@@ -283,7 +293,6 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
                     <img src="/assets/CStarLogo2.png" alt="Cstar" className="CStar-file-icon" />
                   )}
                   <span className="file-name">{file.name}</span>
-
 
                 {hoveredIndex === index && ( // Show buttons only if this file is hovered
                   <span className="file-actions">
@@ -304,7 +313,6 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
           </ul>
         )}
       </div>
-
 
     </div>
   );

@@ -9,6 +9,20 @@ import Terminal from '../components/Terminal';
 import '../styles/Compiler.css';
 
 const CompilerPage = () => {
+  const [openTabs, setOpenTabs] = useState([]);
+  const [activeTab, setActiveTab] = useState(null);
+
+  const openFile = (fileData) => {
+    if (!openTabs.find((tab) => tab.name === fileData.name)) {
+      setOpenTabs([...openTabs, fileData]);
+    }
+    setActiveTab(fileData.name);
+  };
+
+
+
+  const [fileData, setFileData] = useState([]);
+
   const editorRef = useRef();
   const editorContainerRef = useRef();
   const resizeObserver = useRef();
@@ -90,12 +104,29 @@ const CompilerPage = () => {
     <div className="compiler-page">
       <div className="sidebar-container">
         <Sidebar toggleFiles={toggleFiles} /> {/* Pass toggle function to Sidebar */}
-        <FileExplorer isVisible={isFilesVisible} toggleFiles={toggleFiles} />
+
+        <FileExplorer 
+        isVisible={isFilesVisible} toggleFiles={toggleFiles} 
+        fileData = {fileData}
+        setFileData = {setFileData}
+        openTabs={openTabs} 
+        setOpenTabs={setOpenTabs} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        openFile={openFile}
+        />
       </div>
 
       <div className="compiler-main-container">
         <Header editorRef={editorRef} />
-        <FileTabs />
+        <FileTabs 
+        openTabs={openTabs} 
+        setOpenTabs={setOpenTabs} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        fileData={fileData}
+        setFileData = {setFileData}
+        />
 
         <div
           className="compiler-content"
