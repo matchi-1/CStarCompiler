@@ -1013,11 +1013,6 @@ def lexer(code):
                     tokens.append((currToken, 'print'))
                     currToken = ''
                     currState = 's0'
-                elif (code[i] in alphanumeric + ['_']):
-                    currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 420')
-                    continue
                 else:
                     currState = 's184'
             # println statement
