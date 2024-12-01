@@ -58,7 +58,7 @@ get_set_delim = newline_delim + ['{', ';']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';'] + newline_delim
-closing_delim = arithmetic_operator + relational_operator + whitespace + ['&', '|']
+closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ';']
 
 # literals delim
 num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';']
@@ -1005,16 +1005,8 @@ def lexer(code):
                     tokens.append((currToken, 'in'))
                     currToken = ''
                     currState = 's0'
-                elif (code[i] in alphanumeric + ['_']):
-                    currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 420')
-                    continue
                 else:
-                    currToken += code[i]
-                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
-                    currToken = ''
-                    currState = 's0'
+                    currState = 's147'
             # print statement
             if (currState == 'PRINT_CHECK'):
                 if (code[i] in func_delim):
