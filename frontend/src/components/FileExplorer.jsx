@@ -150,7 +150,7 @@ const FileExplorer = ({ isVisible, toggleFiles }) => {
   if (newName) {
     newName = newName.trim(); // Trim spaces from the beginning and end
 
-    if(newName.type == 'file')
+    if(fileData[index].type == 'file')
       {
           if (!newName.endsWith('.cstr')) {
           newName += '.cstr';
