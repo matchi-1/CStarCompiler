@@ -58,7 +58,7 @@ get_set_delim = newline_delim + ['{', ';']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';'] + newline_delim
-closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ';']
+closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ';', '\n']
 
 # literals delim
 num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';']
@@ -78,8 +78,7 @@ comment_delim = ascii + whitespace
 
 
 #---TOKEN STATES---
-data_type = ['BOOL_CHECK', 'CHAR_CHECK', 'DOUBLE_CHECK', 'FLOAT_CHECK', 'INT_CHECK', 'LONG_CHECK', 'STRING_CHECK']
-builtin_func = ['ABS_CHECK', 'ARR_FORITEMS_CHECK', 'ARR_LENGTH_CHECK', 'CHR_ISALPHA_CHECK', 'CHR_ISALPHANUM_CHECK', 'RANDDOUBLE_CHECK', 'RANDFLOAT_CHECK', 'RANDINT_CHECK', 'SQRT_CHECK', 'STR_ISEMPTY_CHECK', 'STR_LENGTH_CHECK', 'STR_POPALPHA_CHECK', 'STR_POPDIGITS_CHECK', 'STR_POPSPECIAL_CHECK', 'STR_SLICE_CHECK', 'STR_TOLOWER_CHECK', 'STR_TOUPPER_CHECK', 'TRUNC_CHECK']
+builtin_func = ['ABS_CHECK', 'ARR_FORITEMS_CHECK', 'ARR_LENGTH_CHECK', 'CEIL_CHECK', 'CHR_TOLOWER_CHECK', 'CHR_TOUPPER_CHECK', 'CHR_ISALPHA_CHECK', 'CHR_ISALPHANUM_CHECK', 'CHR_ISDIGIT_CHECK', 'FLOOR_CHECK', 'MAX_CHECK', 'MEAN_CHECK', 'MEDIAN_CHECK', 'MIN_CHECK', 'MODE_CHECK', 'RANDDOUBLE_CHECK', 'RANDFLOAT_CHECK', 'RANDINT_CHECK', 'SQRT_CHECK', 'STR_ISEMPTY_CHECK', 'STR_LENGTH_CHECK', 'STR_POPALPHA_CHECK', 'STR_POPDIGITS_CHECK', 'STR_POPSPECIAL_CHECK', 'STR_SLICE_CHECK', 'STR_TOLOWER_CHECK', 'STR_TOUPPER_CHECK', 'TRUNC_CHECK']
 #---GRAPH TRANSITIONS---
 transitions = {
     's0':{
@@ -87,9 +86,12 @@ transitions = {
         'b':'s24',
         'c':'s34',
         'd':'s97',
+        'e':'s112',
         'f':'s117',
+        'g':'s134',
         'i':'s138',
         'l':'s155',
+        'm':'s160',
         'p':'s180',
 	    'r':'s201',
         's':'s233',
@@ -194,27 +196,75 @@ transitions = {
         'k':'BREAK_CHECK'
     },
     's34':{
-
-        'h':'s43'
+        'a':'s35',
+        'e':'s39',
+        'h':'s43',
+        'l':'s81',
+        'o':'s86'
+    },
+    's35':{
+	  's':'s36'
+    },
+    's36':{
+	  'e':'CASE_CHECK' #s37
+    },
+    's39':{
+	  'i':'s40'
+    },
+    's40':{
+	  'l':'CEIL_CHECK' #s41
     },
     's43':{
         'a':'s44',
 	  'r':'s47'
     },
     's44':{
-        'r':'CHAR_CHECK'  
+        'r':'CHAR_CHECK' #s45
     },
     's47':{
         '_':'s48'
     },
     's48':{
+        't':'s49',
         'i':'s63'
+    },
+    's49':{
+        'o':'s50'
+    },
+    's50':{
+        'L':'s51',
+        'U':'s57'
+    },
+    's51':{
+        'o':'s52'
+    },
+    's52':{
+        'w':'s53'
+    },
+    's53':{
+        'e':'s54'
+    },
+    's54':{
+        'r':'CHR_TOLOWER_CHECK' #s55
+    },
+    's57':{
+        'p':'s58'
+    },
+    's58':{
+        'p':'s59'
+    },
+    's59':{
+        'e':'s60'
+    },
+    's60':{
+        'r':'CHR_TOUPPER_CHECK' #s61
     },
     's63':{
         's':'s64'
     },
     's64':{
-        'A':'s65'
+        'A':'s65',
+        'D':'s75'
     },
     's65':{
         'l':'s66'
@@ -235,10 +285,69 @@ transitions = {
         'u':'s72'
     },
     's72':{
-        'm':'CHR_ISALPHANUM_CHECK'
+        'm':'CHR_ISALPHANUM_CHECK' #s73
+    },
+    's75':{
+        'i':'s76'
+    },
+    's76':{
+        'g':'s77'
+    },
+    's77':{
+        'i':'s78'
+    },
+    's78':{
+        't':'CHR_ISDIGIT_CHECK' #s79
+    },
+    's81':{
+        'a':'s82'
+    },
+    's82':{
+        's':'s83'
+    },
+    's83':{
+        's':'CLASS_CHECK' #s84
+    },
+    's86':{
+        'n':'s87'
+    },
+    's87':{
+        't':'s88',
+        's':'s94'
+    },
+    's88':{
+        'i':'s89'
+    },
+    's89':{
+        'n':'s90'
+    },
+    's90':{
+        'u':'s91'
+    },
+    's91':{
+        'e':'CONTINUE_CHECK' #s92
+    },
+    's94':{
+        't':'CONST_CHECK' #s95
     },
     's97':{
-        'o':'s105'
+        'e':'s98',
+        'o':'DO_CHECK' #s105
+    },
+    's98':{
+        'f':'s99'
+    },
+    's99':{
+        'a':'s100'
+    },
+    's100':{
+        'u':'s101'
+    },
+    's101':{
+        'l':'s102'
+    },
+    's102':{
+        't':'DEFAULT_CHECK' #s103
     },
     's105':{
         'u':'s107'
@@ -250,25 +359,79 @@ transitions = {
         'l':'s109'
     },
     's109':{
-        'e':'DOUBLE_CHECK'  
+        'e':'DOUBLE_CHECK' #s110
+    },
+    's112':{
+        'l':'s113'
+    },
+    's113':{
+        's':'s114'
+    },
+    's114':{
+        'e':'ELSE_CHECK' #s115
     },
     's117':{
+        'a':'s118',
+        'o':'s131',
         'l':'s123'
+    },
+    's118':{
+        'l':'s119'
+    },
+    's119':{
+        's':'s120'
+    },
+    's120':{
+        'e':'FALSE_CHECK' #s121
     },
     's123':{
         'o':'s124'
     },
     's124':{
-        'a':'s125'
+        'a':'s125',
+        'o':'s128'
     },
     's125':{
-        't':'FLOAT_CHECK'
+        't':'FLOAT_CHECK' #s126
+    },
+    's128':{
+        'r':'FLOOR_CHECK' #s129
+    },
+    's131':{
+        'r':'FOR_CHECK' #s129
+    },
+    's134':{
+        'e':'s135' 
+    },
+    's135':{
+        't':'GET_CHECK' #s136
     },
     's138':{
-        'n':'IN_CHECK' #s147
+        'f':'IF_CHECK', #s139
+        'm':'s141',
+        'n':'IN_CHECK', #s147
+        't':'s151' 
+    },
+    's141':{
+        'p':'s142' 
+    },
+    's142':{
+        'o':'s143' 
+    },
+    's143':{
+        'r':'s144' 
+    },
+    's144':{
+        't':'IMPORT_CHECK' #s145 
     },
     's147':{
         't':'INT_CHECK'
+    },
+    's151':{
+        'e':'s152'
+    },
+    's152':{
+        'm':'ITEM_CHECK' #s153
     },
     's155':{
         'o':'s156'
@@ -277,7 +440,41 @@ transitions = {
         'n':'s157'
     },
     's157':{
-        'g':'LONG_CHECK'
+        'g':'LONG_CHECK' #s158
+    },
+    's160':{
+        'a':'s161',
+        'e':'s164',
+        'i':'s173',
+        'o':'s176'
+    },
+    's161':{
+        'x':'MAX_CHECK' #s162
+    },
+    's164':{
+        'a':'s165',
+        'd':'s168' 
+    },
+    's165':{
+        'n':'MEAN_CHECK'  #s166
+    },
+    's168':{
+        'i':'s169' 
+    },
+    's169':{
+        'a':'s170'  
+    },
+    's170':{
+        'n':'MEDIAN_CHECK' #s171  
+    },
+    's173':{
+        'n':'MIN_CHECK' #s174  
+    },
+    's176':{
+        'd':'s177' 
+    },
+    's177':{
+        'e':'MODE_CHECK'  #s178
     },
     's180':{
         'r':'s181'
@@ -429,7 +626,7 @@ transitions = {
         'i':'s249',
         'l':'s257',
         'p':'s264',
-	    's':'s288',
+	  's':'s288',
         't':'s294'
     },
 
@@ -626,7 +823,7 @@ transitions = {
     },
     's341':{
         '-':'DECREMENT_CHECK',
-	    '=':'MINUS_ASS_CHECK'
+	  '=':'MINUS_ASS_CHECK'
     },
     's347':{
         '=':'NOT_EQUAL_CHECK'
@@ -670,7 +867,6 @@ transitions = {
     },
     's424':{
         # HELPER: ascii:'s424'
-        ' ':'s424'
     },
     's427':{
         '\n':'s427',
@@ -681,7 +877,7 @@ transitions = {
         '/':'MULTI_COMMENT_CHECK'
     },
     's431':{
-        '\"':'STRING_LIT_CHECK'
+        '"':'STRING_LIT_CHECK'
         # HELPER: ascii:'s431'
     },
     's434':{
@@ -695,6 +891,7 @@ transitions = {
         # HELPER: numbers: '470'
     }
 }
+
 
 
 #---GRAPH HELPERS---
@@ -743,15 +940,105 @@ def lexer(code):
         #if no transitions, it means it's time for delim checking
         if (currState not in transitions):
             #data type keywords
-            if (currState in data_type):
+            if (currState == 'BOOL_CHECK'):
                 if (code[i] in type_iden_delim):
-                    tokens.append((currToken, '<data_type>'))
+                    tokens.append((currToken, 'bool'))
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            if (currState == 'CHAR_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens.append((currToken, 'char'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            if (currState == 'DOUBLE_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens.append((currToken, 'double'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            if (currState == 'FLOAT_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens.append((currToken, 'float'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            if (currState == 'INT_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens.append((currToken, 'int'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            if (currState == 'LONG_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens.append((currToken, 'long'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            if (currState == 'STRING_CHECK'):
+                if (code[i] in type_iden_delim):
+                    tokens.append((currToken, 'string'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -767,7 +1054,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -783,7 +1070,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1024,7 +1311,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1040,7 +1327,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1056,7 +1343,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1072,7 +1359,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1088,7 +1375,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1104,7 +1391,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1120,7 +1407,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1136,7 +1423,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1152,7 +1439,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1168,7 +1455,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1184,7 +1471,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1200,7 +1487,7 @@ def lexer(code):
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
                     currState ='s421'
-                    print('(dbg) now in state 420')
+                    print('(dbg) now in state 421')
                     continue
                 else:
                     currToken += code[i]
@@ -1383,12 +1670,212 @@ def lexer(code):
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
                     currToken = ''
                     currState = 's0'
-            #multicomments 
+            # multicomments 
             if (currState == 'MULTI_COMMENT_CHECK'):
                 if (code[i] in newline_delim):
                     tokens.append((currToken, 'multi-line comment'))
                     currToken = ''  
                     currState = 's0'
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # case statement 
+            if (currState == 'CASE_CHECK'):
+                if (code[i] in newline_delim):
+                    tokens.append((currToken, 'case'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # class statement 
+            if (currState == 'CLASS_CHECK'):
+                if (code[i] in newline_delim):
+                    tokens.append((currToken, 'class'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # continue statement 
+            if (currState == 'CONTINUE_CHECK'):
+                if (code[i] in newline_delim + [';']):
+                    tokens.append((currToken, 'continue'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # const statement 
+            if (currState == 'CONST_CHECK'):
+                if (code[i] in newline_delim + [';']):
+                    tokens.append((currToken, 'continue'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # default statement 
+            if (currState == 'DEFAULT_CHECK'):
+                if (code[i] in default_delim):
+                    tokens.append((currToken, 'default'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # do statement 
+            if (currState == 'DO_CHECK'):
+                if (code[i] in block_delim):
+                    tokens.append((currToken, 'do'))
+                    currToken = ''
+                    currState = 's0'
+                else:
+                    currState = 's105'
+            # else statement 
+            if (currState == 'ELSE_CHECK'):
+                if (code[i] in block_delim):
+                    tokens.append((currToken, 'else'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # false statement
+            if (currState == 'FALSE_CHECK'):
+                if (code[i] in bool_delim):
+                    tokens.append((currToken, 'bool_lit'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # for statement
+            if (currState == 'FOR_CHECK'):
+                if (code[i] in loop_delim):
+                    tokens.append((currToken, 'for'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # get statement
+            if (currState == 'GET_CHECK'):
+                if (code[i] in get_set_delim):
+                    tokens.append((currToken, 'get'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # if statement
+            if (currState == 'IF_CHECK'):
+                if (code[i] in loop_delim):
+                    tokens.append((currToken, 'if'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # import statement
+            if (currState == 'IMPORT_CHECK'):
+                if (code[i] in whitespace + ['<']):
+                    tokens.append((currToken, 'import'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
+                else:
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
+                    currToken = ''
+                    currState = 's0'
+            # item statement
+            if (currState == 'ITEM_CHECK'):
+                if (code[i] in iden_delim):
+                    tokens.append((currToken, 'item'))
+                    currToken = ''
+                    currState = 's0'
+                elif (code[i] in alphanumeric + ['_']):
+                    currToken += code[i]
+                    currState ='s421'
+                    print('(dbg) now in state 421')
+                    continue
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
