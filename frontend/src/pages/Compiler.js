@@ -178,6 +178,9 @@ const toggleFiles = () => {
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         fetchFiles={fetchFiles}
+
+        code={code} 
+        setValue={setValue}
         />
       </div>
 
@@ -192,6 +195,8 @@ const toggleFiles = () => {
         setFileData = {setFileData}
         files = {files}
         setFiles = {setFiles}
+        code={code} 
+        setValue={setValue}
         />
 
         <div

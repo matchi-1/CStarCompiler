@@ -11,7 +11,6 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
 }) => {
 
 
-  
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const fileInputRef = useRef(null); 
 
@@ -71,7 +70,7 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
           break;
         }
   
-        newFileName = `${baseName} (${counter})${extension}`;
+        newFileName = `${baseName}(${counter})${extension}`;
         counter++;
       }
   
