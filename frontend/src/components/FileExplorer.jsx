@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { FaFolder, FaFile, FaEdit, FaTrash } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io'; 
 import '../styles/FileExplorer.css';
@@ -31,12 +31,20 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     setFiles((prevFiles) => [...prevFiles, newFile]); 
   };
 
-  const handleFileClick = (fileName) => {
-    if (!openTabs.includes(fileName)) {
-      setOpenTabs([...openTabs, fileName]);
+  const handleFileClick = (file) => {
+    fetchFiles();
+  
+    if (file.type === "file") {
+      // Check if a file with the same name and type already exists in openTabs
+      const isFileOpen = openTabs.some(openFile => openFile.name === file.name && openFile.type === file.type);
+  
+      if (!isFileOpen) {
+        setOpenTabs([...openTabs, file]);
       }
-      setActiveTab(fileName);
-    
+  
+      setActiveTab(file.name); // Use the file name or unique ID as the activeTab
+
+    }
   };
 
   const fetchFiles = async () => {
@@ -151,13 +159,13 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     }
   };
 
-  const handleRename = async (index) => {
-    let newName = prompt('Enter new name:', fileData[index].name);
+  const handleRename = async (file) => {
+    let newName = prompt('Enter new name:', file.name);
 
     if (newName) {
       newName = newName.trim();
 
-      if(fileData[index].type == 'file')
+      if(file.type == 'file')
         {
             if (!newName.endsWith('.cstr')) {
               console.log("appended");
@@ -165,7 +173,7 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
           }
         }
 
-        if (newName === fileData[index].name) {
+        if (newName === file.name) {
           alert('The file name is unchanged.');
           return;
         }
@@ -182,37 +190,50 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     }
 
     try {
+      console.log("active:", activeTab);
+      if (activeTab === file.name) {
+        console.log(activeTab.name); // This should now print
+        setActiveTab(newName);
+      }
+      setOpenTabs((prevTabs) =>
+        prevTabs.map((tab) =>
+          tab.id === file.id ? { ...tab, name: newName } : tab
+        )
+      );
+
       // Rename in Firestore
-      const fileRef = doc(db, 'files', fileData[index].id);
+      const fileRef = doc(db, 'files', file.id);
+      const oldName = file.name;
       await updateDoc(fileRef, { name: newName });
 
-
-
-      // Update local state
-      const updatedFiles = [...fileData];
-      updatedFiles[index].name = newName;
-      setFileData(updatedFiles);
-
-      console.log(`File renamed to ${newName} in Firestore.`);
-      
     } catch (error) {
       console.error('Error renaming file in Firestore:', error);
       alert('Failed to rename file in Firestore.');
     }
   }
+  fetchFiles();
 };
 
-  const handleDelete = async (index) => {
-    const fileToDelete = fileData[index];
+  const handleDelete = async (file) => {
     
-    if (window.confirm(`Are you sure you want to delete "${fileToDelete.name}"?`)) {
+    if (window.confirm(`Are you sure you want to delete "${file.name}"?`)) {
       try {
-        const fileRef = doc(db, "files", fileToDelete.id); 
+        const fileRef = doc(db, "files", file.id); 
         
         await deleteDoc(fileRef);
   
-        const updatedFiles = fileData.filter((_, i) => i !== index);
-        setFileData(updatedFiles);
+        // Remove the file from openTabs
+      setOpenTabs((prevTabs) =>
+        prevTabs.filter((tab) => tab.id !== file.id) // Filter out the deleted file
+      );
+
+      // If the deleted file was the active tab, set the active tab to null or the first tab
+      if (activeTab === file.name) {
+        setActiveTab(openTabs[0].name);  
+      }
+
+      fetchFiles(); 
+
       } catch (error) {
         console.error("Error deleting file from Firestore:", error);
         alert("There was an error deleting the file.");
@@ -220,6 +241,16 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     }
   };
 
+// Memoize the sorted file data to avoid sorting on each render
+const sortedFileData = useMemo(() => {
+  return fileData.slice().sort((a, b) => {
+    console.log("SUADHIAUSDHIASD");
+    if (a.type === b.type) {
+      return a.name.localeCompare(b.name); // Alphabetical within type
+    }
+    return a.type === 'folder' ? -1 : 1; // Folders first
+  });
+}, [fileData]);
 
   return (
     <div className={`file-explorer ${isVisible ? 'visible' : ''}`}>
@@ -264,7 +295,7 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
       {/*   
       TODO:
 
-      - add dowload button
+      - add dowload button ✅
       
 
        (folder stuff)
@@ -275,16 +306,16 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
       */}
 
       <div className="file-explorer-content">
-        {fileData.length === 0 ? (
-          <p>No files or folders available</p>
-        ) : (
-          <ul>
-            {fileData.map((file, index) => (
-              <li
+      {sortedFileData.length === 0 ? (
+        <p>No files or folders available</p>
+      ) : (
+        <ul>
+          {sortedFileData.map((file, index) => (
+            <li
                 key={index}
                 onMouseEnter={() => setHoveredIndex(index)} // Set hovered index
                 onMouseLeave={() => setHoveredIndex(null)} // Clear hovered index
-                onClick={() => handleFileClick(file.name)} // Add click handler
+                onClick={() => handleFileClick(file)} // Add click handler
                 className="file-item"
               >
                 {file.type === 'folder' ? (
@@ -298,12 +329,12 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
                   <span className="file-actions">
                     <FaEdit 
                       className="file-action-icon" 
-                      onClick={() => handleRename(index)} 
+                      onClick={() => handleRename(file)} 
                       title="Edit" 
                     />
                     <FaTrash 
                       className="file-action-icon" 
-                      onClick={() => handleDelete(index)} 
+                      onClick={() => handleDelete(file)} 
                       title="Delete" 
                   />
                 </span>                

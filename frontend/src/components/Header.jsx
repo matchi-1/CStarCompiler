@@ -16,6 +16,10 @@ const Header = ({ editorRef }) => {
     }
   };
 
+  const handleDownload = () => {
+    console.log("downloading..");
+    //add later
+  };
   return (
     <div className="header">
       <div className="header-item" onClick={handleUndo}>
@@ -27,6 +31,10 @@ const Header = ({ editorRef }) => {
       <div className="header-item">
         <p>Save</p>
       </div>
+      <div className="header-item" onClick={handleDownload}>
+        <p>Download</p>
+      </div>
+      
     </div>
   );
 };

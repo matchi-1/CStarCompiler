@@ -2,10 +2,11 @@ import React from 'react';
 import '../styles/FileTabs.css';
 
 const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, fileData, setFileData  }) => {
+  
   const closeTab = (tabToClose) => {
     setOpenTabs(openTabs.filter((tab) => tab !== tabToClose));
-    if (activeTab === tabToClose) {
-      setActiveTab(openTabs[0] || null); // Set a new active tab or null if none left
+    if (activeTab === tabToClose.name) {
+      setActiveTab(openTabs[0].name); 
     }
   };
 
@@ -14,10 +15,10 @@ const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, fileData, se
       {openTabs.map((tab, index) => (
         <div
           key={index}
-          className={`file-tab-item ${tab === activeTab ? 'file-selected-tab-item' : 'file-unselected-tab-item'}`}
-          onClick={() => setActiveTab(tab)}
+          className={`file-tab-item ${tab.name === activeTab ? 'file-selected-tab-item' : 'file-unselected-tab-item'}`}
+          onClick={() => setActiveTab(tab.name)}
         >
-          <p>{tab}</p>
+          <p>{tab.name}</p>
           <p
             onClick={(e) => {
               e.stopPropagation();

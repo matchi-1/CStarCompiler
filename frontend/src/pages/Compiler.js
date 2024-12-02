@@ -11,14 +11,6 @@ import '../styles/Compiler.css';
 const CompilerPage = () => {
   const [openTabs, setOpenTabs] = useState([]);
   const [activeTab, setActiveTab] = useState(null);
-
-  const openFile = (fileData) => {
-    if (!openTabs.find((tab) => tab.name === fileData.name)) {
-      setOpenTabs([...openTabs, fileData]);
-    }
-    setActiveTab(fileData.name);
-  };
-
   const [fileData, setFileData] = useState([]);
 
   const editorRef = useRef();
@@ -30,6 +22,13 @@ const CompilerPage = () => {
   const [lexerResults, setLexerResults] = useState([]);
   const [tokens, setTokens] = useState([]);
   const [errorLogs, setErrors] = useState([]);
+
+
+
+  const toggleFiles = () => {
+    setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
+  };
+
 
   const onMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -64,10 +63,6 @@ const CompilerPage = () => {
   
     monaco.editor.defineTheme('blue-theme', blueTheme);
     monaco.editor.setTheme('blue-theme'); // Apply the theme
-  };
-
-  const toggleFiles = () => {
-    setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
   };
 
   useEffect(() => {
@@ -111,7 +106,6 @@ const CompilerPage = () => {
         setOpenTabs={setOpenTabs} 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
-        openFile={openFile}
         />
       </div>
 
