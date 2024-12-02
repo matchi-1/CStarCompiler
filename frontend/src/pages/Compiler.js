@@ -19,8 +19,6 @@ const CompilerPage = () => {
     setActiveTab(fileData.name);
   };
 
-
-
   const [fileData, setFileData] = useState([]);
 
   const editorRef = useRef();
