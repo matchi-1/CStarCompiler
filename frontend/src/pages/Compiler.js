@@ -7,27 +7,96 @@ import AnalyzerSegment from '../components/AnalyzerSegment';
 import MonacoEditor from '@monaco-editor/react';
 import Terminal from '../components/Terminal';
 import '../styles/Compiler.css';
+import { db, getDocs, collection } from '../firebaseConfig';  
+import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase/firestore';  
+
+
+{/* 
+  TODO: 
+  1) add logic for when "hello world.cstr" gets deleted
+  
+  */}
+
 
 const CompilerPage = () => {
-  const [openTabs, setOpenTabs] = useState([]);
-  const [activeTab, setActiveTab] = useState(null);
-  const [fileData, setFileData] = useState([]);
 
-  const editorRef = useRef();
-  const editorContainerRef = useRef();
+  const [files, setFiles] = useState([]); 
+  const [openTabs, setOpenTabs] = useState([]);
+  const [activeTab, setActiveTab] = useState('Hello World.cstr');
+  const [fileData, setFileData] = useState([]);
   const resizeObserver = useRef();
-  const [code, setValue] = useState('');
+  const [code, setValue] = useState();
   const [output, setOutput] = useState('');
   const [isFilesVisible, setIsFilesVisible] = useState(false); 
   const [lexerResults, setLexerResults] = useState([]);
   const [tokens, setTokens] = useState([]);
   const [errorLogs, setErrors] = useState([]);
+  const editorRef = useRef();
+  const editorContainerRef = useRef();
+
+  useEffect(() => {     //search for Hello world.cstr then set it as active initial tab
+    const fetchData = async () => {
+      await fetchOrCreateFile(); 
+    };
+  
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (openTabs.length > 0 && openTabs[0].content) {
+      setValue(openTabs[0].content);
+    }
+  }, [openTabs]);
 
 
+const fetchOrCreateFile = async () => {     //add TODO item 1 here
+  const filesCollectionRef = collection(db, 'files');
 
-  const toggleFiles = () => {
-    setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
-  };
+  try { // UNCOMMENT EVERYTHING HERE IF "HELLO WORLD.CSTR" IS DELETED 
+    const q = query(filesCollectionRef, where('name', '==', 'Hello World.cstr'));
+    const querySnapshot = await getDocs(q);
+    //  if (!querySnapshot.empty) {
+      const fileData = querySnapshot.docs[0].data();
+      setOpenTabs([{ id: querySnapshot.docs[0].id, ...fileData }]);
+//     } else {
+//       const newFileData = {
+//         content: `import<iostar> 
+//int main(){ 
+//  print("Hello World!"); 
+//  return 0; 
+//}
+// // DO NOT DELETE THIS FILE PLEASE FR!!!!!!!!
+//         `,
+//          name: 'Hello World.cstr',
+//          type: 'file',
+//        };
+//        const docRef = await addDoc(filesCollectionRef, newFileData);
+//        setOpenTabs([{ id: docRef.id, ...newFileData }]);
+//        console.log('File created with ID:', docRef.id);
+//      }
+  } catch (error) {
+    console.error('Error fetching or creating file:', error);
+  }
+};
+
+const fetchFiles = async () => {
+  try {
+    const filesCollectionRef = collection(db, 'files');
+    const filesSnapshot = await getDocs(filesCollectionRef);
+    const filesList = filesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    setFileData(filesList);
+  } catch (error) {
+    console.error('Error fetching files: ', error);
+  }
+};
+
+const toggleFiles = () => {
+  setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
+};
 
 
   const onMount = (editor, monaco) => {
@@ -102,10 +171,13 @@ const CompilerPage = () => {
         isVisible={isFilesVisible} toggleFiles={toggleFiles} 
         fileData = {fileData}
         setFileData = {setFileData}
+        files = {files}
+        setFiles = {setFiles}
         openTabs={openTabs} 
         setOpenTabs={setOpenTabs} 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
+        fetchFiles={fetchFiles}
         />
       </div>
 
@@ -118,6 +190,8 @@ const CompilerPage = () => {
         setActiveTab={setActiveTab} 
         fileData={fileData}
         setFileData = {setFileData}
+        files = {files}
+        setFiles = {setFiles}
         />
 
         <div

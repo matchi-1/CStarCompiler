@@ -7,10 +7,10 @@ import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase
 
 
 const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab, setActiveTab
-   , fileData, setFileData 
+   , fileData, setFileData, files, setFiles, fetchFiles
 }) => {
 
-  const [files, setFiles] = useState([]); 
+
   
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const fileInputRef = useRef(null); 
@@ -47,20 +47,7 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     }
   };
 
-  const fetchFiles = async () => {
-    try {
-      const filesCollectionRef = collection(db, 'files');
-      const filesSnapshot = await getDocs(filesCollectionRef);
-      const filesList = filesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
 
-      setFileData(filesList);
-    } catch (error) {
-      console.error('Error fetching files: ', error);
-    }
-  };
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -244,7 +231,7 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
 // Memoize the sorted file data to avoid sorting on each render
 const sortedFileData = useMemo(() => {
   return fileData.slice().sort((a, b) => {
-    console.log("SUADHIAUSDHIASD");
+    console.log("SORTING..");
     if (a.type === b.type) {
       return a.name.localeCompare(b.name); // Alphabetical within type
     }
