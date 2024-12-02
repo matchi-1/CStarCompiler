@@ -9,6 +9,10 @@ import Terminal from '../components/Terminal';
 import '../styles/Compiler.css';
 
 const CompilerPage = () => {
+  const [openTabs, setOpenTabs] = useState([]);
+  const [activeTab, setActiveTab] = useState(null);
+  const [fileData, setFileData] = useState([]);
+
   const editorRef = useRef();
   const editorContainerRef = useRef();
   const resizeObserver = useRef();
@@ -18,6 +22,13 @@ const CompilerPage = () => {
   const [lexerResults, setLexerResults] = useState([]);
   const [tokens, setTokens] = useState([]);
   const [errorLogs, setErrors] = useState([]);
+
+
+
+  const toggleFiles = () => {
+    setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
+  };
+
 
   const onMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -54,10 +65,6 @@ const CompilerPage = () => {
     monaco.editor.setTheme('blue-theme'); // Apply the theme
   };
 
-  const toggleFiles = () => {
-    setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
-  };
-
   useEffect(() => {
     const fetchTokens = async () => {
       const params = {
@@ -90,12 +97,28 @@ const CompilerPage = () => {
     <div className="compiler-page">
       <div className="sidebar-container">
         <Sidebar toggleFiles={toggleFiles} /> {/* Pass toggle function to Sidebar */}
-        <FileExplorer isVisible={isFilesVisible} toggleFiles={toggleFiles} />
+
+        <FileExplorer 
+        isVisible={isFilesVisible} toggleFiles={toggleFiles} 
+        fileData = {fileData}
+        setFileData = {setFileData}
+        openTabs={openTabs} 
+        setOpenTabs={setOpenTabs} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        />
       </div>
 
       <div className="compiler-main-container">
         <Header editorRef={editorRef} />
-        <FileTabs />
+        <FileTabs 
+        openTabs={openTabs} 
+        setOpenTabs={setOpenTabs} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        fileData={fileData}
+        setFileData = {setFileData}
+        />
 
         <div
           className="compiler-content"
