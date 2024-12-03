@@ -121,6 +121,7 @@ const toggleFiles = () => {
         { token: 'number', foreground: 'B5CEA8' },
         { token: 'string', foreground: 'D69D85' },
         { token: 'variable', foreground: '9CDCFE' },
+        { token: 'keyword', foreground: '76A1E8'}
       ],
       colors: {
         'editor.background': '#181F39',
@@ -132,6 +133,252 @@ const toggleFiles = () => {
   
     monaco.editor.defineTheme('blue-theme', blueTheme);
     monaco.editor.setTheme('blue-theme'); // Apply the theme
+    console.log("monaco mounted");
+    monaco.languages.register({id: 'Cstar'});
+    monaco.languages.setMonarchTokensProvider('Cstar', {
+      tokenizer: {
+        root: [
+          [/(\W)\b\d+(\.\d+)?\b/, 'number'],
+          [/".*?"/, 'string'],
+          [/(\/\/[^\n]*)/, 'comment'],
+          [/(\/\*[\s\S]*?\*\/)/, 'comment'],
+        ]
+      },
+    });
+    monaco.languages.setLanguageConfiguration('Cstar', {
+      autoClosingPairs: [
+        { open: '(', close: ')'},
+        { open: '{', close: '}'},
+        { open: '[', close: ']'},
+        { open: '<', close: '>'},
+        { open: '"', close: '"'},
+        { open: '\'', close: '\''}
+      ]
+    })
+    monaco.languages.registerCompletionItemProvider('Cstar', {
+      provideCompletionItems: (model, position) => {
+        const currWord = model.getWordUntilPosition(position);
+        const wordRange = {
+          startLineNumber: position.lineNumber,
+          endLineNumber: position.lineNumber,
+          startColumn: currWord.startColumn,
+          endColumn: currWord.endColumn
+        };
+        const suggestions = [
+          {
+            label: 'bool',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'bool',
+            range: wordRange
+          },
+          {
+            label: 'break',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'break',
+            range: wordRange
+          },
+          {
+            label: 'case',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'case ',
+            range: wordRange
+          },{
+            label: 'char',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'char',
+            range: wordRange
+          },
+          {
+            label: 'class',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'class',
+            range: wordRange
+          },
+          {
+            label: 'continue',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'continue',
+            range: wordRange
+          },
+          {
+            label: 'const',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'const',
+            range: wordRange
+          },
+          {
+            label: 'default',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'default',
+            range: wordRange
+          },
+          {
+            label: 'do',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'do',
+            range: wordRange
+          },
+          {
+            label: 'double',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'double',
+            range: wordRange
+          },
+          {
+            label: 'else',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'else',
+            range: wordRange
+          },
+          {
+            label: 'false',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'false',
+            range: wordRange
+          },
+          {
+            label: 'float',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'float',
+            range: wordRange
+          },
+          {
+            label: 'get',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'get',
+            range: wordRange
+          },
+          {
+            label: 'if',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'if (${1})',
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: wordRange
+          },
+          {
+            label: 'import',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'import',
+            range: wordRange
+          },
+          {
+            label: 'in',
+            kind:monaco.languages.CompletionItemKind.Function,
+            insertText: 'in<${1}>(${2})',
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: wordRange
+          },
+          {
+            label: 'int',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'int',
+            range: wordRange
+          },
+          {
+            label: 'item',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'item',
+            range: wordRange
+          },
+          {
+            label: 'long',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'long',
+            range: wordRange
+          },
+          {
+            label: 'print',
+            kind:monaco.languages.CompletionItemKind.Function,
+            insertText: 'print(${1})',
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: wordRange
+          },
+          {
+            label: 'println',
+            kind:monaco.languages.CompletionItemKind.Function,
+            insertText: 'println(${1})',
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: wordRange
+          },
+          {
+            label: 'private',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'private',
+            range: wordRange
+          },
+          {
+            label: 'property',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'property',
+            range: wordRange
+          },
+          {
+            label: 'repeat',
+            kind:monaco.languages.CompletionItemKind.Function,
+            insertText: 'repeat (${1})',
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: wordRange
+          },
+          {
+            label: 'return',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'return',
+            range: wordRange
+          },
+          {
+            label: 'set',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'set',
+            range: wordRange
+          },
+          {
+            label: 'static',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'static',
+            range: wordRange
+          },
+          {
+            label: 'string',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'string',
+            range: wordRange
+          },
+          {
+            label: 'switch',
+            kind:monaco.languages.CompletionItemKind.Function,
+            insertText: 'switch (${1})',
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: wordRange
+          },
+          {
+            label: 'this',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'this',
+            range: wordRange
+          },
+          {
+            label: 'true',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'true',
+            range: wordRange
+          },
+          {
+            label: 'void',
+            kind:monaco.languages.CompletionItemKind.Keyword,
+            insertText: 'void',
+            range: wordRange
+          },
+          {
+            label: 'while',
+            kind:monaco.languages.CompletionItemKind.Function,
+            insertText: 'while (${1})',
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: wordRange
+          },
+        ];
+        return {suggestions};
+      }
+    })
   };
 
   useEffect(() => {
@@ -206,7 +453,7 @@ const toggleFiles = () => {
          
           <MonacoEditor
             height="100%"
-            language="javascript"
+            language="Cstar"
             value={code}
             onChange={(value) => setValue(value)}
             onMount={onMount}
@@ -216,6 +463,8 @@ const toggleFiles = () => {
               minimap: {
                 enabled: false,
               },
+              autoClosingBrackets: true,  // Disable autoClosingBrackets
+              autoClosingQuotes: true
             }}
           />
         </div>
