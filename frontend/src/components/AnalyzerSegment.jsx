@@ -3,7 +3,6 @@ import '../styles/AnalyzerSegment.css';
 
 const AnalyzerSegment = (props) => {
   const tokens = props.tokens;
-  console.log(tokens);
 
   return (
     <div className="analyzer-segment">

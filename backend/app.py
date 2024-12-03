@@ -58,7 +58,7 @@ get_set_delim = newline_delim + ['{', ';']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';'] + newline_delim
-closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n']
+closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',']
 
 # literals delim
 num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';']
@@ -81,6 +81,7 @@ comment_delim = ascii + whitespace
 builtin_func = ['ABS_CHECK', 'ARR_FORITEMS_CHECK', 'ARR_LENGTH_CHECK', 'CEIL_CHECK', 'CHR_TOLOWER_CHECK', 'CHR_TOUPPER_CHECK', 'CHR_ISALPHA_CHECK', 'CHR_ISALPHANUM_CHECK', 'CHR_ISDIGIT_CHECK', 'FLOOR_CHECK', 'MAX_CHECK', 'MEAN_CHECK', 'MEDIAN_CHECK', 'MIN_CHECK', 'MODE_CHECK', 'RANDDOUBLE_CHECK', 'RANDFLOAT_CHECK', 'RANDINT_CHECK', 'SQRT_CHECK', 'STR_ISEMPTY_CHECK', 'STR_LENGTH_CHECK', 'STR_POPALPHA_CHECK', 'STR_POPDIGITS_CHECK', 'STR_POPSPECIAL_CHECK', 'STR_SLICE_CHECK', 'STR_TOLOWER_CHECK', 'STR_TOUPPER_CHECK', 'TRUNC_CHECK']
 #---GRAPH TRANSITIONS---
 def transition(currState, currChar):
+    print(f'(dbg) trans func {currState} : {currChar}')
     if (currState == 's0'):
         if(currChar == 'a'):
             return 's1'
@@ -162,6 +163,8 @@ def transition(currState, currChar):
             return 'ASSIGN_CHECK'
         elif(currChar == '\''):
             return 's434'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's1'):
@@ -169,21 +172,29 @@ def transition(currState, currChar):
             return 's2'
         elif(currChar == 'r'):
             return 's5'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's2'):
         if(currChar == 's'):
             return 'ABS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's5'):
         if(currChar == 'r'):
             return 's6'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's6'):
         if(currChar == '_'):
             return 's7'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's7'):
@@ -191,66 +202,92 @@ def transition(currState, currChar):
             return 's8'
         elif(currChar == 'l'):
             return 's17'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's8'):
         if(currChar == 'o'):
             return 's9'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's9'):
         if(currChar == 'r'):
             return 's10'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's10'):
         if(currChar == 'I'):
             return 's11'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's11'):
         if(currChar == 't'):
             return 's12'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's12'):
         if(currChar == 'e'):
             return 's13'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's13'):
         if(currChar == 'm'):
             return 's14'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's14'):
         if(currChar == 's'):
             return 'ARR_FORITEMS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's17'):
         if(currChar == 'e'):
             return 's18'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's18'):
         if(currChar == 'n'):
             return 's19'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's19'):
         if(currChar == 'g'):
             return 's20'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's20'):
         if(currChar == 't'):
             return 's21'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's21'):
         if(currChar == 'h'):
             return 'ARR_LENGTH_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's24'):
@@ -258,31 +295,43 @@ def transition(currState, currChar):
             return 's25'
         elif(currChar == 'r'):
             return 's29'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's25'):
         if(currChar == 'o'):
             return 's26'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's26'):
         if(currChar == 'l'):
             return 'BOOL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's29'):
         if(currChar == 'e'):
             return 's30'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's30'):
         if(currChar == 'a'):
             return 's31'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's31'):
         if(currChar == 'k'):
             return 'BREAK_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's34'):
@@ -296,26 +345,36 @@ def transition(currState, currChar):
             return 's81'
         elif(currChar == 'o'):
             return 's86'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's35'):
         if(currChar == 's'):
             return 's36'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's36'):
         if(currChar == 'e'):
             return 'CASE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's39'):
         if(currChar == 'i'):
             return 's40'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's40'):
         if(currChar == 'l'):
             return 'CEIL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's43'):
@@ -323,16 +382,22 @@ def transition(currState, currChar):
             return 's44'
         elif(currChar == 'r'):
             return 's47'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's44'):
         if(currChar == 'r'):
             return 'CHAR_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's47'):
         if(currChar == '_'):
             return 's48'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's48'):
@@ -340,11 +405,15 @@ def transition(currState, currChar):
             return 's49'
         elif(currChar == 'i'):
             return 's63'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's49'):
         if(currChar == 'o'):
             return 's50'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's50'):
@@ -352,51 +421,71 @@ def transition(currState, currChar):
             return 's51'
         elif(currChar == 'U'):
             return 's57'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's51'):
         if(currChar == 'o'):
             return 's52'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's52'):
         if(currChar == 'w'):
             return 's53'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's53'):
         if(currChar == 'e'):
             return 's54'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's54'):
         if(currChar == 'r'):
             return 'CHR_TOLOWER_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's57'):
         if(currChar == 'p'):
             return 's58'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's58'):
         if(currChar == 'p'):
             return 's59'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's59'):
         if(currChar == 'e'):
             return 's60'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's60'):
         if(currChar == 'r'):
             return 'CHR_TOUPPER_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's63'):
         if(currChar == 's'):
             return 's64'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's64'):
@@ -404,81 +493,113 @@ def transition(currState, currChar):
             return 's65'
         elif(currChar == 'D'):
             return 's75'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's65'):
         if(currChar == 'l'):
             return 's66'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's66'):
         if(currChar == 'p'):
             return 's67'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's67'):
         if(currChar == 'h'):
             return 's68'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's68'):
         if(currChar == 'a'):
             return 'CHR_ISALPHA_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's69'):
         if(currChar == 'N'):
             return 's70'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's71'):
         if(currChar == 'u'):
             return 's72'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's72'):
         if(currChar == 'm'):
             return 'CHR_ISALPHANUM_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's75'):
         if(currChar == 'i'):
             return 's76'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's76'):
         if(currChar == 'g'):
             return 's77'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's77'):
         if(currChar == 'i'):
             return 's78'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's78'):
         if(currChar == 't'):
             return 'CHR_ISDIGIT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's81'):
         if(currChar == 'a'):
             return 's82'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's82'):
         if(currChar == 's'):
             return 's83'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's83'):
         if(currChar == 's'):
             return 'CLASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's86'):
         if(currChar == 'n'):
             return 's87'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's87'):
@@ -486,31 +607,43 @@ def transition(currState, currChar):
             return 's88'
         elif(currChar == 's'):
             return 's94'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's88'):
         if(currChar == 'i'):
             return 's89'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's89'):
         if(currChar == 'n'):
             return 's90'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's90'):
         if(currChar == 'u'):
             return 's91'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's91'):
         if(currChar == 'e'):
             return 'CONTINUE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's94'):
         if(currChar == 't'):
             return 'CONST_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's97'):
@@ -518,66 +651,92 @@ def transition(currState, currChar):
             return 's98'
         elif(currChar == 'o'):
             return 'DO_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's98'):
         if(currChar == 'f'):
             return 's99'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's99'):
         if(currChar == 'a'):
             return 's100'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's100'):
         if(currChar == 'u'):
             return 's101'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's101'):
         if(currChar == 'l'):
             return 's102'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's102'):
         if(currChar == 't'):
             return 'DEFAULT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's105'):
         if(currChar == 'u'):
             return 's107'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's107'):
         if(currChar == 'b'):
             return 's108'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's108'):
         if(currChar == 'l'):
             return 's109'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's109'):
         if(currChar == 'e'):
             return 'DOUBLE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's112'):
         if(currChar == 'l'):
             return 's113'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's113'):
         if(currChar == 's'):
             return 's114'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's114'):
         if(currChar == 'e'):
             return 'ELSE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's117'):
@@ -587,26 +746,36 @@ def transition(currState, currChar):
             return 's131'
         elif(currChar == 'l'):
             return 's123'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's118'):
         if(currChar == 'l'):
             return 's119'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's119'):
         if(currChar == 's'):
             return 's120'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's120'):
         if(currChar == 'e'):
             return 'FALSE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's123'):
         if(currChar == 'o'):
             return 's124'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's124'):
@@ -614,31 +783,43 @@ def transition(currState, currChar):
             return 's125'
         elif(currChar == 'o'):
             return 's128'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's125'):
         if(currChar == 't'):
             return 'FLOAT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's128'):
         if(currChar == 'r'):
             return 'FLOOR_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's131'):
         if(currChar == 'r'):
             return 'FOR_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's134'):
         if(currChar == 'e'):
             return 's135'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's135'):
         if(currChar == 't'):
             return 'GET_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's138'):
@@ -650,56 +831,78 @@ def transition(currState, currChar):
             return 'IN_CHECK'
         elif(currChar == 't'):
             return 's151'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's141'):
         if(currChar == 'p'):
             return 's142'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's142'):
         if(currChar == 'o'):
             return 's143'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's143'):
         if(currChar == 'r'):
             return 's144'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's144'):
         if(currChar == 't'):
             return 'IMPORT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's147'):
         if(currChar == 't'):
             return 'INT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's151'):
         if(currChar == 'e'):
             return 's152'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's152'):
         if(currChar == 'm'):
             return 'ITEM_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's155'):
         if(currChar == 'o'):
             return 's156'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's156'):
         if(currChar == 'n'):
             return 's157'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's157'):
         if(currChar == 'g'):
             return 'LONG_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's160'):
@@ -711,11 +914,15 @@ def transition(currState, currChar):
             return 's173'
         elif(currChar == 'o'):
             return 's176'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's161'):
         if(currChar == 'x'):
             return 'MAX_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's164'):
@@ -723,46 +930,64 @@ def transition(currState, currChar):
             return 's165'
         elif(currChar == 'd'):
             return 's168'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's165'):
         if(currChar == 'n'):
             return 'MEAN_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's168'):
         if(currChar == 'i'):
             return 's169'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's169'):
         if(currChar == 'a'):
             return 's170'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's170'):
         if(currChar == 'n'):
             return 'MEDIAN_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's173'):
         if(currChar == 'n'):
             return 'MIN_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's176'):
         if(currChar == 'd'):
             return 's177'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's177'):
         if(currChar == 'e'):
             return 'MODE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's180'):
         if(currChar == 'r'):
             return 's181'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's181'):
@@ -770,6 +995,8 @@ def transition(currState, currChar):
             return 's182'
         elif(currChar == 'o'):
             return 's194'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's182'):
@@ -777,61 +1004,85 @@ def transition(currState, currChar):
             return 's183'
         elif(currChar == 'v'):
             return 's189'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's183'):
         if(currChar == 't'):
             return 'PRINT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's184'):
         if(currChar == 'l'):
             return 's186'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's186'):
         if(currChar == 'n'):
             return 'PRINTLN_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's189'):
         if(currChar == 'a'):
             return 's190'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's190'):
         if(currChar == 't'):
             return 's191'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's191'):
         if(currChar == 'e'):
             return 'PRIVATE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's194'):
         if(currChar == 'p'):
             return 's195'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's195'):
         if(currChar == 'e'):
             return 's196'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's196'):
         if(currChar == 'r'):
             return 's197'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's197'):
         if(currChar == 't'):
             return 's198'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's198'):
         if(currChar == 'y'):
             return 'PROPERTY_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's201'):
@@ -839,16 +1090,22 @@ def transition(currState, currChar):
             return 's202'
         elif(currChar == 'e'):
             return 's222'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's202'):
         if(currChar == 'n'):
             return 's203'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's203'):
         if(currChar == 'd'):
             return 's204'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's204'):
@@ -858,61 +1115,85 @@ def transition(currState, currChar):
             return 's212'
         elif(currChar == 'I'):
             return 's218'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's205'):
         if(currChar == 'o'):
             return 's206'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's206'):
         if(currChar == 'u'):
             return 's207'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's207'):
         if(currChar == 'b'):
             return 's208'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's208'):
         if(currChar == 'l'):
             return 's209'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's209'):
         if(currChar == 'e'):
             return 'RANDDOUBLE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's212'):
         if(currChar == 'l'):
             return 's213'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's213'):
         if(currChar == 'o'):
             return 's214'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's214'):
         if(currChar == 'a'):
             return 's215'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's215'):
         if(currChar == 't'):
             return 'RANDFLOAT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's218'):
         if(currChar == 'n'):
             return 's219'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's219'):
         if(currChar == 't'):
             return 'RANDINT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's222'):
@@ -920,36 +1201,50 @@ def transition(currState, currChar):
             return 's223'
         elif(currChar == 't'):
             return 's228'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's223'):
         if(currChar == 'e'):
             return 's224'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's224'):
         if(currChar == 'a'):
             return 's225'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's225'):
         if(currChar == 't'):
             return 'REPEAT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's228'):
         if(currChar == 'u'):
             return 's229'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's229'):
         if(currChar == 'r'):
             return 's230'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's230'):
         if(currChar == 'n'):
             return 'RETURN_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's233'):
@@ -961,21 +1256,29 @@ def transition(currState, currChar):
             return 's241'
         elif(currChar == 'w'):
             return 's312'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's234'):
         if(currChar == 't'):
             return 'SET_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's237'):
         if(currChar == 'r'):
             return 's238'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's238'):
         if(currChar == 't'):
             return 'SQRT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's241'):
@@ -983,21 +1286,29 @@ def transition(currState, currChar):
             return 's242'
         elif(currChar == 'r'):
             return 's247'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's242'):
         if(currChar == 't'):
             return 's243'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's243'):
         if(currChar == 'i'):
             return 's244'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's244'):
         if(currChar == 'c'):
             return 'STATIC_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's247'):
@@ -1005,6 +1316,8 @@ def transition(currState, currChar):
             return 's248'
         elif(currChar == 'i'):
             return 's308'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's248'):
@@ -1018,71 +1331,99 @@ def transition(currState, currChar):
             return 's288'
         elif(currChar == 't'):
             return 's294'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's249'):
         if(currChar == 's'):
             return 's250'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's250'):
         if(currChar == 'E'):
             return 's251'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's251'):
         if(currChar == 'm'):
             return 's252'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's252'):
         if(currChar == 'p'):
             return 's253'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's253'):
         if(currChar == 't'):
             return 's254'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's254'):
         if(currChar == 'y'):
             return 'STR_ISEMPTY_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's257'):
         if(currChar == 'e'):
             return 's258'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's258'):
         if(currChar == 'n'):
             return 's259'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's259'):
         if(currChar == 'g'):
             return 's260'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's260'):
         if(currChar == 't'):
             return 's261'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's261'):
         if(currChar == 'h'):
             return 'STR_LENGTH_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's264'):
         if(currChar == 'o'):
             return 's265'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's265'):
         if(currChar == 'p'):
             return 's266'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's266'):
@@ -1092,106 +1433,148 @@ def transition(currState, currChar):
             return 's273'
         elif(currChar == 'S'):
             return 's280'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's267'):
         if(currChar == 'l'):
             return 's268'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's268'):
         if(currChar == 'p'):
             return 's269'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's269'):
         if(currChar == 'h'):
             return 's270'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's270'):
         if(currChar == 'a'):
             return 'STR_POPALPHA_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's273'):
         if(currChar == 'i'):
             return 's274'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's274'):
         if(currChar == 'g'):
             return 's275'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's275'):
         if(currChar == 'i'):
             return 's276'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's276'):
         if(currChar == 't'):
             return 's277'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's277'):
         if(currChar == 's'):
             return 'STR_POPDIGITS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's280'):
         if(currChar == 'p'):
             return 's281'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's281'):
         if(currChar == 'e'):
             return 's282'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's282'):
         if(currChar == 'c'):
             return 's283'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's283'):
         if(currChar == 'i'):
             return 's284'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's284'):
         if(currChar == 'a'):
             return 's285'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's285'):
         if(currChar == 'l'):
             return 'STR_POPSPECIAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's288'):
         if(currChar == 'l'):
             return 's289'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's289'):
         if(currChar == 'i'):
             return 's290'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's290'):
         if(currChar == 'c'):
             return 's291'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's291'):
         if(currChar == 'e'):
             return 'STR_SLICE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's294'):
         if(currChar == 'o'):
             return 's295'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's295'):
@@ -1199,76 +1582,106 @@ def transition(currState, currChar):
             return 's296'
         elif(currChar == 'U'):
             return 's302'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's296'):
         if(currChar == 'o'):
             return 's297'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's297'):
         if(currChar == 'w'):
             return 's298'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's298'):
         if(currChar == 'e'):
             return 's299'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's299'):
         if(currChar == 'r'):
             return 'STR_TOLOWER_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's302'):
         if(currChar == 'p'):
             return 's303'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's303'):
         if(currChar == 'p'):
             return 's304'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's304'):
         if(currChar == 'e'):
             return 's305'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's305'):
         if(currChar == 'r'):
             return 'STR_TOUPPER_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's308'):
         if(currChar == 'n'):
             return 's309'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's309'):
         if(currChar == 'g'):
             return 'STRING_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's312'):
         if(currChar == 'i'):
             return 's313'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's313'):
         if(currChar == 't'):
             return 's314'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's314'):
         if(currChar == 'c'):
             return 's315'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's315'):
         if(currChar == 'h'):
             return 'SWITCH_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's318'):
@@ -1276,21 +1689,29 @@ def transition(currState, currChar):
             return 's319'
         elif(currChar == 'r'):
             return 's323'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's319'):
         if(currChar == 'i'):
             return 's320'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's320'):
         if(currChar == 's'):
             return 'THIS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's323'):
         if(currChar == 'u'):
             return 's324'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's324'):
@@ -1298,46 +1719,64 @@ def transition(currState, currChar):
             return 'TRUE_CHECK'
         elif(currChar == 'n'):
             return 's327'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's327'):
         if(currChar == 'c'):
             return 'TRUNC_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's330'):
         if(currChar == 'o'):
             return 's331'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's331'):
         if(currChar == 'i'):
             return 's332'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's332'):
         if(currChar == 'd'):
             return 'VOID_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's335'):
         if(currChar == 'h'):
             return 's336'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's336'):
         if(currChar == 'i'):
             return 's337'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's337'):
         if(currChar == 'l'):
             return 's338'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's338'):
         if(currChar == 'e'):
             return 'WHILE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's341'):
@@ -1345,26 +1784,36 @@ def transition(currState, currChar):
             return 'DECREMENT_CHECK'
         elif(currChar == '='):
             return 'MINUS_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's347'):
         if(currChar == '='):
             return 'NOT_EQUAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's351'):
         if(currChar == '='):
             return 'MODULO_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's355'):
         if(currChar == '&'):
             return 'LOGICAND_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's362'):
         if(currChar == '='):
             return 'MULT_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's372'):
@@ -1374,16 +1823,22 @@ def transition(currState, currChar):
             return 's424'
         elif(currChar == '='):
             return 'DIV_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's386'):
         if(currChar == ':'):
             return 'SCOPE_ACC_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's396'):
         if(currChar == '|'):
             return 'LOGICOR_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's403'):
@@ -1391,21 +1846,29 @@ def transition(currState, currChar):
             return 'INCREMENT_CHECK'
         elif(currChar == '='):
             return 'ADD_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's409'):
         if(currChar == '='):
             return 'LESS_OR_EQUAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's413'):
         if(currChar == '='):
             return 'GREATER_OR_EQUAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's417'):
         if(currChar == '='):
             return 'EQUAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's421'):
@@ -1535,6 +1998,8 @@ def transition(currState, currChar):
             return 's421'
         elif(currChar == '9'):
             return 's421'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's424'):
@@ -1712,6 +2177,8 @@ def transition(currState, currChar):
             return 's424'
         elif(currChar == ';'):
             return 's424'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's427'):
@@ -1891,11 +2358,15 @@ def transition(currState, currChar):
             return 's427'
         elif(currChar == ';'):
             return 's427'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's428'):
         if(currChar == '/'):
             return 'MULTI_COMMENT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's431'):
@@ -2073,11 +2544,15 @@ def transition(currState, currChar):
             return 's431'
         elif(currChar == ';'):
             return 's431'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's434'):
         if(currChar == '\''):
             return 'CHAR_LIT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's437'):
@@ -2101,6 +2576,8 @@ def transition(currState, currChar):
             return 's437'
         elif(currChar == '9'):
             return 's437'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
     elif (currState == 's470'):
@@ -2126,10 +2603,11 @@ def transition(currState, currChar):
             return 's470'
         elif(currChar == '9'):
             return 's470'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
         else:
             return 'UNDEFINED'
-    else:
-        return 'UNDEFINED'
+
 
 #---TOKEN EXTRACTION AND CLASSIFICATION---\
 def lexer(code):
@@ -2160,7 +2638,8 @@ def lexer(code):
             currCol += 1
             lineContent += code[i]
         #if no transitions, it means it's time for delim checking
-        if (transition(currState, 'ANY' == 'UNDEFINED')):
+        if (transition(currState, 'ANY') != 'DEFINED'):
+            print('(dbg) delim checking')
             #data type keywords
             if (currState == 'BOOL_CHECK'):
                 if (code[i] in type_iden_delim):
@@ -3210,6 +3689,7 @@ def lexer(code):
         if (transition(currState, code[i]) != 'UNDEFINED'):
             print(f'(dbg) in {currState} transitions')  
             currToken += code[i]
+            print(f'(dbg) transitioning: {currState} - {code[i]} -> {transition(currState, code[i])}')
             currState = transition(currState, code[i])
             continue
         else: #if not in s0 transitions assume identifier, go to state 420
@@ -3252,10 +3732,13 @@ def lexer(code):
                 elif (code[i] in iden_delim): #check delim
                     if (currToken[0] not in alphabetic_chars + ['_']):
                         errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
+                        currToken = ''
+                        currState = 's0'
                     else:
+                        print("(dbg) other iden append")
                         tokens.append((currToken, 'Identifier'))
-                    currToken = ''
-                    currState = 's0'
+                        currToken = code[i]
+                        currState = transition('s0', code[i])
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent))
