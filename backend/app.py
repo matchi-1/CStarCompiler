@@ -1256,9 +1256,9 @@ def lexer(code):
                     currState = 's0'
             # + symbol
             if (currState == 'PLUS_CHECK'):
-                if (code[i] in arithmetic_delim + ['\"']):
+                if (code[i] in arithmetic_delim + ['\"', '\n']):
                     tokens.append((currToken, '+'))
-                    currToken = ''  
+                    currToken = ''      
                     currState = 's0'
                 else:
                     currState = 's403'
@@ -1272,7 +1272,7 @@ def lexer(code):
                     currState = 's409'
             # > symbol
             if (currState == 'CLOSING_ANGLE_CHECK'):
-                if (code[i] in arithmetic_delim + [';']):
+                if (code[i] in arithmetic_delim + [';', '\n']):
                     tokens.append((currToken, '>'))
                     currToken = ''  
                     currState = 's0'
