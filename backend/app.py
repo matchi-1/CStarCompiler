@@ -3165,7 +3165,7 @@ def lexer(code):
                     currState = 's0'
             # void statement
             if (currState == 'VOID_CHECK'):
-                if (code[i] in type_iden_delim):
+                if (code[i] in whitespace + newline):
                     tokens.append((currToken, 'void'))
                     currToken = ''
                     currState = 's0'
