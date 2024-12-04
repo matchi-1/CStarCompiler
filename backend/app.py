@@ -53,7 +53,7 @@ str_lit_delim = whitespace + ['+', ')', ',', ';']
 newline_delim = [' ', '\n']
 index_delim = [']'] + digit
 default_delim = newline_delim + [':']
-type_iden_delim = [')', ' ', '\n', '>']
+type_iden_delim = [')', ' ', '\n', '>', '[']
 get_set_delim = newline_delim + ['{', ';']
 
 # identifier delim
@@ -2913,7 +2913,7 @@ def lexer(code):
                     currState = 's386'
             # [ symbol
             if (currState == 'OPEN_BRACKET_CHECK'):
-                if (code[i] in numbers):
+                if (code[i] in alphanumeric + whitespace + [']']):
                     tokens.append((currToken, '['))
                     currToken = ''  
                     currState = 's0'
