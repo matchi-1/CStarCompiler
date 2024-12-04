@@ -432,7 +432,19 @@ const toggleFiles = () => {
       </div>
 
       <div className="compiler-main-container">
-        <Header editorRef={editorRef} />
+        
+        <Header editorRef={editorRef}
+          openTabs={openTabs} 
+          setOpenTabs={setOpenTabs} 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          fileData={fileData}
+          setFileData = {setFileData}
+          files = {files}
+          setFiles = {setFiles}
+          code={code} 
+          setValue={setValue}
+        />
         <FileTabs 
         openTabs={openTabs} 
         setOpenTabs={setOpenTabs} 

@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/Header.css';
 
-const Header = ({ editorRef }) => {
+const Header = ({ editorRef, fileData, activeTab }) => {
   // Undo functionality
   const handleUndo = () => {
     if (editorRef.current) {
@@ -17,9 +17,22 @@ const Header = ({ editorRef }) => {
   };
 
   const handleDownload = () => {
-    console.log("downloading..");
-    //add later
+    const file = fileData.find((file) => file.name === activeTab);
+    if (file) {
+      const blob = new Blob([file.content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name; // Use file name for the download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      alert('No file selected for download.');
+    }
   };
+
   return (
     <div className="header">
       <div className="header-item" onClick={handleUndo}>
