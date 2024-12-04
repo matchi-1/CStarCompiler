@@ -2946,7 +2946,7 @@ def lexer(code):
                     currState = 's0'
             # } symbol
             if (currState == 'CLOSING_CURLY_CHECK'):
-                if (code[i] in plaintext_delim + newline_delim):
+                if (code[i] in plaintext_delim + newline_delim + [';']):
                     tokens.append((currToken, '}'))
                     currToken = ''  
                     currState = 's0'
