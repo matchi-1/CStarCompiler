@@ -61,7 +61,7 @@ iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|
 closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';']
+num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';'] + newline
 string_delim = newline_delim + ['+', ';']
 bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!']
 
@@ -2802,7 +2802,7 @@ def lexer(code):
                     currState = 's0'
             # ; symbol
             if (currState == 'SEMICOLON_CHECK'):
-                if (code[i] in plaintext_delim + newline):
+                if (code[i] in plaintext_delim + newline + ['}']):
                     tokens.append((currToken, ';'))
                     currToken = ''  
                     currState = 's0'
