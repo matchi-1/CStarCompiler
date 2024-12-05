@@ -1251,7 +1251,7 @@ def lexer(code):
                     break
             # } symbol
             if (currState == 'CLOSING_CURLY_CHECK'):
-                expected = ['alphanumeric', ' '. ';'] + newline_delim
+                expected = ['alphanumeric', ' ', ';'] + newline_delim
                 if (code[i] in plaintext_delim + newline_delim + [';']):
                     tokens.append((currToken, '}'))
                     currToken = ''  
