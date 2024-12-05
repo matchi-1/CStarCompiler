@@ -53,7 +53,7 @@ str_lit_delim = whitespace + ['+', ')', ',', ';']
 newline_delim = [' ', '\n']
 index_delim = [']'] + digit
 default_delim = newline_delim + [':']
-type_iden_delim = [')', ' ', '\n', '>']
+type_iden_delim = [')', ' ', '\n', '>', '[']
 get_set_delim = newline_delim + ['{', ';']
 
 # identifier delim
@@ -61,7 +61,7 @@ iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|
 closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';']
+num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';'] + newline
 string_delim = newline_delim + ['+', ';']
 bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!']
 
@@ -1100,8 +1100,8 @@ def lexer(code):
                     break
             # ; symbol
             if (currState == 'SEMICOLON_CHECK'):
-                expected = ['alphanumeric', ' '] + newline
-                if (code[i] in plaintext_delim + newline):
+                expected = ['alphanumeric', ' ', '}'] + newline
+                if (code[i] in plaintext_delim + newline + ['}']):
                     tokens.append((currToken, ';'))
                     currToken = ''  
                     currState = 's0'
@@ -1218,8 +1218,8 @@ def lexer(code):
                     currState = 's386'
             # [ symbol
             if (currState == 'OPEN_BRACKET_CHECK'):
-                expected = ['numeric']
-                if (code[i] in numbers):
+                expected = ['alphanumeric', ']'] + whitespace
+                if (code[i] in alphanumeric + whitespace + [']']):
                     tokens.append((currToken, '['))
                     currToken = ''  
                     currState = 's0'
@@ -1251,8 +1251,8 @@ def lexer(code):
                     break
             # } symbol
             if (currState == 'CLOSING_CURLY_CHECK'):
-                expected = ['alphanumeric', ' '] + newline_delim
-                if (code[i] in plaintext_delim + newline_delim):
+                expected = ['alphanumeric', ' '. ';'] + newline_delim
+                if (code[i] in plaintext_delim + newline_delim + [';']):
                     tokens.append((currToken, '}'))
                     currToken = ''  
                     currState = 's0'
@@ -1476,8 +1476,8 @@ def lexer(code):
                     break
             # void statement
             if (currState == 'VOID_CHECK'):
-                expected = type_iden_delim
-                if (code[i] in type_iden_delim):
+                expected = whitespace + newline
+                if (code[i] in whitespace + newline):
                     tokens.append((currToken, 'void'))
                     currToken = ''
                     currState = 's0'
