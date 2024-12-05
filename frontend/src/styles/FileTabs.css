@@ -17,7 +17,7 @@
 }
 
 .file-selected-tab-item, .file-unselected-tab-item {
-    width: 12rem;
+    width: 13rem;
     height: 100%;
     position: relative;
     display: flex;
@@ -28,15 +28,25 @@
     font-size: .9rem;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
+}
 
-    /*
-    TODO: make container for file name text + x btn 
-    
+.file-tab-name p{
+    width: 7rem;
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 
-    */
-    
+}
+
+#x-tab-btn{
+    width: 1rem;
+    height: 1rem;
+    display: flex;
+    justify-content: center;
+    border-radius: 0.2rem;
+    align-items: center;
+}
+#x-tab-btn:hover{
+    background-color: var(--table-darkBlueLine);
 }
 
 .file-unselected-tab-item {

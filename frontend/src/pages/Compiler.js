@@ -27,7 +27,7 @@ const CompilerPage = () => {
   const resizeObserver = useRef();
   const [code, setValue] = useState();
   const [output, setOutput] = useState('');
-  const [isFilesVisible, setIsFilesVisible] = useState(false); 
+  const [isFilesVisible, setIsFilesVisible] = useState(true); 
   const [lexerResults, setLexerResults] = useState([]);
   const [tokens, setTokens] = useState([]);
   const [errorLogs, setErrors] = useState([]);
@@ -95,7 +95,7 @@ const fetchFiles = async () => {
 };
 
 const toggleFiles = () => {
-  setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
+  //setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
 };
 
 
@@ -432,19 +432,7 @@ const toggleFiles = () => {
       </div>
 
       <div className="compiler-main-container">
-        
-        <Header editorRef={editorRef}
-          openTabs={openTabs} 
-          setOpenTabs={setOpenTabs} 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          fileData={fileData}
-          setFileData = {setFileData}
-          files = {files}
-          setFiles = {setFiles}
-          code={code} 
-          setValue={setValue}
-        />
+        <Header editorRef={editorRef} />
         <FileTabs 
         openTabs={openTabs} 
         setOpenTabs={setOpenTabs} 

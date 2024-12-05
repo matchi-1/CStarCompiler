@@ -52,14 +52,18 @@ const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, fileData, se
           className={`file-tab-item ${tab.name === activeTab ? 'file-selected-tab-item' : 'file-unselected-tab-item'}`}
           onClick={() => clickTab(tab)}
         >
-          <p>{tab.name}</p>
+          <div className='file-tab-name'>
+            <p>{tab.name}</p>
+          </div>
+          
           <p
             onClick={(e) => {
               e.stopPropagation();
               closeTab(tab);
             }}
+            id='x-tab-btn'
           >
-            x       {/* put the icon hereee */}
+            x      
           </p>
         </div>
       ))}
