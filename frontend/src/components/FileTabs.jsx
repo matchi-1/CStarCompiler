@@ -61,7 +61,7 @@ const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, fileData, se
               e.stopPropagation();
               closeTab(tab);
             }}
-            id='x-tab-btn'
+            className='x-tab-btn'
           >
             x      
           </p>

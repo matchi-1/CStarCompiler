@@ -8,7 +8,11 @@ const Terminal = ({ logs }) => {
         <div className="tab-item">
             <p>Compiler Logs</p>
         </div>
-        <div className="tab-filler"></div>
+        <div className="tab-filler">
+          <p className="x-tab-btn">
+            x
+          </p>
+        </div>
       </div>
       <div className="terminal-body">
         <div className = "table-container">

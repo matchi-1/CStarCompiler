@@ -37,16 +37,18 @@
     text-overflow: ellipsis; 
 }
 
-#x-tab-btn{
+.x-tab-btn{
     width: 1rem;
     height: 1rem;
     display: flex;
     justify-content: center;
     border-radius: 0.2rem;
     align-items: center;
+    cursor: pointer;
 }
-#x-tab-btn:hover{
+.x-tab-btn:hover{
     background-color: var(--table-darkBlueLine);
+    color: var(--font-lightBlue);
 }
 
 .file-unselected-tab-item {
