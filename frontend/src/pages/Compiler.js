@@ -27,7 +27,7 @@ const CompilerPage = () => {
   const resizeObserver = useRef();
   const [code, setValue] = useState();
   const [output, setOutput] = useState('');
-  const [isFilesVisible, setIsFilesVisible] = useState(true); 
+  const [isFilesVisible, setIsFilesVisible] = useState(false); 
   const [lexerResults, setLexerResults] = useState([]);
   const [tokens, setTokens] = useState([]);
   const [errorLogs, setErrors] = useState([]);
@@ -95,7 +95,7 @@ const fetchFiles = async () => {
 };
 
 const toggleFiles = () => {
-  //setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
+  setIsFilesVisible(!isFilesVisible); // Toggle visibility of the File Explorer
 };
 
 
@@ -105,11 +105,12 @@ const toggleFiles = () => {
 
     if (editorContainerRef.current) {
       resizeObserver.current = new ResizeObserver(() => {
-        editor.layout(); // Trigger layout update
+          if (editorRef.current) {
+              editorRef.current.layout(); // Update layout
+          }
       });
       resizeObserver.current.observe(editorContainerRef.current);
     }
-  
     // MONACO CUSTOM BLUE THEME (TEST -- WE NEED TO REGISTER OUR PL FIRST B4 WE CAN CUSTOMIZE THIS SATIN)
     const blueTheme = {
       base: 'vs-dark', 
@@ -409,6 +410,7 @@ const toggleFiles = () => {
     };
   }, []);
 
+
   return (
     <div className="compiler-page">
       <div className="sidebar-container">
@@ -430,62 +432,64 @@ const toggleFiles = () => {
         setValue={setValue}
         />
       </div>
-
-      <div className="compiler-main-container">
-        <Header 
-        openTabs={openTabs} 
-        setOpenTabs={setOpenTabs} 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        fileData={fileData}
-        setFileData = {setFileData}
-        files = {files}
-        setFiles = {setFiles}
-        code={code} 
-        setValue={setValue}
-        editorRef={editorRef} 
-        
-        />
-        <FileTabs 
-        openTabs={openTabs} 
-        setOpenTabs={setOpenTabs} 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        fileData={fileData}
-        setFileData = {setFileData}
-        files = {files}
-        setFiles = {setFiles}
-        code={code} 
-        setValue={setValue}
-        />
-
-        <div
-          className="compiler-content"
-          ref={editorContainerRef} // Attach ref to the editor container
-        >
-         
-          <MonacoEditor
-            height="100%"
-            language="Cstar"
-            value={code}
-            onChange={(value) => setValue(value)}
-            onMount={onMount}
-            options={{
-              automaticLayout: false,
-              selectOnLineNumbers: true,
-              minimap: {
-                enabled: false,
-              },
-              autoClosingBrackets: true,  // Disable autoClosingBrackets
-              autoClosingQuotes: true
-            }}
+      <div className="main-cont-segment-wrapper">
+        <div className="compiler-main-container">
+          <Header 
+          openTabs={openTabs} 
+          setOpenTabs={setOpenTabs} 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          fileData={fileData}
+          setFileData = {setFileData}
+          files = {files}
+          setFiles = {setFiles}
+          code={code} 
+          setValue={setValue}
+          editorRef={editorRef} 
+          
           />
+          <FileTabs 
+          openTabs={openTabs} 
+          setOpenTabs={setOpenTabs} 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          fileData={fileData}
+          setFileData = {setFileData}
+          files = {files}
+          setFiles = {setFiles}
+          code={code} 
+          setValue={setValue}
+          />
+          <div className="monaco-editor-wrapper">
+            <div
+              className="monaco-editor-container"
+              ref={editorContainerRef} // Attach ref to the editor container
+            >
+            
+              <MonacoEditor
+                height="100%"
+                language="Cstar"
+                value={code}
+                onChange={(value) => setValue(value)}
+                onMount={onMount}
+                options={{
+                  automaticLayout: false,
+                  selectOnLineNumbers: true,
+                  minimap: {
+                    enabled: false,
+                  },
+                  autoClosingBrackets: true,  // Disable autoClosingBrackets
+                  autoClosingQuotes: true
+                }}
+              />
+            </div>
+          </div>
+          <Terminal logs={errorLogs} />
         </div>
-        <Terminal logs={errorLogs} />
-      </div>
 
-      <div className="right-segment">
-        <AnalyzerSegment tokens={tokens} />
+        <div className="right-segment">
+          <AnalyzerSegment tokens={tokens} />
+        </div>
       </div>
     </div>
   );

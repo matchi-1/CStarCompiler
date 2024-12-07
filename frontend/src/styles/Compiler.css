@@ -9,19 +9,31 @@
   }
 
   .compiler-main-container {
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     height: 100%;
   }
 
-  .compiler-content {
+  .monaco-editor-container {
+    display: flex;
+    flex-direction: column;
+    width: 59.5vw;
+    height: 50vh;
     padding-top: 1rem;
-    flex-grow: 1;
     position: relative;
     min-height: 0; 
     min-width: 0;  
     overflow: hidden;
+    /*border: 1px red solid;*/
+  }
+
+  .monaco-editor-wrapper{
+    position: relative;
+    flex-grow: 1;
+    /*border: 3px blue solid;
+    overflow-x: scroll;*/
   }
 
   .sidebar-container{
@@ -29,3 +41,10 @@
     flex-direction: row;
   }
 
+  .main-cont-segment-wrapper{
+    
+    /*border: 1px solid red;*/
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+  }
