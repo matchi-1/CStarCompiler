@@ -26,35 +26,32 @@
     display: flex;
     flex-direction: column;
     /*min-width: 50rem;*/
-    overflow-y: hidden;
-    overflow-x: auto;
   }
   .editor-wrapper {
     width: 100%;
     min-width: 20rem;
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
     background-color: var(--body-blue);
     color: white;
-    overflow: hidden;
     font-family: 'Inter', sans-serif;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   .monaco-editor-wrapper{
     position: relative;
     flex-grow: 1;
-    /*border: 3px blue solid;
-    overflow-x: scroll;*/
+    height: 100%;
   }
 
   .monaco-editor-container {
     display: flex;
     flex-direction: column;
-    width: 55vw;
-    height: 42vh; 
+    width: 100%;
+    height: 47.5vh; 
     padding-top: 1rem;
     position: relative;
-    border: 3px green solid;
   }
 
   .sidebar-container{

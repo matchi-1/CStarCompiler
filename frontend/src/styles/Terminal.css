@@ -4,6 +4,7 @@
 .terminal {
     width: 100%;
     height: 16rem;
+    min-height: 8rem;
     min-width: 20rem;
     background-color: var(--terminal-blue);
     color: #fff;
