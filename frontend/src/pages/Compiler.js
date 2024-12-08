@@ -434,7 +434,7 @@ const toggleFiles = () => {
         setValue={setValue}
         />
         <div className="editor-wrapper">
-        <Header 
+          <Header 
             openTabs={openTabs} 
             setOpenTabs={setOpenTabs} 
             activeTab={activeTab} 

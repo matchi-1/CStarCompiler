@@ -1,11 +1,17 @@
 .file-tab-containers {
     height: 2.75rem;
+    min-height: 2.75rem;
+    min-width: 10rem;
     width: 100%;
     display: flex;
     flex-direction: row;
     background-color: var(--tabFiles-blue);
     border-bottom: 1px solid white;
     user-select: none;
+    overflow-y: hidden;
+    overflow-x: auto;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgba(69, 97, 154, 0.5) transparent ; /* Firefox */
 }
 
 /* Gradient border only at the bottom for filler */

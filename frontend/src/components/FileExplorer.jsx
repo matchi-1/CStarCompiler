@@ -290,46 +290,48 @@ const sortedFileData = useMemo(() => {
          -select and deselect folders
          -upload only on specific folders when selected
       */}
+      <div className='file-explorer-content-wrapper'>
+        <div className="file-explorer-content">
+         {sortedFileData.length === 0 ? (
+          <p>No files or folders available</p>
+          ) : (
+          <ul>
+            {sortedFileData.map((file, index) => (
+              <li
+                  key={index}
+                  onMouseEnter={() => setHoveredIndex(index)} // Set hovered index
+                  onMouseLeave={() => setHoveredIndex(null)} // Clear hovered index
+                  onClick={() => handleFileClick(file)} // Add click handler
+                  className="file-item"
+                >
+                  {file.type === 'folder' ? (
+                      <FaFolder size={12} />
+                    ) : (
+                      <img src="/assets/CStarLogo2.png" alt="Cstar" className="CStar-file-icon" />
+                    )}
+                    <span className="file-name">{file.name}</span>
 
-      <div className="file-explorer-content">
-      {sortedFileData.length === 0 ? (
-        <p>No files or folders available</p>
-      ) : (
-        <ul>
-          {sortedFileData.map((file, index) => (
-            <li
-                key={index}
-                onMouseEnter={() => setHoveredIndex(index)} // Set hovered index
-                onMouseLeave={() => setHoveredIndex(null)} // Clear hovered index
-                onClick={() => handleFileClick(file)} // Add click handler
-                className="file-item"
-              >
-                {file.type === 'folder' ? (
-                    <FaFolder size={12} />
-                  ) : (
-                    <img src="/assets/CStarLogo2.png" alt="Cstar" className="CStar-file-icon" />
-                  )}
-                  <span className="file-name">{file.name}</span>
-
-                {hoveredIndex === index && ( // Show buttons only if this file is hovered
-                  <span className="file-actions">
-                    <FaEdit 
-                      className="file-action-icon" 
-                      onClick={() => handleRename(file)} 
-                      title="Edit" 
+                  {hoveredIndex === index && ( // Show buttons only if this file is hovered
+                    <span className="file-actions">
+                      <FaEdit 
+                        className="file-action-icon" 
+                        onClick={() => handleRename(file)} 
+                        title="Edit" 
+                      />
+                      <FaTrash 
+                        className="file-action-icon" 
+                        onClick={() => handleDelete(file)} 
+                        title="Delete" 
                     />
-                    <FaTrash 
-                      className="file-action-icon" 
-                      onClick={() => handleDelete(file)} 
-                      title="Delete" 
-                  />
-                </span>                
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+                  </span>                
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
+      
 
     </div>
   );

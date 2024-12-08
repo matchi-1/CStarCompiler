@@ -1,9 +1,12 @@
 /* Container styles */
 .file-explorer {
+    display: flex;
+    flex-direction: column;
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
+    height: 100vh;
     width: 13.5rem;
     min-width: 13.5rem;;
     background-color: var(--tabFiles-blue);
@@ -68,7 +71,26 @@
     filter: brightness(1000%) contrast(1000%);
     transition: filter 0.3s ease;
   }
+
+  .file-explorer-content-wrapper{
+    flex-grow: 1; 
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgba(69, 97, 154, 0.5) transparent ; /* Firefox */
+  }
   
+
+.file-explorer-header,
+.files-menu-container {
+  flex-shrink: 0; 
+}
+  .file-explorer-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; 
+    user-select: none;
+  }
   
   /* Content styles */
   

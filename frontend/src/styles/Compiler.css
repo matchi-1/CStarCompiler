@@ -25,27 +25,21 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    width: calc(100vw - 22rem);
-    min-width: 50rem;
-    border: 1px solid red;
+    /*min-width: 50rem;*/
     overflow-y: hidden;
     overflow-x: auto;
   }
   .editor-wrapper {
     width: 100%;
+    min-width: 20rem;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     background-color: var(--body-blue);
     color: white;
-    height: 100vh;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
-    border: 1px solid blue;
   }
-
-  
-
   .monaco-editor-wrapper{
     position: relative;
     flex-grow: 1;

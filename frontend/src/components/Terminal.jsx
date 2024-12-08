@@ -15,16 +15,18 @@ const Terminal = ({ logs }) => {
         </div>
       </div>
       <div className="terminal-body">
-        <div className = "table-container">
-        <table>
-          <tbody>
-            {logs.map((log, index) => (
-              <tr key={index}>
-                <td>{log}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className='table-container'>
+          <div className = "table-wrapper">
+            <table>
+              <tbody>
+                {logs.map((log, index) => (
+                  <tr key={index}>
+                    <td>{log}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
