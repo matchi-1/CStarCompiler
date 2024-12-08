@@ -412,8 +412,10 @@ const toggleFiles = () => {
 
 
   return (
-    <div className="compiler-page">
-      <div className="sidebar-container">
+    <div className='page-wrapper'>
+
+    
+      <div className="compiler-page">
         <Sidebar toggleFiles={toggleFiles} /> {/* Pass toggle function to Sidebar */}
 
         <FileExplorer 
@@ -431,64 +433,67 @@ const toggleFiles = () => {
         code={code} 
         setValue={setValue}
         />
-      </div>
-      <div className="main-cont-segment-wrapper">
-        <div className="compiler-main-container">
-          <Header 
-          openTabs={openTabs} 
-          setOpenTabs={setOpenTabs} 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          fileData={fileData}
-          setFileData = {setFileData}
-          files = {files}
-          setFiles = {setFiles}
-          code={code} 
-          setValue={setValue}
-          editorRef={editorRef} 
-          
-          />
-          <FileTabs 
-          openTabs={openTabs} 
-          setOpenTabs={setOpenTabs} 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          fileData={fileData}
-          setFileData = {setFileData}
-          files = {files}
-          setFiles = {setFiles}
-          code={code} 
-          setValue={setValue}
-          />
-          <div className="monaco-editor-wrapper">
-            <div
-              className="monaco-editor-container"
-              ref={editorContainerRef} // Attach ref to the editor container
-            >
+        <div className="editor-wrapper">
+        <Header 
+            openTabs={openTabs} 
+            setOpenTabs={setOpenTabs} 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            fileData={fileData}
+            setFileData = {setFileData}
+            files = {files}
+            setFiles = {setFiles}
+            code={code} 
+            setValue={setValue}
+            editorRef={editorRef} 
             
-              <MonacoEditor
-                height="100%"
-                language="Cstar"
-                value={code}
-                onChange={(value) => setValue(value)}
-                onMount={onMount}
-                options={{
-                  automaticLayout: false,
-                  selectOnLineNumbers: true,
-                  minimap: {
-                    enabled: false,
-                  },
-                  autoClosingBrackets: true,  // Disable autoClosingBrackets
-                  autoClosingQuotes: true
-                }}
-              />
+            />
+            <FileTabs 
+            openTabs={openTabs} 
+            setOpenTabs={setOpenTabs} 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            fileData={fileData}
+            setFileData = {setFileData}
+            files = {files}
+            setFiles = {setFiles}
+            code={code} 
+            setValue={setValue}
+            />
+
+          
+          <div className="tab-menu-terminal-container">
+        
+            <div className="monaco-editor-wrapper">
+              <div
+                className="monaco-editor-container"
+                ref={editorContainerRef} // Attach ref to the editor container
+              >
+              
+                <MonacoEditor
+                  height="100%"
+                  language="Cstar"
+                  value={code}
+                  onChange={(value) => setValue(value)}
+                  onMount={onMount}
+                  options={{
+                    automaticLayout: false,
+                    selectOnLineNumbers: true,
+                    minimap: {
+                      enabled: false,
+                    },
+                    autoClosingBrackets: true,  // Disable autoClosingBrackets
+                    autoClosingQuotes: true
+                  }}
+                />
+              </div>
             </div>
+            
           </div>
           <Terminal logs={errorLogs} />
         </div>
-
         <div className="right-segment">
-          <AnalyzerSegment tokens={tokens} />
+            <AnalyzerSegment tokens={tokens} />
         </div>
       </div>
     </div>

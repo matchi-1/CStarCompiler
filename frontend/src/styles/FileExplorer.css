@@ -5,6 +5,7 @@
     left: 0;
     bottom: 0;
     width: 13.5rem;
+    min-width: 13.5rem;;
     background-color: var(--tabFiles-blue);
     color: white;
     transform: translateX(-100%);

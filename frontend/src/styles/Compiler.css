@@ -1,33 +1,50 @@
-.compiler-page {
+.compiler-page{
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  overflow-y: hidden;
+  overflow-x: auto;
+  height: 100vh;
+  width: 100vw;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(69, 97, 154, 0.5) transparent ; /* Firefox */
+}
+
+/* For Webkit browsers (Chrome, Safari, Edge) */
+.compiler-page::-webkit-scrollbar {
+  width: 8px;  /* scrollbar Width */
+}
+
+.compiler-page::-webkit-scrollbar-thumb {
+  background-color: rgba(69, 97, 154, 0.5);  /* Grey, transparent scrollbar thumb */
+  border-radius: 10px;  
+}
+ 
+  .tab-menu-terminal-container {
+    background-color: var(--body-blue);
+    flex-grow: 1;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    height: 100%;
+    width: calc(100vw - 22rem);
+    min-width: 50rem;
+    border: 1px solid red;
+    overflow-y: hidden;
+    overflow-x: auto;
+  }
+  .editor-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
     background-color: var(--body-blue);
     color: white;
     height: 100vh;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
+    border: 1px solid blue;
   }
 
-  .compiler-main-container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    height: 100%;
-  }
-
-  .monaco-editor-container {
-    display: flex;
-    flex-direction: column;
-    width: 59.5vw;
-    height: 50vh;
-    padding-top: 1rem;
-    position: relative;
-    min-height: 0; 
-    min-width: 0;  
-    overflow: hidden;
-    /*border: 1px red solid;*/
-  }
+  
 
   .monaco-editor-wrapper{
     position: relative;
@@ -36,15 +53,18 @@
     overflow-x: scroll;*/
   }
 
+  .monaco-editor-container {
+    display: flex;
+    flex-direction: column;
+    width: 55vw;
+    height: 42vh; 
+    padding-top: 1rem;
+    position: relative;
+    border: 3px green solid;
+  }
+
   .sidebar-container{
     display: flex;
     flex-direction: row;
   }
 
-  .main-cont-segment-wrapper{
-    
-    /*border: 1px solid red;*/
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
-  }
