@@ -1271,17 +1271,20 @@ def lexer(code):
                     currState = 's403'
             # < symbol
             if (currState == 'OPEN_ANGLE_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
-                if (code[i] in arithmetic_delim):
+                expected = ['alphanumeric', ' ', '('] + newline
+                print("(dbg) open angle check curr char ", code[i])
+                if (code[i] in arithmetic_delim + newline):
+                    print("(dbg) arithmetic spotted for <")
                     tokens.append((currToken, '<'))
                     currToken = ''  
                     currState = 's0'
                 else:
+                    print("(dbg) going from open angle check to s409")
                     currState = 's409'
             # > symbol
             if (currState == 'CLOSING_ANGLE_CHECK'):
-                expected = ['alphanumeric', ' ', '(', ';']
-                if (code[i] in arithmetic_delim + [';']):
+                expected = ['alphanumeric', ' ', '(', ';'] + newline
+                if (code[i] in arithmetic_delim + [';'] + newline):
                     tokens.append((currToken, '>'))
                     currToken = ''  
                     currState = 's0'
@@ -1864,8 +1867,8 @@ def lexer(code):
                     break
             # import statement
             if (currState == 'IMPORT_CHECK'):
-                expected = whitespace + ['<']
-                if (code[i] in whitespace + ['<']):
+                expected = whitespace + ['<'] + newline
+                if (code[i] in whitespace + ['<'] + newline):
                     tokens.append((currToken, 'import'))
                     currToken = ''
                     currState = 's0'
@@ -2068,7 +2071,7 @@ def lexer(code):
 
 #---LEXER ERRORS---
 def delimError(currToken, currLine, currCol, incorrectDelim, lineContent, expected):
-    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Unexpected \'{incorrectDelim}\' for \'{currToken}\'\n' 
+    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Unexpected \'{'newline' if incorrectDelim == '\n' else incorrectDelim}\' for \'{currToken}\'\n' 
     errorMsg += lineContent +'\n'
     errorMsg += '_'*(currCol-len(currToken)-1) + '^\n'
     errorMsg += f'Expected delimiters: {expected}'
