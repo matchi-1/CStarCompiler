@@ -48,11 +48,11 @@ newline = ['\n']
 # reserved symbols delim
 plaintext_delim = whitespace + alphanumeric
 equal_delim = whitespace + ['=']
-arithmetic_delim = plaintext_delim + ['(']
+arithmetic_delim = plaintext_delim + ['(', '+', '-']
 str_lit_delim = whitespace + ['+', ')', ',', ';']
 newline_delim = [' ', '\n']
 index_delim = [']'] + digit
-default_delim = newline_delim + [':']
+default_delim = whitespace + newline_delim + [':']
 type_iden_delim = [')', ' ', '\n', '>', '[']
 get_set_delim = newline_delim + ['{', ';']
 
@@ -66,8 +66,8 @@ string_delim = newline_delim + ['+', ';']
 bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!']
 
 # control flow delim
-loop_delim = newline_delim+['(']
-block_delim = newline_delim+['{']
+loop_delim = newline_delim+ whitespace + ['(']
+block_delim = newline_delim+whitespace+['{']
 
 # methods delim
 func_delim = newline_delim + ['(']
@@ -77,835 +77,1681 @@ single_delim = newline
 comment_delim = ascii + whitespace
 
 
-#---TOKEN STATES---
-builtin_func = ['ABS_CHECK', 'ARR_FORITEMS_CHECK', 'ARR_LENGTH_CHECK', 'CEIL_CHECK', 'CHR_TOLOWER_CHECK', 'CHR_TOUPPER_CHECK', 'CHR_ISALPHA_CHECK', 'CHR_ISALPHANUM_CHECK', 'CHR_ISDIGIT_CHECK', 'FLOOR_CHECK', 'MAX_CHECK', 'MEAN_CHECK', 'MEDIAN_CHECK', 'MIN_CHECK', 'MODE_CHECK', 'RANDDOUBLE_CHECK', 'RANDFLOAT_CHECK', 'RANDINT_CHECK', 'SQRT_CHECK', 'STR_ISEMPTY_CHECK', 'STR_LENGTH_CHECK', 'STR_POPALPHA_CHECK', 'STR_POPDIGITS_CHECK', 'STR_POPSPECIAL_CHECK', 'STR_SLICE_CHECK', 'STR_TOLOWER_CHECK', 'STR_TOUPPER_CHECK', 'TRUNC_CHECK']
-#---GRAPH TRANSITIONS---
-transitions = {
-    's0':{
-	  'a':'s1',
-        'b':'s24',
-        'c':'s34',
-        'd':'s97',
-        'e':'s112',
-        'f':'s117',
-        'g':'s134',
-        'i':'s138',
-        'l':'s155',
-        'm':'s160',
-        'p':'s180',
-	    'r':'s201',
-        's':'s233',
-        't':'s318', 
-        'v':'s330',
-        'w':'s335', 
-	    '-':'DASH_CHECK', #s341
-        '!':'NEGATION_CHECK', #s347
-        '%':'MODULO_CHECK', #s351
-        '&':'s355',
-        '(':'OPEN_PAREN_CHECK',
-        ')':'CLOSING_PAREN_CHECK',
-        '*':'ASTERISK_CHECK', #s362
-        ',':'COMMA_CHECK',
-        '.':'DOT_CHECK', #s437
-        '/':'SLASH_CHECK', #s372
-        ';':'SEMICOLON_CHECK',
-        '?':'QUESTION_CHECK',
-        ':':'COLON_CHECK', #s386
-        '[':'OPEN_BRACKET_CHECK',
-        ']':'CLOSING_BRACKET_CHECK',
-        '{':'OPEN_CURLY_CHECK',
-        '}':'CLOSING_CURLY_CHECK',
-        '|':'s396',
-        '\"':'s431', #start string loop
-        '+':'PLUS_CHECK', #s403
-        '<':'OPEN_ANGLE_CHECK', #s409
-        '>':'CLOSING_ANGLE_CHECK', #s413
-        '=':'ASSIGN_CHECK', #s417
-        '\'':'s434' #char checking
-    },
-    's1':{
-        'b':'s2',
-	  'r':'s5'
-    },
-    's2':{
-        's':'ABS_CHECK'
-    },
-    's5':{
-        'r':'s6'
-    },
-    's6':{
-        '_':'s7'
-    },
-    's7':{
-        'f':'s8',
-        'l':'s17'
-    },
-    's8':{
-        'o':'s9'
-    },
-    's9':{
-        'r':'s10'
-    },
-    's10':{
-        'I':'s11'
-    },
-    's11':{
-        't':'s12'
-    },
-    's12':{
-        'e':'s13'
-    },
-    's13':{
-        'm':'s14'
-    },
-    's14':{
-        's':'ARR_FORITEMS_CHECK'
-    },
-    's17':{
-        'e':'s18'
-    },
-    's18':{
-        'n':'s19'
-    },
-    's19':{
-        'g':'s20'
-    },
-    's20':{
-        't':'s21'
-    },
-    's21':{
-        'h':'ARR_LENGTH_CHECK'
-    },
-    's24':{
-        'o':'s25',
-        'r':'s29'
-    },
-    's25':{
-        'o':'s26'
-    },
-    's26':{
-        'l':'BOOL_CHECK'
-    },
-    's29':{
-        'e':'s30'
-    },
-    's30':{
-        'a':'s31'
-    },
-    's31':{
-        'k':'BREAK_CHECK'
-    },
-    's34':{
-        'a':'s35',
-        'e':'s39',
-        'h':'s43',
-        'l':'s81',
-        'o':'s86'
-    },
-    's35':{
-	  's':'s36'
-    },
-    's36':{
-	  'e':'CASE_CHECK' #s37
-    },
-    's39':{
-	  'i':'s40'
-    },
-    's40':{
-	  'l':'CEIL_CHECK' #s41
-    },
-    's43':{
-        'a':'s44',
-	  'r':'s47'
-    },
-    's44':{
-        'r':'CHAR_CHECK' #s45
-    },
-    's47':{
-        '_':'s48'
-    },
-    's48':{
-        't':'s49',
-        'i':'s63'
-    },
-    's49':{
-        'o':'s50'
-    },
-    's50':{
-        'L':'s51',
-        'U':'s57'
-    },
-    's51':{
-        'o':'s52'
-    },
-    's52':{
-        'w':'s53'
-    },
-    's53':{
-        'e':'s54'
-    },
-    's54':{
-        'r':'CHR_TOLOWER_CHECK' #s55
-    },
-    's57':{
-        'p':'s58'
-    },
-    's58':{
-        'p':'s59'
-    },
-    's59':{
-        'e':'s60'
-    },
-    's60':{
-        'r':'CHR_TOUPPER_CHECK' #s61
-    },
-    's63':{
-        's':'s64'
-    },
-    's64':{
-        'A':'s65',
-        'D':'s75'
-    },
-    's65':{
-        'l':'s66'
-    },
-    's66':{
-        'p':'s67'
-    },
-    's67':{
-        'h':'s68'
-    },
-    's68':{
-        'a':'CHR_ISALPHA_CHECK' #s69
-    },
-    's69':{
-        'N':'s70'
-    },
-    's71':{
-        'u':'s72'
-    },
-    's72':{
-        'm':'CHR_ISALPHANUM_CHECK' #s73
-    },
-    's75':{
-        'i':'s76'
-    },
-    's76':{
-        'g':'s77'
-    },
-    's77':{
-        'i':'s78'
-    },
-    's78':{
-        't':'CHR_ISDIGIT_CHECK' #s79
-    },
-    's81':{
-        'a':'s82'
-    },
-    's82':{
-        's':'s83'
-    },
-    's83':{
-        's':'CLASS_CHECK' #s84
-    },
-    's86':{
-        'n':'s87'
-    },
-    's87':{
-        't':'s88',
-        's':'s94'
-    },
-    's88':{
-        'i':'s89'
-    },
-    's89':{
-        'n':'s90'
-    },
-    's90':{
-        'u':'s91'
-    },
-    's91':{
-        'e':'CONTINUE_CHECK' #s92
-    },
-    's94':{
-        't':'CONST_CHECK' #s95
-    },
-    's97':{
-        'e':'s98',
-        'o':'DO_CHECK' #s105
-    },
-    's98':{
-        'f':'s99'
-    },
-    's99':{
-        'a':'s100'
-    },
-    's100':{
-        'u':'s101'
-    },
-    's101':{
-        'l':'s102'
-    },
-    's102':{
-        't':'DEFAULT_CHECK' #s103
-    },
-    's105':{
-        'u':'s107'
-    },
-    's107':{
-        'b':'s108'
-    },
-    's108':{
-        'l':'s109'
-    },
-    's109':{
-        'e':'DOUBLE_CHECK' #s110
-    },
-    's112':{
-        'l':'s113'
-    },
-    's113':{
-        's':'s114'
-    },
-    's114':{
-        'e':'ELSE_CHECK' #s115
-    },
-    's117':{
-        'a':'s118',
-        'o':'s131',
-        'l':'s123'
-    },
-    's118':{
-        'l':'s119'
-    },
-    's119':{
-        's':'s120'
-    },
-    's120':{
-        'e':'FALSE_CHECK' #s121
-    },
-    's123':{
-        'o':'s124'
-    },
-    's124':{
-        'a':'s125',
-        'o':'s128'
-    },
-    's125':{
-        't':'FLOAT_CHECK' #s126
-    },
-    's128':{
-        'r':'FLOOR_CHECK' #s129
-    },
-    's131':{
-        'r':'FOR_CHECK' #s129
-    },
-    's134':{
-        'e':'s135' 
-    },
-    's135':{
-        't':'GET_CHECK' #s136
-    },
-    's138':{
-        'f':'IF_CHECK', #s139
-        'm':'s141',
-        'n':'IN_CHECK', #s147
-        't':'s151' 
-    },
-    's141':{
-        'p':'s142' 
-    },
-    's142':{
-        'o':'s143' 
-    },
-    's143':{
-        'r':'s144' 
-    },
-    's144':{
-        't':'IMPORT_CHECK' #s145 
-    },
-    's147':{
-        't':'INT_CHECK'
-    },
-    's151':{
-        'e':'s152'
-    },
-    's152':{
-        'm':'ITEM_CHECK' #s153
-    },
-    's155':{
-        'o':'s156'
-    },
-    's156':{
-        'n':'s157'
-    },
-    's157':{
-        'g':'LONG_CHECK' #s158
-    },
-    's160':{
-        'a':'s161',
-        'e':'s164',
-        'i':'s173',
-        'o':'s176'
-    },
-    's161':{
-        'x':'MAX_CHECK' #s162
-    },
-    's164':{
-        'a':'s165',
-        'd':'s168' 
-    },
-    's165':{
-        'n':'MEAN_CHECK'  #s166
-    },
-    's168':{
-        'i':'s169' 
-    },
-    's169':{
-        'a':'s170'  
-    },
-    's170':{
-        'n':'MEDIAN_CHECK' #s171  
-    },
-    's173':{
-        'n':'MIN_CHECK' #s174  
-    },
-    's176':{
-        'd':'s177' 
-    },
-    's177':{
-        'e':'MODE_CHECK'  #s178
-    },
-    's180':{
-        'r':'s181'
-    },
-    's181':{
-        'i':'s182',
-        'o':'s194'
-    },
-    's182':{
-        'n':'s183',
-	  'v':'s189'
-    },
-    's183':{
-        't':'PRINT_CHECK', #s184
-    },
-    's184':{
-        'l':'s186'
-    },
-    's186':{
-        'n':'PRINTLN_CHECK'
-    },
-    's189':{
-        'a':'s190'
-    },
-    's190':{
-        't':'s191'
-    },
-    's191':{
-        'e':'PRIVATE_CHECK'
-    },
-    's194':{
-        'p':'s195'
-    },
-    's195':{
-        'e':'s196'
-    },
-    's196':{
-        'r':'s197'
-    },
-    's197':{
-        't':'s198'
-    },
-    's198':{
-        'y':'PROPERTY_CHECK'
-    },
-    's201':{
-        'a':'s202',
-        'e':'s222'
-     },
-    's202':{
-        'n':'s203'
-    },
-    's203':{
-        'd':'s204'
-    },
-    's204':{
-        'D':'s205',
-	  'F':'s212',
-        'I':'s218'
-    },
-    's205':{
-        'o':'s206'
-    },
-    's206':{
-        'u':'s207'
-    },
-    's207':{
-        'b':'s208'
-    },
-    's208':{
-        'l':'s209'
-    },
-    's209':{
-        'e':'RANDDOUBLE_CHECK'
-    },
-    's212':{
-        'l':'s213'
-    },
-    's213':{
-        'o':'s214'
-    },
-    's214':{
-        'a':'s215'
-    },
-    's215':{
-        't':'RANDFLOAT_CHECK'
-    },
-    's218':{
-        'n':'s219'
-    },
-    's219':{
-        't':'RANDINT_CHECK'
-    },
-    's222':{
-        'p':'s223',
-        't':'s228'
-    },
-    's223':{
-        'e':'s224'
-    },
-    's224':{
-        'a':'s225'
-    },
-    's225':{
-        't':'REPEAT_CHECK'
-    },
-    's228':{
-        'u':'s229'
-    },
-    's229':{
-        'r':'s230'
-    },
-    's230':{
-        'n':'RETURN_CHECK'
-    },
-    's233':{
-        'e':'s234',
-        'q':'s237',
-        't':'s241',
-        'w':'s312'
-    },
-    's234':{
-        't':'SET_CHECK'
-    },
-    's237':{
-        'r':'s238'
-    },
-    's238':{
-        't':'SQRT_CHECK'
-    },
-    's241':{
-	  'a':'s242',
-        'r':'s247'
-    },
-    's242':{
-	  't':'s243'
-    },
-    's243':{
-	  'i':'s244'
-    },
-    's244':{
-	  'c':'STATIC_CHECK'
-    },
-    's247':{
-        '_':'s248',
-        'i':'s308' 
-    },
-    's248':{
-        'i':'s249',
-        'l':'s257',
-        'p':'s264',
-	  's':'s288',
-        't':'s294'
-    },
+def transition(currState, currChar):
+    if (currState == 's0'):
+        if(currChar == 'b'):
+            return 's1'
+        elif(currChar == 'c'):
+            return 's11'
+        elif(currChar == 'd'):
+            return 's36'
+        elif(currChar == 'e'):
+            return 's51'
+        elif(currChar == 'f'):
+            return 's56'
+        elif(currChar == 'g'):
+            return 's70'
+        elif(currChar == 'i'):
+            return 's74'
+        elif(currChar == 'l'):
+            return 's91'
+        elif(currChar == 'p'):
+            return 's96'
+        elif(currChar == 'r'):
+            return 's117'
+        elif(currChar == 's'):
+            return 's129'
+        elif(currChar == 't'):
+            return 's150'
+        elif(currChar == 'v'):
+            return 's159'
+        elif(currChar == 'w'):
+            return 's164'
+        elif(currChar == '-'):
+            return 'DASH_CHECK'
+        elif(currChar == '!'):
+            return 'NEGATION_CHECK'
+        elif(currChar == '%'):
+            return 'MODULO_CHECK'
+        elif(currChar == '&'):
+            return 's184'
+        elif(currChar == '('):
+            return 'OPEN_PAREN_CHECK'
+        elif(currChar == ')'):
+            return 'CLOSING_PAREN_CHECK'
+        elif(currChar == '*'):
+            return 'ASTERISK_CHECK'
+        elif(currChar == ','):
+            return 'COMMA_CHECK'
+        elif(currChar == '.'):
+            return 'DOT_CHECK'
+        elif(currChar == '/'):
+            return 'SLASH_CHECK'
+        elif(currChar == ';'):
+            return 'SEMICOLON_CHECK'
+        elif(currChar == '?'):
+            return 'QUESTION_CHECK'
+        elif(currChar == ':'):
+            return 'COLON_CHECK'
+        elif(currChar == '['):
+            return 'OPEN_BRACKET_CHECK'
+        elif(currChar == ']'):
+            return 'CLOSING_BRACKET_CHECK'
+        elif(currChar == '{'):
+            return 'OPEN_CURLY_CHECK'
+        elif(currChar == '}'):
+            return 'CLOSING_CURLY_CHECK'
+        elif(currChar == '|'):
+            return 's223'
+        elif(currChar == '"'):
+            return 's258'
+        elif(currChar == '+'):
+            return 'PLUS_CHECK'
+        elif(currChar == '<'):
+            return 'OPEN_ANGLE_CHECK'
+        elif(currChar == '>'):
+            return 'CLOSING_ANGLE_CHECK'
+        elif(currChar == '='):
+            return 'ASSIGN_CHECK'
+        elif(currChar == '\''):
+            return 's261'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's1'):
+        if(currChar == 'o'):
+            return 's2'
+        elif(currChar == 'r'):
+            return 's6'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's2'):
+        if(currChar == 'o'):
+            return 's3'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's3'):
+        if(currChar == 'l'):
+            return 'BOOL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's5'):
+        if(currChar == 'r'):
+            return 's6'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's6'):
+        if(currChar == 'e'):
+            return 's7'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's7'):
+        if(currChar == 'a'):
+            return 's8'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's8'):
+        if(currChar == 'k'):
+            return 'BREAK_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's9'):
+        if(currChar == 'r'):
+            return 's10'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's10'):
+        if(currChar == 'I'):
+            return 's11'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's11'):
+        if(currChar == 'a'):
+            return 's12'
+        elif(currChar == 'h'):
+            return 's16'
+        elif(currChar == 'l'):
+            return 's20'
+        elif(currChar == 'o'):
+            return 's25'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's12'):
+        if(currChar == 's'):
+            return 's13'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's13'):
+        if(currChar == 'e'):
+            return 'CASE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's16'):
+        if(currChar == 'a'):
+            return 's17'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's17'):
+        if(currChar == 'r'):
+            return 'CHAR_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's20'):
+        if(currChar == 'a'):
+            return 's21'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's21'):
+        if(currChar == 's'):
+            return 's22'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's22'):
+        if(currChar == 's'):
+            return 'CLASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's25'):
+        if(currChar == 'n'):
+            return 's26'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's26'):
+        if(currChar == 't'):
+            return 's27'
+        elif(currChar == 's'):
+            return 's33'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's27'):
+        if(currChar == 'i'):
+            return 's28'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's28'):
+        if(currChar == 'n'):
+            return 's29'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's29'):
+        if(currChar == 'u'):
+            return 's30'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's30'):
+        if(currChar == 'e'):
+            return 'CONTINUE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's33'):
+        if(currChar == 't'):
+            return 'CONST_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's36'):
+        if(currChar == 'e'):
+            return 's37'
+        elif(currChar == 'o'):
+            return 'DO_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's37'):
+        if(currChar == 'f'):
+            return 's38'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's38'):
+        if(currChar == 'a'):
+            return 's39'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's39'):
+        if(currChar == 'u'):
+            return 's40'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's40'):
+        if(currChar == 'l'):
+            return 's41'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's41'):
+        if(currChar == 't'):
+            return 'DEFAULT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's44'):
+        if(currChar == 'u'):
+            return 's46'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's46'):
+        if(currChar == 'b'):
+            return 's47'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's47'):
+        if(currChar == 'l'):
+            return 's48'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's48'):
+        if(currChar == 'e'):
+            return 'DOUBLE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's51'):
+        if(currChar == 'l'):
+            return 's52'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's52'):
+        if(currChar == 's'):
+            return 's53'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's53'):
+        if(currChar == 'e'):
+            return 'ELSE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's56'):
+        if(currChar == 'a'):
+            return 's57'
+        elif(currChar == 'l'):
+            return 's62'
+        elif(currChar == 'o'):
+            return 's67'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's57'):
+        if(currChar == 'l'):
+            return 's58'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's58'):
+        if(currChar == 's'):
+            return 's58'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's59'):
+        if(currChar == 'e'):
+            return 'FALSE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's62'):
+        if(currChar == 'o'):
+            return 's63'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's63'):
+        if(currChar == 'a'):
+            return 's64'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's64'):
+        if(currChar == 't'):
+            return 'FLOAT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's67'):
+        if(currChar == 'r'):
+            return 'FOR_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's70'):
+        if(currChar == 'e'):
+            return 's71'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's71'):
+        if(currChar == 't'):
+            return 'GET_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's74'):
+        if(currChar == 'f'):
+            return 'IF_CHECK'
+        elif(currChar == 'm'):
+            return 's77'
+        elif(currChar == 'n'):
+            return 'IN_CHECK'
+        elif(currChar == 't'):
+            return 's87'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's77'):
+        if(currChar == 'p'):
+            return 's78'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's78'):
+        if(currChar == 'o'):
+            return 's79'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's79'):
+        if(currChar == 'r'):
+            return 's80'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's80'):
+        if(currChar == 't'):
+            return 'IMPORT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's83'):
+        if(currChar == 't'):
+            return 'INT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's87'):
+        if(currChar == 'e'):
+            return 's88'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's88'):
+        if(currChar == 'm'):
+            return 'ITEM_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's91'):
+        if(currChar == 'o'):
+            return 's92'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's92'):
+        if(currChar == 'n'):
+            return 's93'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's93'):
+        if(currChar == 'g'):
+            return 'LONG_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's96'):
+        if(currChar == 'r'):
+            return 's97'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's97'):
+        if(currChar == 'i'):
+            return 's98'
+        elif(currChar == 'o'):
+            return 's110'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's98'):
+        if(currChar == 'n'):
+            return 's99'
+        elif(currChar == 'v'):
+            return 's105'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's99'):
+        if(currChar == 't'):
+            return 'PRINT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's100'):
+        if(currChar == 'l'):
+            return 's102'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's102'):
+        if(currChar == 'n'):
+            return 'PRINTLN_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's105'):
+        if(currChar == 'a'):
+            return 's106'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's106'):
+        if(currChar == 't'):
+            return 's107'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's107'):
+        if(currChar == 'e'):
+            return 'PRIVATE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's110'):
+        if(currChar == 'p'):
+            return 's111'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's111'):
+        if(currChar == 'e'):
+            return 's112'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's112'):
+        if(currChar == 'r'):
+            return 's113'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's113'):
+        if(currChar == 't'):
+            return 's114'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's114'):
+        if(currChar == 'y'):
+            return 'PROPERTY_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's117'):
+        if(currChar == 'e'):
+            return 's118'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's118'):
+        if(currChar == 'p'):
+            return 's119'
+        elif(currChar == 't'):
+            return 's124'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's119'):
+        if(currChar == 'e'):
+            return 's120'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's120'):
+        if(currChar == 'a'):
+            return 's121'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's121'):
+        if(currChar == 't'):
+            return 'REPEAT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's124'):
+        if(currChar == 'u'):
+            return 's125'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's125'):
+        if(currChar == 'r'):
+            return 's126'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's126'):
+        if(currChar == 'n'):
+            return 'RETURN_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's129'):
+        if(currChar == 'e'):
+            return 's130'
+        elif(currChar == 't'):
+            return 's133'
+        elif(currChar == 'w'):
+            return 's144'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's130'):
+        if(currChar == 't'):
+            return 'SET_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's133'):
+        if(currChar == 'a'):
+            return 's134'
+        elif(currChar == 'r'):
+            return 's139'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's134'):
+        if(currChar == 't'):
+            return 's135'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's135'):
+        if(currChar == 'i'):
+            return 's136'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's136'):
+        if(currChar == 'c'):
+            return 'STATIC_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's139'):
+        if(currChar == 'i'):
+            return 's140'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's140'):
+        if(currChar == 'n'):
+            return 's141'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's141'):
+        if(currChar == 'g'):
+            return 'STRING_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's144'):
+        if(currChar == 'i'):
+            return 's145'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's145'):
+        if(currChar == 't'):
+            return 's146'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's146'):
+        if(currChar == 'c'):
+            return 's147'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's147'):
+        if(currChar == 'h'):
+            return 'SWITCH_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's150'):
+        if(currChar == 'h'):
+            return 's151'
+        elif(currChar == 'r'):
+            return 's155'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's151'):
+        if(currChar == 'i'):
+            return 's152'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's152'):
+        if(currChar == 's'):
+            return 'THIS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's155'):
+        if(currChar == 'u'):
+            return 's156'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's156'):
+        if(currChar == 'e'):
+            return 'TRUE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's159'):
+        if(currChar == 'o'):
+            return 's160'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's160'):
+        if(currChar == 'i'):
+            return 's161'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's161'):
+        if(currChar == 'd'):
+            return 'VOID_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's164'):
+        if(currChar == 'h'):
+            return 's165'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's165'):
+        if(currChar == 'i'):
+            return 's166'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's166'):
+        if(currChar == 'l'):
+            return 's167'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's167'):
+        if(currChar == 'e'):
+            return 'WHILE_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's170'):
+        if(currChar == '-'):
+            return 'DECREMENT_CHECK'
+        elif(currChar == '='):
+            return 'MINUS_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's178'):
+        if(currChar == '='):
+            return 'NOT_EQUAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's180'):
+        if(currChar == '='):
+            return 'MODULO_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's184'):
+        if(currChar == '&'):
+            return 'LOGICAND_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's191'):
+        if(currChar == '='):
+            return 'MULT_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's201'):
+        if(currChar == '*'):
+            return 's254'
+        elif(currChar == '/'):
+            return 's251'
+        elif(currChar == '='):
+            return 'DIV_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's223'):
+        if(currChar == '|'):
+            return 'LOGICOR_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's230'):
+        if(currChar == '+'):
+            return 'INCREMENT_CHECK'
+        elif(currChar == '='):
+            return 'ADD_ASS_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's236'):
+        if(currChar == '='):
+            return 'LESS_OR_EQUAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's240'):
+        if(currChar == '='):
+            return 'GREATER_OR_EQUAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's244'):
+        if(currChar == '='):
+            return 'EQUAL_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's248'):
+        if(currChar == '_'):
+            return 's248'
+        elif(currChar == 'a'):
+            return 's248'
+        elif(currChar == 'b'):
+            return 's248'
+        elif(currChar == 'c'):
+            return 's248'
+        elif(currChar == 'd'):
+            return 's248'
+        elif(currChar == 'e'):
+            return 's248'
+        elif(currChar == 'f'):
+            return 's248'
+        elif(currChar == 'g'):
+            return 's248'
+        elif(currChar == 'h'):
+            return 's248'
+        elif(currChar == 'i'):
+            return 's248'
+        elif(currChar == 'j'):
+            return 's248'
+        elif(currChar == 'k'):
+            return 's248'
+        elif(currChar == 'l'):
+            return 's248'
+        elif(currChar == 'm'):
+            return 's248'
+        elif(currChar == 'n'):
+            return 's248'
+        elif(currChar == 'o'):
+            return 's248'
+        elif(currChar == 'p'):
+            return 's248'
+        elif(currChar == 'q'):
+            return 's248'
+        elif(currChar == 'r'):
+            return 's248'
+        elif(currChar == 's'):
+            return 's248'
+        elif(currChar == 't'):
+            return 's248'
+        elif(currChar == 'u'):
+            return 's248'
+        elif(currChar == 'v'):
+            return 's248'
+        elif(currChar == 'w'):
+            return 's248'
+        elif(currChar == 'x'):
+            return 's248'
+        elif(currChar == 'y'):
+            return 's248'
+        elif(currChar == 'z'):
+            return 's248'
+        elif(currChar == 'A'):
+            return 's248'
+        elif(currChar == 'B'):
+            return 's248'
+        elif(currChar == 'C'):
+            return 's248'
+        elif(currChar == 'D'):
+            return 's248'
+        elif(currChar == 'E'):
+            return 's248'
+        elif(currChar == 'F'):
+            return 's248'
+        elif(currChar == 'G'):
+            return 's248'
+        elif(currChar == 'H'):
+            return 's248'
+        elif(currChar == 'I'):
+            return 's248'
+        elif(currChar == 'J'):
+            return 's248'
+        elif(currChar == 'K'):
+            return 's248'
+        elif(currChar == 'L'):
+            return 's248'
+        elif(currChar == 'M'):
+            return 's248'
+        elif(currChar == 'N'):
+            return 's248'
+        elif(currChar == 'O'):
+            return 's248'
+        elif(currChar == 'P'):
+            return 's248'
+        elif(currChar == 'Q'):
+            return 's248'
+        elif(currChar == 'R'):
+            return 's248'
+        elif(currChar == 'S'):
+            return 's248'
+        elif(currChar == 'T'):
+            return 's248'
+        elif(currChar == 'U'):
+            return 's248'
+        elif(currChar == 'V'):
+            return 's248'
+        elif(currChar == 'W'):
+            return 's248'
+        elif(currChar == 'X'):
+            return 's248'
+        elif(currChar == 'Y'):
+            return 's248'
+        elif(currChar == 'Z'):
+            return 's248'
+        elif(currChar == '0'):
+            return 's248'
+        elif(currChar == '1'):
+            return 's248'
+        elif(currChar == '2'):
+            return 's248'
+        elif(currChar == '3'):
+            return 's248'
+        elif(currChar == '4'):
+            return 's248'
+        elif(currChar == '5'):
+            return 's248'
+        elif(currChar == '6'):
+            return 's248'
+        elif(currChar == '7'):
+            return 's248'
+        elif(currChar == '8'):
+            return 's248'
+        elif(currChar == '9'):
+            return 's248'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's251'):
+        if(currChar == 'a'):
+            return 's251'
+        elif(currChar == 'b'):
+            return 's251'
+        elif(currChar == 'c'):
+            return 's251'
+        elif(currChar == 'd'):
+            return 's251'
+        elif(currChar == 'e'):
+            return 's251'
+        elif(currChar == 'f'):
+            return 's251'
+        elif(currChar == 'g'):
+            return 's251'
+        elif(currChar == 'h'):
+            return 's251'
+        elif(currChar == 'i'):
+            return 's251'
+        elif(currChar == 'j'):
+            return 's251'
+        elif(currChar == 'k'):
+            return 's251'
+        elif(currChar == 'l'):
+            return 's251'
+        elif(currChar == 'm'):
+            return 's251'
+        elif(currChar == 'n'):
+            return 's251'
+        elif(currChar == 'o'):
+            return 's251'
+        elif(currChar == 'p'):
+            return 's251'
+        elif(currChar == 'q'):
+            return 's251'
+        elif(currChar == 'r'):
+            return 's251'
+        elif(currChar == 's'):
+            return 's251'
+        elif(currChar == 't'):
+            return 's251'
+        elif(currChar == 'u'):
+            return 's251'
+        elif(currChar == 'v'):
+            return 's251'
+        elif(currChar == 'w'):
+            return 's251'
+        elif(currChar == 'x'):
+            return 's251'
+        elif(currChar == 'y'):
+            return 's251'
+        elif(currChar == 'z'):
+            return 's251'
+        elif(currChar == 'A'):
+            return 's251'
+        elif(currChar == 'B'):
+            return 's251'
+        elif(currChar == 'C'):
+            return 's251'
+        elif(currChar == 'D'):
+            return 's251'
+        elif(currChar == 'E'):
+            return 's251'
+        elif(currChar == 'F'):
+            return 's251'
+        elif(currChar == 'G'):
+            return 's251'
+        elif(currChar == 'H'):
+            return 's251'
+        elif(currChar == 'I'):
+            return 's251'
+        elif(currChar == 'J'):
+            return 's251'
+        elif(currChar == 'K'):
+            return 's251'
+        elif(currChar == 'L'):
+            return 's251'
+        elif(currChar == 'M'):
+            return 's251'
+        elif(currChar == 'N'):
+            return 's251'
+        elif(currChar == 'O'):
+            return 's251'
+        elif(currChar == 'P'):
+            return 's251'
+        elif(currChar == 'Q'):
+            return 's251'
+        elif(currChar == 'R'):
+            return 's251'
+        elif(currChar == 'S'):
+            return 's251'
+        elif(currChar == 'T'):
+            return 's251'
+        elif(currChar == 'U'):
+            return 's251'
+        elif(currChar == 'V'):
+            return 's251'
+        elif(currChar == 'W'):
+            return 's251'
+        elif(currChar == 'X'):
+            return 's251'
+        elif(currChar == 'Y'):
+            return 's251'
+        elif(currChar == 'Z'):
+            return 's251'
+        elif(currChar == '0'):
+            return 's251'
+        elif(currChar == '1'):
+            return 's251'
+        elif(currChar == '2'):
+            return 's251'
+        elif(currChar == '3'):
+            return 's251'
+        elif(currChar == '4'):
+            return 's251'
+        elif(currChar == '5'):
+            return 's251'
+        elif(currChar == '6'):
+            return 's251'
+        elif(currChar == '7'):
+            return 's251'
+        elif(currChar == '8'):
+            return 's251'
+        elif(currChar == '9'):
+            return 's251'
+        elif(currChar == '@'):
+            return 's251'
+        elif(currChar == '#'):
+            return 's251'
+        elif(currChar == '$'):
+            return 's251'
+        elif(currChar == '^'):
+            return 's251'
+        elif(currChar == '"'):
+            return 's251'
+        elif(currChar == ','):
+            return 's251'
+        elif(currChar == '+'):
+            return 's251'
+        elif(currChar == '-'):
+            return 's251'
+        elif(currChar == '*'):
+            return 's251'
+        elif(currChar == '/'):
+            return 's251'
+        elif(currChar == '%'):
+            return 's251'
+        elif(currChar == '>'):
+            return 's251'
+        elif(currChar == '<'):
+            return 's251'
+        elif(currChar == '!'):
+            return 's251'
+        elif(currChar == '='):
+            return 's251'
+        elif(currChar == '&'):
+            return 's251'
+        elif(currChar == '.'):
+            return 's251'
+        elif(currChar == '|'):
+            return 's251'
+        elif(currChar == '('):
+            return 's251'
+        elif(currChar == ')'):
+            return 's251'
+        elif(currChar == '['):
+            return 's251'
+        elif(currChar == ']'):
+            return 's251'
+        elif(currChar == '?'):
+            return 's251'
+        elif(currChar == ':'):
+            return 's251'
+        elif(currChar == ';'):
+            return 's251'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's254'):
+        if(currChar == '\n'):
+            return 's254'
+        elif(currChar == '*'):
+            return 's255'
+        elif(currChar == 'a'):
+            return 's254'
+        elif(currChar == 'b'):
+            return 's254'
+        elif(currChar == 'c'):
+            return 's254'
+        elif(currChar == 'd'):
+            return 's254'
+        elif(currChar == 'e'):
+            return 's254'
+        elif(currChar == 'f'):
+            return 's254'
+        elif(currChar == 'g'):
+            return 's254'
+        elif(currChar == 'h'):
+            return 's254'
+        elif(currChar == 'i'):
+            return 's254'
+        elif(currChar == 'j'):
+            return 's254'
+        elif(currChar == 'k'):
+            return 's254'
+        elif(currChar == 'l'):
+            return 's254'
+        elif(currChar == 'm'):
+            return 's254'
+        elif(currChar == 'n'):
+            return 's254'
+        elif(currChar == 'o'):
+            return 's254'
+        elif(currChar == 'p'):
+            return 's254'
+        elif(currChar == 'q'):
+            return 's254'
+        elif(currChar == 'r'):
+            return 's254'
+        elif(currChar == 's'):
+            return 's254'
+        elif(currChar == 't'):
+            return 's254'
+        elif(currChar == 'u'):
+            return 's254'
+        elif(currChar == 'v'):
+            return 's254'
+        elif(currChar == 'w'):
+            return 's254'
+        elif(currChar == 'x'):
+            return 's254'
+        elif(currChar == 'y'):
+            return 's254'
+        elif(currChar == 'z'):
+            return 's254'
+        elif(currChar == 'A'):
+            return 's254'
+        elif(currChar == 'B'):
+            return 's254'
+        elif(currChar == 'C'):
+            return 's254'
+        elif(currChar == 'D'):
+            return 's254'
+        elif(currChar == 'E'):
+            return 's254'
+        elif(currChar == 'F'):
+            return 's254'
+        elif(currChar == 'G'):
+            return 's254'
+        elif(currChar == 'H'):
+            return 's254'
+        elif(currChar == 'I'):
+            return 's254'
+        elif(currChar == 'J'):
+            return 's254'
+        elif(currChar == 'K'):
+            return 's254'
+        elif(currChar == 'L'):
+            return 's254'
+        elif(currChar == 'M'):
+            return 's254'
+        elif(currChar == 'N'):
+            return 's254'
+        elif(currChar == 'O'):
+            return 's254'
+        elif(currChar == 'P'):
+            return 's254'
+        elif(currChar == 'Q'):
+            return 's254'
+        elif(currChar == 'R'):
+            return 's254'
+        elif(currChar == 'S'):
+            return 's254'
+        elif(currChar == 'T'):
+            return 's254'
+        elif(currChar == 'U'):
+            return 's254'
+        elif(currChar == 'V'):
+            return 's254'
+        elif(currChar == 'W'):
+            return 's254'
+        elif(currChar == 'X'):
+            return 's254'
+        elif(currChar == 'Y'):
+            return 's254'
+        elif(currChar == 'Z'):
+            return 's254'
+        elif(currChar == '0'):
+            return 's254'
+        elif(currChar == '1'):
+            return 's254'
+        elif(currChar == '2'):
+            return 's254'
+        elif(currChar == '3'):
+            return 's254'
+        elif(currChar == '4'):
+            return 's254'
+        elif(currChar == '5'):
+            return 's254'
+        elif(currChar == '6'):
+            return 's254'
+        elif(currChar == '7'):
+            return 's254'
+        elif(currChar == '8'):
+            return 's254'
+        elif(currChar == '9'):
+            return 's254'
+        elif(currChar == '@'):
+            return 's254'
+        elif(currChar == '#'):
+            return 's254'
+        elif(currChar == '$'):
+            return 's254'
+        elif(currChar == '^'):
+            return 's254'
+        elif(currChar == '"'):
+            return 's254'
+        elif(currChar == ','):
+            return 's254'
+        elif(currChar == '+'):
+            return 's254'
+        elif(currChar == '-'):
+            return 's254'
+        elif(currChar == '/'):
+            return 's254'
+        elif(currChar == '%'):
+            return 's254'
+        elif(currChar == '>'):
+            return 's254'
+        elif(currChar == '<'):
+            return 's254'
+        elif(currChar == '!'):
+            return 's254'
+        elif(currChar == '='):
+            return 's254'
+        elif(currChar == '&'):
+            return 's254'
+        elif(currChar == '.'):
+            return 's254'
+        elif(currChar == '|'):
+            return 's254'
+        elif(currChar == '('):
+            return 's254'
+        elif(currChar == ')'):
+            return 's254'
+        elif(currChar == '['):
+            return 's254'
+        elif(currChar == ']'):
+            return 's254'
+        elif(currChar == '?'):
+            return 's254'
+        elif(currChar == ':'):
+            return 's254'
+        elif(currChar == ';'):
+            return 's254'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's255'):
+        if(currChar == '/'):
+            return 'MULTI_COMMENT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's258'):
+        if(currChar == '"'):
+            return 'STRING_LIT_CHECK'
+        elif(currChar == 'a'):
+            return 's258'
+        elif(currChar == 'b'):
+            return 's258'
+        elif(currChar == 'c'):
+            return 's258'
+        elif(currChar == 'd'):
+            return 's258'
+        elif(currChar == 'e'):
+            return 's258'
+        elif(currChar == 'f'):
+            return 's258'
+        elif(currChar == 'g'):
+            return 's258'
+        elif(currChar == 'h'):
+            return 's258'
+        elif(currChar == 'i'):
+            return 's258'
+        elif(currChar == 'j'):
+            return 's258'
+        elif(currChar == 'k'):
+            return 's258'
+        elif(currChar == 'l'):
+            return 's258'
+        elif(currChar == 'm'):
+            return 's258'
+        elif(currChar == 'n'):
+            return 's258'
+        elif(currChar == 'o'):
+            return 's258'
+        elif(currChar == 'p'):
+            return 's258'
+        elif(currChar == 'q'):
+            return 's258'
+        elif(currChar == 'r'):
+            return 's258'
+        elif(currChar == 's'):
+            return 's258'
+        elif(currChar == 't'):
+            return 's258'
+        elif(currChar == 'u'):
+            return 's258'
+        elif(currChar == 'v'):
+            return 's258'
+        elif(currChar == 'w'):
+            return 's258'
+        elif(currChar == 'x'):
+            return 's258'
+        elif(currChar == 'y'):
+            return 's258'
+        elif(currChar == 'z'):
+            return 's258'
+        elif(currChar == 'A'):
+            return 's258'
+        elif(currChar == 'B'):
+            return 's258'
+        elif(currChar == 'C'):
+            return 's258'
+        elif(currChar == 'D'):
+            return 's258'
+        elif(currChar == 'E'):
+            return 's258'
+        elif(currChar == 'F'):
+            return 's258'
+        elif(currChar == 'G'):
+            return 's258'
+        elif(currChar == 'H'):
+            return 's258'
+        elif(currChar == 'I'):
+            return 's258'
+        elif(currChar == 'J'):
+            return 's258'
+        elif(currChar == 'K'):
+            return 's258'
+        elif(currChar == 'L'):
+            return 's258'
+        elif(currChar == 'M'):
+            return 's258'
+        elif(currChar == 'N'):
+            return 's258'
+        elif(currChar == 'O'):
+            return 's258'
+        elif(currChar == 'P'):
+            return 's258'
+        elif(currChar == 'Q'):
+            return 's258'
+        elif(currChar == 'R'):
+            return 's258'
+        elif(currChar == 'S'):
+            return 's258'
+        elif(currChar == 'T'):
+            return 's258'
+        elif(currChar == 'U'):
+            return 's258'
+        elif(currChar == 'V'):
+            return 's258'
+        elif(currChar == 'W'):
+            return 's258'
+        elif(currChar == 'X'):
+            return 's258'
+        elif(currChar == 'Y'):
+            return 's258'
+        elif(currChar == 'Z'):
+            return 's258'
+        elif(currChar == '0'):
+            return 's258'
+        elif(currChar == '1'):
+            return 's258'
+        elif(currChar == '2'):
+            return 's258'
+        elif(currChar == '3'):
+            return 's258'
+        elif(currChar == '4'):
+            return 's258'
+        elif(currChar == '5'):
+            return 's258'
+        elif(currChar == '6'):
+            return 's258'
+        elif(currChar == '7'):
+            return 's258'
+        elif(currChar == '8'):
+            return 's258'
+        elif(currChar == '9'):
+            return 's258'
+        elif(currChar == '@'):
+            return 's258'
+        elif(currChar == '#'):
+            return 's258'
+        elif(currChar == '$'):
+            return 's258'
+        elif(currChar == '^'):
+            return 's258'
+        elif(currChar == ','):
+            return 's258'
+        elif(currChar == '+'):
+            return 's258'
+        elif(currChar == '-'):
+            return 's258'
+        elif(currChar == '*'):
+            return 's258'
+        elif(currChar == '/'):
+            return 's258'
+        elif(currChar == '%'):
+            return 's258'
+        elif(currChar == '>'):
+            return 's258'
+        elif(currChar == '<'):
+            return 's258'
+        elif(currChar == '!'):
+            return 's258'
+        elif(currChar == '='):
+            return 's258'
+        elif(currChar == '&'):
+            return 's258'
+        elif(currChar == '.'):
+            return 's258'
+        elif(currChar == '|'):
+            return 's258'
+        elif(currChar == '('):
+            return 's258'
+        elif(currChar == ')'):
+            return 's258'
+        elif(currChar == '['):
+            return 's258'
+        elif(currChar == ']'):
+            return 's258'
+        elif(currChar == '?'):
+            return 's258'
+        elif(currChar == ':'):
+            return 's258'
+        elif(currChar == ';'):
+            return 's258'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's261'):
+        if(currChar == '\''):
+            return 'CHAR_LIT_CHECK'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's264'):
+        if(currChar == '0'):
+            return 's264'
+        elif(currChar == '1'):
+            return 's264'
+        elif(currChar == '2'):
+            return 's264'
+        elif(currChar == '3'):
+            return 's264'
+        elif(currChar == '4'):
+            return 's264'
+        elif(currChar == '5'):
+            return 's264'
+        elif(currChar == '6'):
+            return 's264'
+        elif(currChar == '7'):
+            return 's264'
+        elif(currChar == '8'):
+            return 's264'
+        elif(currChar == '9'):
+            return 's264'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
+    elif (currState == 's297'):
+        if(currChar == '.'):
+            return 's264'
+        elif(currChar == '0'):
+            return 's297'
+        elif(currChar == '1'):
+            return 's297'
+        elif(currChar == '2'):
+            return 's297'
+        elif(currChar == '3'):
+            return 's297'
+        elif(currChar == '4'):
+            return 's297'
+        elif(currChar == '5'):
+            return 's297'
+        elif(currChar == '6'):
+            return 's297'
+        elif(currChar == '7'):
+            return 's297'
+        elif(currChar == '8'):
+            return 's297'
+        elif(currChar == '9'):
+            return 's297'
+        elif (currChar == 'ANY'):
+            return 'DEFINED'
+        else:
+            return 'UNDEFINED'
 
-    's249':{
-        's':'s250' 
-    },
-    's250':{
-        'E':'s251' 
-    },
-    's251':{
-        'm':'s252'
-    }, 
-    's252':{
-        'p':'s253' 
-    },
-    's253':{
-        't':'s254' 
-    },
-    's254':{
-        'y':'STR_ISEMPTY_CHECK' 
-    },
-    's257':{
-        'e':'s258' 
-    },
-    's258':{
-        'n':'s259' 
-    },
-    's259':{
-        'g':'s260' 
-    },
-    's260':{
-        't':'s261' 
-    },
-    's261':{
-        'h':'STR_LENGTH_CHECK' 
-    },
-    's264':{
-        'o':'s265' 
-    },
-    's265':{
-        'p':'s266' 
-    },
-    's266':{
-        'A':'s267',
-	  'D':'s273',
-        'S':'s280'
-    },
-    's267':{
-        'l':'s268'
-    },
-    's268':{
-        'p':'s269'
-    },
-    's269':{
-        'h':'s270'
-    },
-    's270':{
-        'a':'STR_POPALPHA_CHECK'
-    },
-    's273':{
-        'i':'s274'
-    },
-    's274':{
-        'g':'s275'
-    },
-    's275':{
-        'i':'s276'
-    },
-    's276':{
-        't':'s277'
-    },
-    's277':{
-        's':'STR_POPDIGITS_CHECK'
-    },
-    's280':{
-        'p':'s281'
-    },
-    's281':{
-        'e':'s282'
-    },
-    's282':{
-        'c':'s283'
-    },
-    's283':{
-        'i':'s284'
-    },
-    's284':{
-        'a':'s285'
-    },
-    's285':{
-        'l':'STR_POPSPECIAL_CHECK'
-    },
-    's288':{
-        'l':'s289'
-    },
-    's289':{
-        'i':'s290'
-    },
-    's290':{
-        'c':'s291'
-    },
-    's291':{
-        'e':'STR_SLICE_CHECK'
-    },
-    's294':{
-        'o':'s295'
-    },
-   's295':{
-        'L':'s296',
-        'U':'s302'
-    },
-    's296':{
-        'o':'s297'
-    },
-    's297':{
-        'w':'s298'
-    },
-    's298':{
-        'e':'s299'
-    },
-    's299':{
-        'r':'STR_TOLOWER_CHECK'
-    },
-    's302':{
-        'p':'s303'
-    },
-    's303':{
-        'p':'s304'
-    },
-    's304':{
-        'e':'s305'
-    },
-    's305':{
-        'r':'STR_TOUPPER_CHECK'
-    },
-    's308':{
-        'n':'s309'
-    },
-    's309':{
-        'g':'STRING_CHECK'
-    },
-    's312':{
-        'i':'s313'
-    },
-    's313':{
-        't':'s314'
-    },
-    's314':{
-        'c':'s315'
-    },
-    's315':{
-        'h':'SWITCH_CHECK'
-    },
-    's318':{
-        'h':'s319',
-        'r':'s323'
-    },
-    's319':{
-        'i':'s320'
-    },
-    's320':{
-        's':'THIS_CHECK'
-    },
-    's323':{
-        'u':'s324'
-    },
-    's324':{
-        'e':'TRUE_CHECK',
-        'n':'s327'
-    },
-    's327':{
-        'c':'TRUNC_CHECK'
-    },
-    's330':{
-        'o':'s331'
-    },
-    's331':{
-        'i':'s332'
-    },
-    's332':{
-        'd':'VOID_CHECK'
-    },
-    's335':{
-        'h':'s336'
-    },
-    's336':{
-        'i':'s337'
-    },
-    's337':{
-        'l':'s338'
-    },
-    's338':{
-        'e':'WHILE_CHECK'
-    },
-    's341':{
-        '-':'DECREMENT_CHECK',
-	  '=':'MINUS_ASS_CHECK'
-    },
-    's347':{
-        '=':'NOT_EQUAL_CHECK'
-    },
-    's351':{
-        '=':'MODULO_ASS_CHECK'
-    },
-    's355':{
-        '&':'LOGICAND_CHECK'
-    },
-    's362':{
-        '=':'MULT_ASS_CHECK'
-    },
-    's372':{
-        '*':'s427', #start mult comment loop
-        '/':'s424', #start single comment loop
-        '=':'DIV_ASS_CHECK'
-    },
-    's386':{
-        ':':'SCOPE_ACC_CHECK'
-    },
-    's396':{
-        '|':'LOGICOR_CHECK'
-    },
-    's403':{
-        '+':'INCREMENT_CHECK',
-        '=':'ADD_ASS_CHECK'
-    },
-    's409':{
-        '=':'LESS_OR_EQUAL_CHECK'
-    },	
-    's413':{
-        '=':'GREATER_OR_EQUAL_CHECK'
-    },
-    's417':{
-        '=':'EQUAL_CHECK'
-    },
-    's421':{
-        '_':'s421'
-        # HELPER: alphanumeric:'s421'
-    },
-    's424':{
-        # HELPER: ascii:'s424'
-    },
-    's427':{
-        '\n':'s427',
-        '*':'s428'
-        # HELPER: ascii:'s427'
-    },
-    's428':{
-        '/':'MULTI_COMMENT_CHECK'
-    },
-    's431':{
-        '"':'STRING_LIT_CHECK'
-        # HELPER: ascii:'s431'
-    },
-    's434':{
-        '\'':'CHAR_LIT_CHECK'
-    },
-    's437':{
-        # HELPER: numbers:'s437'
-    },
-    's470':{
-        '.':'s437'
-        # HELPER: numbers: '470'
-    }
-}
-#---GRAPH HELPERS---
-#s421 -alphanumeric> s421
-for i in alphanumeric:
-    transitions['s421'][i] = 's421'
-for i in ascii:
-    transitions['s424'][i] = 's424'
-    transitions['s427'][i] = 's427'
-    #override for multiline comment
-    transitions['s427']['*'] = 's428'
-    transitions['s431'][i] = 's431'
-    #overrde for string
-    transitions['s431']['\"'] = 'STRING_LIT_CHECK'
-for i in numbers:
-    transitions['s437'][i] = 's437'
-    transitions['s470'][i] = 's470'
 
 #---TOKEN EXTRACTION AND CLASSIFICATION---\
 def lexer(code):
@@ -936,7 +1782,7 @@ def lexer(code):
             currCol += 1
             lineContent += code[i]
         #if no transitions, it means it's time for delim checking
-        if (currState not in transitions):
+        if (transition(currState, 'ANY') != 'DEFINED'):
             print('(dbg) delim checking')
             #data type keywords
             if (currState == 'BOOL_CHECK'):
@@ -947,8 +1793,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -963,8 +1809,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -979,8 +1825,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -995,8 +1841,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1011,8 +1857,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1027,8 +1873,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1043,25 +1889,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
-                    continue
-                else:
-                    currToken += code[i]
-                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
-            #built-in funcs spit out as identifiers 
-            if (currState in builtin_func):
-                expected = func_delim
-                if (code[i] in func_delim):
-                    tokens.append((currToken, 'Identifier'))
-                    currToken = ''
-                    currState = 's0'
-                elif (code[i] in alphanumeric + ['_']):
-                    currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1077,8 +1906,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1087,7 +1916,7 @@ def lexer(code):
                     currState = 's0'
             # ( symbol
             if (currState == 'OPEN_PAREN_CHECK'):
-                expected = ['alphanumeric', ' ', '\"', '!', ')']
+                expected = ['alphanumeric', ' ', '\"', '!', ')', '+', '-']
                 if (code[i] in arithmetic_delim + ['\"', '!', ')']):
                     tokens.append((currToken, '('))
                     currToken = ''
@@ -1123,13 +1952,13 @@ def lexer(code):
                     currState = 's0'
             # - symbol
             if (currState == 'DASH_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '-'))
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's341'
+                    currState = 's170'
             # ! symbol
             if (currState == 'NEGATION_CHECK'):
                 expected = ['alphabetic', '('] + whitespace 
@@ -1138,19 +1967,19 @@ def lexer(code):
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's347'
+                    currState = 's178'
             # % symbol
             if (currState == 'MODULO_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '%'))
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's351'
+                    currState = 's180'
             # ( symbol
             if (currState == 'OPEN_PAREN_CHECK'):
-                expected = ['alphanumeric', ' ', '(', '\"', '!', ')']
+                expected = ['alphanumeric', ' ', '(', '\"', '!', ')', '+', '-']
                 if (code[i] in arithmetic_delim + ['\"', '!', ')']):
                     tokens.append((currToken, '('))
                     currToken = ''  
@@ -1174,13 +2003,13 @@ def lexer(code):
                     currState = 's0'
             # * symbol
             if (currState == 'ASTERISK_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '%'))
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's362'
+                    currState = 's191'
             # , symbol
             if (currState == 'COMMA_CHECK'):
                 expected = ['alphanumeric', ' ']
@@ -1201,16 +2030,16 @@ def lexer(code):
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's437'
+                    currState = 's264'
             # / symbol
             if (currState == 'SLASH_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '/'))
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's372'
+                    currState = 's201'
             # ? symbol
             if (currState == 'QUESTION_CHECK'):
                 expected = ['alphanumeric', '('] + newline
@@ -1282,16 +2111,16 @@ def lexer(code):
                     currState = 's0'
             # + symbol
             if (currState == 'PLUS_CHECK'):
-                expected = ['alphanumeric', ' ', '(', '\"']
+                expected = ['alphanumeric', ' ', '(', '\"', '+', '-']
                 if (code[i] in arithmetic_delim + ['\"']):
                     tokens.append((currToken, '+'))
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's403'
+                    currState = 's230'
             # < symbol
             if (currState == 'OPEN_ANGLE_CHECK'):
-                expected = ['alphanumeric', ' ', '('] + newline
+                expected = ['alphanumeric', ' ', '(', '+', '-'] + newline
                 print("(dbg) open angle check curr char ", code[i])
                 if (code[i] in arithmetic_delim + newline):
                     print("(dbg) arithmetic spotted for <")
@@ -1300,25 +2129,25 @@ def lexer(code):
                     currState = 's0'
                 else:
                     print("(dbg) going from open angle check to s409")
-                    currState = 's409'
+                    currState = 's236'
             # > symbol
             if (currState == 'CLOSING_ANGLE_CHECK'):
-                expected = ['alphanumeric', ' ', '(', ';'] + newline
+                expected = ['alphanumeric', ' ', '(', ';', '+', '-'] + newline
                 if (code[i] in arithmetic_delim + [';'] + newline):
                     tokens.append((currToken, '>'))
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's413'
+                    currState = 's240'
             # = symbol
             if (currState == 'ASSIGN_CHECK'):
-                expected = ['alphanumeric', ' ', '\"']
+                expected = ['alphanumeric', ' ', '\"', '+', '-']
                 if (code[i] in arithmetic_delim + ['\"']):
                     tokens.append((currToken, '='))
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's417'
+                    currState = 's244'
             # in statement
             if (currState == 'IN_CHECK'):
                 expected = ['<']
@@ -1327,7 +2156,7 @@ def lexer(code):
                     currToken = ''
                     currState = 's0'
                 else:
-                    currState = 's147'
+                    currState = 's83'
             # print statement
             if (currState == 'PRINT_CHECK'):
                 expected = func_delim
@@ -1336,7 +2165,7 @@ def lexer(code):
                     currToken = ''
                     currState = 's0'
                 else:
-                    currState = 's184'
+                    currState = 's100'
             # println statement
             if (currState == 'PRINTLN_CHECK'):
                 expected = func_delim
@@ -1346,8 +2175,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1363,8 +2192,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1380,8 +2209,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1397,8 +2226,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1414,8 +2243,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1431,8 +2260,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1448,8 +2277,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1465,8 +2294,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1482,8 +2311,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1499,8 +2328,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1516,8 +2345,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1533,8 +2362,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1555,7 +2384,7 @@ def lexer(code):
                     currState = 's0'
             # -= symbol
             if (currState == 'MINUS_ASS_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '-='))
                     currToken = ''  
@@ -1579,7 +2408,7 @@ def lexer(code):
                     currState = 's0'
             # %= symbol
             if (currState == 'MODULO_ASS_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '%='))
                     currToken = ''  
@@ -1603,7 +2432,7 @@ def lexer(code):
                     currState = 's0'
             # *= symbol
             if (currState == 'MULT_ASS_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '*='))
                     currToken = ''  
@@ -1615,7 +2444,7 @@ def lexer(code):
                     currState = 's0'
             # /= symbol
             if (currState == 'DIV_ASS_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '/='))
                     currToken = ''  
@@ -1663,7 +2492,7 @@ def lexer(code):
                     currState = 's0'
             # += symbol
             if (currState == 'ADD_ASS_CHECK'):
-                expected = ['alphanumeric', ' ', '(', '\"']
+                expected = ['alphanumeric', ' ', '(', '\"', '+', '-']
                 if (code[i] in arithmetic_delim + ['\"']):
                     tokens.append((currToken, '+='))
                     currToken = ''  
@@ -1675,7 +2504,7 @@ def lexer(code):
                     currState = 's0'
             # <= symbol
             if (currState == 'LESS_OR_EQUAL_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '<='))
                     currToken = ''  
@@ -1687,7 +2516,7 @@ def lexer(code):
                     currState = 's0'
             # >= symbol
             if (currState == 'GREATER_OR_EQUAL_CHECK'):
-                expected = ['alphanumeric', ' ', '(']
+                expected = ['alphanumeric', ' ', '(', '+', '-']
                 if (code[i] in arithmetic_delim):
                     tokens.append((currToken, '>='))
                     currToken = ''  
@@ -1699,7 +2528,7 @@ def lexer(code):
                     currState = 's0'
             # == symbol
             if (currState == 'EQUAL_CHECK'):
-                expected = ['alphanumeric', ' ', '(', '\"']
+                expected = ['alphanumeric', ' ', '(', '\"', '+', '-']
                 if (code[i] in arithmetic_delim + ['\"']):
                     tokens.append((currToken, '=='))
                     currToken = ''  
@@ -1754,8 +2583,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1771,8 +2600,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1788,8 +2617,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1805,8 +2634,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1822,8 +2651,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1838,7 +2667,7 @@ def lexer(code):
                     currToken = ''
                     currState = 's0'
                 else:
-                    currState = 's105'
+                    currState = 's44'
             # else statement 
             if (currState == 'ELSE_CHECK'):
                 expected = block_delim
@@ -1848,8 +2677,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1865,8 +2694,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1882,8 +2711,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1899,8 +2728,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1916,8 +2745,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1933,8 +2762,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1950,8 +2779,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s421'
-                    print('(dbg) now in state 421')
+                    currState ='s248'
+                    print('(dbg) now in state 248')
                     continue
                 else:
                     currToken += code[i]
@@ -1961,7 +2790,7 @@ def lexer(code):
         # end of delim checking if statement
 #---SPECIAL STATES---
         #identifier state
-        if (currState == 's421'):
+        if (currState == 's248'):
             print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
                 print('(dbg) correct delim')    
@@ -1976,7 +2805,7 @@ def lexer(code):
             elif (code[i] in alphanumeric + ['_']): #if not delim but still valid, keep looping
                     currToken += code[i]
                     print('(dbg) accepted for iden')
-                    currState ='s421'
+                    currState ='s248'
                     continue
             else:
                 currToken += code[i]
@@ -1987,7 +2816,7 @@ def lexer(code):
                 currState = 's0'
         #end of identifier looping
         #character lit check
-        if (currState == 's434'):
+        if (currState == 's261'):
             if (code[i] != '\''):
                 if (code[i-1] == '\\'):
                     if (code[i] not in ['\'', '\"', '\\', 't', 'n', 'b']):
@@ -2002,7 +2831,7 @@ def lexer(code):
                 continue
         #end of charcter lit checking
         #single line comment
-        if (currState == 's424'):
+        if (currState == 's251'):
             if (code[i] == '\n'):
                 tokens.append((currToken, 'single_comment'))
                 currToken = ''
@@ -2013,12 +2842,12 @@ def lexer(code):
                 continue
         #end of single line comment
         #multi-line comment
-        if (currState == 's428'):
+        if (currState == 's255'):
             if (code[i] != '/'):
-                currState = 's427'
+                currState = 's254'
         #end of multi-line comment
         #whole number
-        if (currState == 's470'):
+        if (currState == 's297'):
             if (code[i] in numbers):
                 print("(dbg) got another number")
                 currWholeCount += 1
@@ -2047,7 +2876,7 @@ def lexer(code):
                 currState = 's0'
         #end of whole number
         #fractional part of number
-        if (currState == 's437'):
+        if (currState == 's264'):
             if (code[i] in numbers):
                 currFracCount += 1
                 currToken += code[i]
@@ -2077,7 +2906,7 @@ def lexer(code):
 
         #iterating through chars
         #check whitespaces
-        if (currState not in ['s431', 's424', 's427']):
+        if (currState not in ['s258', 's251', 's254']):
             if (code[i] == ' '):
                 tokens.append(('\' \' ', 'Space'))
                 continue
@@ -2086,11 +2915,11 @@ def lexer(code):
                     tokens.append(('\\n', 'New line'))
                 continue
         #check states
-        if (code[i] in transitions[currState]):
+        if (transition(currState, code[i]) != 'UNDEFINED'):
             print(f'(dbg) in {currState} transitions')  
             currToken += code[i]
-            print(f'(dbg) transitioning: {currState} - {code[i]} -> {transitions[currState][code[i]]}')
-            currState = transitions[currState][code[i]]
+            print(f'(dbg) transitioning: {currState} - {code[i]} -> {transition(currState, code[i])}')
+            currState = transition(currState, code[i])
             continue
         else: #if not in s0 transitions assume identifier, go to state 420
             print(f"(dbg) not in {currState} transitions")
@@ -2102,10 +2931,10 @@ def lexer(code):
                     print("(dbg)s0 is num")
                     #go to whole num loop state
                     currWholeCount += 1
-                    currState = 's470'  
+                    currState = 's297'  
                     continue
                 currToken += code[i]
-                currState = 's421'
+                currState = 's248'
                 continue
                 # else:
                 #     currToken += code[i]
@@ -2113,10 +2942,10 @@ def lexer(code):
                 #     currToken = ''
                 #     currState = 's0'  
             else:
-                if (currState == 's427'):
+                if (currState == 's254'):
                     currToken += code[i]
                     continue
-                if (currState == 's431'):
+                if (currState == 's258'):
                     if (code[i] == '\n'):
                         errors.append(stringNewLineError(currToken, currLine, currCol, lineContent))
                         currToken = ''  
@@ -2126,7 +2955,7 @@ def lexer(code):
                         continue
                 if (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState = 's421'
+                    currState = 's248'
                     continue
                 elif (code[i] in iden_delim): #check delim
                     if (currToken[0] not in alphabetic_chars + ['_']):
@@ -2137,7 +2966,7 @@ def lexer(code):
                         print("(dbg) other iden append")
                         tokens.append((currToken, 'Identifier'))
                         currToken = code[i]
-                        currState = transitions['s0'][code[i]]
+                        currState = transition('s0', code[i])
                 else:
                     currToken += code[i]
                     expected = iden_delim
