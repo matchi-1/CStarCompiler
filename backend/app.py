@@ -57,11 +57,11 @@ get_set_delim = newline_delim + ['{', ';', '/']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';', '{'] + newline_delim
-closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'']
+closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';', '!', '&'] + newline
-str_lit_delim = whitespace + ['+', ')', ',', ';', '\n', '/', ':', '!', '&']
+num_delim = arithmetic_operator + whitespace + relational_operator + logical_operator + [',', ')', ']', '}', '=', ';'] + newline
+str_lit_delim = whitespace + logical_operator + ['+', ')', ',', ';', '\n', '/', ':', '!', '&']
 bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n', '/', ':', '!']
 
 # control flow delim
@@ -2101,8 +2101,8 @@ def lexer(code):
                     currState = 's0'
             # } symbol
             if (currState == 'CLOSING_CURLY_CHECK'):
-                expected = ['alphanumeric', ' ', ';', '/'] + newline_delim
-                if (code[i] in plaintext_delim + newline_delim + [';', '/']):
+                expected = ['alphanumeric', ' ', ';', '/', ',','}'] + newline_delim
+                if (code[i] in plaintext_delim + newline_delim + [';', '/', ',','}']):
                     tokens.append((currToken, '}'))
                     currToken = ''  
                     currState = 's0'
