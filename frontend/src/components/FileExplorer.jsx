@@ -36,13 +36,10 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     if (file.type === "file") {
       // Check if a file with the same name and type already exists in openTabs
       const isFileOpen = openTabs.some(openFile => openFile.name === file.name && openFile.type === file.type);
-  
       if (!isFileOpen) {
         setOpenTabs([...openTabs, file]);
       }
-  
       setActiveTab(file.name); // Use the file name or unique ID as the activeTab
-
     }
   };
 
@@ -90,7 +87,6 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
           type: 'file',
           createdAt: new Date(),
         });
-
 
         fetchFiles(); 
         console.log(`File uploaded successfully as ${newFileName}.`);

@@ -1,5 +1,8 @@
 import React from 'react';
 import '../styles/Header.css';
+import { db, getDocs, collection } from '../firebaseConfig';  
+import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase/firestore';  
+
 
 const Header = ({ editorRef, fileData, activeTab }) => {
   // Undo functionality
@@ -15,6 +18,32 @@ const Header = ({ editorRef, fileData, activeTab }) => {
       editorRef.current.trigger('keyboard', 'redo', null);
     }
   };
+
+  const handleSave = async() => {
+    try {
+      // Find the document where `name` matches the fileName
+      const q = query(collection(db, 'files'), where('name', '==', activeTab));
+      const querySnapshot = await getDocs(q);
+  
+      if (querySnapshot.empty) {
+        console.error(`No file found with name: ${activeTab}`);
+        return;
+      }
+  
+      // Update the first matching document
+      const fileDoc = querySnapshot.docs[0];
+      await updateDoc(fileDoc.ref, { 
+        content: JSON.parse(localStorage.getItem(activeTab)) });
+  
+      alert(`${activeTab} content saved successfully!`);
+      localStorage.removeItem(activeTab);
+    } catch (error) {
+      console.error('Error updating content:', error);
+    }
+
+
+    
+  }
 
   const handleDownload = () => {
     const file = fileData.find((file) => file.name === activeTab);
@@ -41,7 +70,7 @@ const Header = ({ editorRef, fileData, activeTab }) => {
       <div className="header-item" onClick={handleRedo}>
         <p>Redo</p>
       </div>
-      <div className="header-item">
+      <div className="header-item" onClick={handleSave}>
         <p>Save</p>
       </div>
       <div className="header-item" onClick={handleDownload}>
