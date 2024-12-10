@@ -2558,7 +2558,7 @@ def lexer(code):
                     currState = 's0'
             # character literal
             if (currState == 'CHAR_LIT_CHECK'):
-                expected = num_delim + newline_delim
+                expected = num_delim
                 if (code[i] in num_delim + newline_delim):
                     tokens.append((currToken, 'char_lit'))
                     currToken = ''  
