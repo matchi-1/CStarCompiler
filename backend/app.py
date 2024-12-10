@@ -449,7 +449,7 @@ def transition(currState, currChar):
             return 'UNDEFINED'
     elif (currState == 's58'):
         if(currChar == 's'):
-            return 's58'
+            return 's59'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
@@ -2633,9 +2633,9 @@ def lexer(code):
                     currState = 's0'
             # const statement 
             if (currState == 'CONST_CHECK'):
-                expected = newline_delim + [';']
-                if (code[i] in newline_delim + [';']):
-                    tokens.append((currToken, 'continue'))
+                expected = newline_delim
+                if (code[i] in newline_delim):
+                    tokens.append((currToken, 'const'))
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
