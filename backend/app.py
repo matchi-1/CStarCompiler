@@ -2158,7 +2158,7 @@ def lexer(code):
                     currToken = ''
                     currState = 's0'
                 elif(code[i] in alphanumeric + ['_']):
-                    currState = 's44'
+                    currState = 's83'
                 else:
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # print statement
@@ -2169,7 +2169,7 @@ def lexer(code):
                     currToken = ''
                     currState = 's0'
                 elif(code[i] in alphanumeric + ['_']):
-                    currState = 's44'
+                    currState = 's100'
                 else:
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # println statement
