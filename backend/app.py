@@ -52,18 +52,18 @@ arithmetic_delim = plaintext_delim + ['(', '-' , '\n']
 str_lit_delim = whitespace + ['+', ')', ',', ';', '\n']
 newline_delim = [' ', '\n']
 index_delim = [']', '\n'] + digit
-default_delim = whitespace + newline_delim + [':']
+default_delim = newline_delim + [':']
 type_iden_delim = [')', ' ', '\n', '>', '[']
 get_set_delim = newline_delim + ['{', ';']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';', '{'] + newline_delim
-closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',']
+closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', ':', '\'']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';'] + newline
-string_delim = newline_delim + ['+', ';']
-bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n']
+num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';', ':'] + newline
+string_delim = newline_delim + ['+', ';', ':']
+bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n', ':']
 
 # control flow delim
 loop_delim = newline_delim+ whitespace + ['(']
@@ -2158,8 +2158,10 @@ def lexer(code):
                     tokens.append((currToken, 'in'))
                     currToken = ''
                     currState = 's0'
+                elif(code[i] in alphanumeric + ['_']):
+                    currState = 's44'
                 else:
-                    currState = 's83'
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # print statement
             if (currState == 'PRINT_CHECK'):
                 expected = func_delim
@@ -2167,8 +2169,10 @@ def lexer(code):
                     tokens.append((currToken, 'print'))
                     currToken = ''
                     currState = 's0'
+                elif(code[i] in alphanumeric + ['_']):
+                    currState = 's44'
                 else:
-                    currState = 's100'
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # println statement
             if (currState == 'PRINTLN_CHECK'):
                 expected = func_delim
@@ -2580,7 +2584,7 @@ def lexer(code):
             # case statement 
             if (currState == 'CASE_CHECK'):
                 expected = newline_delim
-                if (code[i] in newline_delim):
+                if (code[i] in newline_delim + ['(']):
                     tokens.append((currToken, 'case'))
                     currToken = ''
                     currState = 's0'
@@ -2669,8 +2673,10 @@ def lexer(code):
                     tokens.append((currToken, 'do'))
                     currToken = ''
                     currState = 's0'
-                else:
+                elif(code[i] in alphanumeric + ['_']):
                     currState = 's44'
+                else:
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # else statement 
             if (currState == 'ELSE_CHECK'):
                 expected = block_delim
