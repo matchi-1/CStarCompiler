@@ -33,7 +33,9 @@ data_type = ['int', 'bool', 'string', 'float', 'double', 'char', 'long', 'void']
 # operators
 arithmetic_operator = ['+', '-', '*', '/', '%']
 relational_operator = ['>', '<', '==', '<=', '>=', '!=']
+relational_operator_delim = ['>', '<', '=', '!']
 logical_operator = ['!', '&&', '||']
+logical_operator_delim = ['!', '&', '|']
 unary_operator = ['++', '-']
 assignment_operator = ['=', '+=', '-=', '*=', '/=']
 
@@ -57,12 +59,12 @@ get_set_delim = newline_delim + ['{', ';', '/']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';', '{'] + newline_delim
-closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']']
+closing_delim = arithmetic_delim + arithmetic_operator + relational_operator_delim + whitespace + logical_operator_delim + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator + logical_operator + [',', ')', ']', '}', '=', ';'] + newline
-str_lit_delim = whitespace + logical_operator + ['+', ')', ',', ';', '\n', '/', ':', '!', '&']
-bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n', '/', ':', '!']
+num_delim = arithmetic_operator + whitespace + relational_operator_delim + logical_operator_delim + [',', ')', ']', '}', '=', ';'] + newline
+str_lit_delim = whitespace + logical_operator_delim + ['+', ')', ',', ';', '\n', '/', ':', '!', '&']
+bool_delim = num_delim + whitespace + logical_operator_delim + [';', ',', ')', '=', '!', '\n', '/', ':', '!']
 
 # control flow delim
 loop_delim = newline_delim+ whitespace + ['(', '/']
