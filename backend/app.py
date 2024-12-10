@@ -61,8 +61,8 @@ closing_delim = arithmetic_operator + relational_operator + whitespace + logical
 
 # literals delim
 num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';', '!'] + newline
-str_lit_delim = whitespace + ['+', ')', ',', ';', '\n', '/', ':']
-bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n', '/', ':']
+str_lit_delim = whitespace + ['+', ')', ',', ';', '\n', '/', ':', '!']
+bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n', '/', ':', '!']
 
 # control flow delim
 loop_delim = newline_delim+ whitespace + ['(', '/']
@@ -2402,8 +2402,8 @@ def lexer(code):
                     currState = 's0'
             # != symbol
             if (currState == 'NOT_EQUAL_CHECK'):
-                expected = whitespace + ['alphabetic', '(']
-                if (code[i] in whitespace + alphanumeric + ['(']):
+                expected = whitespace + ['alphanumeric', '(', '"', '\'']
+                if (code[i] in whitespace + alphanumeric + ['(', '"', '\'']):
                     tokens.append((currToken, '!='))
                     currToken = ''  
                     currState = 's0'
