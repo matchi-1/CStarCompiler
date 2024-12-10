@@ -48,34 +48,33 @@ newline = ['\n']
 # reserved symbols delim
 plaintext_delim = whitespace + alphanumeric
 equal_delim = whitespace + ['=']
-arithmetic_delim = plaintext_delim + ['(', '-' , '\n']
-str_lit_delim = whitespace + ['+', ')', ',', ';', '\n']
+arithmetic_delim = plaintext_delim + ['(', '-' , '\n', '/']
+str_lit_delim = whitespace + ['+', ')', ',', ';', '\n', '/']
 newline_delim = [' ', '\n']
-index_delim = [']', '\n'] + digit
-default_delim = newline_delim + [':']
-type_iden_delim = [')', ' ', '\n', '>', '[']
-get_set_delim = newline_delim + ['{', ';']
+index_delim = [']', '\n', '/'] + digit
+default_delim = whitespace + newline_delim + [':', '/']
+type_iden_delim = [')', ' ', '\n', '>', '[', '/']
+get_set_delim = newline_delim + ['{', ';', '/']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';', '{'] + newline_delim
-closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', ':', '\'']
+closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', '/']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';', ':'] + newline
-string_delim = newline_delim + ['+', ';', ':']
-bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n', ':']
+num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';'] + newline
+string_delim = newline_delim + ['+', ';', '/']
+bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n', '/']
 
 # control flow delim
-loop_delim = newline_delim+ whitespace + ['(']
-block_delim = newline_delim+whitespace+['{']
+loop_delim = newline_delim+ whitespace + ['(', '/']
+block_delim = newline_delim+whitespace+['{', '/']
 
 # methods delim
-func_delim = newline_delim + ['(']
+func_delim = newline_delim + ['(', '/']
 
 # other delim
 single_delim = newline
 comment_delim = ascii + whitespace
-
 
 def transition(currState, currChar):
     if (currState == 's0'):
