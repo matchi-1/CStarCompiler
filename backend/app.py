@@ -2989,49 +2989,48 @@ def lexer(code):
     return lexerResults
 
 #---LEXER ERRORS---
+def generateError(errorType, currToken, currLine, currCol, lineContent, additionalInfo=None):
+    """
+    Generates a lexical error message.
+    """
+    errorMsg = f'Lexical Error ({currLine}, {currCol - len(currToken)}): {errorType} {currToken}\n'
+    errorMsg += lineContent + '\n'
+    errorMsg += '_' * (currCol - len(currToken) - 1) + '^\n'
+    if additionalInfo:
+        errorMsg += additionalInfo
+    print("(debug) ", errorMsg)
+    return errorMsg
+
 def delimError(currToken, currLine, currCol, incorrectDelim, lineContent, expected):
-    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Unexpected \'{'newline' if incorrectDelim == '\n' else incorrectDelim}\' for \'{currToken}\'\n' 
-    errorMsg += lineContent +'\n'
-    errorMsg += '_'*(currCol-len(currToken)-1) + '^\n'
-    errorMsg += f'Expected delimiters: {expected}'
-    print("(debug) ", errorMsg)
-    return errorMsg
+    errorType = f"Unexpected {'newline' if incorrectDelim == '\\n' else incorrectDelim} for"
+    additionalInfo = f"Expected delimiters: {expected}"
+    return generateError(errorType, currToken, currLine, currCol, lineContent, additionalInfo)
+
 def idenFirstError(currToken, currLine, currCol, lineContent):
-    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Identifier {currToken} must start with an alpha character\n'
-    errorMsg += lineContent + '\n'
-    errorMsg += '_'*(currCol-len(currToken)-1) + '^'
-    print("(debug) ", errorMsg)
-    return errorMsg
+    errorType = "Identifier must start with an alpha character"
+    return generateError(errorType, currToken, currLine, currCol, lineContent)
+
 def stringNewLineError(currToken, currLine, currCol, lineContent):
-    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): String literal {currToken} cannot have newline\n'
-    errorMsg += lineContent + '\n'
-    errorMsg += '_'*(currCol-len(currToken)-1) + '^'
-    print("(debug) ", errorMsg)
-    return errorMsg
+    errorType = "String literal cannot have newline"
+    return generateError(errorType, currToken, currLine, currCol, lineContent)
+
 def charEscSeqError(currToken, currLine, currCol, lineContent):
-    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Invalid escape sequence for character literal {currToken}\n'
-    errorMsg += lineContent + '\n'
-    errorMsg += '_'*(currCol-len(currToken)-1) + '^'
-    print("(debug) ", errorMsg)
-    return errorMsg
+    errorType = "Invalid escape sequence for character literal"
+    return generateError(errorType, currToken, currLine, currCol, lineContent)
+
 def charLengthError(currToken, currLine, currCol, lineContent):
-    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Invalid character length for character literal {currToken}\n'
-    errorMsg += lineContent + '\n'
-    errorMsg += '_'*(currCol-len(currToken)-1) + '^'
-    print("(debug) ", errorMsg)
-    return errorMsg
+    errorType = "Invalid character length for character literal"
+    return generateError(errorType, currToken, currLine, currCol, lineContent)
+
 def wholeRangeError(currToken, currLine, currCol, lineContent):
-    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Numeric {currToken} exceeding max range\n'
-    errorMsg += lineContent + '\n'
-    errorMsg += '_'*(currCol-len(currToken)-1) + '^'
-    print("(debug) ", errorMsg)
-    return errorMsg
+    errorType = "Numeric exceeding max range"
+    return generateError(errorType, currToken, currLine, currCol, lineContent)
+
 def fracPrecError(currToken, currLine, currCol, lineContent):
-    errorMsg = f'Lexical Error ({currLine}, {currCol-len(currToken)}): Numeric {currToken} exceeding max precision\n'
-    errorMsg += lineContent + '\n'
-    errorMsg += '_'*(currCol-len(currToken)-1) + '^'
-    print("(debug) ", errorMsg)
-    return errorMsg
+    errorType = "Numeric exceeding max precision"
+    return generateError(errorType, currToken, currLine, currCol, lineContent)
+
+
 #---FLASK ROUTES---
 @app.route('/api/hello', methods=['GET'])
 def hello():
