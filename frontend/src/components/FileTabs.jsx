@@ -9,32 +9,43 @@ const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, fileData, se
   }) => {
   
   const closeTab = (tabToClose) => {
+
+    localStorage.removeItem(activeTab); //for debugging
     setOpenTabs(openTabs.filter((tab) => tab !== tabToClose));
     if (activeTab === tabToClose.name) {
       setActiveTab(openTabs[0].name); 
     }
+
   };
 
-  useEffect(() => {
+  useEffect(() => {       //checks local storage first
     const fetchActiveTabContent = async () => {
-      if (!activeTab) return; // Exit if activeTab is not set
+      if (!activeTab) return;
   
-      try {
-        const filesCollectionRef = collection(db, 'files');
-        const q = query(filesCollectionRef, where('name', '==', activeTab));
-        const querySnapshot = await getDocs(q);
-  
-        if (!querySnapshot.empty) {
-          const fileData = querySnapshot.docs[0].data();
-          setValue(fileData.content); // Update the editor's value
-        } else {
-          console.warn(`File "${activeTab}" not found.`);
-          setValue(''); // Clear the editor if no file is found
+      if(localStorage.getItem(activeTab) === null){
+        
+        try {
+          const filesCollectionRef = collection(db, 'files');
+          const q = query(filesCollectionRef, where('name', '==', activeTab));
+          const querySnapshot = await getDocs(q);
+    
+          if (!querySnapshot.empty) {
+            const fileData = querySnapshot.docs[0].data();
+            setValue(fileData.content); // Update the editor's value
+          } else {
+            console.warn(`File "${activeTab}" not found.`);
+            setValue(''); // Clear the editor if no file is found
+          }
+        } catch (error) {
+          console.error('Error fetching file content:', error);
+          setValue(''); // Clear the editor on error
         }
-      } catch (error) {
-        console.error('Error fetching file content:', error);
-        setValue(''); // Clear the editor on error
+      } 
+      
+      else{
+        setValue(JSON.parse(localStorage.getItem(activeTab)));
       }
+      
     };
   
     fetchActiveTabContent();
@@ -63,7 +74,7 @@ const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, fileData, se
             }}
             className='x-tab-btn'
           >
-            x      
+            x       {/* add iceon here */}
           </p>
         </div>
       ))}

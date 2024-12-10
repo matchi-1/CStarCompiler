@@ -401,6 +401,11 @@ const toggleFiles = () => {
     return () => clearTimeout(fetchTimer);
   }, [code]);
 
+  useEffect(() => {     //save to localstorage when changed
+    localStorage.setItem(activeTab, JSON.stringify(code));
+  }, [code]);
+
+
   // Cleanup ResizeObserver on unmount
   useEffect(() => {
     return () => {
@@ -419,7 +424,8 @@ const toggleFiles = () => {
         <Sidebar toggleFiles={toggleFiles} /> {/* Pass toggle function to Sidebar */}
 
         <FileExplorer 
-        isVisible={isFilesVisible} toggleFiles={toggleFiles} 
+        isVisible={isFilesVisible} 
+        toggleFiles={toggleFiles} 
         fileData = {fileData}
         setFileData = {setFileData}
         files = {files}
