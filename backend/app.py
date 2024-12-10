@@ -60,8 +60,8 @@ iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|
 closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';', '!'] + newline
-str_lit_delim = whitespace + ['+', ')', ',', ';', '\n', '/', ':', '!']
+num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';', '!', '&'] + newline
+str_lit_delim = whitespace + ['+', ')', ',', ';', '\n', '/', ':', '!', '&']
 bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n', '/', ':', '!']
 
 # control flow delim
@@ -2153,7 +2153,7 @@ def lexer(code):
             # in statement
             if (currState == 'IN_CHECK'):
                 expected = ['<', '/']
-                if (code[i] in ['<', '\n', '/']):
+                if (code[i] in newline_delim + ['<', '/']):
                     tokens.append((currToken, 'in'))
                     currToken = ''
                     currState = 's0'
