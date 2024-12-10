@@ -2261,7 +2261,7 @@ def lexer(code):
             if (currState == 'SET_CHECK'):
                 expected = get_set_delim
                 if (code[i] in get_set_delim):
-                    tokens.append((currToken, 'get'))
+                    tokens.append((currToken, 'set'))
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
