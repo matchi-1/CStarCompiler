@@ -48,22 +48,22 @@ newline = ['\n']
 # reserved symbols delim
 plaintext_delim = whitespace + alphanumeric
 equal_delim = whitespace + ['=']
-arithmetic_delim = plaintext_delim + ['(', '+', '-']
-str_lit_delim = whitespace + ['+', ')', ',', ';']
+arithmetic_delim = plaintext_delim + ['(', '-' , '\n']
+str_lit_delim = whitespace + ['+', ')', ',', ';', '\n']
 newline_delim = [' ', '\n']
-index_delim = [']'] + digit
+index_delim = [']', '\n'] + digit
 default_delim = whitespace + newline_delim + [':']
 type_iden_delim = [')', ' ', '\n', '>', '[']
 get_set_delim = newline_delim + ['{', ';']
 
 # identifier delim
-iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';'] + newline_delim
+iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';', '{'] + newline_delim
 closing_delim = arithmetic_operator + relational_operator + whitespace + logical_operator + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',']
 
 # literals delim
 num_delim = arithmetic_operator + whitespace + relational_operator + [',', ')', ']', '}', '=', ';'] + newline
 string_delim = newline_delim + ['+', ';']
-bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!']
+bool_delim = whitespace + logical_operator + [';', ',', ')', '=', '!', '\n']
 
 # control flow delim
 loop_delim = newline_delim+ whitespace + ['(']
@@ -505,6 +505,7 @@ def transition(currState, currChar):
         else:
             return 'UNDEFINED'
     elif (currState == 's74'):
+        print("(dbg) in s74 now")
         if(currChar == 'f'):
             return 'IF_CHECK'
         elif(currChar == 'm'):
@@ -514,8 +515,10 @@ def transition(currState, currChar):
         elif(currChar == 't'):
             return 's87'
         elif (currChar == 'ANY'):
+            print("(dbg) any defined s74")
             return 'DEFINED'
         else:
+            print("(dbg) undefined s74 next ")
             return 'UNDEFINED'
     elif (currState == 's77'):
         if(currChar == 'p'):
@@ -1768,7 +1771,7 @@ def lexer(code):
     currWholeCount = 0
     currFracCount = 0
     print("(dbgl ----------SCAN START--------")
-    for i in range(len(code)): #need index for fuckery later
+    for i in range(len(code)): #need index for later
         print('(dbg) ---NEW CHAR---')
         print('(dbg) state: ', currState)
         print('(dbg) ', code[i])
@@ -2481,7 +2484,7 @@ def lexer(code):
             # ++ symbol
             if (currState == 'INCREMENT_CHECK'):
                 expected = whitespace + ['alphanumeric', ')', ';']
-                if (code[i] in whitespace + alphanumeric + [')', ';']):
+                if (code[i] in whitespace + alphanumeric + [')', ';', '\n']):
                     tokens.append((currToken, '++'))
                     currToken = ''  
                     currState = 's0'
@@ -2913,7 +2916,7 @@ def lexer(code):
             if (code[i] == '\n'):
                 if (i != len(code)-1):
                     tokens.append(('\\n', 'New line'))
-                continue
+                    continue
         #check states
         if (transition(currState, code[i]) != 'UNDEFINED'):
             print(f'(dbg) in {currState} transitions')  
