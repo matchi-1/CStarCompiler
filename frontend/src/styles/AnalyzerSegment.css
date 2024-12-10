@@ -157,12 +157,12 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 50px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "Consolas", monospace;
     table-layout: fixed; /* Fix the column width */
 }
 
 .analyzer-segment th {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     padding: 8px;
     font-weight: normal;
     border-bottom: 1px solid var(--outline-lightBlue);
@@ -177,7 +177,7 @@
 }
 
 .analyzer-segment td {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     padding: 8px;
     border-right: 1px solid var(--outline-lightBlue);
     word-wrap: break-word; /* text breaks onto new line if too long */
