@@ -35,7 +35,7 @@ arithmetic_operator = ['+', '-', '*', '/', '%']
 relational_operator = ['>', '<', '==', '<=', '>=', '!=']
 relational_operator_delim = ['>', '<', '=', '!']
 logical_operator = ['!', '&&', '||']
-logical_operator_delim = ['!', '&', '|']
+logical_operator_delim = ['&', '|']
 unary_operator = ['++', '-']
 assignment_operator = ['=', '+=', '-=', '*=', '/=']
 
@@ -59,12 +59,12 @@ get_set_delim = newline_delim + ['{', ';', '/']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';', '{'] + newline_delim
-closing_delim = arithmetic_delim + arithmetic_operator + relational_operator_delim + whitespace + logical_operator_delim + assignment_operator + ['&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']']
+closing_delim = arithmetic_delim + arithmetic_operator + relational_operator_delim + whitespace + logical_operator_delim  + ['=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']']
 
 # literals delim
-num_delim = arithmetic_operator + whitespace + relational_operator_delim + logical_operator_delim + [',', ')', ']', '}', '=', ';'] + newline
+num_delim = arithmetic_operator + whitespace + relational_operator_delim + logical_operator_delim + [',', ')', ']', '}', '=', ';', ':'] + newline
 str_lit_delim = whitespace + logical_operator_delim + ['+', ')', ',', ';', '\n', '/', ':', '!', '&']
-bool_delim = num_delim + whitespace + logical_operator_delim + [';', ',', ')', '=', '!', '\n', '/', ':', '!']
+bool_delim = num_delim + whitespace + logical_operator_delim + [';', ',', ')', '=', '!', '\n', '/', '!']
 
 # control flow delim
 loop_delim = newline_delim+ whitespace + ['(', '/']
@@ -1770,6 +1770,8 @@ def lexer(code):
     currCol = 1
     currWholeCount = 0
     currFracCount = 0
+    char_esc = False
+    first_char = True
     print("(dbgl ----------SCAN START--------")
     for i in range(len(code)): #need index for later
         print('(dbg) ---NEW CHAR---')
@@ -1919,8 +1921,8 @@ def lexer(code):
                     currState = 's0'
             # ( symbol
             if (currState == 'OPEN_PAREN_CHECK'):
-                expected = ['alphanumeric', ' ', '\"', '!', ')', '+', '-', '/']
-                if (code[i] in arithmetic_delim + ['\"', '!', ')', '\n', '/']):
+                expected = ['alphanumeric', ' ', '\"', '!', ')', '+', '-', '/', '\'']
+                if (code[i] in arithmetic_delim + ['\"', '!', ')', '\n', '/', '\'']):
                     tokens.append((currToken, '('))
                     currToken = ''
                     currState = 's0'
@@ -1965,8 +1967,8 @@ def lexer(code):
                     currState = 's170'
             # ! symbol
             if (currState == 'NEGATION_CHECK'):
-                expected = ['alphabetic', '(', '/'] + whitespace 
-                if (code[i] in whitespace + alphabetic_chars + ['(', '/']):
+                expected = ['alphabetic', '(', '/'] + whitespace + newline
+                if (code[i] in whitespace + alphabetic_chars + newline + ['(', '/']):
                     tokens.append((currToken, '!'))
                     currToken = ''  
                     currState = 's0'
@@ -2046,8 +2048,8 @@ def lexer(code):
                     currState = 's201'
             # ? symbol
             if (currState == 'QUESTION_CHECK'):
-                expected = ['alphanumeric', '(', '/'] + newline
-                if (code[i] in plaintext_delim + newline + ['(', '/']):
+                expected = ['alphanumeric', '(', '/','\'', '\"'] + newline
+                if (code[i] in plaintext_delim + newline + ['(', '/', '\'', '\"']):
                     tokens.append((currToken, '?'))
                     currToken = ''  
                     currState = 's0'
@@ -2059,16 +2061,19 @@ def lexer(code):
             # : symbol
             if (currState == 'COLON_CHECK'):
                 expected = ['alphanumeric', '(', ' ', '/'] + newline
-                if (code[i] in plaintext_delim + newline + ['(', '/']):
+                if (code[i] in plaintext_delim + newline + ['(', '/', '\'', '\"']):
                     tokens.append((currToken, ':'))
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's386'
+                    currToken += code[i]
+                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                    currToken = ''  
+                    currState = 's0'
             # [ symbol
             if (currState == 'OPEN_BRACKET_CHECK'):
-                expected = ['alphanumeric', ']', '/'] + whitespace
-                if (code[i] in alphanumeric + whitespace + [']', '/']):
+                expected = ['alphanumeric', ']', '/', '('] + whitespace
+                if (code[i] in alphanumeric + whitespace + [']', '/', '(']):
                     tokens.append((currToken, '['))
                     currToken = ''  
                     currState = 's0'
@@ -2146,7 +2151,7 @@ def lexer(code):
             # = symbol
             if (currState == 'ASSIGN_CHECK'):
                 expected = ['alphanumeric', ' ', '\"', '+', '-', '/']
-                if (code[i] in arithmetic_delim + ['\"', '/']):
+                if (code[i] in arithmetic_delim + ['\"', '/', '\'']):
                     tokens.append((currToken, '='))
                     currToken = ''  
                     currState = 's0'
@@ -2380,8 +2385,8 @@ def lexer(code):
                     currState = 's0'
             # -- symbol
             if (currState == 'DECREMENT_CHECK'):
-                expected = whitespace + ['alphanumeric'] + [';', ')', '/', '+', '*', '%']
-                if (code[i] in whitespace + alphanumeric + [';', ')', '/', '+', '*', '%']):
+                expected = whitespace + ['alphanumeric'] + [';', ')', '/', '+', '*', '%'] + newline
+                if (code[i] in whitespace + alphanumeric + newline + [';', ')', '/', '+', '*', '%']):
                     tokens.append((currToken, '--'))
                     currToken = ''  
                     currState = 's0'
@@ -2404,8 +2409,8 @@ def lexer(code):
                     currState = 's0'
             # != symbol
             if (currState == 'NOT_EQUAL_CHECK'):
-                expected = whitespace + ['alphanumeric', '(', '"', '\'']
-                if (code[i] in whitespace + alphanumeric + ['(', '"', '\'']):
+                expected = whitespace + ['alphanumeric', '(', '"', '\''] + newline
+                if (code[i] in whitespace + alphanumeric + newline + ['(', '"', '\'']):
                     tokens.append((currToken, '!='))
                     currToken = ''  
                     currState = 's0'
@@ -2430,7 +2435,7 @@ def lexer(code):
             if (currState == 'LOGICAND_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '\"', '/']
                 if (code[i] in plaintext_delim + ['(', '\"', '\n', '/']):
-                    tokens.append((currToken, '%='))
+                    tokens.append((currToken, '&&'))
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2560,8 +2565,8 @@ def lexer(code):
                     currState = 's0'
             # character literal
             if (currState == 'CHAR_LIT_CHECK'):
-                expected = num_delim
-                if (code[i] in num_delim + newline_delim):
+                expected = num_delim + [')', ']', '/', ':']
+                if (code[i] in num_delim + newline_delim + [')', ']', '/', ':']):
                     tokens.append((currToken, 'char_lit'))
                     currToken = ''  
                     currState = 's0'
@@ -2821,17 +2826,37 @@ def lexer(code):
         #character lit check
         if (currState == 's261'):
             if (code[i] != '\''):
-                if (code[i-1] == '\\'):
+                print('(dbg) not \'')
+                if (char_esc):
+                    print('(dbg) curr scan ', code[i])
                     if (code[i] not in ['\'', '\"', '\\', 't', 'n', 'b']):
+                        print('(dbg) esc seq error')
                         errors.append(charEscSeqError(currToken, currLine, currCol, lineContent))
                         currToken = ''  
                         currState = 's0'
-                elif (code[i-1] != '\''):
+                    char_esc = False
+                    if code[i] == '\\':
+                        currToken += code[i]
+                        continue
+                elif (not first_char):
                     errors.append(charLengthError(currToken, currLine, currCol, lineContent))
                     currToken = ''  
                     currState = 's0'
+                if code[i] == '\\' and not char_esc:
+                    first_char = False
+                    char_esc = True
                 currToken += code[i]
                 continue
+            else:
+                print("(dbg) chr close found")
+                currToken += code[i]
+                if (char_esc):
+                    char_esc = False
+                    continue
+                else:
+                    first_char = True
+                    currState = 'CHAR_LIT_CHECK'
+                    continue
         #end of charcter lit checking
         #single line comment
         if (currState == 's251'):
@@ -2936,6 +2961,11 @@ def lexer(code):
                     currWholeCount += 1
                     currState = 's297'  
                     continue
+                elif (code[i] not in alphanumeric + ['_'] and i != len(code)-1):
+                    errors.append(unexpectedSymbol(currToken, currLine, currCol, lineContent))
+                    currToken = ''
+                    currState = 's0'
+                    continue
                 currToken += code[i]
                 currState = 's248'
                 continue
@@ -3030,6 +3060,10 @@ def wholeRangeError(currToken, currLine, currCol, lineContent):
 
 def fracPrecError(currToken, currLine, currCol, lineContent):
     errorType = "Numeric exceeding max precision"
+    return generateError(errorType, currToken, currLine, currCol, lineContent)
+
+def unexpectedSymbol(currToken, currLine, currCol, lineContent):
+    errorType = "Unexpected symbol"
     return generateError(errorType, currToken, currLine, currCol, lineContent)
 
 
