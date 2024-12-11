@@ -144,7 +144,7 @@ def transition(currState, currChar):
         elif(currChar == '|'):
             return 's223'
         elif(currChar == '"'):
-            return 's258'
+            return 's253'
         elif(currChar == '+'):
             return 'PLUS_CHECK'
         elif(currChar == '<'):
@@ -154,7 +154,7 @@ def transition(currState, currChar):
         elif(currChar == '='):
             return 'ASSIGN_CHECK'
         elif(currChar == '\''):
-            return 's261'
+            return 's257'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
@@ -970,11 +970,11 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's201'):
+    elif (currState == 's246'):
         if(currChar == '*'):
-            return 's254'
+            return 's249'
         elif(currChar == '/'):
-            return 's251'
+            return 's247'
         elif(currChar == '='):
             return 'DIV_ASS_CHECK'
         elif (currChar == 'ANY'):
@@ -988,7 +988,7 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's230'):
+    elif (currState == 's226'):
         if(currChar == '+'):
             return 'INCREMENT_CHECK'
         elif(currChar == '='):
@@ -997,759 +997,759 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's236'):
+    elif (currState == 's232'):
         if(currChar == '='):
             return 'LESS_OR_EQUAL_CHECK'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's240'):
+    elif (currState == 's236'):
         if(currChar == '='):
             return 'GREATER_OR_EQUAL_CHECK'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's244'):
+    elif (currState == 's240'):
         if(currChar == '='):
             return 'EQUAL_CHECK'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's248'):
+    elif (currState == 's244'):
         if(currChar == '_'):
-            return 's248'
+            return 's244'
         elif(currChar == 'a'):
-            return 's248'
+            return 's244'
         elif(currChar == 'b'):
-            return 's248'
+            return 's244'
         elif(currChar == 'c'):
-            return 's248'
+            return 's244'
         elif(currChar == 'd'):
-            return 's248'
+            return 's244'
         elif(currChar == 'e'):
-            return 's248'
+            return 's244'
         elif(currChar == 'f'):
-            return 's248'
+            return 's244'
         elif(currChar == 'g'):
-            return 's248'
+            return 's244'
         elif(currChar == 'h'):
-            return 's248'
+            return 's244'
         elif(currChar == 'i'):
-            return 's248'
+            return 's244'
         elif(currChar == 'j'):
-            return 's248'
+            return 's244'
         elif(currChar == 'k'):
-            return 's248'
+            return 's244'
         elif(currChar == 'l'):
-            return 's248'
+            return 's244'
         elif(currChar == 'm'):
-            return 's248'
+            return 's244'
         elif(currChar == 'n'):
-            return 's248'
+            return 's244'
         elif(currChar == 'o'):
-            return 's248'
+            return 's244'
         elif(currChar == 'p'):
-            return 's248'
+            return 's244'
         elif(currChar == 'q'):
-            return 's248'
+            return 's244'
         elif(currChar == 'r'):
-            return 's248'
+            return 's244'
         elif(currChar == 's'):
-            return 's248'
+            return 's244'
         elif(currChar == 't'):
-            return 's248'
+            return 's244'
         elif(currChar == 'u'):
-            return 's248'
+            return 's244'
         elif(currChar == 'v'):
-            return 's248'
+            return 's244'
         elif(currChar == 'w'):
-            return 's248'
+            return 's244'
         elif(currChar == 'x'):
-            return 's248'
+            return 's244'
         elif(currChar == 'y'):
-            return 's248'
+            return 's244'
         elif(currChar == 'z'):
-            return 's248'
+            return 's244'
         elif(currChar == 'A'):
-            return 's248'
+            return 's244'
         elif(currChar == 'B'):
-            return 's248'
+            return 's244'
         elif(currChar == 'C'):
-            return 's248'
+            return 's244'
         elif(currChar == 'D'):
-            return 's248'
+            return 's244'
         elif(currChar == 'E'):
-            return 's248'
+            return 's244'
         elif(currChar == 'F'):
-            return 's248'
+            return 's244'
         elif(currChar == 'G'):
-            return 's248'
+            return 's244'
         elif(currChar == 'H'):
-            return 's248'
+            return 's244'
         elif(currChar == 'I'):
-            return 's248'
+            return 's244'
         elif(currChar == 'J'):
-            return 's248'
+            return 's244'
         elif(currChar == 'K'):
-            return 's248'
+            return 's244'
         elif(currChar == 'L'):
-            return 's248'
+            return 's244'
         elif(currChar == 'M'):
-            return 's248'
+            return 's244'
         elif(currChar == 'N'):
-            return 's248'
+            return 's244'
         elif(currChar == 'O'):
-            return 's248'
+            return 's244'
         elif(currChar == 'P'):
-            return 's248'
+            return 's244'
         elif(currChar == 'Q'):
-            return 's248'
+            return 's244'
         elif(currChar == 'R'):
-            return 's248'
+            return 's244'
         elif(currChar == 'S'):
-            return 's248'
+            return 's244'
         elif(currChar == 'T'):
-            return 's248'
+            return 's244'
         elif(currChar == 'U'):
-            return 's248'
+            return 's244'
         elif(currChar == 'V'):
-            return 's248'
+            return 's244'
         elif(currChar == 'W'):
-            return 's248'
+            return 's244'
         elif(currChar == 'X'):
-            return 's248'
+            return 's244'
         elif(currChar == 'Y'):
-            return 's248'
+            return 's244'
         elif(currChar == 'Z'):
-            return 's248'
+            return 's244'
         elif(currChar == '0'):
-            return 's248'
+            return 's244'
         elif(currChar == '1'):
-            return 's248'
+            return 's244'
         elif(currChar == '2'):
-            return 's248'
+            return 's244'
         elif(currChar == '3'):
-            return 's248'
+            return 's244'
         elif(currChar == '4'):
-            return 's248'
+            return 's244'
         elif(currChar == '5'):
-            return 's248'
+            return 's244'
         elif(currChar == '6'):
-            return 's248'
+            return 's244'
         elif(currChar == '7'):
-            return 's248'
+            return 's244'
         elif(currChar == '8'):
-            return 's248'
+            return 's244'
         elif(currChar == '9'):
-            return 's248'
+            return 's244'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's251'):
+    elif (currState == 's247'):
         if(currChar == 'a'):
-            return 's251'
+            return 's247'
         elif(currChar == 'b'):
-            return 's251'
+            return 's247'
         elif(currChar == 'c'):
-            return 's251'
+            return 's247'
         elif(currChar == 'd'):
-            return 's251'
+            return 's247'
         elif(currChar == 'e'):
-            return 's251'
+            return 's247'
         elif(currChar == 'f'):
-            return 's251'
+            return 's247'
         elif(currChar == 'g'):
-            return 's251'
+            return 's247'
         elif(currChar == 'h'):
-            return 's251'
+            return 's247'
         elif(currChar == 'i'):
-            return 's251'
+            return 's247'
         elif(currChar == 'j'):
-            return 's251'
+            return 's247'
         elif(currChar == 'k'):
-            return 's251'
+            return 's247'
         elif(currChar == 'l'):
-            return 's251'
+            return 's247'
         elif(currChar == 'm'):
-            return 's251'
+            return 's247'
         elif(currChar == 'n'):
-            return 's251'
+            return 's247'
         elif(currChar == 'o'):
-            return 's251'
+            return 's247'
         elif(currChar == 'p'):
-            return 's251'
+            return 's247'
         elif(currChar == 'q'):
-            return 's251'
+            return 's247'
         elif(currChar == 'r'):
-            return 's251'
+            return 's247'
         elif(currChar == 's'):
-            return 's251'
+            return 's247'
         elif(currChar == 't'):
-            return 's251'
+            return 's247'
         elif(currChar == 'u'):
-            return 's251'
+            return 's247'
         elif(currChar == 'v'):
-            return 's251'
+            return 's247'
         elif(currChar == 'w'):
-            return 's251'
+            return 's247'
         elif(currChar == 'x'):
-            return 's251'
+            return 's247'
         elif(currChar == 'y'):
-            return 's251'
+            return 's247'
         elif(currChar == 'z'):
-            return 's251'
+            return 's247'
         elif(currChar == 'A'):
-            return 's251'
+            return 's247'
         elif(currChar == 'B'):
-            return 's251'
+            return 's247'
         elif(currChar == 'C'):
-            return 's251'
+            return 's247'
         elif(currChar == 'D'):
-            return 's251'
+            return 's247'
         elif(currChar == 'E'):
-            return 's251'
+            return 's247'
         elif(currChar == 'F'):
-            return 's251'
+            return 's247'
         elif(currChar == 'G'):
-            return 's251'
+            return 's247'
         elif(currChar == 'H'):
-            return 's251'
+            return 's247'
         elif(currChar == 'I'):
-            return 's251'
+            return 's247'
         elif(currChar == 'J'):
-            return 's251'
+            return 's247'
         elif(currChar == 'K'):
-            return 's251'
+            return 's247'
         elif(currChar == 'L'):
-            return 's251'
+            return 's247'
         elif(currChar == 'M'):
-            return 's251'
+            return 's247'
         elif(currChar == 'N'):
-            return 's251'
+            return 's247'
         elif(currChar == 'O'):
-            return 's251'
+            return 's247'
         elif(currChar == 'P'):
-            return 's251'
+            return 's247'
         elif(currChar == 'Q'):
-            return 's251'
+            return 's247'
         elif(currChar == 'R'):
-            return 's251'
+            return 's247'
         elif(currChar == 'S'):
-            return 's251'
+            return 's247'
         elif(currChar == 'T'):
-            return 's251'
+            return 's247'
         elif(currChar == 'U'):
-            return 's251'
+            return 's247'
         elif(currChar == 'V'):
-            return 's251'
+            return 's247'
         elif(currChar == 'W'):
-            return 's251'
+            return 's247'
         elif(currChar == 'X'):
-            return 's251'
+            return 's247'
         elif(currChar == 'Y'):
-            return 's251'
+            return 's247'
         elif(currChar == 'Z'):
-            return 's251'
+            return 's247'
         elif(currChar == '0'):
-            return 's251'
+            return 's247'
         elif(currChar == '1'):
-            return 's251'
+            return 's247'
         elif(currChar == '2'):
-            return 's251'
+            return 's247'
         elif(currChar == '3'):
-            return 's251'
+            return 's247'
         elif(currChar == '4'):
-            return 's251'
+            return 's247'
         elif(currChar == '5'):
-            return 's251'
+            return 's247'
         elif(currChar == '6'):
-            return 's251'
+            return 's247'
         elif(currChar == '7'):
-            return 's251'
+            return 's247'
         elif(currChar == '8'):
-            return 's251'
+            return 's247'
         elif(currChar == '9'):
-            return 's251'
+            return 's247'
         elif(currChar == '@'):
-            return 's251'
+            return 's247'
         elif(currChar == '#'):
-            return 's251'
+            return 's247'
         elif(currChar == '$'):
-            return 's251'
+            return 's247'
         elif(currChar == '^'):
-            return 's251'
+            return 's247'
         elif(currChar == '"'):
-            return 's251'
+            return 's247'
         elif(currChar == ','):
-            return 's251'
+            return 's247'
         elif(currChar == '+'):
-            return 's251'
+            return 's247'
         elif(currChar == '-'):
-            return 's251'
+            return 's247'
         elif(currChar == '*'):
-            return 's251'
+            return 's247'
         elif(currChar == '/'):
-            return 's251'
+            return 's247'
         elif(currChar == '%'):
-            return 's251'
+            return 's247'
         elif(currChar == '>'):
-            return 's251'
+            return 's247'
         elif(currChar == '<'):
-            return 's251'
+            return 's247'
         elif(currChar == '!'):
-            return 's251'
+            return 's247'
         elif(currChar == '='):
-            return 's251'
+            return 's247'
         elif(currChar == '&'):
-            return 's251'
+            return 's247'
         elif(currChar == '.'):
-            return 's251'
+            return 's247'
         elif(currChar == '|'):
-            return 's251'
+            return 's247'
         elif(currChar == '('):
-            return 's251'
+            return 's247'
         elif(currChar == ')'):
-            return 's251'
+            return 's247'
         elif(currChar == '['):
-            return 's251'
+            return 's247'
         elif(currChar == ']'):
-            return 's251'
+            return 's247'
         elif(currChar == '?'):
-            return 's251'
+            return 's247'
         elif(currChar == ':'):
-            return 's251'
+            return 's247'
         elif(currChar == ';'):
-            return 's251'
+            return 's247'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's254'):
+    elif (currState == 's249'):
         if(currChar == '\n'):
-            return 's254'
+            return 's249'
         elif(currChar == '*'):
-            return 's255'
+            return 's250'
         elif(currChar == 'a'):
-            return 's254'
+            return 's249'
         elif(currChar == 'b'):
-            return 's254'
+            return 's249'
         elif(currChar == 'c'):
-            return 's254'
+            return 's249'
         elif(currChar == 'd'):
-            return 's254'
+            return 's249'
         elif(currChar == 'e'):
-            return 's254'
+            return 's249'
         elif(currChar == 'f'):
-            return 's254'
+            return 's249'
         elif(currChar == 'g'):
-            return 's254'
+            return 's249'
         elif(currChar == 'h'):
-            return 's254'
+            return 's249'
         elif(currChar == 'i'):
-            return 's254'
+            return 's249'
         elif(currChar == 'j'):
-            return 's254'
+            return 's249'
         elif(currChar == 'k'):
-            return 's254'
+            return 's249'
         elif(currChar == 'l'):
-            return 's254'
+            return 's249'
         elif(currChar == 'm'):
-            return 's254'
+            return 's249'
         elif(currChar == 'n'):
-            return 's254'
+            return 's249'
         elif(currChar == 'o'):
-            return 's254'
+            return 's249'
         elif(currChar == 'p'):
-            return 's254'
+            return 's249'
         elif(currChar == 'q'):
-            return 's254'
+            return 's249'
         elif(currChar == 'r'):
-            return 's254'
+            return 's249'
         elif(currChar == 's'):
-            return 's254'
+            return 's249'
         elif(currChar == 't'):
-            return 's254'
+            return 's249'
         elif(currChar == 'u'):
-            return 's254'
+            return 's249'
         elif(currChar == 'v'):
-            return 's254'
+            return 's249'
         elif(currChar == 'w'):
-            return 's254'
+            return 's249'
         elif(currChar == 'x'):
-            return 's254'
+            return 's249'
         elif(currChar == 'y'):
-            return 's254'
+            return 's249'
         elif(currChar == 'z'):
-            return 's254'
+            return 's249'
         elif(currChar == 'A'):
-            return 's254'
+            return 's249'
         elif(currChar == 'B'):
-            return 's254'
+            return 's249'
         elif(currChar == 'C'):
-            return 's254'
+            return 's249'
         elif(currChar == 'D'):
-            return 's254'
+            return 's249'
         elif(currChar == 'E'):
-            return 's254'
+            return 's249'
         elif(currChar == 'F'):
-            return 's254'
+            return 's249'
         elif(currChar == 'G'):
-            return 's254'
+            return 's249'
         elif(currChar == 'H'):
-            return 's254'
+            return 's249'
         elif(currChar == 'I'):
-            return 's254'
+            return 's249'
         elif(currChar == 'J'):
-            return 's254'
+            return 's249'
         elif(currChar == 'K'):
-            return 's254'
+            return 's249'
         elif(currChar == 'L'):
-            return 's254'
+            return 's249'
         elif(currChar == 'M'):
-            return 's254'
+            return 's249'
         elif(currChar == 'N'):
-            return 's254'
+            return 's249'
         elif(currChar == 'O'):
-            return 's254'
+            return 's249'
         elif(currChar == 'P'):
-            return 's254'
+            return 's249'
         elif(currChar == 'Q'):
-            return 's254'
+            return 's249'
         elif(currChar == 'R'):
-            return 's254'
+            return 's249'
         elif(currChar == 'S'):
-            return 's254'
+            return 's249'
         elif(currChar == 'T'):
-            return 's254'
+            return 's249'
         elif(currChar == 'U'):
-            return 's254'
+            return 's249'
         elif(currChar == 'V'):
-            return 's254'
+            return 's249'
         elif(currChar == 'W'):
-            return 's254'
+            return 's249'
         elif(currChar == 'X'):
-            return 's254'
+            return 's249'
         elif(currChar == 'Y'):
-            return 's254'
+            return 's249'
         elif(currChar == 'Z'):
-            return 's254'
+            return 's249'
         elif(currChar == '0'):
-            return 's254'
+            return 's249'
         elif(currChar == '1'):
-            return 's254'
+            return 's249'
         elif(currChar == '2'):
-            return 's254'
+            return 's249'
         elif(currChar == '3'):
-            return 's254'
+            return 's249'
         elif(currChar == '4'):
-            return 's254'
+            return 's249'
         elif(currChar == '5'):
-            return 's254'
+            return 's249'
         elif(currChar == '6'):
-            return 's254'
+            return 's249'
         elif(currChar == '7'):
-            return 's254'
+            return 's249'
         elif(currChar == '8'):
-            return 's254'
+            return 's249'
         elif(currChar == '9'):
-            return 's254'
+            return 's249'
         elif(currChar == '@'):
-            return 's254'
+            return 's249'
         elif(currChar == '#'):
-            return 's254'
+            return 's249'
         elif(currChar == '$'):
-            return 's254'
+            return 's249'
         elif(currChar == '^'):
-            return 's254'
+            return 's249'
         elif(currChar == '"'):
-            return 's254'
+            return 's249'
         elif(currChar == ','):
-            return 's254'
+            return 's249'
         elif(currChar == '+'):
-            return 's254'
+            return 's249'
         elif(currChar == '-'):
-            return 's254'
+            return 's249'
         elif(currChar == '/'):
-            return 's254'
+            return 's249'
         elif(currChar == '%'):
-            return 's254'
+            return 's249'
         elif(currChar == '>'):
-            return 's254'
+            return 's249'
         elif(currChar == '<'):
-            return 's254'
+            return 's249'
         elif(currChar == '!'):
-            return 's254'
+            return 's249'
         elif(currChar == '='):
-            return 's254'
+            return 's249'
         elif(currChar == '&'):
-            return 's254'
+            return 's249'
         elif(currChar == '.'):
-            return 's254'
+            return 's249'
         elif(currChar == '|'):
-            return 's254'
+            return 's249'
         elif(currChar == '('):
-            return 's254'
+            return 's249'
         elif(currChar == ')'):
-            return 's254'
+            return 's249'
         elif(currChar == '['):
-            return 's254'
+            return 's249'
         elif(currChar == ']'):
-            return 's254'
+            return 's249'
         elif(currChar == '?'):
-            return 's254'
+            return 's249'
         elif(currChar == ':'):
-            return 's254'
+            return 's249'
         elif(currChar == ';'):
-            return 's254'
+            return 's249'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's255'):
+    elif (currState == 's250'):
         if(currChar == '/'):
             return 'MULTI_COMMENT_CHECK'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's258'):
+    elif (currState == 's253'):
         if(currChar == '"'):
             return 'STRING_LIT_CHECK'
         elif(currChar == 'a'):
-            return 's258'
+            return 's253'
         elif(currChar == 'b'):
-            return 's258'
+            return 's253'
         elif(currChar == 'c'):
-            return 's258'
+            return 's253'
         elif(currChar == 'd'):
-            return 's258'
+            return 's253'
         elif(currChar == 'e'):
-            return 's258'
+            return 's253'
         elif(currChar == 'f'):
-            return 's258'
+            return 's253'
         elif(currChar == 'g'):
-            return 's258'
+            return 's253'
         elif(currChar == 'h'):
-            return 's258'
+            return 's253'
         elif(currChar == 'i'):
-            return 's258'
+            return 's253'
         elif(currChar == 'j'):
-            return 's258'
+            return 's253'
         elif(currChar == 'k'):
-            return 's258'
+            return 's253'
         elif(currChar == 'l'):
-            return 's258'
+            return 's253'
         elif(currChar == 'm'):
-            return 's258'
+            return 's253'
         elif(currChar == 'n'):
-            return 's258'
+            return 's253'
         elif(currChar == 'o'):
-            return 's258'
+            return 's253'
         elif(currChar == 'p'):
-            return 's258'
+            return 's253'
         elif(currChar == 'q'):
-            return 's258'
+            return 's253'
         elif(currChar == 'r'):
-            return 's258'
+            return 's253'
         elif(currChar == 's'):
-            return 's258'
+            return 's253'
         elif(currChar == 't'):
-            return 's258'
+            return 's253'
         elif(currChar == 'u'):
-            return 's258'
+            return 's253'
         elif(currChar == 'v'):
-            return 's258'
+            return 's253'
         elif(currChar == 'w'):
-            return 's258'
+            return 's253'
         elif(currChar == 'x'):
-            return 's258'
+            return 's253'
         elif(currChar == 'y'):
-            return 's258'
+            return 's253'
         elif(currChar == 'z'):
-            return 's258'
+            return 's253'
         elif(currChar == 'A'):
-            return 's258'
+            return 's253'
         elif(currChar == 'B'):
-            return 's258'
+            return 's253'
         elif(currChar == 'C'):
-            return 's258'
+            return 's253'
         elif(currChar == 'D'):
-            return 's258'
+            return 's253'
         elif(currChar == 'E'):
-            return 's258'
+            return 's253'
         elif(currChar == 'F'):
-            return 's258'
+            return 's253'
         elif(currChar == 'G'):
-            return 's258'
+            return 's253'
         elif(currChar == 'H'):
-            return 's258'
+            return 's253'
         elif(currChar == 'I'):
-            return 's258'
+            return 's253'
         elif(currChar == 'J'):
-            return 's258'
+            return 's253'
         elif(currChar == 'K'):
-            return 's258'
+            return 's253'
         elif(currChar == 'L'):
-            return 's258'
+            return 's253'
         elif(currChar == 'M'):
-            return 's258'
+            return 's253'
         elif(currChar == 'N'):
-            return 's258'
+            return 's253'
         elif(currChar == 'O'):
-            return 's258'
+            return 's253'
         elif(currChar == 'P'):
-            return 's258'
+            return 's253'
         elif(currChar == 'Q'):
-            return 's258'
+            return 's253'
         elif(currChar == 'R'):
-            return 's258'
+            return 's253'
         elif(currChar == 'S'):
-            return 's258'
+            return 's253'
         elif(currChar == 'T'):
-            return 's258'
+            return 's253'
         elif(currChar == 'U'):
-            return 's258'
+            return 's253'
         elif(currChar == 'V'):
-            return 's258'
+            return 's253'
         elif(currChar == 'W'):
-            return 's258'
+            return 's253'
         elif(currChar == 'X'):
-            return 's258'
+            return 's253'
         elif(currChar == 'Y'):
-            return 's258'
+            return 's253'
         elif(currChar == 'Z'):
-            return 's258'
+            return 's253'
         elif(currChar == '0'):
-            return 's258'
+            return 's253'
         elif(currChar == '1'):
-            return 's258'
+            return 's253'
         elif(currChar == '2'):
-            return 's258'
+            return 's253'
         elif(currChar == '3'):
-            return 's258'
+            return 's253'
         elif(currChar == '4'):
-            return 's258'
+            return 's253'
         elif(currChar == '5'):
-            return 's258'
+            return 's253'
         elif(currChar == '6'):
-            return 's258'
+            return 's253'
         elif(currChar == '7'):
-            return 's258'
+            return 's253'
         elif(currChar == '8'):
-            return 's258'
+            return 's253'
         elif(currChar == '9'):
-            return 's258'
+            return 's253'
         elif(currChar == '@'):
-            return 's258'
+            return 's253'
         elif(currChar == '#'):
-            return 's258'
+            return 's253'
         elif(currChar == '$'):
-            return 's258'
+            return 's253'
         elif(currChar == '^'):
-            return 's258'
+            return 's253'
         elif(currChar == ','):
-            return 's258'
+            return 's253'
         elif(currChar == '+'):
-            return 's258'
+            return 's253'
         elif(currChar == '-'):
-            return 's258'
+            return 's253'
         elif(currChar == '*'):
-            return 's258'
+            return 's253'
         elif(currChar == '/'):
-            return 's258'
+            return 's253'
         elif(currChar == '%'):
-            return 's258'
+            return 's253'
         elif(currChar == '>'):
-            return 's258'
+            return 's253'
         elif(currChar == '<'):
-            return 's258'
+            return 's253'
         elif(currChar == '!'):
-            return 's258'
+            return 's253'
         elif(currChar == '='):
-            return 's258'
+            return 's253'
         elif(currChar == '&'):
-            return 's258'
+            return 's253'
         elif(currChar == '.'):
-            return 's258'
+            return 's253'
         elif(currChar == '|'):
-            return 's258'
+            return 's253'
         elif(currChar == '('):
-            return 's258'
+            return 's253'
         elif(currChar == ')'):
-            return 's258'
+            return 's253'
         elif(currChar == '['):
-            return 's258'
+            return 's253'
         elif(currChar == ']'):
-            return 's258'
+            return 's253'
         elif(currChar == '?'):
-            return 's258'
+            return 's253'
         elif(currChar == ':'):
-            return 's258'
+            return 's253'
         elif(currChar == ';'):
-            return 's258'
+            return 's253'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's261'):
+    elif (currState == 's257'):
         if(currChar == '\''):
             return 'CHAR_LIT_CHECK'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's264'):
+    elif (currState == 's267'):
         if(currChar == '0'):
-            return 's264'
+            return 's267'
         elif(currChar == '1'):
-            return 's264'
+            return 's267'
         elif(currChar == '2'):
-            return 's264'
+            return 's267'
         elif(currChar == '3'):
-            return 's264'
+            return 's267'
         elif(currChar == '4'):
-            return 's264'
+            return 's267'
         elif(currChar == '5'):
-            return 's264'
+            return 's267'
         elif(currChar == '6'):
-            return 's264'
+            return 's267'
         elif(currChar == '7'):
-            return 's264'
+            return 's267'
         elif(currChar == '8'):
-            return 's264'
+            return 's267'
         elif(currChar == '9'):
-            return 's264'
+            return 's267'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's297'):
+    elif (currState == 's300'):
         if(currChar == '.'):
-            return 's264'
+            return 's267'
         elif(currChar == '0'):
-            return 's297'
+            return 's300'
         elif(currChar == '1'):
-            return 's297'
+            return 's300'
         elif(currChar == '2'):
-            return 's297'
+            return 's300'
         elif(currChar == '3'):
-            return 's297'
+            return 's300'
         elif(currChar == '4'):
-            return 's297'
+            return 's300'
         elif(currChar == '5'):
-            return 's297'
+            return 's300'
         elif(currChar == '6'):
-            return 's297'
+            return 's300'
         elif(currChar == '7'):
-            return 's297'
+            return 's300'
         elif(currChar == '8'):
-            return 's297'
+            return 's300'
         elif(currChar == '9'):
-            return 's297'
+            return 's300'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
@@ -1798,8 +1798,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -1814,8 +1814,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -1830,8 +1830,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -1846,8 +1846,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -1862,8 +1862,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -1878,8 +1878,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -1894,8 +1894,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -1911,8 +1911,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2036,7 +2036,7 @@ def lexer(code):
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's264'
+                    currState = 's267'
             # / symbol
             if (currState == 'SLASH_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-']
@@ -2045,7 +2045,7 @@ def lexer(code):
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's201'
+                    currState = 's246'
             # ? symbol
             if (currState == 'QUESTION_CHECK'):
                 expected = ['alphanumeric', '(', '/','\'', '\"'] + newline
@@ -2126,7 +2126,7 @@ def lexer(code):
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's230'
+                    currState = 's226'
             # < symbol
             if (currState == 'OPEN_ANGLE_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-', '/'] + newline
@@ -2137,8 +2137,7 @@ def lexer(code):
                     currToken = ''  
                     currState = 's0'
                 else:
-                    print("(dbg) going from open angle check to s409")
-                    currState = 's236'
+                    currState = 's232'
             # > symbol
             if (currState == 'CLOSING_ANGLE_CHECK'):
                 expected = ['alphanumeric', ' ', '(', ';', '+', '-', '/'] + newline
@@ -2147,7 +2146,7 @@ def lexer(code):
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's240'
+                    currState = 's236'
             # = symbol
             if (currState == 'ASSIGN_CHECK'):
                 expected = ['alphanumeric', ' ', '\"', '+', '-', '/']
@@ -2156,7 +2155,7 @@ def lexer(code):
                     currToken = ''  
                     currState = 's0'
                 else:
-                    currState = 's244'
+                    currState = 's240'
             # in statement
             if (currState == 'IN_CHECK'):
                 expected = ['<', '/']
@@ -2188,8 +2187,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2205,8 +2204,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2222,8 +2221,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2239,8 +2238,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2256,8 +2255,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2273,8 +2272,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2290,8 +2289,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2307,8 +2306,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2324,8 +2323,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2341,8 +2340,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2358,8 +2357,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2375,8 +2374,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2589,8 +2588,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2606,8 +2605,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2623,8 +2622,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2640,8 +2639,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2657,8 +2656,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2685,8 +2684,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2702,8 +2701,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2719,8 +2718,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2736,8 +2735,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2753,8 +2752,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2770,8 +2769,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2787,8 +2786,8 @@ def lexer(code):
                     currState = 's0'
                 elif (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState ='s248'
-                    print('(dbg) now in state 248')
+                    currState ='s244'
+                    print('(dbg) now in state 244')
                     continue
                 else:
                     currToken += code[i]
@@ -2798,7 +2797,7 @@ def lexer(code):
         # end of delim checking if statement
 #---SPECIAL STATES---
         #identifier state
-        if (currState == 's248'):
+        if (currState == 's244'):
             print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
                 print('(dbg) correct delim')    
@@ -2813,7 +2812,7 @@ def lexer(code):
             elif (code[i] in alphanumeric + ['_']): #if not delim but still valid, keep looping
                     currToken += code[i]
                     print('(dbg) accepted for iden')
-                    currState ='s248'
+                    currState ='s244'
                     continue
             else:
                 currToken += code[i]
@@ -2824,7 +2823,7 @@ def lexer(code):
                 currState = 's0'
         #end of identifier looping
         #character lit check
-        if (currState == 's261'):
+        if (currState == 's257'):
             if (code[i] != '\''):
                 print('(dbg) not \'')
                 if (char_esc):
@@ -2842,9 +2841,10 @@ def lexer(code):
                     errors.append(charLengthError(currToken, currLine, currCol, lineContent))
                     currToken = ''  
                     currState = 's0'
-                if code[i] == '\\' and not char_esc:
+                if not char_esc:
                     first_char = False
-                    char_esc = True
+                    if(code[i] == '\\'):
+                        char_esc = True
                 currToken += code[i]
                 continue
             else:
@@ -2859,7 +2859,7 @@ def lexer(code):
                     continue
         #end of charcter lit checking
         #single line comment
-        if (currState == 's251'):
+        if (currState == 's247'):
             if (code[i] == '\n'):
                 tokens.append((currToken, 'single_comment'))
                 currToken = ''
@@ -2870,12 +2870,12 @@ def lexer(code):
                 continue
         #end of single line comment
         #multi-line comment
-        if (currState == 's255'):
+        if (currState == 's250'):
             if (code[i] != '/'):
-                currState = 's254'
+                currState = 's249'
         #end of multi-line comment
         #whole number
-        if (currState == 's297'):
+        if (currState == 's300'):
             if (code[i] in numbers):
                 print("(dbg) got another number")
                 currWholeCount += 1
@@ -2904,7 +2904,7 @@ def lexer(code):
                 currState = 's0'
         #end of whole number
         #fractional part of number
-        if (currState == 's264'):
+        if (currState == 's267'):
             if (code[i] in numbers):
                 currFracCount += 1
                 currToken += code[i]
@@ -2934,7 +2934,7 @@ def lexer(code):
 
         #iterating through chars
         #check whitespaces
-        if (currState not in ['s258', 's251', 's254']):
+        if (currState not in ['s253', 's247', 's249']):
             if (code[i] == ' '):
                 tokens.append(('\' \' ', 'Space'))
                 continue
@@ -2959,7 +2959,7 @@ def lexer(code):
                     print("(dbg)s0 is num")
                     #go to whole num loop state
                     currWholeCount += 1
-                    currState = 's297'  
+                    currState = 's300'  
                     continue
                 elif (code[i] not in alphanumeric + ['_'] and i != len(code)-1):
                     errors.append(unexpectedSymbol(currToken, currLine, currCol, lineContent))
@@ -2967,7 +2967,7 @@ def lexer(code):
                     currState = 's0'
                     continue
                 currToken += code[i]
-                currState = 's248'
+                currState = 's244'
                 continue
                 # else:
                 #     currToken += code[i]
@@ -2975,10 +2975,10 @@ def lexer(code):
                 #     currToken = ''
                 #     currState = 's0'  
             else:
-                if (currState == 's254'):
+                if (currState == 's249'):
                     currToken += code[i]
                     continue
-                if (currState == 's258'):
+                if (currState == 's253'):
                     if (code[i] == '\n'):
                         errors.append(stringNewLineError(currToken, currLine, currCol, lineContent))
                         currToken = ''  
@@ -2988,7 +2988,7 @@ def lexer(code):
                         continue
                 if (code[i] in alphanumeric + ['_']):
                     currToken += code[i]
-                    currState = 's248'
+                    currState = 's244'
                     continue
                 elif (code[i] in iden_delim): #check delim
                     if (currToken):
