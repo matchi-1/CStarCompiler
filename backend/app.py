@@ -7,7 +7,7 @@ CORS(app)  # cross-origin requests
 #---DEFINITIONS---
 NULL = ''
 whitespace = [' ']
-
+symbols = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';']
  # alphabet characters
 alpha_small = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
 "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
@@ -1779,6 +1779,7 @@ def lexer(code):
         print('(dbg) state: ', currState)
         print('(dbg) ', code[i])
         print('(dbg) ascii: ', ord(code[i]))
+        delim_check = False
         #update line and col
         if (code[i] == '\n'): 
             currLine += 1
@@ -1790,6 +1791,7 @@ def lexer(code):
         #if no transitions, it means it's time for delim checking
         if (transition(currState, 'ANY') != 'DEFINED'):
             print('(dbg) delim checking')
+            delim_check = True
             #data type keywords
             if (currState == 'BOOL_CHECK'):
                 expected = type_iden_delim
@@ -1805,8 +1807,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             if (currState == 'CHAR_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
@@ -1821,8 +1822,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             if (currState == 'DOUBLE_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
@@ -1837,8 +1837,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             if (currState == 'FLOAT_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
@@ -1853,8 +1852,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             if (currState == 'INT_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
@@ -1869,8 +1867,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             if (currState == 'LONG_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
@@ -1885,8 +1882,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             if (currState == 'STRING_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
@@ -1901,8 +1897,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             #break statement
             if (currState == 'BREAK_CHECK'):
                 expected = newline_delim + [';']
@@ -1918,8 +1913,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # ( symbol
             if (currState == 'OPEN_PAREN_CHECK'):
                 expected = ['alphanumeric', ' ', '\"', '!', ')', '+', '-', '/', '\'']
@@ -1930,8 +1924,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # ) symbol
             if (currState == 'CLOSING_PAREN_CHECK'):
                 expected = ['alphanumeric', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']','?'] + [';', '\n', '/']
@@ -1942,8 +1935,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # ; symbol
             if (currState == 'SEMICOLON_CHECK'):
                 expected = ['alphanumeric', ' ', '}', '/'] + newline
@@ -1954,8 +1946,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # - symbol
             if (currState == 'DASH_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '/']
@@ -1994,8 +1985,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # ) symbol
             if (currState == 'CLOSING_PAREN_CHECK'):
                 expected = ['alphanumeric', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']','?']
@@ -2006,8 +1996,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # * symbol
             if (currState == 'ASTERISK_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-', '/']
@@ -2027,8 +2016,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # . symbol
             if (currState == 'DOT_CHECK'):
                 expected = ['alphabetic', '/'] + whitespace
@@ -2057,8 +2045,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # : symbol
             if (currState == 'COLON_CHECK'):
                 expected = ['alphanumeric', '(', ' ', '/'] + newline
@@ -2069,8 +2056,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # [ symbol
             if (currState == 'OPEN_BRACKET_CHECK'):
                 expected = ['alphanumeric', ']', '/', '('] + whitespace
@@ -2081,8 +2067,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # ] symbol
             if (currState == 'CLOSING_BRACKET_CHECK'):
                 expected = iden_delim
@@ -2093,8 +2078,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # { symbol
             if (currState == 'OPEN_CURLY_CHECK'):
                 expected = ['alphanumeric', ' ', '{', '}', '/'] + newline_delim
@@ -2105,8 +2089,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # } symbol
             if (currState == 'CLOSING_CURLY_CHECK'):
                 expected = ['alphanumeric', ' ', ';', '/', ',','}'] + newline_delim
@@ -2117,8 +2100,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # + symbol
             if (currState == 'PLUS_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '\"', '+', '-', '/']
@@ -2168,6 +2150,7 @@ def lexer(code):
                     currState = 's83'
                 else:
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                    break
             # print statement
             if (currState == 'PRINT_CHECK'):
                 expected = func_delim
@@ -2194,8 +2177,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # private statement
             if (currState == 'PRIVATE_CHECK'):
                 expected = newline_delim
@@ -2211,8 +2193,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # property statement
             if (currState == 'PROPERTY_CHECK'):
                 expected = newline_delim
@@ -2228,8 +2209,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # repeat statement
             if (currState == 'REPEAT_CHECK'):
                 expected = loop_delim
@@ -2245,8 +2225,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # return statement
             if (currState == 'RETURN_CHECK'):
                 expected = newline_delim + [';']
@@ -2262,8 +2241,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # set statement
             if (currState == 'SET_CHECK'):
                 expected = get_set_delim
@@ -2279,8 +2257,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # static statement
             if (currState == 'STATIC_CHECK'):
                 expected = newline_delim
@@ -2296,8 +2273,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # switch statement
             if (currState == 'SWITCH_CHECK'):
                 expected = loop_delim
@@ -2313,8 +2289,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # this statement
             if (currState == 'THIS_CHECK'):
                 expected = ['.', '/']
@@ -2330,8 +2305,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # this statement
             if (currState == 'TRUE_CHECK'):
                 expected = bool_delim
@@ -2347,8 +2321,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # void statement
             if (currState == 'VOID_CHECK'):
                 expected = whitespace + newline + ['/']
@@ -2364,8 +2337,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # while statement
             if (currState == 'WHILE_CHECK'):
                 expected = loop_delim
@@ -2381,8 +2353,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # -- symbol
             if (currState == 'DECREMENT_CHECK'):
                 expected = whitespace + ['alphanumeric'] + [';', ')', '/', '+', '*', '%', '('] + newline
@@ -2393,8 +2364,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # -= symbol
             if (currState == 'MINUS_ASS_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-', '/']
@@ -2405,8 +2375,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # != symbol
             if (currState == 'NOT_EQUAL_CHECK'):
                 expected = whitespace + ['alphanumeric', '(', '"', '\''] + newline
@@ -2417,8 +2386,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # %= symbol
             if (currState == 'MODULO_ASS_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-', '/']
@@ -2429,8 +2397,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # && symbol
             if (currState == 'LOGICAND_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '\"', '/']
@@ -2441,8 +2408,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # *= symbol
             if (currState == 'MULT_ASS_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-', '/']
@@ -2453,8 +2419,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # /= symbol
             if (currState == 'DIV_ASS_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-', '/']
@@ -2465,8 +2430,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # :: symbol
             if (currState == 'SCOPE_ACC_CHECK'):
                 expected = ['alphanumeric', ' '] + newline
@@ -2477,8 +2441,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # || symbol
             if (currState == 'LOGICOR_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '\"', '/', '\'']
@@ -2489,8 +2452,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # ++ symbol
             if (currState == 'INCREMENT_CHECK'):
                 expected = whitespace + ['alphanumeric', ')', ';', '/', '-', '*', '%', '(']
@@ -2501,8 +2463,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # += symbol
             if (currState == 'ADD_ASS_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '\"', '+', '-', '/']
@@ -2513,8 +2474,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # <= symbol
             if (currState == 'LESS_OR_EQUAL_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-', '/', '\'']
@@ -2525,8 +2485,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # >= symbol
             if (currState == 'GREATER_OR_EQUAL_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '+', '-', '/']
@@ -2537,8 +2496,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # == symbol
             if (currState == 'EQUAL_CHECK'):
                 expected = ['alphanumeric', ' ', '(', '\"', '+', '-', '/']
@@ -2549,8 +2507,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # string literal
             if (currState == 'STRING_LIT_CHECK'):
                 expected = str_lit_delim
@@ -2561,8 +2518,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # character literal
             if (currState == 'CHAR_LIT_CHECK'):
                 expected = num_delim + [')', ']', '/', ':']
@@ -2573,8 +2529,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # multicomments 
             if (currState == 'MULTI_COMMENT_CHECK'):
                 tokens.append((currToken, 'multi-line comment'))        
@@ -2595,8 +2550,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # class statement 
             if (currState == 'CLASS_CHECK'):
                 expected = newline_delim
@@ -2612,8 +2566,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # continue statement 
             if (currState == 'CONTINUE_CHECK'):
                 expected = newline_delim + [';']
@@ -2629,8 +2582,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # const statement 
             if (currState == 'CONST_CHECK'):
                 expected = newline_delim
@@ -2646,8 +2598,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # default statement 
             if (currState == 'DEFAULT_CHECK'):
                 expected = default_delim
@@ -2663,8 +2614,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # do statement 
             if (currState == 'DO_CHECK'):
                 expected = block_delim
@@ -2691,8 +2641,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # false statement
             if (currState == 'FALSE_CHECK'):
                 expected = bool_delim
@@ -2708,8 +2657,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # for statement
             if (currState == 'FOR_CHECK'):
                 expected = loop_delim
@@ -2725,8 +2673,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # get statement
             if (currState == 'GET_CHECK'):
                 expected = get_set_delim
@@ -2742,8 +2689,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # if statement
             if (currState == 'IF_CHECK'):
                 expected = loop_delim
@@ -2759,8 +2705,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # import statement
             if (currState == 'IMPORT_CHECK'):
                 expected = whitespace + ['<', '/'] + newline
@@ -2776,8 +2721,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
             # item statement
             if (currState == 'ITEM_CHECK'):
                 expected = iden_delim
@@ -2793,8 +2737,7 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
         # end of delim checking if statement
 #---SPECIAL STATES---
         #identifier state
@@ -2802,10 +2745,9 @@ def lexer(code):
             print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
                 print('(dbg) correct delim')    
-                if (currToken[0] not in alphabetic_chars + ['_']):
+                if (currToken[0] not in alphabetic_chars):
                         errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
-                        currToken = ''  
-                        currState = 's0'
+                        break
                 else:
                     tokens.append((currToken, 'Identifier'))
                 currToken = ''
@@ -2820,8 +2762,7 @@ def lexer(code):
                 expected = iden_delim
                 # errors.append((currToken, f'Lexical Error: In line {currLine}, column {currCol-len(currToken)}; Unexpected \'{code[i]}\' for \'{currToken[:-1]}\'')) #can be expanded with conditions to check what error
                 errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                currToken = ''  
-                currState = 's0'
+                break
         #end of identifier looping
         #character lit check
         if (currState == 's257'):
@@ -2832,16 +2773,14 @@ def lexer(code):
                     if (code[i] not in ['\'', '\"', '\\', 't', 'n', 'b']):
                         print('(dbg) esc seq error')
                         errors.append(charEscSeqError(currToken, currLine, currCol, lineContent))
-                        currToken = ''  
-                        currState = 's0'
+                        break
                     char_esc = False
                     if code[i] == '\\':
                         currToken += code[i]
                         continue
                 elif (not first_char):
                     errors.append(charLengthError(currToken, currLine, currCol, lineContent))
-                    currToken = ''  
-                    currState = 's0'
+                    break
                 if not char_esc:
                     first_char = False
                     if(code[i] == '\\'):
@@ -2885,8 +2824,7 @@ def lexer(code):
                     errors.append(wholeRangeError(currToken, currLine, currCol, lineContent))
                     currWholeCount = 0
                     currFracCount = 0
-                    currToken = ''  
-                    currState = 's0'
+                    break
                 else:
                     continue
             if (code[i] in num_delim):
@@ -2901,8 +2839,7 @@ def lexer(code):
                 errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
                 currWholeCount = 0
                 currFracCount = 0
-                currToken = ''  
-                currState = 's0'
+                break
         #end of whole number
         #fractional part of number
         if (currState == 's267'):
@@ -2913,8 +2850,7 @@ def lexer(code):
                     errors.append(fracPrecError(currToken, currLine, currCol, lineContent))
                     currWholeCount = 0
                     currFracCount = 0
-                    currToken = ''  
-                    currState = 's0'
+                    break
                 else:
                     continue
             if (code[i] in num_delim):
@@ -2929,9 +2865,29 @@ def lexer(code):
                 errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
                 currWholeCount = 0
                 currFracCount = 0
-                currToken = ''  
-                currState = 's0'
+                break
         #end of fractional number
+        #& symbol
+        if (currState == 's184'):
+            currToken += code[i]
+            if(code[i] == '&'):
+                currState = 'LOGICAND_CHECK'
+                continue
+            else:
+                errors.append(unexpectedSymbol('&', currLine, currCol, lineContent))
+                break
+        # end of | symbol
+        #& symbol
+        if (currState == 's223'):
+            currToken += code[i]
+            if(code[i] == '|'):
+                currState = 'LOGICOR'
+                continue
+            else:
+                errors.append(unexpectedSymbol('|', currLine, currCol, lineContent))
+                break
+        # end of | symbol
+        #end of special states
 
         #iterating through chars
         #check whitespaces
@@ -2965,8 +2921,7 @@ def lexer(code):
                 elif (code[i] not in alphanumeric + ['_'] and i != len(code)-1):
                     print("(dbg) unexpected")
                     errors.append(unexpectedSymbol(currToken, currLine, currCol, lineContent))
-                    currToken = ''
-                    currState = 's0'
+                    break
                     continue
                 currToken += code[i]
                 if (code[i] in alphabetic_chars and i != len(code)-1):
@@ -2989,8 +2944,7 @@ def lexer(code):
                 if (currState == 's253'):
                     if (code[i] == '\n'):
                         errors.append(stringNewLineError(currToken, currLine, currCol, lineContent))
-                        currToken = ''  
-                        currState = 's0'
+                        break
                     else:
                         currToken += code[i]
                         continue
@@ -3001,9 +2955,13 @@ def lexer(code):
                 elif (code[i] in iden_delim): #check delim
                     if (currToken):
                         if (currToken[0] not in alphabetic_chars + ['_']):
-                            errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
-                            currToken = ''  
-                            currState = 's0'
+                            print('(dbg) other idnefirst error')
+                            print('(dbg) symbol ', code[i])
+                            if code[i] not in symbols:
+                                errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
+                            else:
+                                errors.append(unexpectedSymbol(currToken, currLine, currCol, lineContent))
+                            break
                         else:
                             print("(dbg) other iden append")
                             tokens.append((currToken, 'Identifier'))
@@ -3011,8 +2969,7 @@ def lexer(code):
                             currState = transition('s0', code[i])
                     else:
                         errors.append(idenFirstError(currToken, currLine, currCol,lineContent))
-                        currToken = ''  
-                        currState = 's0'
+                        break
                 else:
                     currToken += code[i]
                     expected = iden_delim
@@ -3022,8 +2979,7 @@ def lexer(code):
                         expected.append('\"')
                     print('(dbg) currState: ', currState)
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''  
-                    currState = 's0'
+                    break
     
     lexerResults = [tokens, errors] 
     return lexerResults
