@@ -59,7 +59,7 @@ get_set_delim = newline_delim + ['{', ';', '/']
 
 # identifier delim
 iden_delim = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';', '{'] + newline_delim
-closing_delim = arithmetic_delim + arithmetic_operator + relational_operator_delim + whitespace + logical_operator_delim  + ['=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']']
+closing_delim = arithmetic_delim + arithmetic_operator + relational_operator_delim + whitespace + logical_operator_delim  + ['=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', '\'', ']','?']
 
 # literals delim
 num_delim = arithmetic_operator + whitespace + relational_operator_delim + logical_operator_delim + [',', ')', ']', '}', '=', ';', ':'] + newline
