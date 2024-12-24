@@ -18,7 +18,7 @@ jobs:
     - name: Add Upstream Remote
       run: git remote add upstream https://github.com/matchi-1/CStarCompiler.git
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
     - name: Fetch Upstream Changes
       run: git fetch upstream
