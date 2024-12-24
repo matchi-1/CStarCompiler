@@ -45,7 +45,7 @@ exclamation_delim = alphanum + newline + whitespace + ['(', '/', '!']
 percent_delim = arithmetic_delim + ['/']
 asterisk_delim = arithmetic_delim + ['/', '+', '-']
 comma_delim = dot_delim = plaintext_delim + ['\n', '/']
-slash_delim = arithmetic_delim + ['+', '-']
+slash_delim = plaintext_delim + ['\n', '(', '+', '-']
 question_delim = newline + plaintext_delim + ['(', '/', '\"']
 colon_delim = newline + plaintext_delim + ['(', '/', '\"']
 open_bracket_delim = alphanum + whitespace + ['\n', ']', '/', '(']
@@ -211,25 +211,11 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's9'):
-        if(currChar == 'r'):
-            return 's10'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's10'):
-        if(currChar == 'I'):
-            return 's11'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
     elif (currState == 's11'):
         if(currChar == 'a'):
             return 's12'
-        elif(currChar == 'h'):
-            return 's16'
+        # elif(currChar == 'h'):
+        #     return 's16'
         elif(currChar == 'l'):
             return 's20'
         elif(currChar == 'o'):
@@ -252,20 +238,20 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's16'):
-        if(currChar == 'a'):
-            return 's17'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's17'):
-        if(currChar == 'r'):
-            return 'CHAR_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
+    # elif (currState == 's16'):
+    #     if(currChar == 'a'):
+    #         return 's17'
+    #     elif (currChar == 'ANY'):
+    #         return 'DEFINED'
+    #     else:
+    #         return 'UNDEFINED'
+    # elif (currState == 's17'):
+    #     if(currChar == 'r'):
+    #         return 'CHAR_CHECK'
+    #     elif (currChar == 'ANY'):
+    #         return 'DEFINED'
+    #     else:
+    #         return 'UNDEFINED'
     elif (currState == 's20'):
         if(currChar == 'a'):
             return 's21'
@@ -1808,22 +1794,22 @@ def lexer(code):
                     errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
                     currToken = ''
                     currState = 's0'
-            if (currState == 'CHAR_CHECK'):
-                expected = type_iden_delim
-                if (code[i] in type_iden_delim):
-                    tokens.append((currToken, 'char'))
-                    currToken = ''
-                    currState = 's0'
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-                    currToken = ''
-                    currState = 's0'
+            # if (currState == 'CHAR_CHECK'):
+            #     expected = type_iden_delim
+            #     if (code[i] in type_iden_delim):
+            #         tokens.append((currToken, 'char'))
+            #         currToken = ''
+            #         currState = 's0'
+            #     elif (code[i] in alphanum + ['_']):
+            #         currToken += code[i]
+            #         currState ='s244'
+            #         print('(dbg) now in state 244')
+            #         continue
+            #     else:
+            #         currToken += code[i]
+            #         errors.append(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+            #         currToken = ''
+            #         currState = 's0'
             if (currState == 'DOUBLE_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
