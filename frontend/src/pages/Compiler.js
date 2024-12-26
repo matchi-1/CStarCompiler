@@ -391,7 +391,7 @@ const toggleFiles = () => {
         },
         body: JSON.stringify({ code }),
       };
-      const response = await fetch('https://cstar-compiler-893952768568.asia-southeast1.run.app/api/compile', params);
+      const response = await fetch('http://127.0.0.1:5000/api/compile', params);
       const data = await response.json();
       setTokens(data[0]);
       setErrors(data[1]);
