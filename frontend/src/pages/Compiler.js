@@ -392,9 +392,9 @@ const toggleFiles = () => {
         body: JSON.stringify({ code }),
       };
       const response = await fetch('http://127.0.0.1:5000/api/compile', params);
-      const data = await response.json();
-      setTokens(data[0]);
-      setErrors(data[1]);
+      const { tokens, errors } = await response.json();  // Destructuring response from backend
+      setTokens(tokens);
+      setErrors(errors);
     };
 
     const fetchTimer = setTimeout(fetchTokens, 50);

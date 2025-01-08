@@ -2,7 +2,7 @@ import React from 'react';
 import '../styles/AnalyzerSegment.css';
 
 const AnalyzerSegment = (props) => {
-  const tokens = props.tokens;
+  const tokens = props.tokens;  // Ensure tokens is not undefined
 
   return (
     <div className="analyzer-segment">
@@ -24,10 +24,10 @@ const AnalyzerSegment = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {tokens.map(([token, tokenType], index) => (
+                {tokens.map((tokenObj, index) => (
                   <tr key={index}>
-                    <td>{token}</td>
-                    <td>{tokenType}</td>
+                    <td>{tokenObj.tokenName}</td>
+                    <td>{tokenObj.tokenType}</td>
                   </tr>
                 ))}
               </tbody>
@@ -35,7 +35,6 @@ const AnalyzerSegment = (props) => {
           </div>
         </div>
       </div>
-  
     </div>
   );
 };

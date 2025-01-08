@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/Terminal.css';
 
-const Terminal = ({ logs }) => {
+const Terminal = ({ logs = [] }) => {
   return (
     <div className="terminal">
       <div className="tab-containers">
@@ -9,14 +9,12 @@ const Terminal = ({ logs }) => {
             <p>Compiler Logs</p>
         </div>
         <div className="tab-filler">
-          <p className="x-tab-btn">
-            x
-          </p>
+          <p className="x-tab-btn">x</p>
         </div>
       </div>
       <div className="terminal-body">
         <div className='table-container'>
-          <div className = "table-wrapper">
+          <div className="table-wrapper">
             <table>
               <tbody>
                 {logs.map((log, index) => (

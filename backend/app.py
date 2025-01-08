@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, json, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -1742,13 +1742,33 @@ def transition(currState, currChar):
             return 'UNDEFINED'
 
 
-#---TOKEN EXTRACTION AND CLASSIFICATION---\
+#---TOKEN CLASS---#
+class Token:
+    def __init__(self, token_name, token_type):
+        self.token_name = token_name
+        self.token_type = token_type
+
+    # Convert list of Token objects to dicts before passing them to jsonify bc Token objects are not JSON serializable by default
+    def to_dict(self): 
+        return {
+            "tokenName": self.token_name,
+            "tokenType": self.token_type,
+        }
+
+
+#---TOKEN ASSIGN PROPERTIES + APPEND TO LIST HELPER FUNCTION---#
+def add_token(tokens_list, name, type):
+    token = Token(name, type)
+    tokens_list.append(token)
+
+
+#---TOKEN EXTRACTION AND CLASSIFICATION---#
 def lexer(code):
-    code = code.replace('\r\n', '\n')
+    code = code.replace('\r\n', '\n')   
     for char in code:
         print(f'(debug) {char} : {ord(char)}')
-    tokens = [] #will hold token, tokentype tuple
-    errors = [] #whill hold strings of error msges
+    tokens = [] #list of tokens (token.tokenName, token.tokenType)
+    errors = [] #will hold strings of error msges
     currToken = ''
     currState = 's0'
     lineContent = ''
@@ -1758,12 +1778,14 @@ def lexer(code):
     currFracCount = 0
     char_esc = False
     # first_char = True
+
     print("(dbgl ----------SCAN START--------")
     for i in range(len(code)): #need index for later
         print('(dbg) ---NEW CHAR---')
         print('(dbg) state: ', currState)
         print('(dbg) ', code[i])
         print('(dbg) ascii: ', ord(code[i]))
+
         #update line and col
         if (code[i] == '\n' and i != len(code)-1): 
             currLine += 1
@@ -1772,15 +1794,17 @@ def lexer(code):
         else:
             currCol += 1
             lineContent += code[i]
+
         #if no transitions, it means it's time for delim checking
         if (transition(currState, 'ANY') != 'DEFINED'):
             print('(dbg) delim checking')
             delim_check = True
+
             #data type keywords
             if (currState == 'BOOL_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
-                    tokens.append((currToken, 'bool'))
+                    add_token(tokens, currToken, 'bool')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -1812,7 +1836,7 @@ def lexer(code):
             if (currState == 'DOUBLE_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
-                    tokens.append((currToken, 'double'))
+                    add_token(tokens, currToken, 'double')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -1828,7 +1852,7 @@ def lexer(code):
             if (currState == 'FLOAT_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
-                    tokens.append((currToken, 'float'))
+                    add_token(tokens, currToken, 'float')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -1844,7 +1868,7 @@ def lexer(code):
             if (currState == 'INT_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
-                    tokens.append((currToken, 'int'))
+                    add_token(tokens, currToken, 'int')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -1860,7 +1884,7 @@ def lexer(code):
             if (currState == 'LONG_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
-                    tokens.append((currToken, 'long'))
+                    add_token(tokens, currToken, 'long')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -1876,7 +1900,7 @@ def lexer(code):
             if (currState == 'STRING_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
-                    tokens.append((currToken, 'string'))
+                    add_token(tokens, currToken, 'string')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -1893,7 +1917,7 @@ def lexer(code):
             if (currState == 'BREAK_CHECK'):
                 expected = break_ret_cont_delim
                 if (code[i] in break_ret_cont_delim):
-                    tokens.append((currToken, 'break'))
+                    add_token(tokens, currToken, 'break')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -1910,7 +1934,7 @@ def lexer(code):
             if (currState == 'OPEN_PAREN_CHECK'):
                 expected = ['alphanum', ' ', '\"', '!', ')', '+', '-', '/']
                 if (code[i] in open_paren_delim):
-                    tokens.append((currToken, '('))
+                    add_token(tokens, currToken, '(')
                     currToken = ''
                     currState = 's0'
                 else:
@@ -1922,7 +1946,7 @@ def lexer(code):
             if (currState == 'CLOSING_PAREN_CHECK'):
                 expected = ['alphanum', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', ']','?'] + [';', '\n', '/']
                 if (code[i] in close_paren_delim):
-                    tokens.append((currToken, ')'))
+                    add_token(tokens, currToken, ')')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -1934,7 +1958,7 @@ def lexer(code):
             if (currState == 'SEMICOLON_CHECK'):
                 expected = ['alphanum', ' ', '}', '/'] + newline
                 if (code[i] in semicolon_delim):
-                    tokens.append((currToken, ';'))
+                    add_token(tokens, currToken, ';')
                     currToken = ''
                     currState = 's0'
                 else:
@@ -1946,7 +1970,7 @@ def lexer(code):
             if (currState == 'DASH_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '/']
                 if (code[i] in negative_delim):
-                    tokens.append((currToken, '-'))
+                    add_token(tokens, currToken, '-')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -1956,7 +1980,7 @@ def lexer(code):
             if (currState == 'NEGATION_CHECK'):
                 expected = ['alphanum', '(', '/', '!'] + whitespace + newline
                 if (code[i] in exclamation_delim):
-                    tokens.append((currToken, '!'))
+                    add_token(tokens, currToken, '!')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -1965,7 +1989,7 @@ def lexer(code):
             if (currState == 'MODULO_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in percent_delim):
-                    tokens.append((currToken, '%'))
+                    add_token(tokens, currToken, '%')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -1974,7 +1998,7 @@ def lexer(code):
             if (currState == 'ASTERISK_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in asterisk_delim):
-                    tokens.append((currToken, '*'))
+                    add_token(tokens, currToken, '*')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -1983,7 +2007,7 @@ def lexer(code):
             if (currState == 'COMMA_CHECK'):
                 expected = ['alphanum', ' ', '/']
                 if (code[i] in commdot_delim):
-                    tokens.append((currToken, ','))
+                    add_token(tokens, currToken, ',')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -1995,7 +2019,7 @@ def lexer(code):
             if (currState == 'DOT_CHECK'):
                 expected = ['alphabetic', '/'] + whitespace
                 if (code[i] in commdot_delim):
-                    tokens.append((currToken, '.'))
+                    add_token(tokens, currToken, '.')
                     currToken = ''  
                     currState = 's0'
                 elif (code[i] in numbers):
@@ -2009,7 +2033,7 @@ def lexer(code):
             if (currState == 'SLASH_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-']
                 if (code[i] in slash_delim):
-                    tokens.append((currToken, '/'))
+                    add_token(tokens, currToken, '/')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2018,7 +2042,7 @@ def lexer(code):
             if (currState == 'QUESTION_CHECK'):
                 expected = ['alphanum', '(', '/', '\"'] + newline
                 if (code[i] in question_delim):
-                    tokens.append((currToken, '?'))
+                    add_token(tokens, currToken, '?')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2030,7 +2054,7 @@ def lexer(code):
             if (currState == 'COLON_CHECK'):
                 expected = ['alphanum', '(', ' ', '/'] + newline
                 if (code[i] in colon_delim):
-                    tokens.append((currToken, ':'))
+                    add_token(tokens, currToken, ':')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2042,7 +2066,7 @@ def lexer(code):
             if (currState == 'OPEN_BRACKET_CHECK'):
                 expected = ['alphanum', ']', '/', '\n', '('] + whitespace
                 if (code[i] in open_bracket_delim):
-                    tokens.append((currToken, '['))
+                    add_token(tokens, currToken, '[')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2054,7 +2078,7 @@ def lexer(code):
             if (currState == 'CLOSING_BRACKET_CHECK'):
                 expected = iden_delim
                 if (code[i] in iden_delim):
-                    tokens.append((currToken, ']'))
+                    add_token(tokens, currToken, ']')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2066,7 +2090,7 @@ def lexer(code):
             if (currState == 'OPEN_CURLY_CHECK'):
                 expected = ['alphanum', ' ', '{', '}', '/'] + newline_delim
                 if (code[i] in open_curly_delim):
-                    tokens.append((currToken, '{'))
+                    add_token(tokens, currToken, '{')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2078,7 +2102,7 @@ def lexer(code):
             if (currState == 'CLOSING_CURLY_CHECK'):
                 expected = ['alphanum', ' ', ';', '/', ',','}'] + newline_delim
                 if (code[i] in close_curly_delim):
-                    tokens.append((currToken, '}'))
+                    add_token(tokens, currToken, '}')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2090,7 +2114,7 @@ def lexer(code):
             if (currState == 'PLUS_CHECK'):
                 expected = ['alphanum', ' ', '(', '\"', '+', '-', '/']
                 if (code[i] in plus_delim):
-                    tokens.append((currToken, '+'))
+                    add_token(tokens, currToken, '+')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2101,7 +2125,7 @@ def lexer(code):
                 print("(dbg) open angle check curr char ", code[i])
                 if (code[i] in great_less_delim):
                     print("(dbg) arithmetic spotted for <")
-                    tokens.append((currToken, '<'))
+                    add_token(tokens, currToken, '<')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2110,7 +2134,7 @@ def lexer(code):
             if (currState == 'CLOSING_ANGLE_CHECK'):
                 expected = ['alphanum', ' ', '(', ';', '+', '-', '/'] + newline
                 if (code[i] in great_less_delim):
-                    tokens.append((currToken, '>'))
+                    add_token(tokens, currToken, '>')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2119,7 +2143,7 @@ def lexer(code):
             if (currState == 'ASSIGN_CHECK'):
                 expected = ['alphanum', ' ', '\"', '+', '-', '/', '!']
                 if (code[i] in equal_delim):
-                    tokens.append((currToken, '='))
+                    add_token(tokens, currToken, '=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2128,7 +2152,7 @@ def lexer(code):
             if (currState == 'IN_CHECK'):
                 expected = ['<', '/']
                 if (code[i] in in_delim):
-                    tokens.append((currToken, 'in'))
+                    add_token(tokens, currToken, 'in')
                     currToken = ''
                     currState = 's0'
                 elif(code[i] in alphanum + ['_']):
@@ -2141,7 +2165,7 @@ def lexer(code):
             if (currState == 'PRINT_CHECK'):
                 expected = func_delim
                 if (code[i] in func_delim):
-                    tokens.append((currToken, 'print'))
+                    add_token(tokens, currToken, 'print')
                     currToken = ''
                     currState = 's0'
                 elif(code[i] in alphanum + ['_']):
@@ -2152,7 +2176,7 @@ def lexer(code):
             if (currState == 'PRINTLN_CHECK'):
                 expected = func_delim
                 if (code[i] in func_delim):
-                    tokens.append((currToken, 'println'))
+                    add_token(tokens, currToken, 'println')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2169,7 +2193,7 @@ def lexer(code):
             if (currState == 'PRIVATE_CHECK'):
                 expected = newline_delim
                 if (code[i] in newline_delim):
-                    tokens.append((currToken, 'private'))
+                    add_token(tokens, currToken, 'private')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2186,7 +2210,7 @@ def lexer(code):
             if (currState == 'PROPERTY_CHECK'):
                 expected = newline_delim
                 if (code[i] in newline_delim):
-                    tokens.append((currToken, 'property'))
+                    add_token(tokens, currToken, 'property')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2203,7 +2227,7 @@ def lexer(code):
             if (currState == 'REPEAT_CHECK'):
                 expected = loop_delim
                 if (code[i] in loop_delim):
-                    tokens.append((currToken, 'repeat'))
+                    add_token(tokens, currToken, 'repeat')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2220,7 +2244,7 @@ def lexer(code):
             if (currState == 'RETURN_CHECK'):
                 expected = newline_delim + [';']
                 if (code[i] in break_ret_cont_delim):
-                    tokens.append((currToken, 'return'))
+                    add_token(tokens, currToken, 'return')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2237,7 +2261,7 @@ def lexer(code):
             if (currState == 'SET_CHECK'):
                 expected = get_set_delim
                 if (code[i] in get_set_delim):
-                    tokens.append((currToken, 'set'))
+                    add_token(tokens, currToken, 'set')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2254,7 +2278,7 @@ def lexer(code):
             if (currState == 'STATIC_CHECK'):
                 expected = newline_delim
                 if (code[i] in newline_delim):
-                    tokens.append((currToken, 'static'))
+                    add_token(tokens, currToken, 'static')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2271,7 +2295,7 @@ def lexer(code):
             if (currState == 'SWITCH_CHECK'):
                 expected = loop_delim
                 if (code[i] in loop_delim):
-                    tokens.append((currToken, 'switch'))
+                    add_token(tokens, currToken, 'switch')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2288,7 +2312,7 @@ def lexer(code):
             if (currState == 'THIS_CHECK'):
                 expected = this_delim
                 if (code[i] in this_delim):
-                    tokens.append((currToken, 'this'))
+                    add_token(tokens, currToken, 'this')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2305,7 +2329,7 @@ def lexer(code):
             if (currState == 'TRUE_CHECK'):
                 expected = nbl_delim
                 if (code[i] in nbl_delim):
-                    tokens.append((currToken, 'bool_lit'))
+                    add_token(tokens, currToken, 'bool_lit')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2322,7 +2346,7 @@ def lexer(code):
             if (currState == 'VOID_CHECK'):
                 expected = whitespace + newline + ['/']
                 if (code[i] in void_delim):
-                    tokens.append((currToken, 'void'))
+                    add_token(tokens, currToken, 'void')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2339,7 +2363,7 @@ def lexer(code):
             if (currState == 'WHILE_CHECK'):
                 expected = loop_delim
                 if (code[i] in loop_delim):
-                    tokens.append((currToken, 'while'))
+                    add_token(tokens, currToken, 'while')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2356,7 +2380,7 @@ def lexer(code):
             if (currState == 'DECREMENT_CHECK'):
                 expected = whitespace + ['alphanum'] + [';', ')', '/', '+', '*', '%', '('] + newline
                 if (code[i] in decrement_delim):
-                    tokens.append((currToken, '--'))
+                    add_token(tokens, currToken, '--')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2368,7 +2392,7 @@ def lexer(code):
             if (currState == 'MINUS_ASS_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in subtract_assign_delim):
-                    tokens.append((currToken, '-='))
+                    add_token(tokens, currToken, '-=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2380,7 +2404,7 @@ def lexer(code):
             if (currState == 'NOT_EQUAL_CHECK'):
                 expected = whitespace + ['alphanum', '(', '"', '!'] + newline
                 if (code[i] in not_equal_delim):
-                    tokens.append((currToken, '!='))
+                    add_token(tokens, currToken, '!=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2392,7 +2416,7 @@ def lexer(code):
             if (currState == 'MODULO_ASS_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in modulo_assign_delim):
-                    tokens.append((currToken, '%='))
+                    add_token(tokens, currToken, '%=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2404,7 +2428,7 @@ def lexer(code):
             if (currState == 'LOGICAND_CHECK'):
                 expected = ['alphanum', ' ', '(', '\"', '/', '!']
                 if (code[i] in and_delim):
-                    tokens.append((currToken, '&&'))
+                    add_token(tokens, currToken, '&&')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2416,7 +2440,7 @@ def lexer(code):
             if (currState == 'MULT_ASS_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in multi_assign_delim):
-                    tokens.append((currToken, '*='))
+                    add_token(tokens, currToken, '*=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2428,7 +2452,7 @@ def lexer(code):
             if (currState == 'DIV_ASS_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in divi_assign_delim):
-                    tokens.append((currToken, '/='))
+                    add_token(tokens, currToken, '/=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2440,7 +2464,7 @@ def lexer(code):
             if (currState == 'LOGICOR_CHECK'):
                 expected = ['alphanum', ' ', '(', '\"', '/', '!']
                 if (code[i] in or_delim):
-                    tokens.append((currToken, '||'))
+                    add_token(tokens, currToken, '||')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2452,7 +2476,7 @@ def lexer(code):
             if (currState == 'INCREMENT_CHECK'):
                 expected = whitespace + ['alphanum', ')', ';', '/', '-', '*', '%', '(']
                 if (code[i] in increment_delim):
-                    tokens.append((currToken, '++'))
+                    add_token(tokens, currToken, '++')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2464,7 +2488,7 @@ def lexer(code):
             if (currState == 'ADD_ASS_CHECK'):
                 expected = ['alphanum', ' ', '(', '\"', '+', '-', '/']
                 if (code[i] in add_assign_delim):
-                    tokens.append((currToken, '+='))
+                    add_token(tokens, currToken, '+=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2476,7 +2500,7 @@ def lexer(code):
             if (currState == 'LESS_OR_EQUAL_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in great_less_delim):
-                    tokens.append((currToken, '<='))
+                    add_token(tokens, currToken, '<=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2488,7 +2512,7 @@ def lexer(code):
             if (currState == 'GREATER_OR_EQUAL_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in great_less_delim):
-                    tokens.append((currToken, '>='))
+                    add_token(tokens, currToken, '>=')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2500,7 +2524,7 @@ def lexer(code):
             if (currState == 'EQUAL_CHECK'):
                 expected = ['alphanum', ' ', '(', '\"', '+', '-', '/', '!']
                 if (code[i] in equal_equal_delim):
-                    tokens.append((currToken, '=='))
+                    add_token(tokens, currToken, '==')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2512,7 +2536,7 @@ def lexer(code):
             if (currState == 'STRING_LIT_CHECK'):
                 expected = str_lit_delim
                 if (code[i] in str_lit_delim):
-                    tokens.append((currToken, 'string_lit'))
+                    add_token(tokens, currToken, 'string_lit')
                     currToken = ''  
                     currState = 's0'
                 else:
@@ -2534,14 +2558,14 @@ def lexer(code):
             #         currState = 's0'
             # multicomments 
             if (currState == 'MULTI_COMMENT_CHECK'):
-                tokens.append((currToken, 'multi-line comment'))        
+                add_token(tokens, currToken, 'multi-line comment')  
                 currToken = ''  
                 currState = 's0'
             # case statement 
             if (currState == 'CASE_CHECK'):
                 expected = newline_delim
                 if (code[i] in case_delim):
-                    tokens.append((currToken, 'case'))
+                    add_token(tokens, currToken, 'case')  
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2558,7 +2582,7 @@ def lexer(code):
             if (currState == 'CLASS_CHECK'):
                 expected = newline_delim
                 if (code[i] in newline_delim):
-                    tokens.append((currToken, 'class'))
+                    add_token(tokens, currToken, 'class')  
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2575,7 +2599,7 @@ def lexer(code):
             if (currState == 'CONTINUE_CHECK'):
                 expected = newline_delim + [';']
                 if (code[i] in break_ret_cont_delim):
-                    tokens.append((currToken, 'continue'))
+                    add_token(tokens, currToken, 'continue')  
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2592,7 +2616,7 @@ def lexer(code):
             if (currState == 'CONST_CHECK'):
                 expected = newline_delim
                 if (code[i] in newline_delim):
-                    tokens.append((currToken, 'const'))
+                    add_token(tokens, currToken, 'const')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2609,7 +2633,7 @@ def lexer(code):
             if (currState == 'DEFAULT_CHECK'):
                 expected = default_delim
                 if (code[i] in default_delim):
-                    tokens.append((currToken, 'default'))
+                    add_token(tokens, currToken, 'default')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2626,7 +2650,7 @@ def lexer(code):
             if (currState == 'DO_CHECK'):
                 expected = block_delim
                 if (code[i] in block_delim):
-                    tokens.append((currToken, 'do'))
+                    add_token(tokens, currToken, 'do')
                     currToken = ''
                     currState = 's0'
                 elif(code[i] in alphanum + ['_']):
@@ -2637,7 +2661,7 @@ def lexer(code):
             if (currState == 'ELSE_CHECK'):
                 expected = block_delim
                 if (code[i] in block_delim):
-                    tokens.append((currToken, 'else'))
+                    add_token(tokens, currToken, 'else')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2654,7 +2678,7 @@ def lexer(code):
             if (currState == 'FALSE_CHECK'):
                 expected = nbl_delim
                 if (code[i] in nbl_delim):
-                    tokens.append((currToken, 'bool_lit'))
+                    add_token(tokens, currToken, 'bool_lit')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2671,7 +2695,7 @@ def lexer(code):
             if (currState == 'FOR_CHECK'):
                 expected = loop_delim
                 if (code[i] in loop_delim):
-                    tokens.append((currToken, 'for'))
+                    add_token(tokens, currToken, 'for')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2688,7 +2712,7 @@ def lexer(code):
             if (currState == 'GET_CHECK'):
                 expected = get_set_delim
                 if (code[i] in get_set_delim):
-                    tokens.append((currToken, 'get'))
+                    add_token(tokens, currToken, 'get')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2705,7 +2729,7 @@ def lexer(code):
             if (currState == 'IF_CHECK'):
                 expected = loop_delim
                 if (code[i] in loop_delim):
-                    tokens.append((currToken, 'if'))
+                    add_token(tokens, currToken, 'if')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2722,7 +2746,7 @@ def lexer(code):
             if (currState == 'IMPORT_CHECK'):
                 expected = whitespace + ['<', '/'] + newline
                 if (code[i] in import_delim):
-                    tokens.append((currToken, 'import'))
+                    add_token(tokens, currToken, 'import')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2739,7 +2763,7 @@ def lexer(code):
             if (currState == 'ITEM_CHECK'):
                 expected = iden_delim
                 if (code[i] in iden_delim):
-                    tokens.append((currToken, 'item'))
+                    add_token(tokens, currToken, 'item')
                     currToken = ''
                     currState = 's0'
                 elif (code[i] in alphanum + ['_']):
@@ -2764,7 +2788,7 @@ def lexer(code):
                         currToken = ''
                         currState = 's0'
                 else:
-                    tokens.append((currToken, 'Identifier'))
+                    add_token(tokens, currToken, 'Identifier')
                 currToken = ''
                 currState = 's0'
             elif (code[i] in alphanum + ['_']): #if not delim but still valid, keep looping
@@ -2819,7 +2843,7 @@ def lexer(code):
         #single line comment
         if (currState == 's247'):
             if (code[i] == '\n'):
-                tokens.append((currToken, 'single_comment'))
+                add_token(tokens, currToken, 'single_comment')
                 currToken = ''
                 currState = 's0'
                 continue
@@ -2847,7 +2871,7 @@ def lexer(code):
                 else:
                     continue
             if (code[i] in nbl_delim):
-                tokens.append((currToken, 'whole_lit'))
+                add_token(tokens, currToken, 'whole_lit')
                 currWholeCount = 0
                 currFracCount = 0
                 currToken = ''
@@ -2875,7 +2899,7 @@ def lexer(code):
                 else:
                     continue
             if (code[i] in nbl_delim):
-                    tokens.append((currToken, 'frac_lit'))
+                    add_token(tokens, currToken, 'frac_lit')
                     currWholeCount = 0
                     currFracCount = 0
                     currToken = ''  
@@ -3014,7 +3038,7 @@ def lexer(code):
                                 currToken = ''
                                 currState = 's0' 
                             else:
-                                tokens.append((currToken, 'Identifier'))
+                                add_token(tokens, currToken, 'Identifier')
                             currToken = code[i]
                             currState = transition('s0', code[i])
                     else:
@@ -3097,9 +3121,24 @@ def compile_code():
     data = request.json
     code = data.get('code', '')
     code += '\n'
-    lexres = lexer(code)
-    # print(lexres)
-    return jsonify(lexres)
+    
+    lexer_results = lexer(code)  # Returns [tokens, errors]
+    tokens, errors = lexer_results  # Unpack the results
+
+    # Convert Token objects to dictionaries
+    tokens_dict = [token.to_dict() for token in tokens]
+
+    # Create a JSON-serializable response
+    response = {
+        "tokens": tokens_dict or [],  # should not send out None/null 
+        "errors": errors or []        
+    }
+
+    # print json output
+    print('\n\n', json.dumps(response, indent=2))
+
+    return jsonify(response)
+
 
 if __name__ == '__main__':
     app.run(debug=True) 
