@@ -91,8 +91,8 @@ def transition(currState, currChar):
             return 's51'
         elif(currChar == 'f'):
             return 's56'
-        elif(currChar == 'g'):
-            return 's70'
+        # elif(currChar == 'g'):
+        #     return 's70'
         elif(currChar == 'i'):
             return 's74'
         elif(currChar == 'l'):
@@ -476,20 +476,20 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's70'):
-        if(currChar == 'e'):
-            return 's71'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's71'):
-        if(currChar == 't'):
-            return 'GET_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
+    # elif (currState == 's70'):
+    #     if(currChar == 'e'):
+    #         return 's71'
+    #     elif (currChar == 'ANY'):
+    #         return 'DEFINED'
+    #     else:
+    #         return 'UNDEFINED'
+    # elif (currState == 's71'):
+    #     if(currChar == 't'):
+    #         return 'GET_CHECK'
+    #     elif (currChar == 'ANY'):
+    #         return 'DEFINED'
+    #     else:
+    #         return 'UNDEFINED'
     elif (currState == 's74'):
         print("(dbg) in s74 now")
         if(currChar == 'f'):
@@ -737,9 +737,9 @@ def transition(currState, currChar):
         else:
             return 'UNDEFINED'
     elif (currState == 's129'):
-        if(currChar == 'e'):
-            return 's130'
-        elif(currChar == 't'):
+        # if(currChar == 'e'):
+        #     return 's130'
+        if (currChar == 't'):
             return 's133'
         elif(currChar == 'w'):
             return 's144'
@@ -747,13 +747,13 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    elif (currState == 's130'):
-        if(currChar == 't'):
-            return 'SET_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
+    # elif (currState == 's130'):
+    #     if(currChar == 't'):
+    #         return 'SET_CHECK'
+    #     elif (currChar == 'ANY'):
+    #         return 'DEFINED'
+    #     else:
+    #         return 'UNDEFINED'
     elif (currState == 's133'):
         if(currChar == 'a'):
             return 's134'
@@ -2150,19 +2150,19 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # set statement
-            if (currState == 'SET_CHECK'):
-                expected = get_set_delim
-                if (code[i] in get_set_delim):
-                    add_token(currToken, 'set')
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+            # # set statement
+            # if (currState == 'SET_CHECK'):
+            #     expected = get_set_delim
+            #     if (code[i] in get_set_delim):
+            #         add_token(currToken, 'set')
+            #     elif (code[i] in alphanum + ['_']):
+            #         currToken += code[i]
+            #         currState ='s244'
+            #         print('(dbg) now in state 244')
+            #         continue
+            #     else:
+            #         currToken += code[i]
+            #         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # static statement
             if (currState == 'STATIC_CHECK'):
                 expected = newline_delim
@@ -2481,19 +2481,19 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # get statement
-            if (currState == 'GET_CHECK'):
-                expected = get_set_delim
-                if (code[i] in get_set_delim):
-                    add_token(currToken, 'get')
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+            # # get statement
+            # if (currState == 'GET_CHECK'):
+            #     expected = get_set_delim
+            #     if (code[i] in get_set_delim):
+            #         add_token(currToken, 'get')
+            #     elif (code[i] in alphanum + ['_']):
+            #         currToken += code[i]
+            #         currState ='s244'
+            #         print('(dbg) now in state 244')
+            #         continue
+            #     else:
+            #         currToken += code[i]
+            #         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # if statement
             if (currState == 'IF_CHECK'):
                 expected = loop_delim
