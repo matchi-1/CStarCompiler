@@ -153,8 +153,6 @@ def transition(currState, currChar):
             return 'CLOSING_ANGLE_CHECK'
         elif(currChar == '='):
             return 'ASSIGN_CHECK'
-        # elif(currChar == '\''):
-        #     return 's257'
         elif (currChar == 'ANY'):
             return 'DEFINED'
         else:
@@ -213,8 +211,6 @@ def transition(currState, currChar):
     elif (currState == 's11'):
         if(currChar == 'a'):
             return 's12'
-        # elif(currChar == 'h'):
-        #     return 's16'
         elif(currChar == 'l'):
             return 's20'
         elif(currChar == 'o'):
@@ -237,20 +233,6 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    # elif (currState == 's16'):
-    #     if(currChar == 'a'):
-    #         return 's17'
-    #     elif (currChar == 'ANY'):
-    #         return 'DEFINED'
-    #     else:
-    #         return 'UNDEFINED'
-    # elif (currState == 's17'):
-    #     if(currChar == 'r'):
-    #         return 'CHAR_CHECK'
-    #     elif (currChar == 'ANY'):
-    #         return 'DEFINED'
-    #     else:
-    #         return 'UNDEFINED'
     elif (currState == 's20'):
         if(currChar == 'a'):
             return 's21'
@@ -476,20 +458,6 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    # elif (currState == 's70'):
-    #     if(currChar == 'e'):
-    #         return 's71'
-    #     elif (currChar == 'ANY'):
-    #         return 'DEFINED'
-    #     else:
-    #         return 'UNDEFINED'
-    # elif (currState == 's71'):
-    #     if(currChar == 't'):
-    #         return 'GET_CHECK'
-    #     elif (currChar == 'ANY'):
-    #         return 'DEFINED'
-    #     else:
-    #         return 'UNDEFINED'
     elif (currState == 's74'):
         print("(dbg) in s74 now")
         if(currChar == 'f'):
@@ -747,13 +715,6 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    # elif (currState == 's130'):
-    #     if(currChar == 't'):
-    #         return 'SET_CHECK'
-    #     elif (currChar == 'ANY'):
-    #         return 'DEFINED'
-    #     else:
-    #         return 'UNDEFINED'
     elif (currState == 's133'):
         if(currChar == 'a'):
             return 's134'
@@ -1681,13 +1642,6 @@ def transition(currState, currChar):
             return 'DEFINED'
         else:
             return 'UNDEFINED'
-    # elif (currState == 's257'):
-    #     if(currChar == '\''):
-    #         return 'CHAR_LIT_CHECK'
-    #     elif (currChar == 'ANY'):
-    #         return 'DEFINED'
-    #     else:
-    #         return 'UNDEFINED'
     elif (currState == 's267'):
         if(currChar == '0'):
             return 's267'
@@ -1822,22 +1776,6 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # if (currState == 'CHAR_CHECK'):
-            #     expected = type_iden_delim
-            #     if (code[i] in type_iden_delim):
-            #         tokens.append((currToken, 'char'))
-            #         currToken = ''
-            #         currState = 's0'
-            #     elif (code[i] in alphanum + ['_']):
-            #         currToken += code[i]
-            #         currState ='s244'
-            #         print('(dbg) now in state 244')
-            #         continue
-            #     else:
-            #         currToken += code[i]
-            #         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            #         currToken = ''
-            #         currState = 's0'
             if (currState == 'DOUBLE_CHECK'):
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
@@ -2150,19 +2088,6 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # # set statement
-            # if (currState == 'SET_CHECK'):
-            #     expected = get_set_delim
-            #     if (code[i] in get_set_delim):
-            #         add_token(currToken, 'set')
-            #     elif (code[i] in alphanum + ['_']):
-            #         currToken += code[i]
-            #         currState ='s244'
-            #         print('(dbg) now in state 244')
-            #         continue
-            #     else:
-            #         currToken += code[i]
-            #         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # static statement
             if (currState == 'STATIC_CHECK'):
                 expected = newline_delim
@@ -2353,18 +2278,6 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # # character literal
-            # if (currState == 'CHAR_LIT_CHECK'):
-            #     expected = nbl_delim + [')', ']', '/', ':']
-            #     if (code[i] in nbl_delim + newline_delim + [')', ']', '/', ':']):
-            #         tokens.append((currToken, 'char_lit'))
-            #         currToken = ''  
-            #         currState = 's0'
-            #     else:
-            #         currToken += code[i]
-            #         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            #         currToken= ''
-            #         currState = 's0'
             # multicomments 
             if (currState == 'MULTI_COMMENT_CHECK'):
                 add_token(currToken, 'multi-line comment')
@@ -2481,19 +2394,6 @@ def lexer(code):
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # # get statement
-            # if (currState == 'GET_CHECK'):
-            #     expected = get_set_delim
-            #     if (code[i] in get_set_delim):
-            #         add_token(currToken, 'get')
-            #     elif (code[i] in alphanum + ['_']):
-            #         currToken += code[i]
-            #         currState ='s244'
-            #         print('(dbg) now in state 244')
-            #         continue
-            #     else:
-            #         currToken += code[i]
-            #         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # if statement
             if (currState == 'IF_CHECK'):
                 expected = loop_delim
@@ -2555,42 +2455,6 @@ def lexer(code):
                 # add_error((currToken, f'Lexical Error: In line {currLine}, column {currCol-len(currToken)}; Unexpected \'{code[i]}\' for \'{currToken[:-1]}\'')) #can be expanded with conditions to check what error
                 add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
         #end of identifier looping
-        #character lit check
-        # if (currState == 's257'):
-        #     if (code[i] != '\''):
-        #         print('(dbg) not \'')
-        #         if (char_esc):
-        #             print('(dbg) curr scan ', code[i])
-        #             if (code[i] not in ['\'', '\"', '\\', 't', 'n', 'b']):
-        #                 print('(dbg) esc seq error')
-        #                 add_error(charEscSeqError(currToken, currLine, currCol, lineContent))
-        #                 currToken = ''
-        #                 currState = 's0'
-        #             char_esc = False
-        #             if code[i] == '\\':
-        #                 currToken += code[i]
-        #                 continue
-        #         elif (not first_char):
-        #             add_error(charLengthError(currToken, currLine, currCol, lineContent))
-        #             currToken = ''
-        #             currState = 's0'
-        #         if not char_esc:
-        #             first_char = False
-        #             if(code[i] == '\\'):
-        #                 char_esc = True
-        #         currToken += code[i]
-        #         continue
-        #     else:
-        #         print("(dbg) chr close found")
-        #         currToken += code[i]
-        #         if (char_esc):
-        #             char_esc = False
-        #             continue
-        #         else:
-        #             first_char = True
-        #             currState = 'CHAR_LIT_CHECK'
-        #             continue
-        #end of charcter lit checking
         #single line comment
         if (currState == 's247'):
             if (code[i] == '\n'):
@@ -2689,11 +2553,9 @@ def lexer(code):
         #check whitespaces
         if (currState not in ['s253', 's247', 's249']):
             if (code[i] == ' '):
-                # tokens.append(('\' \' ', 'Space'))
                 continue
             if (code[i] == '\n'):
                 if (i != len(code)-1):
-                    # tokens.append(('\\n', 'New line'))
                     continue
         #check states
         if (transition(currState, code[i]) != 'UNDEFINED'):
@@ -2705,8 +2567,6 @@ def lexer(code):
         else: #if not in s0 transitions assume identifier, go to state 420
             print(f"(dbg) not in {currState} transitions")
             if (currState == 's0'):
-                # if (code[i] in alphabetic_chars + ['_']):
-                    #check if valid first char
                 if (code[i] in numbers):
                     currToken += code[i]
                     print("(dbg)s0 is num")
@@ -2723,15 +2583,7 @@ def lexer(code):
                     print(f'(dbg) index {i}')
                     print(f'(dbg) length {len(code)}')
                     currState = 's244'
-                # elif (code[i] != ''):
-                #     print("(dbg "error found"")
-                #     add_error(idenFirstError(currToken, currLine, currCol, lineContent))
                 continue
-                # else:
-                #     currToken += code[i]
-                #     add_error(idenFirstError(currToken, currLine, currCol,lineContent))
-                #     currToken = ''
-                #     currState = 's0'  
             else:
                 if (currState == 's249'):
                     currToken += code[i]
