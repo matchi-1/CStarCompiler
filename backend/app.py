@@ -1942,6 +1942,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
     
     lexerResults = [tokens, errors] 
+    print (tokens) #TO DELETEEEEE
     return lexerResults
 
 #---LEXER ERRORS---
@@ -2007,13 +2008,12 @@ class Token:
         return {
             "tokenName": self.token_name,
             "tokenType": self.token_type,
-            # tracks line and column of the token in the code
             "tokenLine": self.token_line,
             "tokenCol": self.token_col
         }
     
 #---PARSER---
-class Parser:
+class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
     def __init__(self, tokens):
         self.tokens = tokens
@@ -2030,26 +2030,45 @@ class Parser:
             self.currToken = None
 
     # If current token type matches the expected token type, advances to the next token
-    def expectedToken(self, expected_type):
+    def terminal(self, expected_type):
         if self.currToken and self.currToken["tokenType"] == expected_type:
             self.nextToken()
         else:
             # Unexpected Token Error
             self.unexpectedToken()
 
+    # TODO: finalize error list
     def unexpectedToken(self):
         errorType = "Unexpected token"
         currToken = self.currToken["tokenName"]
-        currLine = self.currToken[""]
+        currLine = self.currToken["tokenLine"]
+        currCol = self.currToken["tokenCol"]
+        # lineContent = TBC LOL I'm thinking of extracting the line from the code using currCol and line[0] to line[currLine]
+        return generateError(errorType, currToken, currLine, currCol)
 
-        # Should we include line content in syntax error?
-        return generateError(errorType, currToken, currLine, currCol, lineContent)
+    def parse(self):
+        self.program()
 
-    def
+    # BARE-MINIMUM ONLY for testing, will be edited during finalization
+    def program(self):
+        """<program> → int main(){return 0;}"""
+        self.terminal("int")
+        self.terminal("main")
+        self.terminal("(")
+        self.terminal(")")
+        self.terminal("{")
+        self.terminal("return")
+        self.terminal("whole_lit")
+        self.terminal(";")
+        self.terminal("}")
 
-    
-
-    
+# SYNTAX ANALYZER FOR TESTING
+# analyzer = SyntaxAnalyzer(tokens)
+# analyzer.parse()
+# if analyzer.error:
+#    analyzer.unexpectedToken()
+#else:
+#    print("Parsing completed successfully.")
 
 #---FLASK ROUTES---
 @app.route('/api/hello', methods=['GET'])
@@ -2076,7 +2095,6 @@ def compile_code():
 
     # print json output
     print('\n\n', json.dumps(response, indent=2))
-
     return jsonify(response)
 
 
