@@ -1943,12 +1943,6 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
     
     lexerResults = [tokens, errors] 
-    try:
-        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        analyzer.parse()   
-    except SyntaxError as e:
-        print(e)
-
     return lexerResults
 
 #---LEXER ERRORS---
@@ -2031,6 +2025,14 @@ def compile_code():
     
     lexer_results = lexer(code)  # Returns [tokens, errors]
     tokens, errors = lexer_results  # Unpack the results
+
+    # Calls syntax analyzer
+    try:
+        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+        analyzer.parse()   
+    except SyntaxError as e:
+        print(e)
+
 
     # Convert Token objects to dictionaries
     tokens_dict = [token.to_dict() for token in tokens]
