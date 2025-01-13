@@ -6,7 +6,7 @@ class SyntaxAnalyzer:
     def __init__(self, tokens):
         self.tokens = [token.to_dict() 
             for token in tokens 
-            if token.token_type != "single_comment" or "multiline_comment"] # comments will be ignored by the parser
+            if token.token_type != "single_comment" or "multi-line comment"] # comments will be ignored by the parser
         self.currToken_index = 0
         self.currToken = self.tokens[self.currToken_index]
         self.synterror = False
@@ -35,13 +35,17 @@ class SyntaxAnalyzer:
         currToken = self.currToken["tokenName"]
         currLine = self.currToken["tokenLine"]
         currCol = self.currToken["tokenCol"]
-        print("Syntax Error: ", errorType, currToken, currLine, currCol)
+        message = f"Syntax Error: {errorType} '{currToken}' at line {currLine}, column {currCol}"
+        raise SyntaxError(message, currToken, currLine, currCol)
         # lineContent = TBC LOL I'm thinking of extracting the line from the code using currCol and line[0] to line[currLine]
         # return generateError(errorType, currToken, currLine, currCol)
 
     def parse(self):
         #print(self.tokens)
-        self.program()
+        try:
+            self.program()
+        except SyntaxError as e:
+            print(e)
 
     # BARE-MINIMUM ONLY for testing, will be edited during finalization
     def program(self):
