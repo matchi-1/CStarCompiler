@@ -1,9 +1,9 @@
 @echo off
 
-cd /d "./backend"
+cd "C:\Users\ariar\Desktop\CStarCompiler\backend"
 start cmd /k "python app.py"
 
-cd /d "../frontend"
+cd "C:\Users\ariar\Desktop\CStarCompiler\frontend"
 start cmd /k "npm start"
 
 
