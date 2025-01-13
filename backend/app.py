@@ -1945,9 +1945,8 @@ def lexer(code):
     
     analyzer = SyntaxAnalyzer(tokens)
     analyzer.parse()
-    if analyzer.synterror:
-        analyzer.unexpectedToken()
-    else:
+
+    if analyzer.synterror == False:
         print("Parsing completed successfully.")
 
     return lexerResults
@@ -2025,7 +2024,7 @@ class SyntaxAnalyzer:
     def __init__(self, tokens):
         self.tokens = [token.to_dict() 
             for token in tokens 
-            if token.token_type != "single_comment"]        # comments will be ignored by the parser
+            if token.token_type != "single_comment" or "multiline_comment"] # comments will be ignored by the parser
         self.currToken_index = 0
         self.currToken = self.tokens[self.currToken_index]
         self.synterror = False
@@ -2041,7 +2040,7 @@ class SyntaxAnalyzer:
 
     # If current token type matches the expected token type, advances to the next token
     def terminal(self, expected_type):
-        if self.currToken and self.currToken["tokenType"] == expected_type:
+        if self.currToken and self.currToken["tokenType"] == expected_type: ##TODO
             self.nextToken()
         else:
             # Unexpected Token Error
@@ -2057,7 +2056,6 @@ class SyntaxAnalyzer:
         print("Syntax Error: ", errorType, currToken, currLine, currCol)
         # lineContent = TBC LOL I'm thinking of extracting the line from the code using currCol and line[0] to line[currLine]
         # return generateError(errorType, currToken, currLine, currCol)
-        return
 
     def parse(self):
         #print(self.tokens)
@@ -2102,7 +2100,6 @@ def compile_code():
     # print json output
     print('\n\n', json.dumps(response, indent=2))
     return jsonify(response)
-
 
 if __name__ == '__main__':
     app.run(debug=True) 
