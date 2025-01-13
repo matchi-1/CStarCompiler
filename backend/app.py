@@ -1942,7 +1942,14 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
     
     lexerResults = [tokens, errors] 
-    print (tokens) #TO DELETEEEEE
+    
+    analyzer = SyntaxAnalyzer(tokens)
+    analyzer.parse()
+    if analyzer.synterror:
+        analyzer.unexpectedToken()
+    else:
+        print("Parsing completed successfully.")
+
     return lexerResults
 
 #---LEXER ERRORS---
@@ -2016,9 +2023,12 @@ class Token:
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
     def __init__(self, tokens):
-        self.tokens = tokens
+        self.tokens = [token.to_dict() 
+            for token in tokens 
+            if token.token_type != "single_comment"]        # comments will be ignored by the parser
         self.currToken_index = 0
         self.currToken = self.tokens[self.currToken_index]
+        self.synterror = False
 
     # Advancer for the next token
     def nextToken(self):
@@ -2039,21 +2049,25 @@ class SyntaxAnalyzer:
 
     # TODO: finalize error list
     def unexpectedToken(self):
+        self.synterror = True 
         errorType = "Unexpected token"
         currToken = self.currToken["tokenName"]
         currLine = self.currToken["tokenLine"]
         currCol = self.currToken["tokenCol"]
+        print("Syntax Error: ", errorType, currToken, currLine, currCol)
         # lineContent = TBC LOL I'm thinking of extracting the line from the code using currCol and line[0] to line[currLine]
-        return generateError(errorType, currToken, currLine, currCol)
+        # return generateError(errorType, currToken, currLine, currCol)
+        return
 
     def parse(self):
+        #print(self.tokens)
         self.program()
 
     # BARE-MINIMUM ONLY for testing, will be edited during finalization
     def program(self):
         """<program> → int main(){return 0;}"""
         self.terminal("int")
-        self.terminal("main")
+        self.terminal("Identifier")
         self.terminal("(")
         self.terminal(")")
         self.terminal("{")
@@ -2061,14 +2075,6 @@ class SyntaxAnalyzer:
         self.terminal("whole_lit")
         self.terminal(";")
         self.terminal("}")
-
-# SYNTAX ANALYZER FOR TESTING
-# analyzer = SyntaxAnalyzer(tokens)
-# analyzer.parse()
-# if analyzer.error:
-#    analyzer.unexpectedToken()
-#else:
-#    print("Parsing completed successfully.")
 
 #---FLASK ROUTES---
 @app.route('/api/hello', methods=['GET'])
