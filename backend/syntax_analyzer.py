@@ -1,5 +1,3 @@
-import app
-
 #---PARSER---
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -7,6 +5,10 @@ class SyntaxAnalyzer:
         self.tokens = [token.to_dict() 
             for token in tokens 
             if token.token_type != "single_comment" or "multi-line comment"] # comments will be ignored by the parser
+        
+        if not self.tokens:
+            raise SyntaxError("No tokens to parse.")
+
         self.currToken_index = 0
         self.currToken = self.tokens[self.currToken_index]
         self.synterror = False
@@ -22,11 +24,13 @@ class SyntaxAnalyzer:
 
     # If current token type matches the expected token type, advances to the next token
     def terminal(self, expected_type):
-        if self.currToken and self.currToken["tokenType"] == expected_type: ##TODO
+        if self.currToken is not None and self.currToken["tokenType"] == expected_type: ##TODO
             self.nextToken()
         else:
             # Unexpected Token Error
-            self.unexpectedToken()
+            if self.currToken is None:
+                raise SyntaxError("Unexpected end of input: expected '{}'".format(expected_type))
+            else: self.unexpectedToken()
 
     # TODO: finalize error list
     def unexpectedToken(self):
@@ -44,6 +48,7 @@ class SyntaxAnalyzer:
         #print(self.tokens)
         try:
             self.program()
+            print("Parsing completed successfully.")
         except SyntaxError as e:
             print(e)
 
@@ -59,3 +64,4 @@ class SyntaxAnalyzer:
         self.terminal("whole_lit")
         self.terminal(";")
         self.terminal("}")
+        print("(dbg) production: \"program\" detected")

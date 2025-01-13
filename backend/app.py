@@ -1943,12 +1943,11 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
     
     lexerResults = [tokens, errors] 
-    
-    analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-    analyzer.parse()
-
-    if analyzer.synterror == False:
-        print("Parsing completed successfully.")
+    try:
+        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+        analyzer.parse()   
+    except SyntaxError as e:
+        print(e)
 
     return lexerResults
 
@@ -2018,7 +2017,6 @@ class Token:
             "tokenLine": self.token_line,
             "tokenCol": self.token_col
         }
-
 
 #---FLASK ROUTES---
 @app.route('/api/hello', methods=['GET'])
