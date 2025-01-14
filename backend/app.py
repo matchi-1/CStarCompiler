@@ -53,7 +53,8 @@ open_bracket_delim = alphanum + whitespace + ['\n', '/', '(']
 open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/']
 close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}']
 plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
-great_less_delim = list(set(arithmetic_delim + ['/', ';']))
+great_less_delim = list(set(arithmetic_delim + ['/']))
+great_delim = great_less_delim + [';']
 equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '!']))
 in_delim = newline_delim + ['<', '/']
 this_delim = newline_delim + ['.', '/']
@@ -1308,7 +1309,7 @@ def lexer(code):
             # > symbol
             if (currState == 'CLOSING_ANGLE_CHECK'):
                 expected = ['alphanum', ' ', '(', ';', '+', '-', '/'] + newline
-                if (code[i] in great_less_delim):
+                if (code[i] in great_delim):
                     add_token(currToken, '>', currLine, currCol)
                 else:
                     currState = 's236'
