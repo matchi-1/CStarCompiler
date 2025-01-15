@@ -1077,7 +1077,6 @@ def lexer(code):
         #if no transitions, it means it's time for delim checking
         if (transition(currState, 'ANY') != 'DEFINED'):
             print('(dbg) delim checking')
-            delim_check = True
 
             #data type keywords
             if (currState == 'BOOL_CHECK'):
@@ -1117,6 +1116,7 @@ def lexer(code):
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             if (currState == 'INT_CHECK'):
+                print('(dbg) in int_check')
                 expected = type_iden_delim
                 if (code[i] in type_iden_delim):
                     add_token(currToken, 'int', currLine, currCol)
@@ -1868,10 +1868,15 @@ def lexer(code):
         #check whitespaces
         if (currState not in ['s253', 's247', 's249']):
             if (code[i] == ' '):
+                if (transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):
+                    add_token(currToken, 'Identifier', currLine, currCol)
                 continue
             if (code[i] == '\n'):
                 if (i != len(code)-1):
+                    if (transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):
+                        add_token(currToken, 'Identifier', currLine, currCol)
                     continue
+                
         #check states
         if (transition(currState, code[i]) != 'UNDEFINED'):
             print(f'(dbg) in {currState} transitions')  
@@ -2028,11 +2033,11 @@ def compile_code():
     tokens, errors = lexer_results  # Unpack the results
 
     # Calls syntax analyzer
-    try:
-        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        analyzer.parse()   
-    except SyntaxError as e:
-        print(e)
+    # try:
+    #     analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+    #     analyzer.parse()   
+    # except SyntaxError as e:
+    #     print(e)
 
 
     # Convert Token objects to dictionaries
