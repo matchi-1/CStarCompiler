@@ -2033,11 +2033,11 @@ def compile_code():
     tokens, errors = lexer_results  # Unpack the results
 
     # Calls syntax analyzer
-    # try:
-    #     analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-    #     analyzer.parse()   
-    # except SyntaxError as e:
-    #     print(e)
+    try:
+        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+        analyzer.parse()   
+    except SyntaxError as e:
+        print(e)
 
 
     # Convert Token objects to dictionaries
@@ -2050,7 +2050,7 @@ def compile_code():
     }
 
     # print json output
-    print('\n\n', json.dumps(response, indent=2))
+    # print('\n\n', json.dumps(response, indent=2))
     return jsonify(response)
 
 if __name__ == '__main__':
