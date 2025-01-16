@@ -2035,7 +2035,7 @@ def compile_code():
     # Calls syntax analyzer
     try:
         analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        analyzer.parse()   
+        errors += analyzer.parse()   
     except SyntaxError as e:
         print(e)
 
