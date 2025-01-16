@@ -298,7 +298,7 @@ class SyntaxAnalyzer:
                     else:
                         self.ERROR_expected_cstr_file()
                 else:
-                    self.ERROR_expected_token(".")
+                    self.ERROR_expected_stdlib_or_filename()
             else:
                 self.ERROR_expected_stdlib_or_filename()
         else:
