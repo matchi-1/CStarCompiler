@@ -43,31 +43,27 @@ class SyntaxAnalyzer:
     # Advancer for the next token
     def nextToken(self):
         self.currToken_index += 1
-        # Checks if there are still tokens
         if self.currToken_index < len(self.tokens):
             self.currToken = self.tokens[self.currToken_index]
         else:
             self.currToken = None
 
-    # Peeks at the next token without advancing the index
+
+    # Peeks at a token at the current index + offset.
     def peek(self, offset=1):
-        """Returns the token at the current index + offset, or None if out of bounds."""
         peek_index = self.currToken_index + offset
         if 0 <= peek_index < len(self.tokens):
             return self.tokens[peek_index]
         return None
 
 
-    # Checks if given token matches the expected token type, advances to the next token, else raises error
+    # Matches the current token with the expected type. Returns True if matched, False otherwise.
     def match(self, expected_token):
-        if self.currToken is not None and self.currToken["tokenType"] == expected_token: ##TODO
+        if self.currToken is not None and self.currToken["tokenType"] == expected_token:
             self.nextToken()
-        else: 
-            if self.currToken is None:  # EOF
-                self.raiseError(expected_token, "Unexpected EOF")
+            return True
+        return False
 
-            else: # Wrong token
-                self.raiseError(expected_token, "Unexpected token")
 
     def matchPredictSet(self, non_terminal):
         if self.currToken is None:  # EOF
@@ -83,7 +79,7 @@ class SyntaxAnalyzer:
     #   - Unexpected EOF
     #   - Unexpected token
     #
-
+    
     def raiseError(self, expected_token, error_type, expected_predict_set=[]):
         if not self.currToken:
             currToken = self.tokens[self.currToken_index - 1]
@@ -114,38 +110,115 @@ class SyntaxAnalyzer:
         # lineContent = TBC LOL I'm thinking of extracting the line from the code using currCol and line[0] to line[currLine]
         # return generateError(errorType, currToken, currLine, currCol)
 
+    # Helper function to log a syntax error with line and column information.
+    def logError(self, message, context=""):
+        if not self.currToken:
+            # If the current token is None, use the last valid token for line/column info
+            currToken = self.tokens[self.currToken_index - 1]
+            currLine = currToken["tokenLine"]
+            currCol = currToken["tokenCol"]
+            tokenName = "<EOF>"
+        else:
+            # Use current token's details
+            currLine = self.currToken["tokenLine"]
+            currCol = self.currToken["tokenCol"]
+            tokenName = self.currToken["tokenName"]
 
+        # full error message
+        full_message = (
+            f"Syntax Error ({currLine}, {currCol}): {message}"
+            + (f"\n{context}" if context else "")
+        )
+        self.errors.append(full_message)
+        print(full_message)
+        raise SyntaxError(full_message)
+    
+        # TODO: add error highlighter per line of code like  ______ ^
+
+
+
+    # -------- Error-specific methods --------
+    # Handles missing terminators like ';'.
+    def ERROR_terminating_token(self, expected_token):
+        self.logError(
+            f"Expected terminator '{expected_token}', but got '{self.currToken['tokenName']}' instead."
+        )
+
+    # Handles unexpected tokens when expecting a specific type.
+    def ERROR_expected_token(self, expected_token):
+        if self.currToken is None:
+            self.logError(f"Expected '{expected_token}', but reached EOF.")
+        else:
+            self.logError(
+                f"Expected '{expected_token}', but got '{self.currToken['tokenName']}'."
+            )
+
+    # Handles unexpected tokens outside specific expectations.
+    def ERROR_unexpected_token(self, context=""):
+        if self.currToken is None:
+            self.logError("Unexpected EOF.", context)
+        else:
+            self.logError(
+                f"Unexpected token '{self.currToken['tokenName']}'.",
+                context
+            )
+
+    # If no main function was found throughout the whole program
     def ERROR_no_main_func(self):
         message = "Syntax Error: Missing 'main' function to execute the program.\nThe program must include a 'main' function as the entry point."
         self.errors.append(message)
         raise SyntaxError(message)
 
+
+
     #-------------------- CFG START --------------------
     def program(self):
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
+        
         self.imports_list()
+
         print("(parser) production: ### after imports_list")
-        self.matchPredictSet("imports_rec")
+        #self.matchPredictSet("imports_rec") # this shouldnt be here
+        
+        """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
+        # Parse constructs
         self.program_constructs()
+        
         print("(parser) production: ### after program_constructs")
+
         # Check for main function presence
         if not self.hasMainFunction:
             self.ERROR_no_main_func()
         else:
-            if self.currToken and self.currToken["tokenName"] == "(":
-                self.match("(")
-                self.match(")")
-                self.match("{")
-                # self.main_body()  # Uncomment if main body parsing is implemented
-                self.match("return")
-                self.match("whole_lit")  
-                self.match(";")
-                self.match("}")
-            else:
-                print("in <program>")
-                if not self.currToken:
-                    self.ERROR_no_main_func()
+            while self.currToken:
+                if self.currToken["tokenName"] == "(":
+                    self.match("(")
+                    if not self.match(")"):
+                        self.ERROR_expected_token(")")
+
+                    self.match("{")
+
+                    if not self.match("return"):
+                        self.ERROR_expected_token("return")
+
+                    if not self.match("whole_lit"):
+                        self.ERROR_expected_token("whole_lit")
+
+                    if not self.match(";"):
+                        self.ERROR_terminating_token(";")
+
+                    if not self.match("}"):
+                        self.ERROR_expected_token("}")
+
+                elif self.currToken["tokenName"] == ";":
+                    if not self.match(";"):
+                        self.ERROR_terminating_token(";")
+
+                else:
+                    # Handling other tokens as unexpected
+                    self.ERROR_unexpected_token(f"Unexpected token '{self.currToken['tokenName']}'")
+
         
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
@@ -183,17 +256,20 @@ class SyntaxAnalyzer:
     def imports_rec_values(self):
         print("(parser) production: \"imports_rec_values\" detected")
         expected_predict_set = PREDICT_SETS["imports_rec_values"]
-        if self.currToken["tokenName"] in expected_predict_set:
-            self.std_lib()
-        elif self.currToken and self.currToken["tokenType"] == "Identifier":
-            self.match("Identifier")
-            if self.currToken and self.currToken["tokenType"] == ".":
-                self.match(".")
-                if self.currToken and self.currToken["tokenName"] == "cstr":
-                    self.match("Identifier")
+        if self.currToken:
+            if self.currToken["tokenName"] in expected_predict_set:
+                self.std_lib()
+            elif self.currToken["tokenType"] == "Identifier":
+                self.match("Identifier")
+                if self.currToken and self.currToken["tokenType"] == ".":
+                    self.match(".")
+                    if self.currToken and self.currToken["tokenName"] == "cstr":
+                        self.match("Identifier")
+                    else:
+                        self.raiseError("cstr file", "Unexpected Token")
                 else:
-                    self.raiseError("cstr file", "Unexpected Token") # maybe we should rename this as unexpected import? or whats the proper term
-            else: 
+                    self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
+            else:
                 self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
         else:
             self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
