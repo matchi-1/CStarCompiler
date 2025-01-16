@@ -164,6 +164,18 @@ class SyntaxAnalyzer:
         raise SyntaxError(message)
 
 
+    def ERROR_unclosed_angled_bracket(self):
+        self.logError("Unclosed angled bracket: Expected '>'.")
+
+    def ERROR_expected_stdlib_or_filename(self):
+        self.logError("Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr'.")
+
+    def ERROR_expected_cstr_file(self):
+        self.logError("Expected a filename with '.cstr' extension.")
+
+    def ERROR_expected_stdlib(self):
+        self.logError("Expected a standard library (Cmath, Cstring, Carray).")
+
 
     #-------------------- CFG START --------------------
     def program(self):
@@ -226,63 +238,82 @@ class SyntaxAnalyzer:
             self.match("Identifier")  # Match 'iostar'
 
         if not self.match(">"):
-            self.ERROR_expected_token(">")
+            self.ERROR_unclosed_angled_bracket()
 
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
-        # Handle optional imports_rec
-        self.matchPredictSet("imports_rec")
+        # No need for predict set here bc the only path for imports_rec is if the next token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.imports_rec()
 
-        # Final recursive imports_rec
-        self.imports_rec()
-
-
+        # If the next token (curr token in this case) is not import, it finishes imports_list, goes back to program prod
 
 
     def imports_rec(self):
         print("(parser) production: \"imports_rec\" detected")
         """<imports_rec> → import <<imports_rec_values>>;<imports_rec> | λ"""
-        #self.matchPredictSet("imports_rec")
-        self.match("import")
-        self.match("<")
-        self.imports_rec_values()
-        self.match(">")
-        self.match(";")
 
-        #if not self.currToken: self.ERROR_no_main_func()
-        
+        if not self.match("import"):
+            self.ERROR_expected_token("import")
+
+        if not self.match("<"):
+            self.ERROR_expected_token("<")
+
+        # Process content inside '<>'
+        self.imports_rec_values()
+
+        if not self.match(">"):
+            self.ERROR_unclosed_angled_bracket()
+
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+
+        # Handle potential recursive imports_rec
         if self.currToken and self.currToken["tokenType"] == "import":
             self.imports_rec()
 
+
     def imports_rec_values(self):
         print("(parser) production: \"imports_rec_values\" detected")
-        expected_predict_set = PREDICT_SETS["imports_rec_values"]
+        """<imports_rec_values> → standard library | standard library with .cstr | filename with .cstr"""
+
         if self.currToken:
-            if self.currToken["tokenName"] in expected_predict_set:
-                self.std_lib()
-            elif self.currToken["tokenType"] == "Identifier":
-                self.match("Identifier")
+            # Check for standard library or standard library with .cstr
+            if self.currToken["tokenName"] in PREDICT_SETS["imports_rec_values"]:
+                self.match("Identifier")  # Match the standard library
                 if self.currToken and self.currToken["tokenType"] == ".":
                     self.match(".")
                     if self.currToken and self.currToken["tokenName"] == "cstr":
-                        self.match("Identifier")
+                        self.match("Identifier")  # Match 'cstr'
                     else:
-                        self.raiseError("cstr file", "Unexpected Token")
+                        self.ERROR_expected_cstr_file()
+            # Check for filename (non-standard-library identifier followed by .cstr)
+            elif self.currToken["tokenType"] == "Identifier":
+                self.match("Identifier")  # Match the filename
+                if self.currToken and self.currToken["tokenType"] == ".":
+                    self.match(".")
+                    if self.currToken and self.currToken["tokenName"] == "cstr":
+                        self.match("Identifier")  # Match 'cstr'
+                    else:
+                        self.ERROR_expected_cstr_file()
                 else:
-                    self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
+                    self.ERROR_expected_token(".")
             else:
-                self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
+                self.ERROR_expected_stdlib_or_filename()
         else:
-            self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
+            self.ERROR_expected_stdlib_or_filename()
+
 
     def std_lib(self):
         print("(parser) production: \"std_lib\" detected")
         """<std_lib> → Cmath | Cstring | Carray"""
-        if self.currToken["tokenName"] in {"Cmath", "Cstring", "Carray"}:
+        if self.currToken["tokenName"] in PREDICT_SETS["imports_rec_values"]:
             self.nextToken()
+        else:
+            self.ERROR_expected_stdlib()
+
+
 
     def program_constructs(self):
         print("(parser) production: \"program_constructs\" detected")
