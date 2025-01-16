@@ -2,6 +2,7 @@
 PREDICT_SETS = {
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "imports_rec_values": ["Cmath", "Cstring", "Carray"],
+    "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "Identifier"],
     "Datatypes": ["bool", "string", "int", "long", "double", "float"],
 }
 
@@ -67,10 +68,10 @@ class SyntaxAnalyzer:
 
     def matchPredictSet(self, non_terminal):
         if self.currToken is None:  # EOF
-            self.raiseError("", "Unexpected EOF", PREDICT_SETS.get(non_terminal, []))
+            self.ERROR_unexpected("", "Unexpected EOF", PREDICT_SETS.get(non_terminal, []))
         expected_predict_set = PREDICT_SETS.get(non_terminal, [])
         if self.currToken["tokenType"] not in expected_predict_set:
-            self.raiseError("", "Unexpected token", expected_predict_set)
+            self.ERROR_unexpected("", "Unexpected token", expected_predict_set)
 
             
 
@@ -80,15 +81,15 @@ class SyntaxAnalyzer:
     #   - Unexpected token
     #
     
-    def raiseError(self, expected_token, error_type, expected_predict_set=[]):
-        if not self.currToken:
-            currToken = self.tokens[self.currToken_index - 1]
-            currLine = currToken["tokenLine"]
-            currCol = currToken["tokenCol"]
-        else: 
+    def ERROR_unexpected(self, expected_token, error_type, expected_predict_set=[]):
+        if self.currToken:
             currToken = self.currToken["tokenName"]
             currLine = self.currToken["tokenLine"]
             currCol = self.currToken["tokenCol"]
+        else: 
+            currToken = self.tokens[self.currToken_index - 1]
+            currLine = currToken["tokenLine"]
+            currCol = currToken["tokenCol"]
 
         # Determine the expected message
         if expected_predict_set:
@@ -99,16 +100,21 @@ class SyntaxAnalyzer:
             expected_message = f"'{expected_token}'"
 
         # Construct the error message
-        message = (
-            f"\n\tSyntax Error: {error_type}"
-            + (f" '{currToken}'" if self.currToken else "")
-            + f" at line {currLine}, column {currCol}"
-            f"\n\tExpected: {expected_message}\n"
-        )
+        if self.currToken:
+            message = (
+                f"\n\tSyntax Error: Unexpected Token '{currToken}' at line {currLine}, column {currCol}"
+                f"\n\tExpected: {expected_message}\n"
+            )
+        else:
+            message = (
+                f"\n\tSyntax Error: Unexpected EOF at line {currLine}, column {currCol}"
+                f"\n\tExpected: {expected_message}\n"
+            )
+
         self.errors.append(message)
-        raise SyntaxError(message)
-        # lineContent = TBC LOL I'm thinking of extracting the line from the code using currCol and line[0] to line[currLine]
-        # return generateError(errorType, currToken, currLine, currCol)
+
+        raise SyntaxError(message) # will cause hault in producing other syntax errors
+
 
     # Helper function to log a syntax error with line and column information.
     def logError(self, message, context=""):
@@ -166,6 +172,9 @@ class SyntaxAnalyzer:
 
     def ERROR_unclosed_angled_bracket(self):
         self.logError("Unclosed angled bracket: Expected '>'.")
+    
+    def ERROR_unclosed_curly_braces(self):
+        self.logError("Unclosed curly braces: Expected '}'.")
 
     def ERROR_expected_stdlib_or_filename(self):
         self.logError("Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr'.")
@@ -203,19 +212,28 @@ class SyntaxAnalyzer:
                     if not self.match(")"):
                         self.ERROR_expected_token(")")
 
-                    self.match("{")
+                    if not self.match("{"):
+                        self.ERROR_expected_token("{")
 
                     if not self.match("return"):
                         self.ERROR_expected_token("return")
 
+                    # if not whole lit or 0: error should state that the final return statement of the main function is 0, instead it got currtoken
                     if not self.match("whole_lit"):
-                        self.ERROR_expected_token("whole_lit")
+                        current_value = self.currToken["tokenName"] if self.currToken else "EOF"
+                        error_message = (
+                            f"The main function must end with a return statement returning '0'.\n"
+                            f"Instead, encountered '{current_value}'. Ensure the main function has a final return statement as 'return 0;'."
+                        )
+                        self.logError(error_message)
+
+                        
 
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
 
                     if not self.match("}"):
-                        self.ERROR_expected_token("}")
+                        self.ERROR_unclosed_curly_braces()
 
                 elif self.currToken["tokenName"] == ";":
                     if not self.match(";"):
@@ -314,13 +332,11 @@ class SyntaxAnalyzer:
             self.ERROR_expected_stdlib()
 
 
-
+    # ----- REVISIT!! can't make errors here bc errors would be found in each prod first, then check if 
     def program_constructs(self):
         print("(parser) production: \"program_constructs\" detected")
        
         if self.currToken:
-            self.matchPredictSet("imports_rec")
-
             if self.currToken["tokenType"] == "private" or self.currToken["tokenType"] == "class":
                 self.class_declaration()
 
@@ -334,13 +350,13 @@ class SyntaxAnalyzer:
                 self.match("int")
                 if self.currToken and self.currToken["tokenName"] == "main":
                     self.match("Identifier")
-                    self.hasMainFunction = True  # Found main function
                     if self.currToken and self.currToken["tokenType"] == "(":
+                        self.hasMainFunction = True  # Found main function
                         print("(parser) production: #### entering main function")
                     elif self.currToken and self.currToken["tokenType"] == "=":
                         self.var_dec()
                     else:
-                        self.raiseError("", "Missing token", ["=", "("])
+                        self.ERROR_unexpected("", "Missing token", ["=", "("])
                 else:
                     self.match("Identifier")
                     self.var_dec()
@@ -358,9 +374,9 @@ class SyntaxAnalyzer:
                 elif self.currToken and self.currToken["tokenType"] == "=":
                     self.var_dec()
                 else:
-                    self.raiseError("", "Missing token", ["=", "("])
-
+                    self.ERROR_unexpected("", "Missing token", ["=", "("])
         
+
     def class_declaration(self):
         print("(parser) production: \"class_declaration\" detected")
         if self.currToken["tokenType"] == "private":
