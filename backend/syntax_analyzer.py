@@ -166,11 +166,14 @@ class SyntaxAnalyzer:
             self.std_lib()
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
             self.match("Identifier")
-            self.match(".")
-            if self.currToken and self.currToken["tokenName"] == "cstr":
-                self.match("Identifier")
-            else:
-                self.raiseError("cstr file", "Unexpected Token")
+            if self.currToken and self.currToken["tokenType"] == ".":
+                self.match(".")
+                if self.currToken and self.currToken["tokenName"] == "cstr":
+                    self.match("Identifier")
+                else:
+                    self.raiseError("cstr file", "Unexpected Token") # maybe we should rename this as unexpected import? or whats the proper term
+            else: 
+                self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
         else:
             self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
 
