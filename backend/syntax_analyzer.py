@@ -12,9 +12,11 @@ class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
     def __init__(self, tokens):
         self.errors = []
-        self.tokens = [token.to_dict() 
-            for token in tokens 
-            if token.token_type != "single_comment" or "multi-line comment"] # comments will be ignored by the parser
+        self.tokens = [
+            token.to_dict()
+            for token in tokens
+            if token.token_type not in ["single_comment", "multi-line comment"]
+        ] # comments will be ignored by the parser
         
         if not self.tokens:
             message = "\n\tNo tokens to parse."
@@ -109,9 +111,10 @@ class SyntaxAnalyzer:
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
         self.imports_list()
-        
+        print("(parser) production: ### after imports_list")
+        self.matchPredictSet(PREDICT_imports_rec)
         self.program_constructs()
-        self.match("int")
+        print("(parser) production: ### after program_constructs")
         if self.currToken and self.currToken["tokenName"] == "main":
             self.match("Identifier")
             self.match("(")
@@ -123,7 +126,7 @@ class SyntaxAnalyzer:
             self.match(";")
             self.match("}")
         else:
-            self.raiseError("main", "Unexpected Token")
+            if not self.currToken: self.raiseError("int main()", "Unexpected EOF")
        
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
@@ -174,22 +177,32 @@ class SyntaxAnalyzer:
 
     def program_constructs(self):
         print("(parser) production: \"program_constructs\" detected")
-        """<program_constructs> → <class_declaration><program_constructs> | <function_dec><program_constructs> | <var_dec><program_constructs> | <class_inst><program_constructs> | λ"""
-        if self.currToken["tokenType"] == "private" or self.currToken["tokenType"] == "class":
-            self.class_declaration()
-        elif self.currToken["tokenType"] == "const":
-            self.var_dec()
-        else:
-            self.matchPredictSet(DATATYPES)
-            self.nextToken
-            self.match("Identifier")
-            if self.currToken["tokenType"] == "(":
-                self.function_dec()
-            elif self.currToken["tokenType"] == "=":
+        while self.currToken:
+            if self.currToken["tokenType"] == "private" or self.currToken["tokenType"] == "class":
+                self.class_declaration()
+            elif self.currToken["tokenType"] == "const":
                 self.var_dec()
+            elif self.currToken["tokenType"] == "void":
+                self.function_dec()
+            elif self.currToken["tokenType"] == "int":
+                self.match("int")
+                if self.currToken and self.currToken["tokenName"] == "main":
+                    self.match("Identifier")
+                    if self.currToken and self.currToken["tokenType"] == "(":
+                        print("(parser) production: #### entering main function")
+                        return
+            else:
+                self.matchPredictSet(DATATYPES)
+                self.nextToken()
+                self.match("Identifier")
+                if self.currToken and self.currToken["tokenType"] == "(":
+                    self.function_dec()
+                elif self.currToken and self.currToken["tokenType"] == "=":
+                    self.var_dec()
+                else:
+                    self.raiseError("", "Missing token", ["=", "("])
 
         
-
     def class_declaration(self):
         print("(parser) production: \"class_declaration\" detected")
         if self.currToken["tokenType"] == "private":
@@ -201,8 +214,34 @@ class SyntaxAnalyzer:
         self.match("}")
         self.match(";")
 
+        self.program_constructs()
+
     def var_dec(self):
         print("(parser) production: \"var_dec\" detected")
 
+        if self.currToken["tokenType"] != "=": # if not from second calling from program_construct
+            if self.currToken["tokenType"] == "const":
+                self.match("const")
+            self.matchPredictSet(DATATYPES)
+            self.nextToken()
+            self.match("Identifier")
+        
+        ############# VAR ASSIGN RULES HERE
+        self.match(";")
+        self.program_constructs()
+
     def function_dec(self):
         print("(parser) production: \"function_dec\" detected")
+        if self.currToken["tokenType"] == "void":
+            self.match("void")
+        else:
+            self.matchPredictSet(DATATYPES)
+            self.nextToken()
+        self.match("Identifier")
+        self.match("(")
+        ############### PARAM RULES HERE
+        self.match(")")
+        self.match("{")
+        ############### FUNCTION BODY RULES HERE
+        self.match("}")
+        self.program_constructs()
