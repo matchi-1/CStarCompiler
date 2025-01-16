@@ -6,10 +6,12 @@ PREDICT_SETS = {
 }
 
 
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
     def __init__(self, tokens):
+        
         self.errors = []
         self.tokens = [token.to_dict() 
             for token in tokens 
@@ -24,6 +26,7 @@ class SyntaxAnalyzer:
         self.currToken = self.tokens[self.currToken_index]
 
         self.lineContent = ''
+        self.hasMainFunction = False  # Track if main function is found
 
     #-------------------- PARSER START --------------------
     def parse(self):
@@ -46,12 +49,20 @@ class SyntaxAnalyzer:
         else:
             self.currToken = None
 
+    # Peeks at the next token without advancing the index
+    def peek(self, offset=1):
+        """Returns the token at the current index + offset, or None if out of bounds."""
+        peek_index = self.currToken_index + offset
+        if 0 <= peek_index < len(self.tokens):
+            return self.tokens[peek_index]
+        return None
+
+
     # Checks if given token matches the expected token type, advances to the next token, else raises error
     def match(self, expected_token):
         if self.currToken is not None and self.currToken["tokenType"] == expected_token: ##TODO
             self.nextToken()
         else: 
-
             if self.currToken is None:  # EOF
                 self.raiseError(expected_token, "Unexpected EOF")
 
@@ -104,7 +115,10 @@ class SyntaxAnalyzer:
         # return generateError(errorType, currToken, currLine, currCol)
 
 
-
+    def ERROR_no_main_func(self):
+        message = "Syntax Error: Missing 'main' function to execute the program.\nThe program must include a 'main' function as the entry point."
+        self.errors.append(message)
+        raise SyntaxError(message)
 
     #-------------------- CFG START --------------------
     def program(self):
@@ -115,19 +129,24 @@ class SyntaxAnalyzer:
         self.matchPredictSet("imports_rec")
         self.program_constructs()
         print("(parser) production: ### after program_constructs")
-        if self.currToken and self.currToken["tokenName"] == "(":
-            self.match("(")
-            self.match(")")
-            self.match("{")
-            # self.main_body()
-            self.match("return")
-            self.match("whole_lit")
-            self.match(";")
-            self.match("}")
+        # Check for main function presence
+        if not self.hasMainFunction:
+            self.ERROR_no_main_func()
         else:
-            print("in <program>")
-            if not self.currToken: self.raiseError("int main()", "Unexpected EOF")
-       
+            if self.currToken and self.currToken["tokenName"] == "(":
+                self.match("(")
+                self.match(")")
+                self.match("{")
+                # self.main_body()  # Uncomment if main body parsing is implemented
+                self.match("return")
+                self.match("whole_lit")  
+                self.match(";")
+                self.match("}")
+            else:
+                print("in <program>")
+                if not self.currToken:
+                    self.ERROR_no_main_func()
+        
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
         """<imports_list> → import <iostar>;<imports_rec>"""
@@ -138,24 +157,26 @@ class SyntaxAnalyzer:
         self.match(">")
         self.match(";")
 
-        if not self.currToken: self.raiseError("int main()", "Unexpected EOF")
+        #if not self.currToken: self.ERROR_no_main_func()
 
-        self.matchPredictSet("imports_rec")
-        if self.currToken and self.currToken["tokenType"] == "import":
-            self.imports_rec()
+        #self.matchPredictSet("imports_rec")
+        #if self.currToken and self.currToken["tokenType"] == "import":
+            #self.imports_rec()
+
+        self.imports_rec()
 
     def imports_rec(self):
         print("(parser) production: \"imports_rec\" detected")
         """<imports_rec> → import <<imports_rec_values>>;<imports_rec> | λ"""
+        #self.matchPredictSet("imports_rec")
         self.match("import")
         self.match("<")
         self.imports_rec_values()
         self.match(">")
         self.match(";")
 
-        if not self.currToken: self.raiseError("int main()", "Unexpected EOF")
-
-        self.matchPredictSet("imports_rec")
+        #if not self.currToken: self.ERROR_no_main_func()
+        
         if self.currToken and self.currToken["tokenType"] == "import":
             self.imports_rec()
 
@@ -198,10 +219,11 @@ class SyntaxAnalyzer:
             elif self.currToken["tokenType"] == "void":
                 self.function_dec()
 
-            elif self.currToken["tokenType"] == "int": #check if int main()
+            elif self.currToken["tokenType"] == "int": #check for int main()
                 self.match("int")
                 if self.currToken and self.currToken["tokenName"] == "main":
                     self.match("Identifier")
+                    self.hasMainFunction = True  # Found main function
                     if self.currToken and self.currToken["tokenType"] == "(":
                         print("(parser) production: #### entering main function")
                     elif self.currToken and self.currToken["tokenType"] == "=":
