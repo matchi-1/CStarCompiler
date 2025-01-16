@@ -31,6 +31,7 @@ class SyntaxAnalyzer:
             print("Parsing completed successfully.")
         except SyntaxError as e:
             print(f"Parsing incomplete with error/s: {e}")
+        return self.errors
 
     #-------------------- HELPER FUNCTIONS --------------------
     # Advancer for the next token
