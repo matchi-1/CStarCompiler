@@ -1,6 +1,9 @@
 #-------------------- PREDICT SETS --------------------
-PREDICT_imports_rec = ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "Identifier"]
-PREDICT_imports_rec_values = ["Cmath", "Cstring", "Carray"]
+PREDICT_SETS = {
+    "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "Identifier"],
+    "imports_rec_values": ["Cmath", "Cstring", "Carray"]
+}
+
 
 DATATYPES = ["bool", "string", "int", "long", "double", "float"]
 
@@ -55,11 +58,13 @@ class SyntaxAnalyzer:
             else: # Wrong token
                 self.raiseError(expected_token, "Unexpected token")
 
-    def matchPredictSet(self, expected_predict_set):
+    def matchPredictSet(self, non_terminal):
         if self.currToken is None:  # EOF
-            self.raiseError("", "Unexpected EOF", expected_predict_set)
+            self.raiseError("", "Unexpected EOF", PREDICT_SETS.get(non_terminal, []))
+        expected_predict_set = PREDICT_SETS.get(non_terminal, [])
         if self.currToken["tokenType"] not in expected_predict_set:
             self.raiseError("", "Unexpected token", expected_predict_set)
+
             
 
     #-------------------- SYNTAX ERRORS --------------------
@@ -104,7 +109,7 @@ class SyntaxAnalyzer:
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
         self.imports_list()
-        self.matchPredictSet(PREDICT_imports_rec)
+        
         self.program_constructs()
         self.match("int")
         if self.currToken and self.currToken["tokenName"] == "main":
@@ -129,7 +134,7 @@ class SyntaxAnalyzer:
             self.match("Identifier")  # iostar
         self.match(">")
         self.match(";")
-        self.matchPredictSet(PREDICT_imports_rec)
+        self.matchPredictSet("imports_rec")
         if self.currToken and self.currToken["tokenType"] == "import":
             self.imports_rec()
 
@@ -141,13 +146,14 @@ class SyntaxAnalyzer:
         self.imports_rec_values()
         self.match(">")
         self.match(";")
-        self.matchPredictSet(PREDICT_imports_rec)
+        self.matchPredictSet("imports_rec")
         if self.currToken and self.currToken["tokenType"] == "import":
             self.imports_rec()
 
     def imports_rec_values(self):
         print("(parser) production: \"imports_rec_values\" detected")
-        if self.currToken["tokenName"] in PREDICT_imports_rec_values:
+        expected_predict_set = PREDICT_SETS["imports_rec_values"]
+        if self.currToken["tokenName"] in expected_predict_set:
             self.std_lib()
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
             self.match("Identifier")
@@ -157,7 +163,8 @@ class SyntaxAnalyzer:
             else:
                 self.raiseError("cstr file", "Unexpected Token")
         else:
-            self.raiseError("", "Unexpected Token", PREDICT_imports_rec_values + ["or cstr file"])
+            self.raiseError("", "Unexpected Token", expected_predict_set + ["or cstr file"])
+
 
     def std_lib(self):
         print("(parser) production: \"std_lib\" detected")
