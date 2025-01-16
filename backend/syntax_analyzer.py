@@ -140,9 +140,13 @@ class SyntaxAnalyzer:
     # -------- Error-specific methods --------
     # Handles missing terminators like ';'.
     def ERROR_terminating_token(self, expected_token):
-        self.logError(
-            f"Expected terminator '{expected_token}', but got '{self.currToken['tokenName']}' instead."
-        )
+        if self.currToken:
+            actual_token = self.currToken["tokenName"]
+            message = f"Statement is expected to be terminated by '{expected_token}', but got '{actual_token}' instead."
+        else:
+            message = f"Statement is expected to be terminated by '{expected_token}', but reached EOF."
+        self.logError(message)
+
 
     # Handles unexpected tokens when expecting a specific type.
     def ERROR_expected_token(self, expected_token):
@@ -151,16 +155,6 @@ class SyntaxAnalyzer:
         else:
             self.logError(
                 f"Expected '{expected_token}', but got '{self.currToken['tokenName']}'."
-            )
-
-    # Handles unexpected tokens outside specific expectations.
-    def ERROR_unexpected_token(self, context=""):
-        if self.currToken is None:
-            self.logError("Unexpected EOF.", context)
-        else:
-            self.logError(
-                f"Unexpected token '{self.currToken['tokenName']}'.",
-                context
             )
 
     # If no main function was found throughout the whole program
@@ -215,28 +209,38 @@ class SyntaxAnalyzer:
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
 
-                else:
-                    # Handling other tokens as unexpected
-                    self.ERROR_unexpected_token(f"Unexpected token '{self.currToken['tokenName']}'")
-
         
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
         """<imports_list> → import <iostar>;<imports_rec>"""
-        self.match("import")
-        self.match("<")
-        if self.currToken and self.currToken["tokenName"] == "iostar":
-            self.match("Identifier")  # iostar
-        self.match(">")
-        self.match(";")
 
-        #if not self.currToken: self.ERROR_no_main_func()
+        if not self.match("import"):
+            self.ERROR_expected_token("import")
 
-        #self.matchPredictSet("imports_rec")
-        #if self.currToken and self.currToken["tokenType"] == "import":
-            #self.imports_rec()
+        if not self.match("<"):
+            self.ERROR_expected_token("<")
 
+        if not self.currToken or self.currToken["tokenName"] != "iostar":
+            self.ERROR_expected_token("iostar")
+        else:
+            self.match("Identifier")  # Match 'iostar'
+
+        if not self.match(">"):
+            self.ERROR_expected_token(">")
+
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+
+        # Handle optional imports_rec
+        self.matchPredictSet("imports_rec")
+        if self.currToken and self.currToken["tokenType"] == "import":
+            self.imports_rec()
+
+        # Final recursive imports_rec
         self.imports_rec()
+
+
+
 
     def imports_rec(self):
         print("(parser) production: \"imports_rec\" detected")
