@@ -43,6 +43,7 @@ class SyntaxAnalyzer:
     #-------------------- HELPER FUNCTIONS --------------------
     # Advancer for the next token
     def nextToken(self):
+        #print("currtoken: " + str(self.currToken))
         self.currToken_index += 1
         if self.currToken_index < len(self.tokens):
             self.currToken = self.tokens[self.currToken_index]
@@ -148,7 +149,7 @@ class SyntaxAnalyzer:
     def ERROR_terminating_token(self, expected_token):
         if self.currToken:
             actual_token = self.currToken["tokenName"]
-            message = f"Statement is expected to be terminated by '{expected_token}', but got '{actual_token}' instead."
+            message = f"Statement is expected to be terminated by '{expected_token}', before '{actual_token}'."
         else:
             message = f"Statement is expected to be terminated by '{expected_token}', but reached EOF."
         self.logError(message)
@@ -176,6 +177,9 @@ class SyntaxAnalyzer:
     def ERROR_unclosed_curly_braces(self):
         self.logError("Unclosed curly braces: Expected '}'.")
 
+    def ERROR_unclosed_square_bracket(self):
+        self.logError("Unclosed square bracket: Expected ']'.")
+
     def ERROR_expected_stdlib_or_filename(self):
         self.logError("Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr'.")
 
@@ -184,6 +188,9 @@ class SyntaxAnalyzer:
 
     def ERROR_expected_stdlib(self):
         self.logError("Expected a standard library (Cmath, Cstring, Carray).")
+
+    def ERROR_missing_initializer(self):
+        self.logError("Expected initializer before " + self.currToken["tokenName"])
 
 
     #-------------------- CFG START --------------------
@@ -200,7 +207,7 @@ class SyntaxAnalyzer:
         # Parse constructs
         self.program_constructs()
         
-        print("(parser) production: ### after program_constructs")
+        print("(parser) production: ### inside main")
 
         # Check for main function presence
         if not self.hasMainFunction:
@@ -227,7 +234,6 @@ class SyntaxAnalyzer:
                         )
                         self.logError(error_message)
 
-                        
 
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
@@ -332,7 +338,7 @@ class SyntaxAnalyzer:
             self.ERROR_expected_stdlib()
 
 
-    # ----- REVISIT!! can't make errors here bc errors would be found in each prod first, then check if 
+    # ----- REVISIT!! can't make errors here yet bc errors would be found in each prod first, then check if there are external errors left 
     def program_constructs(self):
         print("(parser) production: \"program_constructs\" detected")
        
@@ -362,7 +368,6 @@ class SyntaxAnalyzer:
                     self.var_dec()
 
             elif self.currToken["tokenType"] == "Identifier":
-                self.match("Identifier")
                 self.class_inst()
 
             else:
@@ -377,6 +382,8 @@ class SyntaxAnalyzer:
                     self.ERROR_unexpected("", "Missing token", ["=", "("])
         
 
+
+    # TODO
     def class_declaration(self):
         print("(parser) production: \"class_declaration\" detected")
         if self.currToken["tokenType"] == "private":
@@ -390,6 +397,7 @@ class SyntaxAnalyzer:
 
         self.program_constructs()
 
+    # TODO
     def var_dec(self):
         print("(parser) production: \"var_dec\" detected")
 
@@ -406,6 +414,7 @@ class SyntaxAnalyzer:
         self.match(";")
         self.program_constructs()
 
+    # TODO
     def function_dec(self):
         print("(parser) production: \"function_dec\" detected")
 
@@ -425,13 +434,48 @@ class SyntaxAnalyzer:
         self.match("}")
         self.program_constructs()
 
+
+
+    # MICH START HERE
     def class_inst(self):
         print("(parser) production: \"class_inst\" detected")
-        self.match("Identifier")
-        self.match("=")
-        self.match("Identifier")
-        self.match("(")
-        ############### CLASS ISNT ARGUMENTS RULES HERE
-        self.match(")")
-        self.match(";")
+
+        # Parse the first Identifier (class name or type)
+        if not self.match("Identifier"):
+            self.logError("Expected an identifier for class instantiation.")  # MICH CURRENTLY DOING
+            # This error is just a placeholder habang wala pang semantic, cos normally it should identify if existing na ung class
+
+
+        # Parse the second Identifier (variable name)
+        if not self.match("Identifier"):
+            self.ERROR_missing_initializer() 
+            
+
+        # # Handle <classinst_cont>
+        # if self.currToken and self.currToken["tokenType"] == "=":
+        #     self.match("=")
+        #     if not self.match("Identifier"):
+        #         self.logError(" ") ################################################
+            
+        #     # (  )   self.func_arg()  # Handle (<func_arg>)
+
+        # elif self.currToken and self.currToken["tokenType"] == "[":################################################
+        #     self.match("[")
+        #     self.int_val()  # Parse <int_val> ################################################
+
+        #     if not self.match("]"):
+        #         self.ERROR_unclosed_square_bracket()
+
+        #     self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr> ################################################
+
+        # else:
+        #     # Handle λ (no additional tokens after the second identifier) ################################################
+        #     pass
+
+
+        # Match the semicolon at the end
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+
+        # Continue parsing program constructs
         self.program_constructs()
