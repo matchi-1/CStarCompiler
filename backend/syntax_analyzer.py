@@ -2,7 +2,7 @@
 PREDICT_SETS = {
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "imports_rec_values": ["Cmath", "Cstring", "Carray"],
-    "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "Identifier"],
+    "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "Datatypes": ["bool", "string", "int", "long", "double", "float"],
 }
 
@@ -172,7 +172,10 @@ class SyntaxAnalyzer:
 
 
     def ERROR_unclosed_angled_bracket(self):
-        self.logError("Unclosed angled bracket: Expected '>'.")
+        self.logError("Unclosed angled bracket: Expected '>'.") ## should we add line no. + col. num sa mga error d2
+
+    def ERROR_unclosed_parentheses(self):
+        self.logError("Unclosed parentheses: Expected ')'.")
     
     def ERROR_unclosed_curly_braces(self):
         self.logError("Unclosed curly braces: Expected '}'.")
@@ -304,9 +307,9 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             # Check for standard library or standard library with .cstr
-            if self.currToken["tokenName"] in PREDICT_SETS["imports_rec_values"]:
+            if self.currToken["tokenName"] in PREDICT_SETS["imports_rec_values"]:   
                 self.match("Identifier")  # Match the standard library
-                if self.currToken and self.currToken["tokenType"] == ".":
+                if self.currToken and self.currToken["tokenType"] == ".":       
                     self.match(".")
                     if self.currToken and self.currToken["tokenName"] == "cstr":
                         self.match("Identifier")  # Match 'cstr'
@@ -329,13 +332,13 @@ class SyntaxAnalyzer:
             self.ERROR_expected_stdlib_or_filename()
 
 
-    def std_lib(self):
-        print("(parser) production: \"std_lib\" detected")
-        """<std_lib> → Cmath | Cstring | Carray"""
-        if self.currToken["tokenName"] in PREDICT_SETS["imports_rec_values"]:
-            self.nextToken()
-        else:
-            self.ERROR_expected_stdlib()
+    # def std_lib(self):
+    #     print("(parser) production: \"std_lib\" detected")
+    #     """<std_lib> → Cmath | Cstring | Carray"""
+    #     if self.currToken["tokenName"] in PREDICT_SETS["imports_rec_values"]:
+    #         self.nextToken()
+    #     else:
+    #         self.ERROR_expected_stdlib()
 
 
     # ----- REVISIT!! can't make errors here yet bc errors would be found in each prod first, then check if there are external errors left 
@@ -364,8 +367,13 @@ class SyntaxAnalyzer:
                     else:
                         self.ERROR_unexpected("", "Missing token", ["=", "("])
                 else:
-                    self.match("Identifier")
-                    self.var_dec()
+                    self.match("Identifier")        ## this could still be functions what
+                    if self.currToken and self.currToken["tokenType"] == "(":
+                        self.function_dec()
+                    elif self.currToken and self.currToken["tokenType"] == "=":
+                        self.var_dec()
+                    else:
+                        self.ERROR_unexpected("", "Missing token", ["=", "("])
 
             elif self.currToken["tokenType"] == "Identifier":
                 self.class_inst()
@@ -417,21 +425,37 @@ class SyntaxAnalyzer:
     # TODO
     def function_dec(self):
         print("(parser) production: \"function_dec\" detected")
-
+        isVoid = False
         if self.currToken["tokenType"] != "(": # if not from second calling from program_construct
             if self.currToken["tokenType"] == "void":
                 self.match("void")
+                isVoid = True
             else:
                 self.matchPredictSet("Datatypes")
                 self.nextToken()
             self.match("Identifier")
 
-        self.match("(")
+        if not self.match("("):
+            self.ERROR_expected_token("(")
+            
         ############### PARAM RULES HERE
-        self.match(")")
-        self.match("{")
+        if not self.match(")"):
+            self.ERROR_unclosed_parentheses()
+
+        if not self.match("{"):
+            self.ERROR_expected_token("{")
+
         ############### FUNCTION BODY RULES HERE
-        self.match("}")
+        if not isVoid:
+            if not self.match("return"):
+                self.logError("Non-void functions must have return statement.")
+            ### uhmmm how to check return type and if it matches return statement?
+
+            if not self.match(";"):
+                self.ERROR_terminating_token(";")
+        if not self.match("}"):
+            self.ERROR_unclosed_curly_braces()
+
         self.program_constructs()
 
 
@@ -445,9 +469,9 @@ class SyntaxAnalyzer:
             self.logError("Expected an identifier for class instantiation.")  # MICH CURRENTLY DOING
             # This error is just a placeholder habang wala pang semantic, cos normally it should identify if existing na ung class
 
-
+        
         # Parse the second Identifier (variable name)
-        if not self.match("Identifier"):
+        if self.currToken and not self.match("Identifier"):
             self.ERROR_missing_initializer() 
             
 
