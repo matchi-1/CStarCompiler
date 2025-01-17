@@ -12,6 +12,7 @@ PREDICT_SETS = {
 #    - for general errors: use matchPredictSet( for general errors (like may unexpected token for a specific part of the grammar, this method will generate the general error na)
 #    - for custom errors: just use " in PREDICT_SETS["<non_terminal>"]  "  this will return true/false then use a custom error nalang sa else
 
+# note: not every prod have to use predict sets cos some of em just branch to 1 token
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -212,6 +213,8 @@ class SyntaxAnalyzer:
         self.logError("Expected initializer before " + self.currToken["tokenName"])
 
     #-------------------- CFG START --------------------
+    # for semantic stuff, instead of using "if not", just add else clause to add functionality in if match clause
+
     def program(self):
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
@@ -404,7 +407,7 @@ class SyntaxAnalyzer:
             elif self.currToken["tokenType"] == "Identifier":
                 self.class_inst()
 
-            elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:
+            elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:  # sample of custom error not using matchPredictSet
                 if self.match("Identifier"): 
                     if self.currToken and self.currToken["tokenType"] == "(":
                         self.function_dec()
