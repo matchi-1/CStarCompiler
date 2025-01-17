@@ -3,9 +3,8 @@ PREDICT_SETS = {
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "std_lib": ["Cmath", "Cstring", "Carray"],
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
-    "Datatypes": ["bool", "string", "int", "long", "double", "float"],
+    "data_types": ["bool", "string", "int", "long", "double", "float"],
 }
-
 
 
 #-------------------- PARSER --------------------
@@ -70,9 +69,13 @@ class SyntaxAnalyzer:
     def matchPredictSet(self, non_terminal):
         if self.currToken is None:  # EOF
             self.ERROR_unexpected("", "Unexpected EOF", PREDICT_SETS.get(non_terminal, []))
+            return False;
         expected_predict_set = PREDICT_SETS.get(non_terminal, [])
         if self.currToken["tokenType"] not in expected_predict_set:
             self.ERROR_unexpected("", "Unexpected token", expected_predict_set)
+            return False;
+        return True;
+        
 
             
 
@@ -195,7 +198,6 @@ class SyntaxAnalyzer:
     def ERROR_missing_initializer(self):
         self.logError("Expected initializer before " + self.currToken["tokenName"])
 
-
     #-------------------- CFG START --------------------
     def program(self):
         print("(parser) production: \"program\" detected")
@@ -210,7 +212,7 @@ class SyntaxAnalyzer:
         # Parse constructs
         self.program_constructs()
         
-        print("(parser) production: ### inside main")
+        
 
         # Check for main function presence
         if not self.hasMainFunction:
@@ -222,7 +224,9 @@ class SyntaxAnalyzer:
                     if not self.match(")"):
                         self.ERROR_expected_token(")")
 
-                    if not self.match("{"):
+                    if self.match("{"):
+                        print("(parser) production: ### inside main")
+                    else:
                         self.ERROR_expected_token("{")
 
                     if not self.match("return"):
@@ -308,13 +312,14 @@ class SyntaxAnalyzer:
         if self.currToken:
             # Check for standard library or standard library with .cstr
             if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:   
-                self.match("Identifier")  # Match the standard library
-                if self.currToken and self.currToken["tokenType"] == ".":       
+                self.match("Identifier")  # Match the standard library -- put logic here per std lib for semantic
+                if self.currToken and self.currToken["tokenType"] == ".":      # potentially stdlib and header file haev the same name 
                     self.match(".")
                     if self.currToken and self.currToken["tokenName"] == "cstr":
                         self.match("Identifier")  # Match 'cstr'
                     else:
                         self.ERROR_expected_cstr_file()
+
             # Check for filename (non-standard-library identifier followed by .cstr)
             elif self.currToken["tokenType"] == "Identifier":
                 self.match("Identifier")  # Match the filename
@@ -341,11 +346,14 @@ class SyntaxAnalyzer:
     #         self.ERROR_expected_stdlib()
 
 
-    # ----- REVISIT!! can't make errors here yet bc errors would be found in each prod first, then check if there are external errors left 
+    # ----- REVISIT!! can't complete errors here yet bc errors would be found in each prod first, then check if there are external errors left 
+    # ex of unimplemented error: if there's a sole variable (it can be considered a class inst, pero if not yet defined, it should throw another type of error)
     def program_constructs(self):
-        print("(parser) production: \"program_constructs\" detected")
-       
-        if self.currToken:
+        print("(parser) production: \"program_constructs\" detected: currtoken is \""
+      + str(self.currToken["tokenName"])+"\"" if self.currToken else "None" + "\"")
+        
+        if self.currToken and self.matchPredictSet("program_constructs"):  # Top checking for predict sets, will automatically throw error if there are unexpected tokens (di na kailangan ng else statement for unexpected tokens)
+            print("(parser-dbg) inside program_constructs: " + str(self.currToken["tokenName"]))
             if self.currToken["tokenType"] == "private" or self.currToken["tokenType"] == "class":
                 self.class_declaration()
 
@@ -367,28 +375,32 @@ class SyntaxAnalyzer:
                     else:
                         self.ERROR_unexpected("", "Missing token", ["=", "("])
                 else:
-                    self.match("Identifier")        ## this could still be functions what
+                    if self.currToken:
+                        self.match("Identifier")        
+                        if self.currToken and self.currToken["tokenType"] == "(":
+                            self.function_dec()
+                        elif self.currToken and self.currToken["tokenType"] == "=":
+                            self.var_dec()
+                        else:
+                            self.ERROR_unexpected("", "Missing token", ["=", "("])
+                    else:
+                        self.logError("Expected a variable declaration, function declaration, or main function.")
+
+
+            elif self.currToken["tokenType"] == "Identifier":
+                self.class_inst()
+
+            elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:
+                if self.match("Identifier"): 
                     if self.currToken and self.currToken["tokenType"] == "(":
                         self.function_dec()
                     elif self.currToken and self.currToken["tokenType"] == "=":
                         self.var_dec()
                     else:
-                        self.ERROR_unexpected("", "Missing token", ["=", "("])
-
-            elif self.currToken["tokenType"] == "Identifier":
-                self.class_inst()
-
-            else:
-                self.matchPredictSet("Datatypes")
-                self.nextToken()
-                self.match("Identifier")
-                if self.currToken and self.currToken["tokenType"] == "(":
-                    self.function_dec()
-                elif self.currToken and self.currToken["tokenType"] == "=":
-                    self.var_dec()
+                        self.ERROR_expected_token(["(","="])
                 else:
-                    self.ERROR_unexpected("", "Missing token", ["=", "("])
-        
+                    self.logError("Expected a variable declaration or function declaration.")
+    
 
 
     # TODO
@@ -412,7 +424,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] != "=": # if not from second calling from program_construct
             if self.currToken["tokenType"] == "const":
                 self.match("const")
-            self.matchPredictSet("Datatypes")
+            self.matchPredictSet("data_types")
             self.nextToken()
             self.match("Identifier")
 
@@ -431,7 +443,7 @@ class SyntaxAnalyzer:
                 self.match("void")
                 isVoid = True
             else:
-                self.matchPredictSet("Datatypes")
+                self.matchPredictSet("data_types")
                 self.nextToken()
             self.match("Identifier")
 
