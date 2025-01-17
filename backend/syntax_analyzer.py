@@ -87,10 +87,10 @@ class SyntaxAnalyzer:
             
 
     #-------------------- SYNTAX ERRORS --------------------
-    # Current Syntax Errors:    
+    # Common Syntax Errors:    
     #   - Unexpected EOF
     #   - Unexpected token
-    #
+    #   - list down more here
 
     # REMINDERS
     # 1. when generating errors, make sure they adhere to C, or create ur own basta make sure theyre real / expected compiler errors for our rules
