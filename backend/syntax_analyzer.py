@@ -1,7 +1,7 @@
 #-------------------- PREDICT SETS --------------------
 PREDICT_SETS = {
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
-    "imports_rec_values": ["Cmath", "Cstring", "Carray"],
+    "std_lib": ["Cmath", "Cstring", "Carray"],
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "Datatypes": ["bool", "string", "int", "long", "double", "float"],
 }
@@ -307,7 +307,7 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             # Check for standard library or standard library with .cstr
-            if self.currToken["tokenName"] in PREDICT_SETS["imports_rec_values"]:   
+            if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:   
                 self.match("Identifier")  # Match the standard library
                 if self.currToken and self.currToken["tokenType"] == ".":       
                     self.match(".")
