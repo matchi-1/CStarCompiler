@@ -6,6 +6,12 @@ PREDICT_SETS = {
     "data_types": ["bool", "string", "int", "long", "double", "float"],
 }
 
+# reminders for predict sets:
+ 
+# two ways to use predict sets errors (u may add mroe)
+#    - for general errors: use matchPredictSet( for general errors (like may unexpected token for a specific part of the grammar, this method will generate the general error na)
+#    - for custom errors: just use " in PREDICT_SETS["<non_terminal>"]  "  this will return true/false then use a custom error nalang sa else
+
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -84,6 +90,13 @@ class SyntaxAnalyzer:
     #   - Unexpected EOF
     #   - Unexpected token
     #
+
+    # REMINDERS
+    # 1. when generating errors, make sure they adhere to C, or create ur own basta make sure theyre real / expected compiler errors for our rules
+    # 2. reuse already set errors if they have the same syntax error
+    # 3. use logError for ONCE and/or SPECIFIC errors that require line,col
+    # 4. directly append error / make another error if u dont need line, col but have a general error message
+    # 5. avoid using logError if the error that you'll generate would be a 1.) repeat of a previous error 2.) a new error that will be reused more than once [in this case, make a new error]
     
     def ERROR_unexpected(self, expected_token, error_type, expected_predict_set=[]):
         if self.currToken:
@@ -349,6 +362,7 @@ class SyntaxAnalyzer:
     # ----- REVISIT!! can't complete errors here yet bc errors would be found in each prod first, then check if there are external errors left 
     # ex of unimplemented error: if there's a sole variable (it can be considered a class inst, pero if not yet defined, it should throw another type of error)
     def program_constructs(self):
+        
         print("(parser) production: \"program_constructs\" detected: currtoken is \""
       + str(self.currToken["tokenName"])+"\"" if self.currToken else "None" + "\"")
         
