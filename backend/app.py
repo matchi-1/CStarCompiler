@@ -33,7 +33,7 @@ equal_delim = newline + whitespace + ['=', '/']
 arithmetic_delim = newline + plaintext_delim + ['(', '/']
 relational_operator_delim = ['<', '>', '=', '!']
 logical_operator_delim = ['!', '&', '|']
-newline_delim = newline + whitespace
+newline_delim = newline + whitespace + ['/']
 default_delim = newline + whitespace + [':', '/']
 type_iden_delim = newline + whitespace + ['[', '>', '/']
 get_set_delim = newline + whitespace + ['{', ';', '/']
@@ -73,8 +73,8 @@ equal_equal_delim = list(set(arithmetic_delim + ['\"', '/', '!']))
 import_delim = newline + whitespace + ['<', '/']
 loop_delim = whitespace + newline + ['(', '/']
 block_delim = whitespace + newline + ['{', '/']
-break_ret_cont_delim = newline_delim + [';']
-case_delim = newline_delim + ['(']
+break_ret_cont_delim = newline_delim + [';', '/']
+case_delim = newline_delim + ['(', '/']
 iden_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '{', '?', ':', ';']
 str_lit_delim = list(set(newline + whitespace + logical_operator_delim + ['+', ')', ',', ';', '/', ':', '!', '=']))
 nbl_delim = list(set(arithmetic_operator + relational_operator_delim + logical_operator_delim + whitespace + newline + [',', ')', ']', '}', ':', '=', ';', '/']))
