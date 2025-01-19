@@ -77,7 +77,7 @@ case_delim = newline_delim + ['(', '/']
 iden_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '{', '}', '?', ':', ';']
 str_lit_delim = list(set(newline + whitespace + logical_operator_delim + ['+', ')', ',', ';', '/', ':', '!', '=']))
 nbl_delim = list(set(arithmetic_operator + relational_operator_delim + logical_operator_delim + whitespace + newline + [',', ')', ']', '}', ':', '=', ';', '/']))
-func_delim = newline_delim + ['/', '(']
+func_delim = newline_delim + ['(']
 
 
 def transition(currState, currChar):
