@@ -1486,7 +1486,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # -- symbol
             if (currState == 'DECREMENT_CHECK'):
-                expected = whitespace + ['alphanum'] + [';', ')', '/', '+', '*', '%', '('] + newline
+                expected = whitespace + ['alphabetic_chars'] + [';', ')', '/', '+', '*', '%', '('] + newline
                 if (code[i] in decrement_delim):
                     add_token(currToken, '--', currLine, currCol)
                 else:
@@ -1550,7 +1550,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # ++ symbol
             if (currState == 'INCREMENT_CHECK'):
-                expected = whitespace + ['alphanum', ')', ';', '/', '-', '*', '%', '(']
+                expected = whitespace + ['alphabetic_chars', ')', ';', '/', '-', '*', '%', '(']
                 if (code[i] in increment_delim):
                     add_token(currToken, '++', currLine, currCol)
                 else:
