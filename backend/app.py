@@ -1958,9 +1958,9 @@ def generateError(errorType, currToken, currLine, currCol, lineContent, addition
     """
     print('(dbg) currToken ', currToken)
     print('(dbg) currCol ', currCol)
-    errorMsg = f'Lexical Error ({currLine}, {currCol - len(currToken)}): {errorType} {currToken}\n'
+    errorMsg = f'Lexical Error ({currLine}, {currCol - len(currToken)}): {errorType} {currToken[:-1]}\n'
     errorMsg += lineContent + '\n'
-    errorMsg += '_' * (currCol - len(currToken) - 1) + '^\n'
+    errorMsg += '_' * (currCol - len(currToken) - 2) + '^\n'
     if additionalInfo:
         errorMsg += additionalInfo
     print("(debug) ", errorMsg)
@@ -2035,7 +2035,7 @@ def compile_code():
     # Calls syntax analyzer
     try:
         analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        errors += analyzer.parse()   
+        # errors += analyzer.parse()    # comment out to just test for lexer
     except SyntaxError as e:
         print(e)
 
