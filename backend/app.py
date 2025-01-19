@@ -54,7 +54,7 @@ close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}']
 plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
 great_less_delim = list(set(arithmetic_delim + ['/']))
 great_delim = great_less_delim + [';']
-equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '!','=','{']))
+equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '!','{']))
 in_delim = newline_delim + ['<', '/']
 this_delim = newline_delim + ['.', '/']
 void_delim = newline + whitespace + ['/']
