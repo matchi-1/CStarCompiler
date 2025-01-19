@@ -38,7 +38,7 @@ type_iden_delim = newline + whitespace + ['[', '>', '/',')']
 get_set_delim = newline + whitespace + ['{', ';', '/']
 open_paren_delim = list(set(arithmetic_delim + ['\"', '!', ')', '\n', '/', '+', '-']))
 closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?']))
-close_paren_delim = list(set(closing_delim + [';', '/']))
+close_paren_delim = list(set(closing_delim))
 semicolon_delim = newline_delim + plaintext_delim + ['}', '/']
 negative_delim = list(set(arithmetic_delim + ['/', '+']))
 exclamation_delim = alphabetic_chars + newline + whitespace + ['(', '/', '!']
