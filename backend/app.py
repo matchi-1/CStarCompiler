@@ -39,18 +39,18 @@ get_set_delim = newline + whitespace + ['{', ';', '/']
 open_paren_delim = list(set(arithmetic_delim + ['\"', '!', ')', '\n', '/', '+', '-']))
 closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?', '}', '"']))
 close_paren_delim = list(set(closing_delim))
-semicolon_delim = newline_delim + plaintext_delim + ['}', '/']
+semicolon_delim = newline_delim + plaintext_delim + ['}', '/', '(']
 negative_delim = list(set(arithmetic_delim + ['/', '+']))
 exclamation_delim = alphabetic_chars + newline + whitespace + ['(', '/', '!']
 percent_delim = list(set(arithmetic_delim + ['/']))
 asterisk_delim = list(set(arithmetic_delim + ['/', '+', '-']))
-dot_delim = plaintext_delim + ['\n', '/']
-comma_delim = dot_delim + ['(']
+dot_delim = alphabetic_chars + whitespace + ['\n', '/'] # from plaintext_delim + ['\n', '/']
+comma_delim = dot_delim + numbers + ['(', '{']
 slash_delim = plaintext_delim + ['\n', '(', '+', '-']
 question_delim = newline + plaintext_delim + ['(', '/', '\"']
 colon_delim = newline + plaintext_delim + ['(', '/', '\"']
 open_bracket_delim = alphanum + whitespace + ['\n', '/', '(', ']']
-open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/', '\"', '(']
+open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/', '\"', '(', '+', '-']
 close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}']
 plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
 great_less_delim = list(set(arithmetic_delim + ['/']))
@@ -64,7 +64,7 @@ subtract_assign_delim = list(set(arithmetic_delim + ['/']))
 not_equal_delim = alphanum + newline + whitespace + ['(', '!','\"']
 modulo_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
 and_or_delim =  alphabetic_chars + whitespace + ['(', '\n', '/', '!']
-multi_assign_delim = list(set(arithmetic_delim + ['/']))
+multi_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
 divi_assign_delim = list(set(arithmetic_delim + ['/']))
 increment_delim = alphabetic_chars + newline_delim + [')', ';', '/', '-', '*', '%', '(']
 add_assign_delim = list(set(arithmetic_delim + ['/', '\"']))
@@ -1186,7 +1186,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # ; symbol
             if (currState == 'SEMICOLON_CHECK'):
-                expected = ['alphanum', ' ', '}', '/'] + newline
+                expected = ['alphanum', ' ', '}', '/', '('] + newline
                 if (code[i] in semicolon_delim):
                     add_token(currToken, ';', currLine, currCol)
                 else:
@@ -1235,7 +1235,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # , symbol
             if (currState == 'COMMA_CHECK'):
-                expected = ['alphanum', ' ', '/']
+                expected = ['alphanum', ' ', '/', '(', '{']
                 if (code[i] in comma_delim):
                     add_token(currToken, ',', currLine, currCol)
                 else:
@@ -1243,7 +1243,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # . symbol
             if (currState == 'DOT_CHECK'):
-                expected = ['alphanum', '/'] + whitespace
+                expected = ['alphabetic_chars', '/'] + whitespace
                 if (code[i] in numbers):
                     currState = 's267'
                 elif (code[i] in dot_delim):
@@ -1287,15 +1287,15 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # ] symbol
             if (currState == 'CLOSING_BRACKET_CHECK'):
-                expected = iden_delim
-                if (code[i] in iden_delim):
+                expected = [i for i in iden_delim if i not in ["?", "{", "}", "("]]
+                if (code[i] in expected):
                     add_token(currToken, ']', currLine, currCol)
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # { symbol
             if (currState == 'OPEN_CURLY_CHECK'):
-                expected = ['alphanum', ' ', '{', '}', '/'] + newline_delim
+                expected = ['alphanum', ' ', '{', '}', '/', '+', '-', '\"', '('] + newline_delim
                 if (code[i] in open_curly_delim):
                     add_token(currToken, '{', currLine, currCol)
                 else:
@@ -1303,7 +1303,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # } symbol
             if (currState == 'CLOSING_CURLY_CHECK'):
-                expected = ['alphanum', ' ', ';', '/', ',','}'] + newline_delim
+                expected = ['alphanum', ' ', ';', ',','}'] + newline_delim
                 if (code[i] in close_curly_delim):
                     add_token(currToken, '}', currLine, currCol)
                 else:
