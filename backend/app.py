@@ -36,15 +36,16 @@ newline_delim = newline + whitespace + ['/']
 default_delim = newline + whitespace + [':', '/']
 type_iden_delim = newline + whitespace + ['[', '>', '/',')']
 get_set_delim = newline + whitespace + ['{', ';', '/']
-open_paren_delim = list(set(arithmetic_delim + ['\"', '!', ')', '\n', '/']))
-closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?']))
-close_paren_delim = list(set(closing_delim + [';', '/']))
+open_paren_delim = list(set(arithmetic_delim + ['\"', '!', ')', '\n', '/', '+', '-']))
+closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?', '}']))
+close_paren_delim = list(set(closing_delim))
 semicolon_delim = newline_delim + plaintext_delim + ['}', '/']
 negative_delim = list(set(arithmetic_delim + ['/', '+']))
 exclamation_delim = alphabetic_chars + newline + whitespace + ['(', '/', '!']
 percent_delim = list(set(arithmetic_delim + ['/']))
 asterisk_delim = list(set(arithmetic_delim + ['/', '+', '-']))
-commdot_delim = plaintext_delim + ['\n', '/']
+dot_delim = plaintext_delim + ['\n', '/']
+comma_delim = dot_delim + ['(']
 slash_delim = plaintext_delim + ['\n', '(', '+', '-']
 question_delim = newline + plaintext_delim + ['(', '/', '\"']
 colon_delim = newline + plaintext_delim + ['(', '/', '\"']
@@ -62,10 +63,9 @@ decrement_delim = alphabetic_chars + whitespace + newline + [';', ')', '/', '+',
 subtract_assign_delim = list(set(arithmetic_delim + ['/']))
 not_equal_delim = alphanum + newline + whitespace + ['(', '!','\"']
 modulo_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
-and_delim = plaintext_delim + ['(', '\"', '\n', '/', '!']
+and_or_delim =  alphabetic_chars + whitespace + ['(', '\n', '/', '!']
 multi_assign_delim = list(set(arithmetic_delim + ['/']))
 divi_assign_delim = list(set(arithmetic_delim + ['/']))
-or_delim = plaintext_delim + ['(', '\"', '\n', '/', '!']
 increment_delim = alphabetic_chars + newline_delim + [')', ';', '/', '-', '*', '%', '(']
 add_assign_delim = list(set(arithmetic_delim + ['/', '\"']))
 equal_equal_delim = list(set(arithmetic_delim + ['\"', '/', '!']))
@@ -1236,7 +1236,7 @@ def lexer(code):
             # , symbol
             if (currState == 'COMMA_CHECK'):
                 expected = ['alphanum', ' ', '/']
-                if (code[i] in commdot_delim):
+                if (code[i] in comma_delim):
                     add_token(currToken, ',', currLine, currCol)
                 else:
                     currToken += code[i]
@@ -1246,7 +1246,7 @@ def lexer(code):
                 expected = ['alphanum', '/'] + whitespace
                 if (code[i] in numbers):
                     currState = 's267'
-                elif (code[i] in commdot_delim):
+                elif (code[i] in dot_delim):
                     add_token(currToken, '.', currLine, currCol)
                 else:
                     currToke += code[i]
@@ -1543,8 +1543,8 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # && symbol
             if (currState == 'LOGICAND_CHECK'):
-                expected = ['alphanum', ' ', '(', '\"', '/', '!']
-                if (code[i] in and_delim):
+                expected = ['alphabetic_chars', ' ', '(', '/', '!']
+                if (code[i] in and_or_delim):
                     add_token(currToken, '&&', currLine, currCol)
                 else:
                     currToken += code[i]
@@ -1567,8 +1567,8 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # || symbol
             if (currState == 'LOGICOR_CHECK'):
-                expected = ['alphanum', ' ', '(', '\"', '/', '!']
-                if (code[i] in or_delim):
+                expected = ['alphabetic_chars', ' ', '(', '/', '!']
+                if (code[i] in and_or_delim):
                     add_token(currToken, '||', currLine, currCol)
                 else:
                     currToken += code[i]
