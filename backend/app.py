@@ -49,7 +49,7 @@ comma_delim = dot_delim + ['(']
 slash_delim = plaintext_delim + ['\n', '(', '+', '-']
 question_delim = newline + plaintext_delim + ['(', '/', '\"']
 colon_delim = newline + plaintext_delim + ['(', '/', '\"']
-open_bracket_delim = alphanum + whitespace + ['\n', '/', '(']
+open_bracket_delim = alphanum + whitespace + ['\n', '/', '(', ']']
 open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/']
 close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}']
 plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
@@ -74,7 +74,7 @@ loop_delim = whitespace + newline + ['(', '/']
 block_delim = whitespace + newline + ['{', '/']
 break_ret_cont_delim = newline_delim + [';', '/']
 case_delim = newline_delim + ['(', '/']
-iden_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '{', '?', ':', ';']
+iden_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '{', '}', '?', ':', ';']
 str_lit_delim = list(set(newline + whitespace + logical_operator_delim + ['+', ')', ',', ';', '/', ':', '!', '=']))
 nbl_delim = list(set(arithmetic_operator + relational_operator_delim + logical_operator_delim + whitespace + newline + [',', ')', ']', '}', ':', '=', ';', '/']))
 func_delim = newline_delim + ['/', '(']
