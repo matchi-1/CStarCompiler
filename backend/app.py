@@ -1362,6 +1362,7 @@ def lexer(code):
                 elif(code[i] in alphanum + ['_']):
                     currState = 's100'
                 else:
+                    currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # println statement
             if (currState == 'PRINTLN_CHECK'):
