@@ -41,7 +41,7 @@ closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operat
 close_paren_delim = list(set(closing_delim + [';', '/']))
 semicolon_delim = newline_delim + plaintext_delim + ['}', '/']
 negative_delim = list(set(arithmetic_delim + ['/', '+']))
-exclamation_delim = alphanum + newline + whitespace + ['(', '/', '!']
+exclamation_delim = alphabetic_chars + newline + whitespace + ['(', '/', '!']
 percent_delim = list(set(arithmetic_delim + ['/']))
 asterisk_delim = list(set(arithmetic_delim + ['/', '+', '-']))
 commdot_delim = plaintext_delim + ['\n', '/']
@@ -1197,30 +1197,42 @@ def lexer(code):
                 expected = ['alphanum', ' ', '(', '+', '/']
                 if (code[i] in negative_delim):
                     add_token(currToken, '-', currLine, currCol)
-                else:
+                elif (code[i] in ['-', '=']):
                     print('(dbg) going to s170')
                     currState = 's170'
+                else:
+                    currToken += code[i]
+                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # ! symbol
             if (currState == 'NEGATION_CHECK'):
                 expected = ['alphanum', '(', '/', '!'] + whitespace + newline
                 if (code[i] in exclamation_delim):
                     add_token(currToken, '!', currLine, currCol)
-                else:
+                elif (code[i] == '='):
                     currState = 's178'
+                else:
+                    currToken += code[i]
+                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # % symbol
             if (currState == 'MODULO_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in percent_delim):
                     add_token(currToken, '%', currLine, currCol)
-                else:
+                elif (code[i] == '='):
                     currState = 's180'
+                else:
+                    currToken += code[i]
+                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # * symbol
             if (currState == 'ASTERISK_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/']
                 if (code[i] in asterisk_delim):
                     add_token(currToken, '*', currLine, currCol)
-                else:
+                elif (code[i] in ['/', '=']):
                     currState = 's191'
+                else:
+                    currToken += code[i]
+                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # , symbol
             if (currState == 'COMMA_CHECK'):
                 expected = ['alphanum', ' ', '/']
@@ -1237,14 +1249,18 @@ def lexer(code):
                 elif (code[i] in commdot_delim):
                     add_token(currToken, '.', currLine, currCol)
                 else:
+                    currToke += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # / symbol
             if (currState == 'SLASH_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-']
                 if (code[i] in slash_delim):
                     add_token(currToken, '/', currLine, currCol)
-                else:
+                elif (code[i] in ['*', '/', '=']):
                     currState = 's246'
+                else:
+                    currToke += code[i]
+                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # ? symbol
             if (currState == 'QUESTION_CHECK'):
                 expected = ['alphanum', '(', '/', '\"'] + newline
@@ -1307,15 +1323,21 @@ def lexer(code):
                 if (code[i] in great_less_delim):
                     print("(dbg) arithmetic spotted for <")
                     add_token(currToken, '<', currLine, currCol)
-                else:
+                elif (code[i] == '='):
                     currState = 's232'
+                else:
+                    currToken += code[i]
+                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # > symbol
             if (currState == 'CLOSING_ANGLE_CHECK'):
                 expected = ['alphanum', ' ', '(', ';', '+', '-', '/'] + newline
                 if (code[i] in great_delim):
                     add_token(currToken, '>', currLine, currCol)
-                else:
+                elif (code[i] == '='):
                     currState = 's236'
+                else:
+                    currToken += code[i]
+                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # = symbol
             if (currState == 'ASSIGN_CHECK'):
                 expected = ['alphanum', ' ', '\"', '+', '-', '/', '!']
@@ -1489,6 +1511,9 @@ def lexer(code):
                 expected = whitespace + ['alphanum'] + [';', ')', '/', '+', '*', '%', '('] + newline
                 if (code[i] in decrement_delim):
                     add_token(currToken, '--', currLine, currCol)
+                elif (code[i] in numbers):
+                    currToken += code[i]
+                    add_error(adjustConstNumError(currToken, currLine, currCol, lineContent))
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1553,6 +1578,9 @@ def lexer(code):
                 expected = whitespace + ['alphanum', ')', ';', '/', '-', '*', '%', '(']
                 if (code[i] in increment_delim):
                     add_token(currToken, '++', currLine, currCol)
+                elif (code[i] in numbers):
+                    currToken += code[i]
+                    add_error(adjustConstNumError(currToken, currLine, currCol, lineContent))
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1979,7 +2007,7 @@ def generateError(errorType, currToken, currLine, currCol, lineContent, addition
     """
     print('(dbg) currToken ', currToken)
     print('(dbg) currCol ', currCol)
-    errorMsg = f'Lexical Error ({currLine}, {currCol - len(currToken)}): {errorType} {currToken[:-1]}\n'
+    errorMsg = f'Lexical Error ({currLine}, {currCol - len(currToken)}): {errorType} {currToken}\n'
     errorMsg += lineContent + '\n'
     errorMsg += '_' * (currCol - len(currToken) - 2) + '^\n'
     if additionalInfo:
@@ -1992,7 +2020,7 @@ def generateError(errorType, currToken, currLine, currCol, lineContent, addition
 def delimError(currToken, currLine, currCol, incorrectDelim, lineContent, expected):
     errorType = f"Unexpected {'newline' if incorrectDelim == '\\n' else incorrectDelim} for"
     additionalInfo = f"Expected delimiters: {expected}"
-    return generateError(errorType, currToken, currLine, currCol, lineContent, additionalInfo)
+    return generateError(errorType, currToken[:-1], currLine, currCol, lineContent, additionalInfo)
 
 def idenFirstError(currToken, currLine, currCol, lineContent):
     errorType = "Identifier must start with an alpha character"
@@ -2020,6 +2048,10 @@ def fracPrecError(currToken, currLine, currCol, lineContent):
 
 def unexpectedSymbol(currToken, currLine, currCol, lineContent):
     errorType = "Unexpected symbol"
+    return generateError(errorType, currToken, currLine, currCol, lineContent)
+
+def adjustConstNumError(currToken, currLine, currCol, lineContent):
+    errorType = "Cannot adjust constant number"
     return generateError(errorType, currToken, currLine, currCol, lineContent)
 
 #---TOKEN CLASS---#
