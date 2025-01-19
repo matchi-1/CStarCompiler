@@ -134,6 +134,8 @@ def transition(currState, currChar):
             return 'SEMICOLON_CHECK'
         elif(currChar == '?'):
             return 'QUESTION_CHECK'
+        elif(currChar == ':'):
+            return 'COLON_CHECK'
         elif(currChar == '['):
             return 'OPEN_BRACKET_CHECK'
         elif(currChar == ']'):
@@ -1039,6 +1041,8 @@ def lexer(code):
     currCol = 1
     currWholeCount = 0
     currFracCount = 0
+    wholeError = False
+    fracError = False
     char_esc = False
     # first_char = True
 
@@ -1790,19 +1794,28 @@ def lexer(code):
                 currWholeCount += 1
                 currToken += code[i]
                 if (currWholeCount > 19):
-                    add_error(wholeRangeError(currToken, currLine, currCol, lineContent))
-                    currWholeCount = 0
-                    currFracCount = 0
+                    if (wholeError):
+                        errors.pop()
+                    errors.append(wholeRangeError(currToken, currLine, currCol, lineContent))
+                    wholeError = True
+                    continue
                 else:
                     continue
-            if (code[i] in nbl_delim):
+            if (code[i] in nbl_delim and not wholeError):
                 add_token(currToken, 'whole_lit', currLine, currCol)
                 currWholeCount = 0
                 currFracCount = 0
-            elif (code[i] != '.'):
+            elif (code[i] != '.' and not wholeError):
                 currToken += code[i]
                 expected = nbl_delim
+                print('(dbg) whole lit delim error')
                 add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                currWholeCount = 0
+                currFracCount = 0
+            elif (code[i] != '.'):
+                wholeError = False
+                currState = 's0'
+                currToken = ''
                 currWholeCount = 0
                 currFracCount = 0
         #end of whole number
@@ -1812,19 +1825,28 @@ def lexer(code):
                 currFracCount += 1
                 currToken += code[i]
                 if (currFracCount > 16): 
-                    add_error(fracPrecError(currToken, currLine, currCol, lineContent))
-                    currWholeCount = 0
-                    currFracCount = 0
+                    if (fracError):
+                        errors.pop()
+                    errors.append(fracPrecError(currToken, currLine, currCol, lineContent))
+                    fracError = True
+                    continue
                 else:
                     continue
-            if (code[i] in nbl_delim):
+            if (code[i] in nbl_delim and not (wholeError or fracError)):
                     add_token(currToken, 'frac_lit', currLine, currCol)
                     currWholeCount = 0
                     currFracCount = 0
-            else:
+            elif not (wholeError or fracError):
                 currToken += code[i]
                 expected = nbl_delim
                 add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                currWholeCount = 0
+                currFracCount = 0
+            else:
+                wholeError = False
+                fracError = False
+                currState = 's0'
+                currToken = ''
                 currWholeCount = 0
                 currFracCount = 0
         #end of fractional number
@@ -1855,7 +1877,7 @@ def lexer(code):
             if (char_esc):
                 if (code[i] not in ['\'', '\"', '\\', 't', 'n', 'b']):
                     print('(dbg) esc seq error')
-                    add_error(charEscSeqError(currToken, currLine, currCol, lineContent))
+                    add_error(escSeqError(currToken, currLine, currCol, lineContent))
                 else:
                     currToken += code[i]
                 char_esc = False
@@ -1980,8 +2002,8 @@ def stringMissingClose(currToken, currLine, currCol, lineContent):
     errorType = "Missing closing \" for string literal"
     return generateError(errorType, currToken, currLine, currCol, lineContent)
 
-def charEscSeqError(currToken, currLine, currCol, lineContent):
-    errorType = "Invalid escape sequence for character literal"
+def escSeqError(currToken, currLine, currCol, lineContent):
+    errorType = "Invalid escape sequence for string literal"
     return generateError(errorType, currToken, currLine, currCol, lineContent)
 
 def charLengthError(currToken, currLine, currCol, lineContent):
