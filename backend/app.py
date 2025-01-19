@@ -1249,7 +1249,7 @@ def lexer(code):
                 elif (code[i] in dot_delim):
                     add_token(currToken, '.', currLine, currCol)
                 else:
-                    currToke += code[i]
+                    currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # / symbol
             if (currState == 'SLASH_CHECK'):
@@ -1259,7 +1259,7 @@ def lexer(code):
                 elif (code[i] in ['*', '/', '=']):
                     currState = 's246'
                 else:
-                    currToke += code[i]
+                    currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # ? symbol
             if (currState == 'QUESTION_CHECK'):
@@ -1353,7 +1353,6 @@ def lexer(code):
                 elif(code[i] in alphanum + ['_']):
                     currState = 's83'
                 else:
-                    currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # print statement
             if (currState == 'PRINT_CHECK'):
