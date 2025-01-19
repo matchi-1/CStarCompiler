@@ -1205,7 +1205,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # ! symbol
             if (currState == 'NEGATION_CHECK'):
-                expected = ['alphanum', '(', '/', '!'] + whitespace + newline
+                expected = ['alphabetic_chars', '(', '/', '!'] + whitespace + newline
                 if (code[i] in exclamation_delim):
                     add_token(currToken, '!', currLine, currCol)
                 elif (code[i] == '='):
