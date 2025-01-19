@@ -29,7 +29,6 @@ assignment_operator = ['=', '+=', '-=', '*=', '/=']
 newline = ['\n']
 
 plaintext_delim = whitespace + alphanum
-equal_delim = newline + whitespace + ['=', '/']
 arithmetic_delim = newline + plaintext_delim + ['(', '/']
 relational_operator_delim = ['<', '>', '=', '!']
 logical_operator_delim = ['!', '&', '|']
@@ -55,7 +54,7 @@ close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}']
 plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
 great_less_delim = list(set(arithmetic_delim + ['/']))
 great_delim = great_less_delim + [';']
-equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '!']))
+equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '!','=','{']))
 in_delim = newline_delim + ['<', '/']
 this_delim = newline_delim + ['.', '/']
 void_delim = newline + whitespace + ['/']
