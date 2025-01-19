@@ -62,10 +62,9 @@ decrement_delim = alphabetic_chars + whitespace + newline + [';', ')', '/', '+',
 subtract_assign_delim = list(set(arithmetic_delim + ['/']))
 not_equal_delim = alphanum + newline + whitespace + ['(', '!','\"']
 modulo_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
-and_delim = plaintext_delim + ['(', '\"', '\n', '/', '!']
+and_or_delim =  alphabetic_chars + whitespace + ['(', '\n', '/', '!']
 multi_assign_delim = list(set(arithmetic_delim + ['/']))
 divi_assign_delim = list(set(arithmetic_delim + ['/']))
-or_delim = plaintext_delim + ['(', '\"', '\n', '/', '!']
 increment_delim = alphabetic_chars + newline_delim + [')', ';', '/', '-', '*', '%', '(']
 add_assign_delim = list(set(arithmetic_delim + ['/', '\"']))
 equal_equal_delim = list(set(arithmetic_delim + ['\"', '/', '!']))
@@ -1543,8 +1542,8 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # && symbol
             if (currState == 'LOGICAND_CHECK'):
-                expected = ['alphanum', ' ', '(', '\"', '/', '!']
-                if (code[i] in and_delim):
+                expected = ['alphabetic_chars', ' ', '(', '/', '!']
+                if (code[i] in and_or_delim):
                     add_token(currToken, '&&', currLine, currCol)
                 else:
                     currToken += code[i]
@@ -1567,8 +1566,8 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # || symbol
             if (currState == 'LOGICOR_CHECK'):
-                expected = ['alphanum', ' ', '(', '\"', '/', '!']
-                if (code[i] in or_delim):
+                expected = ['alphabetic_chars', ' ', '(', '/', '!']
+                if (code[i] in and_or_delim):
                     add_token(currToken, '||', currLine, currCol)
                 else:
                     currToken += code[i]
