@@ -4,7 +4,8 @@ PREDICT_SETS = {
     "std_lib": ["Cmath", "Cstring", "Carray"],
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_types": ["bool", "string", "int", "long", "double", "float"],
-    "class_body": [ "private" ,'static', "const", "int", "long", "bool", "float", "double", "string", "Identifier" , "private", "class", "}"]
+    "class_body": [ "private" ,'static', "const", "int", "long", "bool", "float", "double", "string", "Identifier" , "private", "class", "}"],
+    "literals": ["whole_lit", "frac_lit", "string_lit", "Identifier"] # need to add expressions here in the future
 }
 
 # reminders for predict sets:
@@ -19,9 +20,11 @@ PREDICT_SETS = {
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
     def __init__(self, tokens):
-        self.classNames = []
-        self.inClassBody = False
-        self.inConstructor = False
+        self.dimensionCount = 0         #for 1d or 2d array inits | counts dimensions 
+        self.isDefaultValRec = False    #for params_dec | checks if all of the default values are on the rightmost side
+        self.classNames = []            #for checking if constructor name matches class name
+        self.inClassBody = False        #for redirecting to <class_body> instead of <program_constructs>
+        self.inConstructor = False      #for not requiring 'return' in function_dec()
         self.errors = []
         self.tokens = [token.to_dict() 
             for token in tokens 
@@ -490,7 +493,8 @@ class SyntaxAnalyzer:
         if not self.match("("):
             self.ERROR_expected_token("(")
             
-        ############### PARAM RULES HERE
+        self.params_dec() ############### PARAM RULES HERE
+        
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
 
@@ -575,21 +579,21 @@ class SyntaxAnalyzer:
         print("(parser) production: \"class_body\" detected")
         self.inClassBody = True
         self.matchPredictSet("class_body")
-        if self.currToken and self.currToken["tokenType"] == "private":
+
+        if self.currToken and self.currToken["tokenType"] == "private": # 17. <is_private> 
             self.match("private")
             if self.currToken["tokenType"] != "static" and self.currToken["tokenType"] != "Identifier" or not self.currToken and self.currToken["tokenType"] != "class":
                 self.logError("Expected Identifier, token 'class', or token 'static'.")
         
-        if self.currToken and self.currToken["tokenType"] == "class":
+        if self.currToken and self.currToken["tokenType"] == "class": # 22. <class_declaration>
             self.class_declaration()
-            #also goes back to program_constructs, it really shouldnt
 
     
-        if self.currToken and self.currToken["tokenType"] == "static":
+        if self.currToken and self.currToken["tokenType"] == "static": # 26. <is_static> 
             self.match("static")
             self.var_dec()      #attribute dec equivaelnt
 
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_types"]: #attribute or method path
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_types"]: #attribute_dec or method_dec path
             self.nextToken()
             if self.match("Identifier"): 
                     if self.currToken and self.currToken["tokenType"] == "(":
@@ -620,3 +624,93 @@ class SyntaxAnalyzer:
 
         if not self.currToken:
             self.ERROR_unclosed_curly_braces()
+
+    def params_dec(self):
+        print("(parser) production: \"params_dec\" detected")
+
+        if self.currToken and self.currToken["tokenType"] != ")":
+            if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
+                self.logError("Expected data type or Identifier.")
+            self.nextToken()
+
+            if self.match("Identifier"):
+                if self.match("[") and self.currToken:
+                    if not self.match("]"):
+                        self.ERROR_unclosed_square_bracket()
+                    self.dimensionCount+=1
+                    print("self.dimensionNum = ", self.dimensionCount) ##
+
+                if self.match("[") and self.currToken:
+                    if not self.match("]"):
+                        self.ERROR_unclosed_square_bracket()
+                    self.dimensionCount+=1
+                    print("self.dimensionNum = ", self.dimensionCount) ##
+
+                if self.currToken and self.currToken["tokenType"] == "[":
+                    self.logError("Only up to two dimensional arrays are allowed.")
+            else: self.ERROR_expected_Identifier()
+            
+            if self.currToken and self.currToken["tokenType"] == "=":
+                self.isDefaultValRec = self.match("=")
+                if self.dimensionCount <= 0:
+                    self.matchPredictSet("literals")
+                    self.nextToken()
+                else:
+                    if self.currToken and not self.match("{"):
+                        self.logError("Expected array initialization. E.g. {value, value, value, ...}")
+                        # placeholder error for now
+                    self.array_init()
+                    print("Outside array_init")
+                    if self.currToken and not self.match("}"):
+                        self.ERROR_unclosed_curly_braces()
+            
+            if self.currToken and self.isDefaultValRec and self.currToken["tokenType"] != "=" and self.currToken["tokenType"] != ",":
+                self.logError("No non-default argument must follow default argument.")
+                
+            if self.currToken and self.currToken["tokenType"] == ",":
+                self.match(",")
+                if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
+                    self.logError("Expected data type or Identifier.")
+                self.params_dec()
+
+        
+        
+    def array_init(self):   #starts after token "{" ### uses self.dimensionCount
+        print(f"(parser) production: \"array_init #{self.dimensionCount}\" detected")
+
+        if self.dimensionCount == 2:        # for 2d arrays
+            if not self.match("{"):
+                self.ERROR_expected_token("{")
+
+            self.dimensionCount-=1
+            self.array_init()       #go into array_init as 1d array
+            print("back as 2d array")
+            self.dimensionCount+=1
+
+            if self.currToken and self.currToken["tokenType"] == ",":
+                self.match(",")
+                self.array_init()   #go into array_init as 2d array
+
+            elif not self.currToken or not self.match("}"):     #outer 2d array closing bracket
+                print("from 2d na error")
+                self.ERROR_unclosed_curly_braces()
+
+        else:               #for 1d array and inner 2darray thingy
+            self.matchPredictSet("literals")
+            self.nextToken()
+
+            if self.currToken and self.currToken["tokenType"] == ",":
+                    self.match(",")
+                    if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["literals"] and self.currToken["tokenType"] != "Identifier":
+                        self.logError("Expected literal or Identifier.")
+                    self.array_init()
+
+            elif self.currToken and self.currToken["tokenType"] == "}":      #inner 1d array closing bracket
+                self.match("}")
+            
+            else:
+                print("from 1d na error")
+                self.ERROR_unclosed_curly_braces()
+            
+
+        
