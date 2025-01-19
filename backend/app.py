@@ -36,7 +36,7 @@ newline_delim = newline + whitespace + ['/']
 default_delim = newline + whitespace + [':', '/']
 type_iden_delim = newline + whitespace + ['[', '>', '/',')']
 get_set_delim = newline + whitespace + ['{', ';', '/']
-open_paren_delim = list(set(arithmetic_delim + ['\"', '!', ')', '\n', '/']))
+open_paren_delim = list(set(arithmetic_delim + ['\"', '!', ')', '\n', '/', '+', '-']))
 closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?']))
 close_paren_delim = list(set(closing_delim + [';', '/']))
 semicolon_delim = newline_delim + plaintext_delim + ['}', '/']
@@ -44,7 +44,8 @@ negative_delim = list(set(arithmetic_delim + ['/', '+']))
 exclamation_delim = alphabetic_chars + newline + whitespace + ['(', '/', '!']
 percent_delim = list(set(arithmetic_delim + ['/']))
 asterisk_delim = list(set(arithmetic_delim + ['/', '+', '-']))
-commdot_delim = plaintext_delim + ['\n', '/']
+dot_delim = plaintext_delim + ['\n', '/']
+comma_delim = dot_delim + ['(']
 slash_delim = plaintext_delim + ['\n', '(', '+', '-']
 question_delim = newline + plaintext_delim + ['(', '/', '\"']
 colon_delim = newline + plaintext_delim + ['(', '/', '\"']
@@ -1235,7 +1236,7 @@ def lexer(code):
             # , symbol
             if (currState == 'COMMA_CHECK'):
                 expected = ['alphanum', ' ', '/']
-                if (code[i] in commdot_delim):
+                if (code[i] in comma_delim):
                     add_token(currToken, ',', currLine, currCol)
                 else:
                     currToken += code[i]
@@ -1245,7 +1246,7 @@ def lexer(code):
                 expected = ['alphanum', '/'] + whitespace
                 if (code[i] in numbers):
                     currState = 's267'
-                elif (code[i] in commdot_delim):
+                elif (code[i] in dot_delim):
                     add_token(currToken, '.', currLine, currCol)
                 else:
                     currToke += code[i]
