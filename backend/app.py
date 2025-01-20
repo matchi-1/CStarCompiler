@@ -2096,6 +2096,7 @@ def compile_code():
 
     # Convert Token objects to dictionaries
     tokens_dict = [token.to_dict() for token in tokens]
+    print(tokens_dict) #for testing
 
     # Create a JSON-serializable response
     response = {
