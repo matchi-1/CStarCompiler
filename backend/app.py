@@ -60,8 +60,8 @@ in_delim = newline_delim + ['<', '/']
 this_delim = newline_delim + ['.', '/']
 void_delim = newline + whitespace + ['/']
 decrement_delim = alphabetic_chars + whitespace + newline + [';', ')', '/', '+', '*', '%', '(']
-subtract_assign_delim = list(set(arithmetic_delim + ['/']))
-not_equal_delim = alphanum + newline + whitespace + ['(', '!','\"']
+subtract_assign_delim = list(set(arithmetic_delim + ['/','+','-']))
+not_equal_delim = alphanum + newline + whitespace + ['(', '!','\"','+','-']
 modulo_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
 and_or_delim =  alphabetic_chars + whitespace + ['(', '\n', '/', '!']
 multi_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
@@ -1528,7 +1528,7 @@ def lexer(code):
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # != symbol
             if (currState == 'NOT_EQUAL_CHECK'):
-                expected = whitespace + ['alphanum', '(', '"', '!'] + newline
+                expected = whitespace + ['alphanum', '(', '"', '!','+','-'] + newline
                 if (code[i] in not_equal_delim):
                     add_token(currToken, '!=', currLine, currCol)
                 else:
@@ -2089,7 +2089,7 @@ def compile_code():
     # Calls syntax analyzer
     try:
         analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        errors += analyzer.parse()    # comment out to just test for lexer
+        #errors += analyzer.parse()    # comment out to just test for lexer
     except SyntaxError as e:
         print(e)
 
