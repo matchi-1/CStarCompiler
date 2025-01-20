@@ -451,24 +451,32 @@ class SyntaxAnalyzer:
         self.program_constructs()
 
     # TODO
-    def var_dec(self):
+    def var_dec(self):      #starts at token '=' or 'const' or 'data_types'
         print("(parser) production: \"var_dec\" detected")
 
+        if not self.currToken:
+            self.matchPredictSet("data_types")
+        
         if self.currToken and self.currToken["tokenType"] != "=": # if not from second calling from program_construct
             if self.currToken["tokenType"] == "const":
                 self.match("const")
+
             self.matchPredictSet("data_types")
             self.nextToken()
+            
             if not self.match("Identifier"):
                 self.ERROR_expected_Identifier()
 
+            ############# ID MODS HERE
+
         
-        if not self.match("="):
-            self.ERROR_expected_token("=")
-        ############# VAR ASSIGN RULES HERE
+        if self.currToken and self.currToken["tokenType"] == "=":
+            self.match("=")
+            ############# VAR ASSIGN RULES HERE
+
+
         if not self.match(";"): 
-            self.logError("error expected ';', this error only placeholder because no logic pa")
-            self.ERROR_expected_token(";")
+            self.ERROR_terminating_token(";")
         
         if not self.inClassBody:
             self.program_constructs()
@@ -505,7 +513,9 @@ class SyntaxAnalyzer:
         if isNotVoid and not self.inConstructor:
             if not self.match("return"):
                 self.logError("Non-void functions must have return statement.")
-            ### uhmmm how to check return type and if it matches return statement?
+            ### TODO: how to check return type and if it matches return statement?
+
+            ################## <return_block> or <ret_value> HERE
 
             if not self.match(";"):
                 self.logError("just add ';' for now, no logic for return vals yet")
@@ -582,13 +592,14 @@ class SyntaxAnalyzer:
 
         if self.currToken and self.currToken["tokenType"] == "private": # 17. <is_private> 
             self.match("private")
-            if self.currToken["tokenType"] != "static" and self.currToken["tokenType"] != "Identifier" or not self.currToken and self.currToken["tokenType"] != "class":
+            if not self.currToken:
+                self.logError("Expected Identifier, token 'class', or token 'static'.")
+            elif self.currToken["tokenType"] != "static" and self.currToken["tokenType"] != "Identifier" and self.currToken["tokenType"] != "class":
                 self.logError("Expected Identifier, token 'class', or token 'static'.")
         
         if self.currToken and self.currToken["tokenType"] == "class": # 22. <class_declaration>
-            self.class_declaration()
+            self.class_declaration()       #subclass declaration
 
-    
         if self.currToken and self.currToken["tokenType"] == "static": # 26. <is_static> 
             self.match("static")
             self.var_dec()      #attribute dec equivaelnt
@@ -597,11 +608,11 @@ class SyntaxAnalyzer:
             self.nextToken()
             if self.match("Identifier"): 
                     if self.currToken and self.currToken["tokenType"] == "(":
-                        self.function_dec()
+                        self.function_dec()     # method
                     elif self.currToken and self.currToken["tokenType"] == "=":
-                        self.var_dec()
-                    else:
-                        self.ERROR_expected_token(["(","="])
+                        self.var_dec()          # attribute
+                    elif self.currToken and self.currToken["tokenType"] != ";":
+                        self.ERROR_expected_token(["(","=", ";"])
             else:
                 self.logError("Expected a variable declaration or function declaration.")
 
@@ -611,13 +622,13 @@ class SyntaxAnalyzer:
                 self.classNames.pop()
                 if self.currToken and self.currToken["tokenType"] == "(":
                     self.inConstructor = True
-                    self.function_dec() #maybe revisit in da future
+                    self.function_dec() #TODO: maybe revisit in da future
                                         
                 else:
                     self.ERROR_expected_token("(")
             else:
                 self.logError("Expected data type or access modifier ('private' or 'static'). Constructors must have the same name as its class.") 
-                #???? placeholder
+                #TODO: fix error message here, just a placeholder
         
         if self.currToken and self.currToken["tokenType"] != "}":
             self.class_body()
@@ -638,21 +649,19 @@ class SyntaxAnalyzer:
                     if not self.match("]"):
                         self.ERROR_unclosed_square_bracket()
                     self.dimensionCount+=1
-                    print("self.dimensionNum = ", self.dimensionCount) ##
 
                 if self.match("[") and self.currToken:
                     if not self.match("]"):
                         self.ERROR_unclosed_square_bracket()
                     self.dimensionCount+=1
-                    print("self.dimensionNum = ", self.dimensionCount) ##
 
                 if self.currToken and self.currToken["tokenType"] == "[":
                     self.logError("Only up to two dimensional arrays are allowed.")
             else: self.ERROR_expected_Identifier()
             
             if self.currToken and self.currToken["tokenType"] == "=":
-                self.isDefaultValRec = self.match("=")
-                if self.dimensionCount <= 0:
+                self.isDefaultValRec = self.match("=")  # when '=' is matched in params, isDefaultValRec becomes true
+                if self.dimensionCount <= 0:        #handle when param init not array
                     self.matchPredictSet("literals")
                     self.nextToken()
                 else:
@@ -661,6 +670,7 @@ class SyntaxAnalyzer:
                         # placeholder error for now
                     self.array_init()
                     print("Outside array_init")
+                    self.dimensionCount = 0
                     if self.currToken and not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
             
@@ -671,12 +681,16 @@ class SyntaxAnalyzer:
                 self.match(",")
                 if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
                     self.logError("Expected data type or Identifier.")
-                self.params_dec()
+                self.params_dec()   #recurse when ',' is found
 
         
         
-    def array_init(self):   #starts after token "{" ### uses self.dimensionCount
+    def array_init(self):   
         print(f"(parser) production: \"array_init #{self.dimensionCount}\" detected")
+        
+        # data_type Identifier[int_val][int_val] = {
+        #                                            ^ starts AFTER token "{" 
+        # uses self.dimensionCount
 
         if self.dimensionCount == 2:        # for 2d arrays
             if not self.match("{"):
@@ -684,7 +698,7 @@ class SyntaxAnalyzer:
 
             self.dimensionCount-=1
             self.array_init()       #go into array_init as 1d array
-            print("back as 2d array")
+            # print("back as 2d array")
             self.dimensionCount+=1
 
             if self.currToken and self.currToken["tokenType"] == ",":
@@ -692,24 +706,24 @@ class SyntaxAnalyzer:
                 self.array_init()   #go into array_init as 2d array
 
             elif not self.currToken or not self.match("}"):     #outer 2d array closing bracket
-                print("from 2d na error")
+                # print("from 2d na error")
                 self.ERROR_unclosed_curly_braces()
 
-        else:               #for 1d array and inner 2darray thingy
-            self.matchPredictSet("literals")
+        else:               #for 1d array and inner 2darray {}'s
+            self.matchPredictSet("literals")    #TODO: maybe add different error here? pwede expressions d2 but not yet implemented
             self.nextToken()
 
             if self.currToken and self.currToken["tokenType"] == ",":
                     self.match(",")
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["literals"] and self.currToken["tokenType"] != "Identifier":
                         self.logError("Expected literal or Identifier.")
-                    self.array_init()
+                    self.array_init()       #recurse if found a ',' token
 
             elif self.currToken and self.currToken["tokenType"] == "}":      #inner 1d array closing bracket
                 self.match("}")
             
             else:
-                print("from 1d na error")
+                #print("from 1d na error")
                 self.ERROR_unclosed_curly_braces()
             
 
