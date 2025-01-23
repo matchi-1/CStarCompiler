@@ -423,8 +423,8 @@ class SyntaxAnalyzer:
                     self.logError("Expected a variable declaration or function declaration.")
     
         ############ FOR TESTING ONLY, WILL BE MOVED --------------------------------------------------------------------------------------
-        if self.currToken and self.matchPredictSet("print_stmts"):
-            self.output()
+        #if self.currToken and self.matchPredictSet("print_stmts"):
+        #    self.output()
 
 
 
@@ -740,14 +740,7 @@ class SyntaxAnalyzer:
     #    print("(parser) entered production: \"output\"")
     #    self.nextToken()
     #    self.match("(")
-
-
-    #    if self.currToken and self.currToken["tokenType"] == "(":
-    #        self.match("(")
-    #    else:
-    #        self.ERROR_expected_token("(")
-
-
+    #    self.
 
     '''<print_stmts> → print | println'''
 
