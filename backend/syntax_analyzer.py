@@ -229,7 +229,13 @@ class SyntaxAnalyzer:
         self.logError("Expected Identifier.")
 
     def ERROR_missing_initializer(self):
-        self.logError("Expected initializer before " + self.currToken["tokenName"])
+        if self.currToken:
+            error_message = f"Expected initializer before '{self.currToken['tokenName']}'"
+        else:
+            error_message = "Expected initializer but reached EOF (End of File)"
+        
+        self.logError(error_message)
+
 
     def ERROR_missing_condition(self):
         self.logError(f"Expected condition after '{self.tokens[self.currToken_index - 1]}'")
@@ -585,13 +591,19 @@ class SyntaxAnalyzer:
             self.logError("Expected an identifier for class instantiation.")  # MICH CURRENTLY DOING
             # This error is just a placeholder habang wala pang semantic, cos normally it should identify if existing na ung class
 
-        
+        print("parsed IDENTIFIER1")
+
         # Parse the second Identifier (variable name)
-        if self.currToken and not self.match("Identifier"):
-            self.ERROR_missing_initializer() 
+        if self.currToken and self.currToken["tokenType"] == "Identifier":
+            self.match("Identifier")
+            print("parsed IDENTIFIER2")
+        else:
+            self.ERROR_missing_initializer()
         
+        print("parsed IDENTIFIER2")
+
         # check continuation (if single class instantiation or w/ constructor)
-        self.classinst_cont()
+        #self.classinst_cont()
 
         # Match the semicolon at the end
         if not self.match(";"):
@@ -599,6 +611,29 @@ class SyntaxAnalyzer:
 
         # Continue parsing program constructs
         self.program_constructs()
+    
+
+    # def classinst_cont(self):
+    #     # Handle <classinst_cont>
+    #     if self.currToken and self.currToken["tokenType"] == "=":
+    #         self.match("=")
+    #         if not self.match("Identifier"):
+    #             self.logError(" ") ################################################
+            
+    #         # (  )   self.func_arg()  # Handle (<func_arg>)
+
+    #     elif self.currToken and self.currToken["tokenType"] == "[":################################################
+    #         self.match("[")
+    #         self.int_val()  # Parse <int_val> ################################################
+
+    #         if not self.match("]"):
+    #             self.ERROR_unclosed_square_bracket()
+
+    #         #self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr> ################################################
+
+    #     else:
+    #         # null value = no additional tokens after the second identifier. means the line of code was just a simple object instantiation
+    #         pass
 
 
     def class_body(self): # all of these are just 'if's because class_body can be null
