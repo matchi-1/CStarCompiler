@@ -1034,10 +1034,12 @@ class SyntaxAnalyzer:
                         print("(parser) entered production: \"negative_exp\"")
                         #self.negative_exp()
                         print("(parser) exited production: \"negative_exp\"")
+                        break;
                     elif x == ("whole_lit" or "Identifier"):
                         print("(parser) entered production: \"arith_exp\"")
                         #self.arith_exp()
                         print("(parser) exited production: \"arith_exp\"")
+                        break;
                     else:
                         self.logError("Invalid value for 'switch' statement.")
        
