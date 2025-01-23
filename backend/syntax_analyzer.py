@@ -15,7 +15,8 @@ PREDICT_SETS = {
     "ctrl_stmt_body" : ["break", "continue"], # +body
     "iden_mods" : ["("], # TO ADD 
     "arith_operator" : ["+", "-", "*", "/", "%"],
-    "inc_arg" : ["Identifier", "--", "++", "print", "println", "("]
+    "inc_arg" : ["Identifier", "--", "++", "print", "println", "("],
+    "func_arg" : ["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit", ")"]
 }
 
 # reminders for predict sets:
@@ -85,7 +86,7 @@ class SyntaxAnalyzer:
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
             self.nextToken()
             return True
-        elif self.currToken is not None and hasSpecError:
+        elif self.currToken is not None or hasSpecError:
             return False
         else:
             self.ERROR_expected_token(expected_token)
@@ -228,6 +229,13 @@ class SyntaxAnalyzer:
     def ERROR_expected_Identifier(self):
         self.logError("Expected Identifier.")
 
+    def ERROR_expected_Identifier_classes(self):
+        if not self.currToken:  # EOF case
+            self.logError("Expected an identifier, but reached EOF (End of File).")
+        elif not self.match("Identifier"):  # Invalid token case
+            current_value = self.currToken["tokenName"] if self.currToken else "EOF"
+            self.logError(f"Expected an identifier, but found '{current_value}' instead.")
+
     def ERROR_missing_initializer(self):
         if self.currToken:
             error_message = f"Expected initializer before '{self.currToken['tokenName']}'"
@@ -235,6 +243,12 @@ class SyntaxAnalyzer:
             error_message = "Expected initializer but reached EOF (End of File)"
         
         self.logError(error_message)
+
+    def ERROR_expected_constructor_param_closing(self):
+        if self.currToken is None:
+            self.logError("Expected constructor parameter or closing ')', but reached EOF.")
+        else:
+            self.logError(f"Expected constructor parameter or closing ')', but found '{self.currToken['tokenName']}'.")
 
 
     def ERROR_missing_condition(self):
@@ -245,6 +259,8 @@ class SyntaxAnalyzer:
 
     def ERROR_empty_condition(self, condType):
         self.logError(f"Condition cannot be empty for '{condType}' statement")
+
+    
     
 
     #-------------------- CFG START --------------------
@@ -600,10 +616,11 @@ class SyntaxAnalyzer:
         else:
             self.ERROR_missing_initializer()
         
-        print("parsed IDENTIFIER2")
 
         # check continuation (if single class instantiation or w/ constructor)
-        #self.classinst_cont()
+        self.classinst_cont()
+
+        print("(parser-dbg): done after classinst_cont -- should match semicolon")
 
         # Match the semicolon at the end
         if not self.match(";"):
@@ -612,28 +629,70 @@ class SyntaxAnalyzer:
         # Continue parsing program constructs
         self.program_constructs()
     
+    # Handle <classinst_cont>
+    def classinst_cont(self):
+        
+        if self.currToken and self.currToken["tokenType"] == "=":
+            self.match("=")
+            if not self.match("Identifier"):  # should be the same name as the class name [SEMANTIC]
+                self.ERROR_expected_Identifier_classes() ################################################
 
-    # def classinst_cont(self):
-    #     # Handle <classinst_cont>
-    #     if self.currToken and self.currToken["tokenType"] == "=":
-    #         self.match("=")
-    #         if not self.match("Identifier"):
-    #             self.logError(" ") ################################################
+            self.match('(', False)
+
+            self.func_arg()
             
-    #         # (  )   self.func_arg()  # Handle (<func_arg>)
+            if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]:
+                self.ERROR_expected_constructor_param_closing()
 
-    #     elif self.currToken and self.currToken["tokenType"] == "[":################################################
-    #         self.match("[")
-    #         self.int_val()  # Parse <int_val> ################################################
+                
+                
+    
+            # (  )   self.func_arg()  # Handle (<func_arg>)
 
-    #         if not self.match("]"):
-    #             self.ERROR_unclosed_square_bracket()
+        # elif self.currToken and self.currToken["tokenType"] == "[":################################################
+        #     self.match("[")
+        #     self.int_val()  # Parse <int_val> ################################################
 
-    #         #self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr> ################################################
+        #     if not self.match("]"):
+        #         self.ERROR_unclosed_square_bracket()
 
-    #     else:
-    #         # null value = no additional tokens after the second identifier. means the line of code was just a simple object instantiation
-    #         pass
+        #     #self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr> ################################################
+        
+        # else:
+        #     # null value = no additional tokens after the second identifier. means the line of code was just a simple object instantiation
+        #     pass
+
+    def func_arg(self):
+        # Check if there's a value to parse
+        if self.currToken and self.value():
+            # Parse the recursive part of the arguments
+            self.func_arg_rec()
+        else:
+            print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
+    
+
+    def func_arg_rec(self):
+        # Check for a comma indicating more arguments
+        if self.currToken and self.currToken["tokenType"] == ",":
+            self.match(",")  # Match the comma
+            print("(parser) Found ',' indicating more arguments.")
+            
+            # Parse the next <func_arg>
+            self.func_arg()
+        else:
+            print("(parser) λ-production for <func_arg_rec>")  # Handle λ (empty production)
+
+    # SAMPLE PLACEHOLDER FOR VALUE-- SHOULD RETURN TRUE OR FALSE IF VALUE CALL WAS FOR A VALID VALUE OR NOT
+    def value(self):
+        # Check if the current token is a "whole_lit"
+        if self.currToken and self.currToken["tokenType"] == "whole_lit":
+            print(f"(parser) Found value: {self.currToken['tokenName']} (whole_lit)")
+            self.match("whole_lit")  # Match the token
+            return True
+        else:
+            # Log an error if the token is not a valid "whole_lit"
+            self.logError("Expected a value of type 'whole_lit' in function arguments.")
+            return False
 
 
     def class_body(self): # all of these are just 'if's because class_body can be null
