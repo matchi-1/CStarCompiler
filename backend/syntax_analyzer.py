@@ -29,7 +29,8 @@ class SyntaxAnalyzer:
         self.errors = []
         self.tokens = [token.to_dict() 
             for token in tokens 
-            if token.token_type != "single_comment" or "multi-line comment"] # comments will be ignored by the parser
+            if token.token_type != ("single_comment" or "multi-line comment")] # comments will be ignored by the parser
+        # print(self.tokens) #uncomment to check tokens that the parser accepted
         
         if not self.tokens:
             message = "\n\tNo tokens to parse."
@@ -44,7 +45,6 @@ class SyntaxAnalyzer:
 
     #-------------------- PARSER START --------------------
     def parse(self):
-        #print(self.tokens)
         try:
             self.program()
             print("Parsing completed successfully.")
@@ -162,7 +162,7 @@ class SyntaxAnalyzer:
             + (f"\n{context}" if context else "")
         )
         self.errors.append(full_message)
-        #print(full_message) commented it out para hindi doble errors
+        print(full_message)
         raise SyntaxError(full_message)
     
         # TODO: add error highlighter per line of code like  ______ ^
