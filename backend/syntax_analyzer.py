@@ -268,12 +268,6 @@ class SyntaxAnalyzer:
 
                     if self.match("{", False):
                         print("(parser) production: ### inside main")
-   
-
-                    self.match("(", False)
-                    self.match(")", False)
-                    self.match("{", False)
-                    print("(parser) production: ### inside main")
 
                     #### TEMPORARY code block
                     if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
@@ -306,7 +300,7 @@ class SyntaxAnalyzer:
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
 
-                elif self.currToken["tokenName"] == ";":
+                elif self.currToken["tokenName"] == ";":  # int main;  GLOBAL VAR DEC
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
 
@@ -401,15 +395,20 @@ class SyntaxAnalyzer:
         
         if self.currToken and self.matchPredictSet("program_constructs"):  # Top checking for predict sets, will automatically throw error if there are unexpected tokens (di na kailangan ng else statement for unexpected tokens)
             print("(parser-dbg) inside program_constructs: " + str(self.currToken["tokenName"]))
+            
+            # CLASS DEC
             if self.currToken["tokenType"] == "private" or self.currToken["tokenType"] == "class":
                 self.class_declaration()
 
+            # VAR DEC
             elif self.currToken["tokenType"] == "const":
                 self.var_dec()
 
+            # FUNC DEC
             elif self.currToken["tokenType"] == "void":
                 self.function_dec()
 
+            # MAY BE MAIN FUNC OR VAR DEC INIT OR VAR DEC 
             elif self.currToken["tokenType"] == "int": #check for int main()
                 self.match("int")
                 if self.currToken and self.currToken["tokenName"] == "main":
@@ -418,7 +417,7 @@ class SyntaxAnalyzer:
                         self.hasMainFunction = True  # Found main function
                         print("(parser) production: #### entering main function")
                     elif self.currToken and self.currToken["tokenType"] == "=":
-                        self.var_dec()
+                        self.var_dec() # var dec
                     else:
                         self.ERROR_expected_token(["(","="])
                 else:
@@ -437,16 +436,19 @@ class SyntaxAnalyzer:
                     else:
                         self.logError("Expected a variable declaration, function declaration, or main function.")
 
-
+            # OBJECT INSTANTIATION -- GLOBAL OBJECTS
             elif self.currToken["tokenType"] == "Identifier":
+                print("(parser): ENTERING CLASS INST")
                 self.class_inst()
-
+                print("(parser): DONE CLASS INST")
+                
+            # VAR OR FUNC DEC
             elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:  # sample of custom error not using matchPredictSet
                 self.nextToken()
                 if self.match("Identifier"): 
-                    if self.currToken and self.currToken["tokenType"] == "(":
+                    if self.currToken and self.currToken["tokenType"] == "(":  # FUNC DEC
                         self.function_dec()
-                    elif self.currToken and self.currToken["tokenType"] == "=":
+                    elif self.currToken and self.currToken["tokenType"] == "=":  # VAR DEC
                         self.var_dec()
                     else:
                         self.ERROR_expected_token(["(","="])
@@ -576,7 +578,7 @@ class SyntaxAnalyzer:
 
     # MICH START HERE
     def class_inst(self):
-        print("(parser) production: \"class_inst\" detected")
+        print("(parser) !!!!!!!!!!!!production: \"class_inst\" detected")
 
         # Parse the first Identifier (class name or type)
         if not self.match("Identifier"):
@@ -587,29 +589,9 @@ class SyntaxAnalyzer:
         # Parse the second Identifier (variable name)
         if self.currToken and not self.match("Identifier"):
             self.ERROR_missing_initializer() 
-            
-
-        # # Handle <classinst_cont>
-        # if self.currToken and self.currToken["tokenType"] == "=":
-        #     self.match("=")
-        #     if not self.match("Identifier"):
-        #         self.logError(" ") ################################################
-            
-        #     # (  )   self.func_arg()  # Handle (<func_arg>)
-
-        # elif self.currToken and self.currToken["tokenType"] == "[":################################################
-        #     self.match("[")
-        #     self.int_val()  # Parse <int_val> ################################################
-
-        #     if not self.match("]"):
-        #         self.ERROR_unclosed_square_bracket()
-
-        #     self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr> ################################################
-
-        # else:
-        #     # Handle λ (no additional tokens after the second identifier) ################################################
-        #     pass
-
+        
+        # check continuation (if single class instantiation or w/ constructor)
+        self.classinst_cont()
 
         # Match the semicolon at the end
         if not self.match(";"):
