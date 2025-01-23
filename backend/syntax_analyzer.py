@@ -262,14 +262,14 @@ class SyntaxAnalyzer:
         else:
             while self.currToken:
                 if self.currToken["tokenName"] == "(":
-<<<<<<< HEAD
+
                     self.match("(", False)
                     self.match(")", False)
 
                     if self.match("{", False):
                         print("(parser) production: ### inside main")
    
-=======
+
                     self.match("(", False)
                     self.match(")", False)
                     self.match("{", False)
@@ -287,7 +287,7 @@ class SyntaxAnalyzer:
                         error_message = f"'else' statements may only be used after an 'if' statement."
                         self.logError(error_message)
 
->>>>>>> e32fb1adcfb368beb37f58911218da7a510e551f
+
                     self.match("return", False)
 
                     # if not whole lit or 0: error should state that the final return statement of the main function is 0, instead it got currtoken
