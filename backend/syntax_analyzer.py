@@ -244,16 +244,12 @@ class SyntaxAnalyzer:
             while self.currToken:
                 if self.currToken["tokenName"] == "(":
                     self.match("(")
-                    if not self.match(")"):
-                        self.ERROR_expected_token(")")
+                    self.match(")", False)
 
-                    if self.match("{"):
+                    if self.match("{", False):
                         print("(parser) production: ### inside main")
-                    else:
-                        self.ERROR_expected_token("{")
-
-                    if not self.match("return"):
-                        self.ERROR_expected_token("return")
+   
+                    self.match("return", False)
 
                     # if not whole lit or 0: error should state that the final return statement of the main function is 0, instead it got currtoken
                     if not self.match("whole_lit"):
@@ -280,11 +276,9 @@ class SyntaxAnalyzer:
         print("(parser) production: \"imports_list\" detected")
         """<imports_list> → import <iostar>;<imports_rec>"""
 
-        if not self.match("import"):
-            self.ERROR_expected_token("import")
+        self.match("import", False)
 
-        if not self.match("<"):
-            self.ERROR_expected_token("<")
+        self.match("<", False)
 
         if not self.currToken or self.currToken["tokenName"] != "iostar":
             self.ERROR_expected_token("iostar")
@@ -308,11 +302,9 @@ class SyntaxAnalyzer:
         print("(parser) production: \"imports_rec\" detected")
         """<imports_rec> → import <<imports_rec_values>>;<imports_rec> | λ"""
 
-        if not self.match("import"):
-            self.ERROR_expected_token("import")
+        self.match("import", False)
 
-        if not self.match("<"):
-            self.ERROR_expected_token("<")
+        self.match("<", False)
 
         # Process content inside '<>'
         self.imports_rec_values()
@@ -434,8 +426,7 @@ class SyntaxAnalyzer:
         if self.currToken["tokenType"] == "private":
             self.match("private")
 
-        if not self.match("class"):
-            self.ERROR_expected_token("class")
+        self.match("class", False)
 
         if self.currToken and self.currToken["tokenType"] == "Identifier":
             self.classNames.append(self.currToken["tokenName"])      # handles constructor name logic of recursive classes within classes
@@ -443,11 +434,12 @@ class SyntaxAnalyzer:
         else:
             self.ERROR_expected_Identifier()
         
-        if not self.match("{"):
-            self.ERROR_expected_token("{")
+        self.match("{", False)
 
         self.class_body()
-        self.match("}")
+
+        if not self.match("}"):
+            self.ERROR_unclosed_curly_braces()
 
         if not self.match(";"):
             self.ERROR_terminating_token(";")
@@ -503,16 +495,14 @@ class SyntaxAnalyzer:
             if not self.match("Identifier"):
                 self.ERROR_expected_Identifier()
 
-        if not self.match("("):
-            self.ERROR_expected_token("(")
+        self.match("(", False)
             
         self.params_dec() ############### PARAM RULES HERE
         
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
 
-        if not self.match("{"):
-            self.ERROR_expected_token("{")
+        self.match("{", False)
 
         ############### FUNCTION BODY RULES HERE
         if isNotVoid and not self.inConstructor:
@@ -698,8 +688,7 @@ class SyntaxAnalyzer:
         # uses self.dimensionCount
 
         if self.dimensionCount == 2:        # for 2d arrays
-            if not self.match("{"):
-                self.ERROR_expected_token("{")
+            self.match("{", False)
 
             self.dimensionCount-=1
             self.array_init()       #go into array_init as 1d array
