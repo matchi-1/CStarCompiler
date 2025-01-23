@@ -5,7 +5,8 @@ PREDICT_SETS = {
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_types": ["bool", "string", "int", "long", "double", "float"],
     "class_body": [ "private" ,'static', "const", "int", "long", "bool", "float", "double", "string", "Identifier" , "private", "class", "}"],
-    "literals": ["whole_lit", "frac_lit", "string_lit", "Identifier"] # need to add expressions here in the future
+    "literals": ["whole_lit", "frac_lit", "string_lit", "Identifier"], # need to add expressions here in the future
+    "print_stmts" : ["print", "println"],
 }
 
 # reminders for predict sets:
@@ -70,14 +71,16 @@ class SyntaxAnalyzer:
             return self.tokens[peek_index]
         return None
 
-
     # Matches the current token with the expected type. Returns True if matched, False otherwise.
-    def match(self, expected_token):
+    def match(self, expected_token, hasSpecError=True):
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
             self.nextToken()
             return True
-        return False
-
+        elif self.currToken is not None and hasSpecError:
+            return False
+        else:
+            self.ERROR_expected_token(expected_token)
+            return False
 
     def matchPredictSet(self, non_terminal):
         if self.currToken is None:  # EOF
@@ -90,7 +93,6 @@ class SyntaxAnalyzer:
         return True
         
 
-            
 
     #-------------------- SYNTAX ERRORS --------------------
     # Common Syntax Errors:    
@@ -160,7 +162,7 @@ class SyntaxAnalyzer:
             + (f"\n{context}" if context else "")
         )
         self.errors.append(full_message)
-        print(full_message)
+        #print(full_message) commented it out para hindi doble errors
         raise SyntaxError(full_message)
     
         # TODO: add error highlighter per line of code like  ______ ^
@@ -192,7 +194,6 @@ class SyntaxAnalyzer:
         message = "Syntax Error: Missing 'main' function to execute the program.\nThe program must include a 'main' function as the entry point."
         self.errors.append(message)
         raise SyntaxError(message)
-
 
     def ERROR_unclosed_angled_bracket(self):
         self.logError("Unclosed angled bracket: Expected '>'.") ## should we add line no. + col. num sa mga error d2
@@ -421,6 +422,10 @@ class SyntaxAnalyzer:
                 else:
                     self.logError("Expected a variable declaration or function declaration.")
     
+        ############ FOR TESTING ONLY, WILL BE MOVED --------------------------------------------------------------------------------------
+        if self.currToken and self.matchPredictSet("print_stmts"):
+            self.output()
+
 
 
     # TODO
@@ -725,6 +730,45 @@ class SyntaxAnalyzer:
             else:
                 #print("from 1d na error")
                 self.ERROR_unclosed_curly_braces()
-            
+    
+    # ALEX start here
+    '''<condition> → <bool_value>'''
 
-        
+    '''<output> → <print_stmts>(<print_params>);'''
+
+    #def output(self):
+    #    print("(parser) entered production: \"output\"")
+    #    self.nextToken()
+    #    self.match("(")
+
+
+    #    if self.currToken and self.currToken["tokenType"] == "(":
+    #        self.match("(")
+    #    else:
+    #        self.ERROR_expected_token("(")
+
+
+
+    '''<print_stmts> → print | println'''
+
+    '''<print_params> → <value> <output_rec> | null'''
+
+    '''<output_rec> → ,<value> <output_rec> | null'''
+
+    '''<conditional_stmt> → <if_stmt>'''
+
+    '''<conditional_stmt> → <swicth_stmt>'''
+
+    '''<if_stmt> → if(<condition){<ctrl_stmt_body>} <else_chain>'''
+
+    '''<ret_value> → <value> | null'''
+
+    '''<break_stmt> → break;'''
+
+    '''<continue_stmt> → continue;'''
+
+    '''<init_arg> → <for_init_data_type> Identifier = <value> <assign_stmt_rec> <var_iden_rec> | null'''
+
+    '''<for_init_data_type> → <data_type> | null'''
+
+    '''<inc_arg> → '''
