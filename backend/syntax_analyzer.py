@@ -623,10 +623,10 @@ class SyntaxAnalyzer:
 
         print("(parser-dbg): done after classinst_cont -- should match semicolon")
 
-        # Match the semicolon at the end
+        # Match terminating symbol
         if self.currToken:
             if self.currToken["tokenType"] != ";" and not hasConstructorInit:
-                self.logError(f"Expected '=' for object instantiation or terminating symbol ';', but got '{self.currToken['tokenName']}' instead.")
+                self.ERROR_expected_token(['=', '[', ';'])
             elif self.currToken["tokenType"] == ";":
                 self.match(";")  # valid termination
             else:
@@ -634,7 +634,7 @@ class SyntaxAnalyzer:
         else:
             # If currToken is None, we're at EOF (End of File)
             if not hasConstructorInit:
-                self.logError("Expected '=' for object instantiation or terminating symbol ';', but reached EOF.")
+                self.ERROR_expected_token(['=', '[', ';'])
             else:
                 self.ERROR_terminating_token(";")
 
@@ -662,25 +662,22 @@ class SyntaxAnalyzer:
                 self.ERROR_expected_token([")", ","])
             return True
         
-        return False
-
-            
-                
-    
-            # (  )   self.func_arg()  # Handle (<func_arg>)
-
-        # elif self.currToken and self.currToken["tokenType"] == "[":################################################
-        #     self.match("[")
-        #     self.int_val()  # Parse <int_val> ################################################
-
-        #     if not self.match("]"):
-        #         self.ERROR_unclosed_square_bracket()
-
-        #     #self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr> ################################################
         
-        # else:
-        #     # null value = no additional tokens after the second identifier. means the line of code was just a simple object instantiation
-        #     pass
+
+        elif self.currToken and self.currToken["tokenType"] == "[":################################################
+            self.match("[")
+            self.int_val()  # Parse <int_val> ################################################
+
+            if not self.match("]"):
+                self.ERROR_unclosed_square_bracket()
+
+            #self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr> ################################################
+        
+        else:
+            # null value = no additional tokens after the second identifier. means the line of code was just a simple object instantiation
+            pass
+
+        return False
 
     def func_arg(self):
 
@@ -727,6 +724,18 @@ class SyntaxAnalyzer:
         else:
             # Log an error if the token is not a valid "whole_lit"
             self.logError("Expected a valid value type.")
+            return False
+    
+    # SAMPLE PLACEHOLDER FOR INT_VAL -- SHOULD RETURN TRUE OR FALSE IF VALUE CALL WAS FOR A VALID VALUE OR NOT
+    def int_val(self):
+        # Check if the current token is a "whole_lit"
+        if self.currToken and self.currToken["tokenType"] == "whole_lit":
+            print(f"(parser) Found value: {self.currToken['tokenName']} (whole_lit)")
+            self.match("whole_lit")  # Match the token
+            return True
+        else:
+            # Log an error if the token is not a valid "whole_lit"
+            self.logError("Expected a valid value with type 'int'.")
             return False
 
 
