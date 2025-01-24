@@ -624,10 +624,20 @@ class SyntaxAnalyzer:
         print("(parser-dbg): done after classinst_cont -- should match semicolon")
 
         # Match the semicolon at the end
-        if not self.match(";") and not hasConstructorInit:
-            self.logError("Expected '=' for constructor initialization or terminating symbol ';'")
+        if self.currToken:
+            if self.currToken["tokenType"] != ";" and not hasConstructorInit:
+                self.logError(f"Expected '=' for object instantiation or terminating symbol ';', but got '{self.currToken['tokenName']}' instead.")
+            elif self.currToken["tokenType"] == ";":
+                self.match(";")  # valid termination
+            else:
+                self.ERROR_terminating_token(";")
         else:
-            self.ERROR_terminating_token(";")
+            # If currToken is None, we're at EOF (End of File)
+            if not hasConstructorInit:
+                self.logError("Expected '=' for object instantiation or terminating symbol ';', but reached EOF.")
+            else:
+                self.ERROR_terminating_token(";")
+
 
         # Continue parsing program constructs
         self.program_constructs()
@@ -693,11 +703,9 @@ class SyntaxAnalyzer:
             if not next_token:
                 # If there's no next token, it means EOF after the comma
                 self.logError("Expected another value after ',' but reached EOF.")
-                # self.ERROR_expected_value()
             elif next_token["tokenType"] not in PREDICT_SETS["value"]:
                 # If the next token is not a valid value
                 self.logError(f"Expected another value after ',' but got '{next_token['tokenName']}'.")
-                # self.ERROR_expected_value()
 
             self.match(",")  # Match the comma
             print("(parser) Found ',' indicating more arguments.")
@@ -718,7 +726,7 @@ class SyntaxAnalyzer:
             return True
         else:
             # Log an error if the token is not a valid "whole_lit"
-            self.logError("Expected a value of type 'whole_lit' in function arguments.")
+            self.logError("Expected a valid value type.")
             return False
 
 
