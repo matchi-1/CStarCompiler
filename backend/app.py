@@ -81,950 +81,749 @@ func_delim = newline_delim + ['(']
 
 
 def transition(currState, currChar):
-    if (currState == 's0'):
-        if(currChar == 'b'):
-            return 's1'
-        elif(currChar == 'c'):
-            return 's11'
-        elif(currChar == 'd'):
-            return 's36'
-        elif(currChar == 'e'):
-            return 's51'
-        elif(currChar == 'f'):
-            return 's56'
-        # elif(currChar == 'g'):
-        #     return 's70'
-        elif(currChar == 'i'):
-            return 's74'
-        elif(currChar == 'l'):
-            return 's91'
-        elif(currChar == 'p'):
-            return 's96'
-        elif(currChar == 'r'):
-            return 's117'
-        elif(currChar == 's'):
-            return 's129'
-        elif(currChar == 't'):
-            return 's150'
-        elif(currChar == 'v'):
-            return 's159'
-        elif(currChar == 'w'):
-            return 's164'
-        elif(currChar == '-'):
-            return 'DASH_CHECK'
-        elif(currChar == '!'):
-            return 'NEGATION_CHECK'
-        elif(currChar == '%'):
-            return 'MODULO_CHECK'
-        elif(currChar == '&'):
-            return 's184'
-        elif(currChar == '('):
-            return 'OPEN_PAREN_CHECK'
-        elif(currChar == ')'):
-            return 'CLOSING_PAREN_CHECK'
-        elif(currChar == '*'):
-            return 'ASTERISK_CHECK'
-        elif(currChar == ','):
-            return 'COMMA_CHECK'
-        elif(currChar == '.'):
-            return 'DOT_CHECK'
-        elif(currChar == '/'):
-            return 'SLASH_CHECK'
-        elif(currChar == ';'):
-            return 'SEMICOLON_CHECK'
-        elif(currChar == '?'):
-            return 'QUESTION_CHECK'
-        elif(currChar == ':'):
-            return 'COLON_CHECK'
-        elif(currChar == '['):
-            return 'OPEN_BRACKET_CHECK'
-        elif(currChar == ']'):
-            return 'CLOSING_BRACKET_CHECK'
-        elif(currChar == '{'):
-            return 'OPEN_CURLY_CHECK'
-        elif(currChar == '}'):
-            return 'CLOSING_CURLY_CHECK'
-        elif(currChar == '|'):
-            return 's223'
-        elif(currChar == '"'):
-            return 's253'
-        elif(currChar == '+'):
-            return 'PLUS_CHECK'
-        elif(currChar == '<'):
-            return 'OPEN_ANGLE_CHECK'
-        elif(currChar == '>'):
-            return 'CLOSING_ANGLE_CHECK'
-        elif(currChar == '='):
-            return 'ASSIGN_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's1'):
-        if(currChar == 'o'):
-            return 's2'
-        elif(currChar == 'r'):
-            return 's6'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's2'):
-        if(currChar == 'o'):
-            return 's3'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's3'):
-        if(currChar == 'l'):
-            return 'BOOL_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's5'):
-        if(currChar == 'r'):
-            return 's6'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's6'):
-        if(currChar == 'e'):
-            return 's7'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's7'):
-        if(currChar == 'a'):
-            return 's8'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's8'):
-        if(currChar == 'k'):
-            return 'BREAK_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's11'):
-        if(currChar == 'a'):
-            return 's12'
-        elif(currChar == 'l'):
-            return 's20'
-        elif(currChar == 'o'):
-            return 's25'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's12'):
-        if(currChar == 's'):
-            return 's13'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's13'):
-        if(currChar == 'e'):
-            return 'CASE_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's20'):
-        if(currChar == 'a'):
-            return 's21'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's21'):
-        if(currChar == 's'):
-            return 's22'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's22'):
-        if(currChar == 's'):
-            return 'CLASS_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's25'):
-        if(currChar == 'n'):
-            return 's26'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's26'):
-        if(currChar == 't'):
-            return 's27'
-        elif(currChar == 's'):
-            return 's33'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's27'):
-        if(currChar == 'i'):
-            return 's28'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's28'):
-        if(currChar == 'n'):
-            return 's29'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's29'):
-        if(currChar == 'u'):
-            return 's30'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's30'):
-        if(currChar == 'e'):
-            return 'CONTINUE_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's33'):
-        if(currChar == 't'):
-            return 'CONST_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's36'):
-        if(currChar == 'e'):
-            return 's37'
-        elif(currChar == 'o'):
-            return 'DO_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's37'):
-        if(currChar == 'f'):
-            return 's38'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's38'):
-        if(currChar == 'a'):
-            return 's39'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's39'):
-        if(currChar == 'u'):
-            return 's40'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's40'):
-        if(currChar == 'l'):
-            return 's41'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's41'):
-        if(currChar == 't'):
-            return 'DEFAULT_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's44'):
-        if(currChar == 'u'):
-            return 's46'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's46'):
-        if(currChar == 'b'):
-            return 's47'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's47'):
-        if(currChar == 'l'):
-            return 's48'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's48'):
-        if(currChar == 'e'):
-            return 'DOUBLE_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's51'):
-        if(currChar == 'l'):
-            return 's52'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's52'):
-        if(currChar == 's'):
-            return 's53'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's53'):
-        if(currChar == 'e'):
-            return 'ELSE_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's56'):
-        if(currChar == 'a'):
-            return 's57'
-        elif(currChar == 'l'):
-            return 's62'
-        elif(currChar == 'o'):
-            return 's67'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's57'):
-        if(currChar == 'l'):
-            return 's58'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's58'):
-        if(currChar == 's'):
-            return 's59'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's59'):
-        if(currChar == 'e'):
-            return 'FALSE_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's62'):
-        if(currChar == 'o'):
-            return 's63'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's63'):
-        if(currChar == 'a'):
-            return 's64'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's64'):
-        if(currChar == 't'):
-            return 'FLOAT_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's67'):
-        if(currChar == 'r'):
-            return 'FOR_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's74'):
-        print("(dbg) in s74 now")
-        if(currChar == 'f'):
-            return 'IF_CHECK'
-        elif(currChar == 'm'):
-            return 's77'
-        elif(currChar == 'n'):
-            return 'IN_CHECK'
-        elif(currChar == 't'):
-            return 's87'
-        elif (currChar == 'ANY'):
-            print("(dbg) any defined s74")
-            return 'DEFINED'
-        else:
-            print("(dbg) undefined s74 next ")
-            return 'UNDEFINED'
-    elif (currState == 's77'):
-        if(currChar == 'p'):
-            return 's78'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's78'):
-        if(currChar == 'o'):
-            return 's79'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's79'):
-        if(currChar == 'r'):
-            return 's80'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's80'):
-        if(currChar == 't'):
-            return 'IMPORT_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's83'):
-        if(currChar == 't'):
-            return 'INT_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's87'):
-        if(currChar == 'e'):
-            return 's88'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's88'):
-        if(currChar == 'm'):
-            return 'ITEM_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's91'):
-        if(currChar == 'o'):
-            return 's92'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's92'):
-        if(currChar == 'n'):
-            return 's93'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's93'):
-        if(currChar == 'g'):
-            return 'LONG_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's96'):
-        if(currChar == 'r'):
-            return 's97'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's97'):
-        if(currChar == 'i'):
-            return 's98'
-        elif(currChar == 'o'):
-            return 's110'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's98'):
-        if(currChar == 'n'):
-            return 's99'
-        elif(currChar == 'v'):
-            return 's105'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's99'):
-        if(currChar == 't'):
-            return 'PRINT_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's100'):
-        if(currChar == 'l'):
-            return 's102'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's102'):
-        if(currChar == 'n'):
-            return 'PRINTLN_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's105'):
-        if(currChar == 'a'):
-            return 's106'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's106'):
-        if(currChar == 't'):
-            return 's107'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's107'):
-        if(currChar == 'e'):
-            return 'PRIVATE_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's110'):
-        if(currChar == 'p'):
-            return 's111'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's111'):
-        if(currChar == 'e'):
-            return 's112'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's112'):
-        if(currChar == 'r'):
-            return 's113'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's113'):
-        if(currChar == 't'):
-            return 's114'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's114'):
-        if(currChar == 'y'):
-            return 'PROPERTY_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's117'):
-        if(currChar == 'e'):
-            return 's118'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's118'):
-        if(currChar == 'p'):
-            return 's119'
-        elif(currChar == 't'):
-            return 's124'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's119'):
-        if(currChar == 'e'):
-            return 's120'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's120'):
-        if(currChar == 'a'):
-            return 's121'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's121'):
-        if(currChar == 't'):
-            return 'REPEAT_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's124'):
-        if(currChar == 'u'):
-            return 's125'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's125'):
-        if(currChar == 'r'):
-            return 's126'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's126'):
-        if(currChar == 'n'):
-            return 'RETURN_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's129'):
-        # if(currChar == 'e'):
-        #     return 's130'
-        if (currChar == 't'):
-            return 's133'
-        elif(currChar == 'w'):
-            return 's144'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's133'):
-        if(currChar == 'a'):
-            return 's134'
-        elif(currChar == 'r'):
-            return 's139'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's134'):
-        if(currChar == 't'):
-            return 's135'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's135'):
-        if(currChar == 'i'):
-            return 's136'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's136'):
-        if(currChar == 'c'):
-            return 'STATIC_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's139'):
-        if(currChar == 'i'):
-            return 's140'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's140'):
-        if(currChar == 'n'):
-            return 's141'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's141'):
-        if(currChar == 'g'):
-            return 'STRING_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's144'):
-        if(currChar == 'i'):
-            return 's145'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's145'):
-        if(currChar == 't'):
-            return 's146'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's146'):
-        if(currChar == 'c'):
-            return 's147'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's147'):
-        if(currChar == 'h'):
-            return 'SWITCH_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's150'):
-        if(currChar == 'h'):
-            return 's151'
-        elif(currChar == 'r'):
-            return 's155'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's151'):
-        if(currChar == 'i'):
-            return 's152'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's152'):
-        if(currChar == 's'):
-            return 'THIS_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's155'):
-        if(currChar == 'u'):
-            return 's156'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's156'):
-        if(currChar == 'e'):
-            return 'TRUE_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's159'):
-        if(currChar == 'o'):
-            return 's160'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's160'):
-        if(currChar == 'i'):
-            return 's161'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's161'):
-        if(currChar == 'd'):
-            return 'VOID_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's164'):
-        if(currChar == 'h'):
-            return 's165'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's165'):
-        if(currChar == 'i'):
-            return 's166'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's166'):
-        if(currChar == 'l'):
-            return 's167'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's167'):
-        if(currChar == 'e'):
-            return 'WHILE_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's170'):
-        if(currChar == '-'):
-            return 'DECREMENT_CHECK'
-        elif(currChar == '='):
-            return 'MINUS_ASS_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's178'):
-        if(currChar == '='):
-            return 'NOT_EQUAL_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's180'):
-        if(currChar == '='):
-            return 'MODULO_ASS_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's184'):
-        if(currChar == '&'):
-            return 'LOGICAND_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's191'):
-        if(currChar == '='):
-            return 'MULT_ASS_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's246'):
-        if(currChar == '*'):
-            return 's249'
-        elif(currChar == '/'):
-            return 's247'
-        elif(currChar == '='):
-            return 'DIV_ASS_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's223'):
-        if(currChar == '|'):
-            return 'LOGICOR_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's226'):
-        if(currChar == '+'):
-            return 'INCREMENT_CHECK'
-        elif(currChar == '='):
-            return 'ADD_ASS_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's232'):
-        if(currChar == '='):
-            return 'LESS_OR_EQUAL_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's236'):
-        if(currChar == '='):
-            return 'GREATER_OR_EQUAL_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's240'):
-        if(currChar == '='):
-            return 'EQUAL_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's244'):
-        if(currChar == '_'):
-            return 's244'
-        elif (currChar in alphanum):
-            return 's244'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's247'):
-        if(currChar in ascii):
-            return 's247'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's249'):
-        if(currChar == '\n'):
-            return 's249'
-        elif(currChar == '*'): #catches * before ascii check
-            return 's250'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's250'):
-        if(currChar == '/'):
-            return 'MULTI_COMMENT_CHECK'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's253'):
-        if(currChar == '"'): #catches " before ascii check
-            return 'STRING_LIT_CHECK'
-        elif (currChar in ascii):
-            return 's253'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's267'):
-        if(currChar in numbers):
-            return 's267'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
-    elif (currState == 's300'):
-        if(currChar == '.'):
-            return 's267'
-        elif (currChar in numbers):
-            return 's300'
-        elif (currChar == 'ANY'):
-            return 'DEFINED'
-        else:
-            return 'UNDEFINED'
+    match currState:
+        case 's0':
+            match currChar:
+                case 'b':  currState = 's1'
+                case 'c':  currState = 's11'
+                case 'd':  currState = 's36'
+                case 'e':  currState = 's51'
+                case 'f':  currState = 's56'
+                case 'i':  currState = 's70'
+                case 'l':  currState = 's83'
+                case 'p':  currState = 's88'
+                case 'r':  currState = 's102'
+                case 's':  currState = 's114'
+                case 't':  currState = 's132'
+                case 'v':  currState = 's141'
+                case 'w':  currState = 's146'
+                case '-':  currState = 'DASH_CHECK'
+                case '!':  currState = 'NEGATION_CHECK'
+                case '%':  currState = 'MODULO_CHECK'
+                case '&':  currState = 's166'
+                case '(':  currState = 'OPEN_PAREN_CHECK'
+                case ')':  currState = 'CLOSING_PAREN_CHECK'
+                case '*':  currState = 'ASTERISK_CHECK'
+                case ',':  currState = 'COMMA_CHECK'
+                case '.':  currState = 'DOT_CHECK'
+                case '/':  currState = 'SLASH_CHECK'
+                case '?':  currState = 'QUESTION_CHECK'
+                case ':':  currState = 'COLON_CHECK'
+                case '[':  currState = 'OPEN_BRACKET_CHECK'
+                case ']':  currState = 'CLOSING_BRACKET_CHECK'
+                case '{':  currState = 'OPEN_CURLY_CHECK'
+                case '}':  currState = 'CLOSING_CURLY_CHECK'
+                case '|':  currState = 's207'
+                case '"':  currState = 's237'
+                case '+':  currState = 'PLUS_CHECK'
+                case '<':  currState = 'OPEN_ANGLE_CHECK'
+                case '>':  currState = 'CLOSING_ANGLE_CHECK'
+                case '=':  currState = 'ASSIGN_CHECK'
+                case ';': currState = 'SEMICOLON_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        #### RESERVED WORDS #####################################
+
+        case 's1':
+            match currChar:
+                case 'o':  currState = 's2'
+                case 'r':  currState = 's6'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's2':
+            match currChar:
+                case 'o':  currState = 's3'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's3':
+            match currChar:
+                case 'l': currState = 'BOOL_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's6':
+            match currChar:
+                case 'e':  currState = 's7'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's7':
+            match currChar:
+                case 'a':  currState = 's8'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's8':
+            match currChar:
+                case 'k':  currState = 'BREAK_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+            
+        case 's11':
+            match currChar:
+                case 'a':  currState = 's12'
+                case 'h':  currState = 's16'
+                case 'l':  currState = 's20'
+                case 'o':  currState = 's25'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's12':
+            match currChar:
+                case 's':  currState = 's13'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's13':
+            match currChar:
+                case 'e':  currState = 'CASE_CHECK' 
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's16':
+            match currChar:
+                case 'a':  currState = 's17'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's17':
+            match currChar:
+                case 'r':  currState = 'CHAR_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's20':
+            match currChar:
+                case 'a':  currState = 's21'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's21':
+            match currChar:
+                case 's':  currState = 's22'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's22':
+            match currChar:
+                case 's':  currState = 'CLASS_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's25':
+            match currChar:
+                case 'n':  currState = 's26'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's26':
+            match currChar:
+                case 't':  currState = 's27'
+                case 's':  currState = 's33'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+                
+        case 's27':
+            match currChar:
+                case 'i':  currState = 's28'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's28':
+            match currChar:
+                case 'n':  currState = 's29'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's29':
+            match currChar:
+                case 'u':  currState = 's30'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's30':
+            match currChar:
+                case 'e':  currState = 'CONTINUE_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's33':
+            match currChar:
+                case 't':  currState = 'CONST_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's36':
+            match currChar:
+                case 'e':  currState = 's37'
+                case 'o':  currState = 'DO_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's37':
+            match currChar:
+                case 'f':  currState = 's38'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's38':
+            match currChar:
+                case 'a':  currState = 's39'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's39':
+            match currChar:
+                case 'u':  currState = 's40'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's40':
+            match currChar:
+                case 'l':  currState = 's41'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's41':
+            match currChar:
+                case 't':  currState = 'DEFAULT_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's44':
+            match currChar:
+                case 'u':  currState = 's46'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's46':
+            match currChar:
+                case 'b':  currState = 's47'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's47':
+            match currChar:
+                case 'l':  currState = 's48'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's48':
+            match currChar:
+                case 'e':  currState = 'DOUBLE_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's51':
+            match currChar:
+                case 'l':  currState = 's52'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's51':
+            match currChar:
+                case 'l':  currState = 's52'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's52':
+            match currChar:
+                case 's':  currState = 's53'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's53':
+            match currChar:
+                case 'e':  currState = 'ELSE_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's56':
+            match currChar:
+                case 'a':  currState = 's57'
+                case 'l':  currState = 's62'
+                case 'o':  currState = 's67'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's57':
+            match currChar:
+                case 'l':  currState = 's58'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's58':
+            match currChar:
+                case 's':  currState = 's59'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's59':
+            match currChar:
+                case 'e':  currState = 'FALSE_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's62':
+            match currChar:
+                case 'o':  currState = 's63'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's63':
+            match currChar:
+                case 'a':  currState = 's64'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's64':
+            match currChar:
+                case 't':  currState = 'FLOAT_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's67':
+            match currChar:
+                case 'r':  currState = 'FOR_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's70':
+            print("(dbg) in s70 now")
+            match currChar:
+                case 'f':  currState = 'IF_CHECK'
+                case 'm':  currState = 's73'
+                case 'n':  currState = 'IN_CHECK'
+                case 'ANY': 
+                    print("(dbg) any defined s74")
+                    currState = 'DEFINED'
+                case _:  
+                    print("(dbg) undefined s74 next ")
+                    currState = 'UNDEFINED'
+
+        case 's73':
+            match currChar:
+                case 'p':  currState = 's74'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's74':
+            match currChar:
+                case 'o':  currState = 's75'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's75':
+            match currChar:
+                case 'r':  currState = 's76'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's76':
+            match currChar:
+                case 't':  currState = 'IMPORT_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's79':
+            match currChar:
+                case 't':  currState = 'INT_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's83':
+            match currChar:
+                case 'o':  currState = 's84'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's84':
+            match currChar:
+                case 'n':  currState = 's85'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+    
+        case 's85':
+            match currChar:
+                case 'g':  currState = 'LONG_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's88':
+            match currChar:
+                case 'r':  currState = 's89'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's89':
+            match currChar:
+                case 'i':  currState = 's90'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's90':
+            match currChar:
+                case 'n':  currState = 's91'
+                case 'v':  currState = 's97'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's91':
+            match currChar:
+                case 't':  currState = 'PRINT_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's92':
+            match currChar:
+                case 'l':  currState = 's94'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's94':
+            match currChar:
+                case 'n':  currState = 'PRINTLN_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's97':
+            match currChar:
+                case 'a':  currState = 's98'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's98':
+            match currChar:
+                case 't':  currState = 's99'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's99':
+            match currChar:
+                case 'e':  currState = 'PRIVATE_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's102':
+            match currChar:
+                case 'e':  currState = 's103'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's103':
+            match currChar:
+                case 'p':  currState = 's104'
+                case 't':  currState = 's109'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's104':
+            match currChar:
+                case 'e':  currState = 's105'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's105':
+            match currChar:
+                case 'a':  currState = 's106'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's106':
+            match currChar:
+                case 't':  currState = 'REPEAT_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's109':
+            match currChar:
+                case 'u':  currState = 's110'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's110':
+            match currChar:
+                case 'r':  currState = 's111'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's111':
+            match currChar:
+                case 'n':  currState = 'RETURN_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+    
+        case 's114':
+            match currChar:
+                case 't':  currState = 's115'
+                case 'w':  currState = 's126'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's115':
+            match currChar:
+                case 'a':  currState = 's116'
+                case 'r':  currState = 's121'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's116':
+            match currChar:
+                case 't':  currState = 's117'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's117':
+            match currChar:
+                case 'i':  currState = 's118'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's118':
+            match currChar:
+                case 'c':  currState = 'STATIC_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's121':
+            match currChar:
+                case 'i':  currState = 's122'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's122':
+            match currChar:
+                case 'n':  currState = 's123'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's123':
+            match currChar:
+                case 'g':  currState = 'STRING_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's126':
+            match currChar:
+                case 'i':  currState = 's127'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's127':
+            match currChar:
+                case 't':  currState = 's128'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's128':
+            match currChar:
+                case 'c':  currState = 's129'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's129':
+            match currChar:
+                case 'h':  currState = 'SWITCH_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's132':
+            match currChar:
+                case 'h':  currState = 's133'
+                case 'r':  currState = 's137'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+    
+        case 's133':
+            match currChar:
+                case 'i':  currState = 's134'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's134':
+            match currChar:
+                case 's':  currState = 'THIS_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's137':
+            match currChar:
+                case 'u':  currState = 's138'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's138':
+            match currChar:
+                case 'e':  currState = 'TRUE_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's141':
+            match currChar:
+                case 'o':  currState = 's142'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's142':
+            match currChar:
+                case 'i':  currState = 's143'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's143':
+            match currChar:
+                case 'd':  currState = 'VOID_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's146':
+            match currChar:
+                case 'h':  currState = 's147'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's147':
+            match currChar:
+                case 'i':  currState = 's148'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's148':
+            match currChar:
+                case 'l':  currState = 's149'
+                case 'ANY':  currState = 'DEFINED'
+                case _:  currState = 'UNDEFINED'
+
+        case 's149':
+            match currChar:
+                case 'e':  currState = 'WHILE_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        #### RESERVED SYMBOLS #######################################
+
+        case 's152':
+            match currChar:
+                case '-':  currState = 'DECREMENT_CHECK'
+                case '=':  currState = 'MINUS_ASS_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's158':
+            match currChar:
+                case '=':  currState = 'NOT_EQUAL_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's162':
+            match currChar:
+                case '=':  currState = 'MODULO_ASS_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's166':
+            match currChar:
+                case '&':  currState = 'LOGICAND_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's173':
+            match currChar:
+                case '=':  currState = 'MULT_ASS_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's183':
+            match currChar:
+                case '*':  currState = 's249'
+                case '/':  currState = 's247'
+                case '=':  currState = 'DIV_ASS_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's207':
+            match currChar:
+                case '|':  currState = 'LOGICOR_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's210':
+            match currChar:
+                case '+':  currState = 'INCREMENT_CHECK'
+                case '=':  currState = 'ADD_ASS_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's216':
+            match currChar:
+                case '=':  currState = 'LESS_OR_EQUAL_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's220':
+            match currChar:
+                case '=':  currState = 'GREATER_OR_EQUAL_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+    
+        case 's224':
+            match currChar:
+                case '=':  currState = 'EQUAL_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's244':
+            match currChar:
+                case '_':  currState = 's244'
+                case _ if currChar in alphanum:  currState = 's244'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's247':
+            match currChar:
+                case _ if currChar in ascii:  currState = 's247'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's249':
+            match currChar:
+                case '\n':  currState = 's249'
+                case '*':  currState = 's250' #catches * before ascii check
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's250':
+            match currChar:
+                case '/':  currState = 'MULTI_COMMENT_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's253':
+            match currChar:
+                case '"':  currState = 'STRING_LIT_CHECK' #catches " before ascii check
+                case _ if currChar in ascii:  currState = 's253'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's267':
+            match currChar:
+                case _ if currChar in numbers:  currState = 's267'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+        
+        case 's300':
+            match currChar:
+                case '.':  currState = 's267'
+                case _ if currChar in numbers: currState = 's300'
+                case 'ANY':  currState = 'DEFINED'
+                case _:  currState = 'UNDEFINED' 
+    
+    print (currState)
+    return currState             
+
 
 
 #---TOKEN EXTRACTION AND CLASSIFICATION---#
@@ -1199,7 +998,7 @@ def lexer(code):
                     add_token(currToken, '-', currLine, currCol)
                 elif (code[i] in ['-', '=']):
                     print('(dbg) going to s170')
-                    currState = 's170'
+                    currState = 's152'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1209,7 +1008,7 @@ def lexer(code):
                 if (code[i] in exclamation_delim):
                     add_token(currToken, '!', currLine, currCol)
                 elif (code[i] == '='):
-                    currState = 's178'
+                    currState = 's158'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1219,7 +1018,7 @@ def lexer(code):
                 if (code[i] in percent_delim):
                     add_token(currToken, '%', currLine, currCol)
                 elif (code[i] == '='):
-                    currState = 's180'
+                    currState = 's162'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1229,7 +1028,7 @@ def lexer(code):
                 if (code[i] in asterisk_delim):
                     add_token(currToken, '*', currLine, currCol)
                 elif (code[i] in ['/', '=']):
-                    currState = 's191'
+                    currState = 's173'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1257,7 +1056,7 @@ def lexer(code):
                 if (code[i] in slash_delim):
                     add_token(currToken, '/', currLine, currCol)
                 elif (code[i] in ['*', '/', '=']):
-                    currState = 's246'
+                    currState = 's183'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1315,7 +1114,7 @@ def lexer(code):
                 if (code[i] in plus_delim):
                     add_token(currToken, '+', currLine, currCol)
                 else:
-                    currState = 's226'
+                    currState = 's210'
             # < symbol
             if (currState == 'OPEN_ANGLE_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/'] + newline
@@ -1324,7 +1123,7 @@ def lexer(code):
                     print("(dbg) arithmetic spotted for <")
                     add_token(currToken, '<', currLine, currCol)
                 elif (code[i] == '='):
-                    currState = 's232'
+                    currState = 's216'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1334,7 +1133,7 @@ def lexer(code):
                 if (code[i] in great_delim):
                     add_token(currToken, '>', currLine, currCol)
                 elif (code[i] == '='):
-                    currState = 's236'
+                    currState = 's220'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1344,14 +1143,14 @@ def lexer(code):
                 if (code[i] in equal_delim):
                     add_token(currToken, '=', currLine, currCol)
                 else:
-                    currState = 's240'
+                    currState = 's224'
             # in statement
             if (currState == 'IN_CHECK'):
                 expected = ['<', '/']
                 if (code[i] in in_delim):
                     add_token(currToken, 'in', currLine, currCol)
                 elif(code[i] in alphanum + ['_']):
-                    currState = 's83'
+                    currState = 's79'
                 else:
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # print statement
@@ -1360,7 +1159,7 @@ def lexer(code):
                 if (code[i] in func_delim):
                     add_token(currToken, 'print', currLine, currCol)
                 elif(code[i] in alphanum + ['_']):
-                    currState = 's100'
+                    currState = 's92'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1382,19 +1181,6 @@ def lexer(code):
                 expected = newline_delim
                 if (code[i] in newline_delim):
                     add_token(currToken, 'private', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # property statement
-            if (currState == 'PROPERTY_CHECK'):
-                expected = newline_delim
-                if (code[i] in newline_delim):
-                    add_token(currToken, 'property', currLine, currCol)
                 elif (code[i] in alphanum + ['_']):
                     currToken += code[i]
                     currState ='s244'
@@ -1759,19 +1545,6 @@ def lexer(code):
                 expected = whitespace + ['<', '/'] + newline
                 if (code[i] in import_delim):
                     add_token(currToken, 'import', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # item statement
-            if (currState == 'ITEM_CHECK'):
-                expected = iden_delim
-                if (code[i] in iden_delim):
-                    add_token(currToken, 'item', currLine, currCol)
                 elif (code[i] in alphanum + ['_']):
                     currToken += code[i]
                     currState ='s244'
