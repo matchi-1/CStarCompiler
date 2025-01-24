@@ -102,7 +102,7 @@ def transition(currState, currChar):
                 case '%':  currState = 'MODULO_CHECK'
                 case '&':  currState = 's166'
                 case '(':  currState = 'OPEN_PAREN_CHECK'
-                case ')':  currState = 'CLOSE_PAREN_CHECK'
+                case ')':  currState = 'CLOSING_PAREN_CHECK'
                 case '*':  currState = 'ASTERISK_CHECK'
                 case ',':  currState = 'COMMA_CHECK'
                 case '.':  currState = 'DOT_CHECK'
@@ -140,7 +140,7 @@ def transition(currState, currChar):
         
         case 's3':
             match currChar:
-                case 'l': 'BOOL_CHECK'
+                case 'l': currState = 'BOOL_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
@@ -769,9 +769,9 @@ def transition(currState, currChar):
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
     
-        case 's216':
+        case 's224':
             match currChar:
-                case '=':  currState = 'LESS_OR_EQUAL_CHECK'
+                case '=':  currState = 'EQUAL_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
@@ -998,7 +998,7 @@ def lexer(code):
                     add_token(currToken, '-', currLine, currCol)
                 elif (code[i] in ['-', '=']):
                     print('(dbg) going to s170')
-                    currState = 's170'
+                    currState = 's152'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1008,7 +1008,7 @@ def lexer(code):
                 if (code[i] in exclamation_delim):
                     add_token(currToken, '!', currLine, currCol)
                 elif (code[i] == '='):
-                    currState = 's178'
+                    currState = 's158'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1018,7 +1018,7 @@ def lexer(code):
                 if (code[i] in percent_delim):
                     add_token(currToken, '%', currLine, currCol)
                 elif (code[i] == '='):
-                    currState = 's180'
+                    currState = 's162'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1028,7 +1028,7 @@ def lexer(code):
                 if (code[i] in asterisk_delim):
                     add_token(currToken, '*', currLine, currCol)
                 elif (code[i] in ['/', '=']):
-                    currState = 's191'
+                    currState = 's173'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1056,7 +1056,7 @@ def lexer(code):
                 if (code[i] in slash_delim):
                     add_token(currToken, '/', currLine, currCol)
                 elif (code[i] in ['*', '/', '=']):
-                    currState = 's246'
+                    currState = 's183'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1114,7 +1114,7 @@ def lexer(code):
                 if (code[i] in plus_delim):
                     add_token(currToken, '+', currLine, currCol)
                 else:
-                    currState = 's226'
+                    currState = 's210'
             # < symbol
             if (currState == 'OPEN_ANGLE_CHECK'):
                 expected = ['alphanum', ' ', '(', '+', '-', '/'] + newline
@@ -1123,7 +1123,7 @@ def lexer(code):
                     print("(dbg) arithmetic spotted for <")
                     add_token(currToken, '<', currLine, currCol)
                 elif (code[i] == '='):
-                    currState = 's232'
+                    currState = 's216'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1133,7 +1133,7 @@ def lexer(code):
                 if (code[i] in great_delim):
                     add_token(currToken, '>', currLine, currCol)
                 elif (code[i] == '='):
-                    currState = 's236'
+                    currState = 's220'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1143,14 +1143,14 @@ def lexer(code):
                 if (code[i] in equal_delim):
                     add_token(currToken, '=', currLine, currCol)
                 else:
-                    currState = 's240'
+                    currState = 's224'
             # in statement
             if (currState == 'IN_CHECK'):
                 expected = ['<', '/']
                 if (code[i] in in_delim):
                     add_token(currToken, 'in', currLine, currCol)
                 elif(code[i] in alphanum + ['_']):
-                    currState = 's83'
+                    currState = 's79'
                 else:
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
             # print statement
@@ -1159,7 +1159,7 @@ def lexer(code):
                 if (code[i] in func_delim):
                     add_token(currToken, 'print', currLine, currCol)
                 elif(code[i] in alphanum + ['_']):
-                    currState = 's100'
+                    currState = 's92'
                 else:
                     currToken += code[i]
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
@@ -1181,19 +1181,6 @@ def lexer(code):
                 expected = newline_delim
                 if (code[i] in newline_delim):
                     add_token(currToken, 'private', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # property statement
-            if (currState == 'PROPERTY_CHECK'):
-                expected = newline_delim
-                if (code[i] in newline_delim):
-                    add_token(currToken, 'property', currLine, currCol)
                 elif (code[i] in alphanum + ['_']):
                     currToken += code[i]
                     currState ='s244'
@@ -1558,19 +1545,6 @@ def lexer(code):
                 expected = whitespace + ['<', '/'] + newline
                 if (code[i] in import_delim):
                     add_token(currToken, 'import', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # item statement
-            if (currState == 'ITEM_CHECK'):
-                expected = iden_delim
-                if (code[i] in iden_delim):
-                    add_token(currToken, 'item', currLine, currCol)
                 elif (code[i] in alphanum + ['_']):
                     currToken += code[i]
                     currState ='s244'
