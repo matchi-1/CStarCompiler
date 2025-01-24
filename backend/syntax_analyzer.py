@@ -16,7 +16,8 @@ PREDICT_SETS = {
     "iden_mods" : ["("], # TO ADD 
     "arith_operator" : ["+", "-", "*", "/", "%"],
     "inc_arg" : ["Identifier", "--", "++", "print", "println", "("],
-    "func_arg" : ["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit", ")"]
+    "func_arg" : ["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit", ")"],
+    "value":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"]
 }
 
 # reminders for predict sets:
@@ -193,10 +194,10 @@ class SyntaxAnalyzer:
     # Handles unexpected tokens when expecting a specific type.
     def ERROR_expected_token(self, expected_token):
         if self.currToken is None:
-            self.logError(f"Expected '{expected_token}', but reached EOF.")
+            self.logError(f"Expected {expected_token}, but reached EOF.")
         else:
             self.logError(
-                f"Expected '{expected_token}', but got '{self.currToken['tokenName']}'."
+                f"Expected {expected_token}, but got '{self.currToken['tokenName']}'."
             )
 
     # If no main function was found throughout the whole program
@@ -618,12 +619,14 @@ class SyntaxAnalyzer:
         
 
         # check continuation (if single class instantiation or w/ constructor)
-        self.classinst_cont()
+        hasConstructorInit = self.classinst_cont()
 
         print("(parser-dbg): done after classinst_cont -- should match semicolon")
 
         # Match the semicolon at the end
-        if not self.match(";"):
+        if not self.match(";") and not hasConstructorInit:
+            self.logError("Expected '=' for constructor initialization or terminating symbol ';'")
+        else:
             self.ERROR_terminating_token(";")
 
         # Continue parsing program constructs
@@ -639,12 +642,19 @@ class SyntaxAnalyzer:
 
             self.match('(', False)
 
-            self.func_arg()
+            hasConstructorValue = self.func_arg()
             
-            if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]:
+            if self.currToken and self.currToken["tokenType"] == ")":
+                self.match(')')
+            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not hasConstructorValue:
                 self.ERROR_expected_constructor_param_closing()
+            else:
+                self.ERROR_expected_token([")", ","])
+            return True
+        
+        return False
 
-                
+            
                 
     
             # (  )   self.func_arg()  # Handle (<func_arg>)
@@ -663,24 +673,41 @@ class SyntaxAnalyzer:
         #     pass
 
     def func_arg(self):
+
+        hasConstructorValue = False
         # Check if there's a value to parse
         if self.currToken and self.value():
             # Parse the recursive part of the arguments
             self.func_arg_rec()
+            hasConstructorValue = True
         else:
             print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
+        return hasConstructorValue
     
 
     def func_arg_rec(self):
         # Check for a comma indicating more arguments
         if self.currToken and self.currToken["tokenType"] == ",":
+            # Peek ahead to check the token after the comma
+            next_token = self.peek()
+            if not next_token:
+                # If there's no next token, it means EOF after the comma
+                self.logError("Expected another value after ',' but reached EOF.")
+                # self.ERROR_expected_value()
+            elif next_token["tokenType"] not in PREDICT_SETS["value"]:
+                # If the next token is not a valid value
+                self.logError(f"Expected another value after ',' but got '{next_token['tokenName']}'.")
+                # self.ERROR_expected_value()
+
             self.match(",")  # Match the comma
             print("(parser) Found ',' indicating more arguments.")
-            
+
             # Parse the next <func_arg>
             self.func_arg()
         else:
             print("(parser) λ-production for <func_arg_rec>")  # Handle λ (empty production)
+
+
 
     # SAMPLE PLACEHOLDER FOR VALUE-- SHOULD RETURN TRUE OR FALSE IF VALUE CALL WAS FOR A VALID VALUE OR NOT
     def value(self):
