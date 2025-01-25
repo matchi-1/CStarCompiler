@@ -1322,3 +1322,238 @@ class SyntaxAnalyzer:
         #elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
         #self.body()
 
+
+
+#jeh
+    def input(self):
+        print("(parser) entered production: \"input\"")
+        '''<input> → in<data_type>(<input_params>)'''
+        if not self.match("in"):
+            self.ERROR_expected_token("in")
+        
+        if not self.match("<"):
+            self.ERROR_expected_token("<")
+        self.data_type()
+        if not self.match(">"):
+            self.ERROR_unclosed_angled_bracket()
+        
+        if not self.match("("):
+            self.ERROR_expected_token("(")
+        self.input_params()
+        if not self.match(")"):
+            self.ERROR_unclosed_parentheses()
+        
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+        
+        print("(parser) exited production: \"input\"")
+
+
+    def input_params(self):
+        print("(parser) entered production: \"input_params\"")
+        """<input_params> → <int_val> | <string_value> | <string_value>,<int_val> | λ"""
+        
+        if self.currToken and self.currToken["tokenType"] == "int_val":
+            self.int_val()
+        elif self.currToken and self.currToken["tokenType"] == "string_lit":
+            self.string_value()
+            if self.match(","):
+                if self.currToken and self.currToken["tokenType"] == "int_val":
+                    self.int_val()
+                else:
+                    self.ERROR_expected_token("int_val")
+        else:
+            print("(parser) λ production for \"input_params\" detected")
+        
+        print("(parser) exited production: \"input_params\"")
+
+    def var_iden(self):
+        """<var_iden> → Identifier <var_id_mods>"""
+        print("(parser) entered production: \"var_iden\"")
+        if self.match("Identifier"):
+            self.var_id_mods()
+        else:
+            self.ERROR_expected_token("Identifier")
+        print("(parser) exited production: \"var_iden\"")
+
+
+    def var_id_mods(self):
+        """<var_id_mods> → <var_init> <var_iden_rec> | [<int_val>] <var_id_arr1D> | λ"""
+        print("(parser) entered production: \"var_id_mods\"")
+        if self.match("="):
+            self.var_init()
+            self.var_iden_rec()   
+        elif self.match("["):
+            if self.matchPredictSet("value"):  #
+                self.int_val()
+                if self.match("]"):
+                    self.var_id_arr1D()
+                else:
+                    self.ERROR_unclosed_square_bracket()
+            else:
+                self.ERROR_expected_token("int_val")
+        
+        print("(parser) exited production: \"var_id_mods\"")
+
+
+    def var_init(self):
+        """<var_init> → = <value> <assign_stmt_con> <var_iden_rec> | λ"""
+        print("(parser) entered production: \"var_init\"")
+        
+        if self.match("="):
+            if self.matchPredictSet("value"):
+                self.value()
+            else:
+                self.ERROR_expected_token("value")
+            self.assign_stmt_con()
+            self.var_iden_rec()
+        else:
+            print("(parser) λ production for \"var_init\" detected")
+        
+        print("(parser) exited production: \"var_init\"")
+
+
+    def var_iden_rec(self):
+        """<var_iden_rec> → , Identifier <var_init> <var_iden_rec> | λ"""
+        print("(parser) entered production: \"var_iden_rec\"")
+        
+        if self.match(","):
+            if self.match("Identifier"):
+                self.var_init()
+                self.var_iden_rec()
+            else:
+                self.ERROR_expected_token("Identifier")
+        else:
+            print("(parser) λ production for \"var_iden_rec\" detected")
+        
+        print("(parser) exited production: \"var_iden_rec\"")
+
+
+    def var_id_arr1D(self):
+        '''<var_id_arr1D> → <array1D_iden_rec> | <array1D_init>'''
+        print("(parser) entered production: \"var_id_arr1D\"")
+        if self.currToken["tokenType"] in PREDICT_SETS["array1D_iden_rec"]:
+            self.array1D_iden_rec()
+        elif self.currToken["tokenType"] == "=":
+            self.array1D_init()
+        else:
+            self.ERROR_expected_token(["<array1D_iden_rec>", "<array1D_init>"])
+
+    def array1D_iden_rec(self):
+        '''<array1D_iden_rec> → , Identifier [<int_val>] <array1D_iden_rec> | λ'''
+        print("(parser) entered production: \"array1D_iden_rec\"")
+        if self.match(","):
+            if self.match("Identifier"):
+                if self.match("["):
+                    self.int_val()
+                    if not self.match("]"):
+                        self.ERROR_unclosed_square_bracket()
+                    self.array1D_iden_rec()
+                else:
+                    self.ERROR_expected_token("[")
+            else:
+                self.ERROR_expected_token("Identifier")
+        else:
+            print("(parser) λ production for \"array1D_iden_rec\" detected")
+
+    def array1D_init(self):
+            '''<array1D_init> → = {<arr_value_1D>}'''
+            print("(parser) entered production: \"array1D_init\"")
+            if self.match("="):
+                if self.match("{"):
+                    self.arr_value_1D()
+                    if not self.match("}"):
+                        self.ERROR_unclosed_curly_braces()
+                else:
+                    self.ERROR_expected_token("{")
+            else:
+                self.ERROR_expected_token("=")
+
+    def arr_value_1D(self):
+            '''<arr_value_1D> → <value> <arr_value_1D_rec>'''
+            print("(parser) entered production: \"arr_value_1D\"")
+            if self.currToken["tokenType"] in PREDICT_SETS["value"]:
+                self.value()
+                self.arr_value_1D_rec()
+            else:
+                self.ERROR_expected_token("value")
+
+    def arr_value_1D_rec(self):
+            '''<arr_value_1D_rec> → , <value> <arr_value_1D_rec> | λ'''
+            print("(parser) entered production: \"arr_value_1D_rec\"")
+            if self.match(","):
+                if self.currToken["tokenType"] in PREDICT_SETS["value"]:
+                    self.value()
+                    self.arr_value_1D_rec()
+                else:
+                    self.ERROR_expected_token("value")
+            else:
+                print("(parser) λ production for \"arr_value_1D_rec\" detected")
+
+    def var_id_arr2D(self):
+            '''<var_id_arr2D> → <array2D_iden_rec> | <array2D_init>'''
+            print("(parser) entered production: \"var_id_arr2D\"")
+            if self.currToken["tokenType"] in PREDICT_SETS["array2D_iden_rec"]:
+                self.array2D_iden_rec()
+            elif self.currToken["tokenType"] == "=":
+                self.array2D_init()
+            else:
+                self.ERROR_expected_token(["<array2D_iden_rec>", "<array2D_init>"])
+
+    def array2D_iden_rec(self):
+            '''<array2D_iden_rec> → , Identifier [<int_val>] [<int_val>] <array2D_iden_rec> | λ'''
+            print("(parser) entered production: \"array2D_iden_rec\"")
+            if self.match(","):
+                if self.match("Identifier"):
+                    if self.match("["):
+                        self.int_val()
+                        if self.match("]") and self.match("["):
+                            self.int_val()
+                            if not self.match("]"):
+                                self.ERROR_unclosed_square_bracket()
+                            self.array2D_iden_rec()
+                        else:
+                            self.ERROR_unclosed_square_bracket()
+                    else:
+                        self.ERROR_expected_token("[")
+                else:
+                    self.ERROR_expected_token("Identifier")
+            else:
+                print("(parser) λ production for \"array2D_iden_rec\" detected")
+
+    def array2D_init(self):
+            '''<array2D_init> → = {<arr_value_2D>}'''
+            print("(parser) entered production: \"array2D_init\"")
+            if self.match("="):
+                if self.match("{"):
+                    self.arr_value_2D()
+                    if not self.match("}"):
+                        self.ERROR_unclosed_curly_braces()
+                else:
+                    self.ERROR_expected_token("{")
+            else:
+                self.ERROR_expected_token("=")
+
+    def arr_value_2D(self):
+            '''<arr_value_2D> → {<arr_value_1D>} <arr_value_2D_rec>'''
+            print("(parser) entered production: \"arr_value_2D\"")
+            if self.match("{"):
+                self.arr_value_1D()
+                if not self.match("}"):
+                    self.ERROR_unclosed_curly_braces()
+                self.arr_value_2D_rec()
+            else:
+                self.ERROR_expected_token("{")
+
+    def arr_value_2D_rec(self):
+            '''<arr_value_2D_rec> → , {<arr_value_1D>} <arr_value_2D_rec> | λ'''
+            print("(parser) entered production: \"arr_value_2D_rec\"")
+            if self.match(","):
+                if self.match("{"):
+                    self.arr_value_1D()
+                    if not self.match("}"):
+                        self.ERROR_unclosed_curly_braces()
+                    self.arr_value_2D_rec()
+                else:
+                    self.ERROR_expected_token("{")
+        
