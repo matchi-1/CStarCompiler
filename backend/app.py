@@ -114,7 +114,7 @@ def transition(currState, currChar):
                 case '{':  currState = 'OPEN_CURLY_CHECK'
                 case '}':  currState = 'CLOSING_CURLY_CHECK'
                 case '|':  currState = 's207'
-                case '"':  currState = 's237'
+                case '"':  currState = 's253'
                 case '+':  currState = 'PLUS_CHECK'
                 case '<':  currState = 'OPEN_ANGLE_CHECK'
                 case '>':  currState = 'CLOSING_ANGLE_CHECK'
@@ -879,680 +879,680 @@ def lexer(code):
         #if no transitions, it means it's time for delim checking
         if (transition(currState, 'ANY') != 'DEFINED'):
             print('(dbg) delim checking')
-
+            match currState:
             #data type keywords
-            if (currState == 'BOOL_CHECK'):
-                expected = type_iden_delim
-                if (code[i] in type_iden_delim):
-                    add_token(currToken, 'bool', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            if (currState == 'DOUBLE_CHECK'):
-                expected = type_iden_delim
-                if (code[i] in type_iden_delim):
-                    add_token(currToken, 'double', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            if (currState == 'FLOAT_CHECK'):
-                expected = type_iden_delim
-                if (code[i] in type_iden_delim):
-                    add_token(currToken, 'float', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            if (currState == 'INT_CHECK'):
-                print('(dbg) in int_check')
-                expected = type_iden_delim
-                if (code[i] in type_iden_delim):
-                    add_token(currToken, 'int', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            if (currState == 'LONG_CHECK'):
-                expected = type_iden_delim
-                if (code[i] in type_iden_delim):
-                    add_token(currToken, 'long', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            if (currState == 'STRING_CHECK'):
-                expected = type_iden_delim
-                if (code[i] in type_iden_delim):
-                    add_token(currToken, 'string', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            #break statement
-            if (currState == 'BREAK_CHECK'):
-                expected = break_ret_cont_delim
-                if (code[i] in break_ret_cont_delim):
-                    add_token(currToken, 'break', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # ( symbol
-            if (currState == 'OPEN_PAREN_CHECK'):
-                expected = ['alphanum', ' ', '\"', '!', ')', '+', '-', '/']
-                if (code[i] in open_paren_delim):
-                    add_token(currToken, '(', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # ) symbol
-            if (currState == 'CLOSING_PAREN_CHECK'):
-                expected = ['alphanum', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', ']','?'] + [';', '\n', '/']
-                if (code[i] in close_paren_delim):
-                    add_token(currToken, ')', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # ; symbol
-            if (currState == 'SEMICOLON_CHECK'):
-                expected = ['alphanum', ' ', '}', '/', '('] + newline
-                if (code[i] in semicolon_delim):
-                    add_token(currToken, ';', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # - symbol
-            if (currState == 'DASH_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '/']
-                if (code[i] in negative_delim):
-                    add_token(currToken, '-', currLine, currCol)
-                elif (code[i] in ['-', '=']):
-                    print('(dbg) going to s170')
-                    currState = 's152'
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # ! symbol
-            if (currState == 'NEGATION_CHECK'):
-                expected = ['alphabetic_chars', '(', '/', '!'] + whitespace + newline
-                if (code[i] in exclamation_delim):
-                    add_token(currToken, '!', currLine, currCol)
-                elif (code[i] == '='):
-                    currState = 's158'
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # % symbol
-            if (currState == 'MODULO_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/']
-                if (code[i] in percent_delim):
-                    add_token(currToken, '%', currLine, currCol)
-                elif (code[i] == '='):
-                    currState = 's162'
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # * symbol
-            if (currState == 'ASTERISK_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/']
-                if (code[i] in asterisk_delim):
-                    add_token(currToken, '*', currLine, currCol)
-                elif (code[i] in ['/', '=']):
-                    currState = 's173'
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # , symbol
-            if (currState == 'COMMA_CHECK'):
-                expected = ['alphanum', ' ', '/', '(', '{']
-                if (code[i] in comma_delim):
-                    add_token(currToken, ',', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # . symbol
-            if (currState == 'DOT_CHECK'):
-                expected = ['alphabetic_chars', '/'] + whitespace
-                if (code[i] in numbers):
-                    currState = 's267'
-                elif (code[i] in dot_delim):
-                    add_token(currToken, '.', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # / symbol
-            if (currState == 'SLASH_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-']
-                if (code[i] in slash_delim):
-                    add_token(currToken, '/', currLine, currCol)
-                elif (code[i] in ['*', '/', '=']):
-                    currState = 's183'
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # ? symbol
-            if (currState == 'QUESTION_CHECK'):
-                expected = ['alphanum', '(', '/', '\"'] + newline
-                if (code[i] in question_delim):
-                    add_token(currToken, '?', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # : symbol
-            if (currState == 'COLON_CHECK'):
-                expected = ['alphanum', '(', ' ', '/'] + newline
-                if (code[i] in colon_delim):
-                    add_token(currToken, ':', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # [ symbol
-            if (currState == 'OPEN_BRACKET_CHECK'):
-                expected = ['alphanum', ']', '/', '\n', '('] + whitespace
-                if (code[i] in open_bracket_delim):
-                    add_token(currToken, '[', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # ] symbol
-            if (currState == 'CLOSING_BRACKET_CHECK'):
-                expected = [i for i in iden_delim if i not in ["?", "{", "}", "("]]
-                if (code[i] in expected):
-                    add_token(currToken, ']', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # { symbol
-            if (currState == 'OPEN_CURLY_CHECK'):
-                expected = ['alphanum', ' ', '{', '}', '/', '+', '-', '\"', '('] + newline_delim
-                if (code[i] in open_curly_delim):
-                    add_token(currToken, '{', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # } symbol
-            if (currState == 'CLOSING_CURLY_CHECK'):
-                expected = ['alphanum', ' ', ';', ',','}'] + newline_delim
-                if (code[i] in close_curly_delim):
-                    add_token(currToken, '}', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # + symbol
-            if (currState == 'PLUS_CHECK'):
-                expected = ['alphanum', ' ', '(', '\"', '+', '-', '/']
-                if (code[i] in plus_delim):
-                    add_token(currToken, '+', currLine, currCol)
-                else:
-                    currState = 's210'
-            # < symbol
-            if (currState == 'OPEN_ANGLE_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/'] + newline
-                print("(dbg) open angle check curr char ", code[i])
-                if (code[i] in great_less_delim):
-                    print("(dbg) arithmetic spotted for <")
-                    add_token(currToken, '<', currLine, currCol)
-                elif (code[i] == '='):
-                    currState = 's216'
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # > symbol
-            if (currState == 'CLOSING_ANGLE_CHECK'):
-                expected = ['alphanum', ' ', '(', ';', '+', '-', '/'] + newline
-                if (code[i] in great_delim):
-                    add_token(currToken, '>', currLine, currCol)
-                elif (code[i] == '='):
-                    currState = 's220'
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # = symbol
-            if (currState == 'ASSIGN_CHECK'):
-                expected = ['alphanum', ' ', '\"', '+', '-', '/', '!']
-                if (code[i] in equal_delim):
-                    add_token(currToken, '=', currLine, currCol)
-                else:
-                    currState = 's224'
-            # in statement
-            if (currState == 'IN_CHECK'):
-                expected = ['<', '/']
-                if (code[i] in in_delim):
-                    add_token(currToken, 'in', currLine, currCol)
-                elif(code[i] in alphanum + ['_']):
-                    currState = 's79'
-                else:
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # print statement
-            if (currState == 'PRINT_CHECK'):
-                expected = func_delim
-                if (code[i] in func_delim):
-                    add_token(currToken, 'print', currLine, currCol)
-                elif(code[i] in alphanum + ['_']):
-                    currState = 's92'
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # println statement
-            if (currState == 'PRINTLN_CHECK'):
-                expected = func_delim
-                if (code[i] in func_delim):
-                    add_token(currToken, 'println', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # private statement
-            if (currState == 'PRIVATE_CHECK'):
-                expected = newline_delim
-                if (code[i] in newline_delim):
-                    add_token(currToken, 'private', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # repeat statement
-            if (currState == 'REPEAT_CHECK'):
-                expected = loop_delim
-                if (code[i] in loop_delim):
-                    add_token(currToken, 'repeat', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # return statement
-            if (currState == 'RETURN_CHECK'):
-                expected = newline_delim + [';']
-                if (code[i] in break_ret_cont_delim):
-                    add_token(currToken, 'return', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # static statement
-            if (currState == 'STATIC_CHECK'):
-                expected = newline_delim
-                if (code[i] in newline_delim):
-                    add_token(currToken, 'static', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # switch statement
-            if (currState == 'SWITCH_CHECK'):
-                expected = loop_delim
-                if (code[i] in loop_delim):
-                    add_token(currToken, 'switch', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # this statement
-            if (currState == 'THIS_CHECK'):
-                expected = this_delim
-                if (code[i] in this_delim):
-                    add_token(currToken, 'this', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # this statement
-            if (currState == 'TRUE_CHECK'):
-                expected = nbl_delim
-                if (code[i] in nbl_delim):
-                    add_token(currToken, 'bool_lit', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # void statement
-            if (currState == 'VOID_CHECK'):
-                expected = whitespace + newline + ['/']
-                if (code[i] in void_delim):
-                    add_token(currToken, 'void', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # while statement
-            if (currState == 'WHILE_CHECK'):
-                expected = loop_delim
-                if (code[i] in loop_delim):
-                    add_token(currToken, 'while', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # -- symbol
-            if (currState == 'DECREMENT_CHECK'):
-                expected = whitespace + ['alphabetic_chars'] + [';', ')', '/', '+', '*', '%', '('] + newline
-                if (code[i] in decrement_delim):
-                    add_token(currToken, '--', currLine, currCol)
-                elif (code[i] in numbers):
-                    currToken += code[i]
-                    add_error(adjustConstNumError(currToken, currLine, currCol, lineContent))
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # -= symbol
-            if (currState == 'MINUS_ASS_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/']
-                if (code[i] in subtract_assign_delim):
-                    add_token(currToken, '-=', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # != symbol
-            if (currState == 'NOT_EQUAL_CHECK'):
-                expected = whitespace + ['alphanum', '(', '"', '!','+','-'] + newline
-                if (code[i] in not_equal_delim):
-                    add_token(currToken, '!=', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # %= symbol
-            if (currState == 'MODULO_ASS_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/']
-                if (code[i] in modulo_assign_delim):
-                    add_token(currToken, '%=', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # && symbol
-            if (currState == 'LOGICAND_CHECK'):
-                expected = ['alphabetic_chars', ' ', '(', '/', '!']
-                if (code[i] in and_or_delim):
-                    add_token(currToken, '&&', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # *= symbol
-            if (currState == 'MULT_ASS_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/']
-                if (code[i] in multi_assign_delim):
-                    add_token(currToken, '*=', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # /= symbol
-            if (currState == 'DIV_ASS_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/']
-                if (code[i] in divi_assign_delim):
-                    add_token(currToken, '/=', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # || symbol
-            if (currState == 'LOGICOR_CHECK'):
-                expected = ['alphabetic_chars', ' ', '(', '/', '!']
-                if (code[i] in and_or_delim):
-                    add_token(currToken, '||', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # ++ symbol
-            if (currState == 'INCREMENT_CHECK'):
-                expected = whitespace + ['alphabetic_chars', ')', ';', '/', '-', '*', '%', '(']
-                if (code[i] in increment_delim):
-                    add_token(currToken, '++', currLine, currCol)
-                elif (code[i] in numbers):
-                    currToken += code[i]
-                    add_error(adjustConstNumError(currToken, currLine, currCol, lineContent))
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # += symbol
-            if (currState == 'ADD_ASS_CHECK'):
-                expected = ['alphanum', ' ', '(', '\"', '+', '-', '/']
-                if (code[i] in add_assign_delim):
-                    add_token(currToken, '+=', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # <= symbol
-            if (currState == 'LESS_OR_EQUAL_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/']
-                if (code[i] in great_less_delim):
-                    add_token(currToken, '<=', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # >= symbol
-            if (currState == 'GREATER_OR_EQUAL_CHECK'):
-                expected = ['alphanum', ' ', '(', '+', '-', '/']
-                if (code[i] in great_less_delim):
-                    add_token(currToken, '>=', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # == symbol
-            if (currState == 'EQUAL_CHECK'):
-                expected = ['alphanum', ' ', '(', '\"', '+', '-', '/', '!']
-                if (code[i] in equal_equal_delim):
-                    add_token(currToken, '==', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # string literal
-            if (currState == 'STRING_LIT_CHECK'):
-                expected = str_lit_delim
-                if (code[i] in str_lit_delim):
-                    add_token(currToken, 'string_lit', currLine, currCol)
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # multicomments 
-            if (currState == 'MULTI_COMMENT_CHECK'):
-                add_token(currToken, 'multi-line comment', currLine, currCol)
-            # case statement 
-            if (currState == 'CASE_CHECK'):
-                expected = newline_delim
-                if (code[i] in case_delim):
-                    add_token(currToken, 'case', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # class statement 
-            if (currState == 'CLASS_CHECK'):
-                expected = newline_delim
-                if (code[i] in newline_delim):
-                    add_token(currToken, 'class', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # continue statement 
-            if (currState == 'CONTINUE_CHECK'):
-                expected = newline_delim + [';']
-                if (code[i] in break_ret_cont_delim):
-                    add_token(currToken, 'continue', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # const statement 
-            if (currState == 'CONST_CHECK'):
-                expected = newline_delim
-                if (code[i] in newline_delim):
-                    add_token(currToken, 'const', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # default statement 
-            if (currState == 'DEFAULT_CHECK'):
-                expected = default_delim
-                if (code[i] in default_delim):
-                    add_token(currToken, 'default', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # do statement 
-            if (currState == 'DO_CHECK'):
-                expected = block_delim
-                if (code[i] in block_delim):
-                    add_token(currToken, 'do', currLine, currCol)
-                elif(code[i] in alphanum + ['_']):
-                    currState = 's44'
-                else:
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # else statement 
-            if (currState == 'ELSE_CHECK'):
-                expected = block_delim
-                if (code[i] in block_delim):
-                    add_token(currToken, 'else', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # false statement
-            if (currState == 'FALSE_CHECK'):
-                expected = nbl_delim
-                if (code[i] in nbl_delim):
-                    add_token(currToken, 'bool_lit', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # for statement
-            if (currState == 'FOR_CHECK'):
-                expected = loop_delim
-                if (code[i] in loop_delim):
-                    add_token(currToken, 'for', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # if statement
-            if (currState == 'IF_CHECK'):
-                expected = loop_delim
-                if (code[i] in loop_delim):
-                    add_token(currToken, 'if', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
-            # import statement
-            if (currState == 'IMPORT_CHECK'):
-                expected = whitespace + ['<', '/'] + newline
-                if (code[i] in import_delim):
-                    add_token(currToken, 'import', currLine, currCol)
-                elif (code[i] in alphanum + ['_']):
-                    currToken += code[i]
-                    currState ='s244'
-                    print('(dbg) now in state 244')
-                    continue
-                else:
-                    currToken += code[i]
-                    add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                case 'BOOL_CHECK':
+                    expected = type_iden_delim
+                    if (code[i] in type_iden_delim):
+                        add_token(currToken, 'bool', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                case 'DOUBLE_CHECK':
+                    expected = type_iden_delim
+                    if (code[i] in type_iden_delim):
+                        add_token(currToken, 'double', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                case 'FLOAT_CHECK':
+                    expected = type_iden_delim
+                    if (code[i] in type_iden_delim):
+                        add_token(currToken, 'float', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                case 'INT_CHECK':
+                    print('(dbg) in int_check')
+                    expected = type_iden_delim
+                    if (code[i] in type_iden_delim):
+                        add_token(currToken, 'int', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                case 'LONG_CHECK':
+                    expected = type_iden_delim
+                    if (code[i] in type_iden_delim):
+                        add_token(currToken, 'long', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                case 'STRING_CHECK':
+                    expected = type_iden_delim
+                    if (code[i] in type_iden_delim):
+                        add_token(currToken, 'string', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                #break statement
+                case 'BREAK_CHECK':
+                    expected = break_ret_cont_delim
+                    if (code[i] in break_ret_cont_delim):
+                        add_token(currToken, 'break', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # ( symbol
+                case 'OPEN_PAREN_CHECK':
+                    expected = ['alphanum', ' ', '\"', '!', ')', '+', '-', '/']
+                    if (code[i] in open_paren_delim):
+                        add_token(currToken, '(', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # ) symbol
+                case 'CLOSING_PAREN_CHECK':
+                    expected = ['alphanum', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', ']','?'] + [';', '\n', '/']
+                    if (code[i] in close_paren_delim):
+                        add_token(currToken, ')', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # ; symbol
+                case 'SEMICOLON_CHECK':
+                    expected = ['alphanum', ' ', '}', '/', '('] + newline
+                    if (code[i] in semicolon_delim):
+                        add_token(currToken, ';', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # - symbol
+                case 'DASH_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '/']
+                    if (code[i] in negative_delim):
+                        add_token(currToken, '-', currLine, currCol)
+                    elif (code[i] in ['-', '=']):
+                        print('(dbg) going to s170')
+                        currState = 's152'
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # ! symbol
+                case 'NEGATION_CHECK':
+                    expected = ['alphabetic_chars', '(', '/', '!'] + whitespace + newline
+                    if (code[i] in exclamation_delim):
+                        add_token(currToken, '!', currLine, currCol)
+                    elif (code[i] == '='):
+                        currState = 's158'
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # % symbol
+                case 'MODULO_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/']
+                    if (code[i] in percent_delim):
+                        add_token(currToken, '%', currLine, currCol)
+                    elif (code[i] == '='):
+                        currState = 's162'
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # * symbol
+                case 'ASTERISK_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/']
+                    if (code[i] in asterisk_delim):
+                        add_token(currToken, '*', currLine, currCol)
+                    elif (code[i] in ['/', '=']):
+                        currState = 's173'
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # , symbol
+                case 'COMMA_CHECK':
+                    expected = ['alphanum', ' ', '/', '(', '{']
+                    if (code[i] in comma_delim):
+                        add_token(currToken, ',', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # . symbol
+                case 'DOT_CHECK':
+                    expected = ['alphabetic_chars', '/'] + whitespace
+                    if (code[i] in numbers):
+                        currState = 's267'
+                    elif (code[i] in dot_delim):
+                        add_token(currToken, '.', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # / symbol
+                case 'SLASH_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-']
+                    if (code[i] in slash_delim):
+                        add_token(currToken, '/', currLine, currCol)
+                    elif (code[i] in ['*', '/', '=']):
+                        currState = 's183'
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # ? symbol
+                case 'QUESTION_CHECK':
+                    expected = ['alphanum', '(', '/', '\"'] + newline
+                    if (code[i] in question_delim):
+                        add_token(currToken, '?', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # : symbol
+                case 'COLON_CHECK':
+                    expected = ['alphanum', '(', ' ', '/'] + newline
+                    if (code[i] in colon_delim):
+                        add_token(currToken, ':', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # [ symbol
+                case 'OPEN_BRACKET_CHECK':
+                    expected = ['alphanum', ']', '/', '\n', '('] + whitespace
+                    if (code[i] in open_bracket_delim):
+                        add_token(currToken, '[', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # ] symbol
+                case 'CLOSING_BRACKET_CHECK':
+                    expected = [i for i in iden_delim if i not in ["?", "{", "}", "("]]
+                    if (code[i] in expected):
+                        add_token(currToken, ']', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # { symbol
+                case 'OPEN_CURLY_CHECK':
+                    expected = ['alphanum', ' ', '{', '}', '/', '+', '-', '\"', '('] + newline_delim
+                    if (code[i] in open_curly_delim):
+                        add_token(currToken, '{', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # } symbol
+                case 'CLOSING_CURLY_CHECK':
+                    expected = ['alphanum', ' ', ';', ',','}'] + newline_delim
+                    if (code[i] in close_curly_delim):
+                        add_token(currToken, '}', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # + symbol
+                case 'PLUS_CHECK':
+                    expected = ['alphanum', ' ', '(', '\"', '+', '-', '/']
+                    if (code[i] in plus_delim):
+                        add_token(currToken, '+', currLine, currCol)
+                    else:
+                        currState = 's210'
+                # < symbol
+                case 'OPEN_ANGLE_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/'] + newline
+                    print("(dbg) open angle check curr char ", code[i])
+                    if (code[i] in great_less_delim):
+                        print("(dbg) arithmetic spotted for <")
+                        add_token(currToken, '<', currLine, currCol)
+                    elif (code[i] == '='):
+                        currState = 's216'
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # > symbol
+                case 'CLOSING_ANGLE_CHECK':
+                    expected = ['alphanum', ' ', '(', ';', '+', '-', '/'] + newline
+                    if (code[i] in great_delim):
+                        add_token(currToken, '>', currLine, currCol)
+                    elif (code[i] == '='):
+                        currState = 's220'
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # = symbol
+                case 'ASSIGN_CHECK':
+                    expected = ['alphanum', ' ', '\"', '+', '-', '/', '!']
+                    if (code[i] in equal_delim):
+                        add_token(currToken, '=', currLine, currCol)
+                    else:
+                        currState = 's224'
+                # in statement
+                case 'IN_CHECK':
+                    expected = ['<', '/']
+                    if (code[i] in in_delim):
+                        add_token(currToken, 'in', currLine, currCol)
+                    elif(code[i] in alphanum + ['_']):
+                        currState = 's79'
+                    else:
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # print statement
+                case 'PRINT_CHECK':
+                    expected = func_delim
+                    if (code[i] in func_delim):
+                        add_token(currToken, 'print', currLine, currCol)
+                    elif(code[i] in alphanum + ['_']):
+                        currState = 's92'
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # println statement
+                case 'PRINTLN_CHECK':
+                    expected = func_delim
+                    if (code[i] in func_delim):
+                        add_token(currToken, 'println', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # private statement
+                case 'PRIVATE_CHECK':
+                    expected = newline_delim
+                    if (code[i] in newline_delim):
+                        add_token(currToken, 'private', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # repeat statement
+                case 'REPEAT_CHECK':
+                    expected = loop_delim
+                    if (code[i] in loop_delim):
+                        add_token(currToken, 'repeat', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # return statement
+                case 'RETURN_CHECK':
+                    expected = newline_delim + [';']
+                    if (code[i] in break_ret_cont_delim):
+                        add_token(currToken, 'return', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # static statement
+                case 'STATIC_CHECK':
+                    expected = newline_delim
+                    if (code[i] in newline_delim):
+                        add_token(currToken, 'static', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # switch statement
+                case 'SWITCH_CHECK':
+                    expected = loop_delim
+                    if (code[i] in loop_delim):
+                        add_token(currToken, 'switch', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # this statement
+                case 'THIS_CHECK':
+                    expected = this_delim
+                    if (code[i] in this_delim):
+                        add_token(currToken, 'this', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # this statement
+                case 'TRUE_CHECK':
+                    expected = nbl_delim
+                    if (code[i] in nbl_delim):
+                        add_token(currToken, 'bool_lit', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # void statement
+                case 'VOID_CHECK':
+                    expected = whitespace + newline + ['/']
+                    if (code[i] in void_delim):
+                        add_token(currToken, 'void', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # while statement
+                case 'WHILE_CHECK':
+                    expected = loop_delim
+                    if (code[i] in loop_delim):
+                        add_token(currToken, 'while', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # -- symbol
+                case 'DECREMENT_CHECK':
+                    expected = whitespace + ['alphabetic_chars'] + [';', ')', '/', '+', '*', '%', '('] + newline
+                    if (code[i] in decrement_delim):
+                        add_token(currToken, '--', currLine, currCol)
+                    elif (code[i] in numbers):
+                        currToken += code[i]
+                        add_error(adjustConstNumError(currToken, currLine, currCol, lineContent))
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # -= symbol
+                case 'MINUS_ASS_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/']
+                    if (code[i] in subtract_assign_delim):
+                        add_token(currToken, '-=', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # != symbol
+                case 'NOT_EQUAL_CHECK':
+                    expected = whitespace + ['alphanum', '(', '"', '!','+','-'] + newline
+                    if (code[i] in not_equal_delim):
+                        add_token(currToken, '!=', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # %= symbol
+                case 'MODULO_ASS_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/']
+                    if (code[i] in modulo_assign_delim):
+                        add_token(currToken, '%=', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # && symbol
+                case 'LOGICAND_CHECK':
+                    expected = ['alphabetic_chars', ' ', '(', '/', '!']
+                    if (code[i] in and_or_delim):
+                        add_token(currToken, '&&', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # *= symbol
+                case 'MULT_ASS_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/']
+                    if (code[i] in multi_assign_delim):
+                        add_token(currToken, '*=', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # /= symbol
+                case 'DIV_ASS_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/']
+                    if (code[i] in divi_assign_delim):
+                        add_token(currToken, '/=', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # || symbol
+                case 'LOGICOR_CHECK':
+                    expected = ['alphabetic_chars', ' ', '(', '/', '!']
+                    if (code[i] in and_or_delim):
+                        add_token(currToken, '||', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # ++ symbol
+                case 'INCREMENT_CHECK':
+                    expected = whitespace + ['alphabetic_chars', ')', ';', '/', '-', '*', '%', '(']
+                    if (code[i] in increment_delim):
+                        add_token(currToken, '++', currLine, currCol)
+                    elif (code[i] in numbers):
+                        currToken += code[i]
+                        add_error(adjustConstNumError(currToken, currLine, currCol, lineContent))
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # += symbol
+                case 'ADD_ASS_CHECK':
+                    expected = ['alphanum', ' ', '(', '\"', '+', '-', '/']
+                    if (code[i] in add_assign_delim):
+                        add_token(currToken, '+=', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # <= symbol
+                case 'LESS_OR_EQUAL_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/']
+                    if (code[i] in great_less_delim):
+                        add_token(currToken, '<=', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # >= symbol
+                case 'GREATER_OR_EQUAL_CHECK':
+                    expected = ['alphanum', ' ', '(', '+', '-', '/']
+                    if (code[i] in great_less_delim):
+                        add_token(currToken, '>=', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # == symbol
+                case 'EQUAL_CHECK':
+                    expected = ['alphanum', ' ', '(', '\"', '+', '-', '/', '!']
+                    if (code[i] in equal_equal_delim):
+                        add_token(currToken, '==', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # string literal
+                case 'STRING_LIT_CHECK':
+                    expected = str_lit_delim
+                    if (code[i] in str_lit_delim):
+                        add_token(currToken, 'string_lit', currLine, currCol)
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # multicomments 
+                case 'MULTI_COMMENT_CHECK':
+                    add_token(currToken, 'multi-line comment', currLine, currCol)
+                # case statement 
+                case 'CASE_CHECK':
+                    expected = newline_delim
+                    if (code[i] in case_delim):
+                        add_token(currToken, 'case', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # class statement 
+                case 'CLASS_CHECK':
+                    expected = newline_delim
+                    if (code[i] in newline_delim):
+                        add_token(currToken, 'class', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # continue statement 
+                case 'CONTINUE_CHECK':
+                    expected = newline_delim + [';']
+                    if (code[i] in break_ret_cont_delim):
+                        add_token(currToken, 'continue', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # const statement 
+                case 'CONST_CHECK':
+                    expected = newline_delim
+                    if (code[i] in newline_delim):
+                        add_token(currToken, 'const', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # default statement 
+                case 'DEFAULT_CHECK':
+                    expected = default_delim
+                    if (code[i] in default_delim):
+                        add_token(currToken, 'default', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # do statement 
+                case 'DO_CHECK':
+                    expected = block_delim
+                    if (code[i] in block_delim):
+                        add_token(currToken, 'do', currLine, currCol)
+                    elif(code[i] in alphanum + ['_']):
+                        currState = 's44'
+                    else:
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # else statement 
+                case 'ELSE_CHECK':
+                    expected = block_delim
+                    if (code[i] in block_delim):
+                        add_token(currToken, 'else', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # false statement
+                case 'FALSE_CHECK':
+                    expected = nbl_delim
+                    if (code[i] in nbl_delim):
+                        add_token(currToken, 'bool_lit', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # for statement
+                case 'FOR_CHECK':
+                    expected = loop_delim
+                    if (code[i] in loop_delim):
+                        add_token(currToken, 'for', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # if statement
+                case 'IF_CHECK':
+                    expected = loop_delim
+                    if (code[i] in loop_delim):
+                        add_token(currToken, 'if', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
+                # import statement
+                case 'IMPORT_CHECK':
+                    expected = whitespace + ['<', '/'] + newline
+                    if (code[i] in import_delim):
+                        add_token(currToken, 'import', currLine, currCol)
+                    elif (code[i] in alphanum + ['_']):
+                        currToken += code[i]
+                        currState ='s244'
+                        print('(dbg) now in state 244')
+                        continue
+                    else:
+                        currToken += code[i]
+                        add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
         # end of delim checking if statement
 #---SPECIAL STATES---
         #identifier state
