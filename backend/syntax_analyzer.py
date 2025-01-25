@@ -884,7 +884,49 @@ class SyntaxAnalyzer:
                 #print("from 1d na error")
                 self.ERROR_unclosed_curly_braces()
     
-    # ALEX start here
+  
+    def input(self):
+        print("(parser) entered production: \"input\"")
+        
+        if not self.match("in"):
+            self.ERROR_expected_token("in")
+        
+        if not self.match("<"):
+            self.ERROR_expected_token("<")
+        self.data_type()
+        if not self.match(">"):
+            self.ERROR_unclosed_angled_bracket()
+        
+        if not self.match("("):
+            self.ERROR_expected_token("(")
+        self.input_params()
+        if not self.match(")"):
+            self.ERROR_unclosed_parentheses()
+        
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+        
+        print("(parser) exited production: \"input\"")
+
+
+    def input_params(self):
+        print("(parser) entered production: \"input_params\"")
+        
+        if self.currToken and self.currToken["tokenType"] == "int_val":
+            self.int_val()
+        elif self.currToken and self.currToken["tokenType"] == "string_lit":
+            self.string_value()
+            if self.match(","):
+                if self.currToken and self.currToken["tokenType"] == "int_val":
+                    self.int_val()
+                else:
+                    self.ERROR_expected_token("int_val")
+        else:
+            print("(parser) λ production for \"input_params\" detected")
+        
+        print("(parser) exited production: \"input_params\"")
+
+  # ALEX start here
     def condition(self, condType):
         '''<condition> → <bool_value>'''
         print("(parser) entered production: \"condition\"")
@@ -1320,3 +1362,46 @@ class SyntaxAnalyzer:
             self.continue_stmt()
         #elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
         #self.body()
+
+
+#jeh
+    def input(self):
+        print("(parser) entered production: \"input\"")
+        
+        if not self.match("in"):
+            self.ERROR_expected_token("in")
+        
+        if not self.match("<"):
+            self.ERROR_expected_token("<")
+        self.data_type()
+        if not self.match(">"):
+            self.ERROR_unclosed_angled_bracket()
+        
+        if not self.match("("):
+            self.ERROR_expected_token("(")
+        self.input_params()
+        if not self.match(")"):
+            self.ERROR_unclosed_parentheses()
+        
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+        
+        print("(parser) exited production: \"input\"")
+
+
+    def input_params(self):
+        print("(parser) entered production: \"input_params\"")
+        
+        if self.currToken and self.currToken["tokenType"] == "int_val":
+            self.int_val()
+        elif self.currToken and self.currToken["tokenType"] == "string_lit":
+            self.string_value()
+            if self.match(","):
+                if self.currToken and self.currToken["tokenType"] == "int_val":
+                    self.int_val()
+                else:
+                    self.ERROR_expected_token("int_val")
+        else:
+            print("(parser) λ production for \"input_params\" detected")
+        
+        print("(parser) exited production: \"input_params\"")
