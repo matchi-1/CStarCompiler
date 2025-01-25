@@ -87,7 +87,7 @@ class SyntaxAnalyzer:
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
             self.nextToken()
             return True
-        elif self.currToken is not None or hasSpecError:
+        elif self.currToken is (not None and hasSpecError):
             return False
         else:
             self.ERROR_expected_token(expected_token)
