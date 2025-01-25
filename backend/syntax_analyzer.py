@@ -293,16 +293,21 @@ class SyntaxAnalyzer:
                         print("(parser) production: ### inside main")
 
                     #### TEMPORARY code block
-                    if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
-                        self.output()
+                    if self.currToken:  # Ensure self.currToken is not None
+                        if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
+                            self.output()
 
-                    if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
-                        self.conditional_stmt()
+                        if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
+                            self.conditional_stmt()
 
-                    if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
-                        current_value = self.currToken["tokenName"]
-                        error_message = f"'else' statements may only be used after an 'if' statement."
-                        self.logError(error_message)
+                        if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
+                            current_value = self.currToken["tokenName"]
+                            error_message = f"'else' statements may only be used after an 'if' statement."
+                            self.logError(error_message)
+                    else:
+                        # Handle EOF case
+                        self.logError("Unexpected end of file while parsing.")
+
 
 
                     self.match("return", False)
