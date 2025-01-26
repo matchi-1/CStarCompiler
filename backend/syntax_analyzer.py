@@ -97,9 +97,10 @@ class SyntaxAnalyzer:
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
             self.nextToken()
             return True
-        elif self.currToken is (not None and hasSpecError):
+        elif not self.currToken and hasSpecError:
             return False
         else:
+            print("activating default expected token error")
             self.ERROR_expected_token(expected_token)
             return False
 
@@ -389,8 +390,7 @@ class SyntaxAnalyzer:
     def ERROR_unmatched_closing(self):
         self.logError(f"Found unmatched {self.currToken["tokenType"]}.")
 
-    def ERROR_expected_integer_value(self):
-        expected_tokens = PREDICT_SETS["int_val"]
+    def ERROR_expected_integer_value(self, expected_tokens = PREDICT_SETS["int_val"]):
         current_value = self.currToken["tokenType"] if self.currToken else "EOF"
         self.logError(
             f"Expected an integer value. Allowed tokens: {', '.join(expected_tokens)}. "
@@ -796,7 +796,7 @@ class SyntaxAnalyzer:
 
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
-            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not hasConstructorValue:
+            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not has_Constructor_or_Array_Init:
                 self.ERROR_expected_constructor_param_closing()
             else:
                 self.ERROR_expected_token([")", ","])
@@ -809,7 +809,7 @@ class SyntaxAnalyzer:
             
             # Check if there's an integer value or EOF
             if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["int_val"]:
-                self.ERROR_expected_integer_value()
+                self.ERROR_expected_integer_value(['whole_lit', 'Identifier','('])
             else:
                 self.int_val([']'])    # parse <int_val>
 
@@ -852,7 +852,7 @@ class SyntaxAnalyzer:
 
             if not self.match("}"):
                 print("matching closing } for 1D parent prod")
-                self.ERROR_expected_token(["}"])
+                self.ERROR_unclosed_curly_braces()
         else:
             # λ-production
             print("(parser) λ-production for <classinst_def_1Drec_arr>")
@@ -867,7 +867,7 @@ class SyntaxAnalyzer:
             self.object_arr2D_value()  # Parse <object_arr2D_value>
 
             if not self.match("}"):
-                self.ERROR_expected_token(["}"])
+                self.ERROR_unclosed_curly_braces()
         else:
             # λ-production
             print("(parser) λ-production for <classinst_def_2Drec_arr>")
@@ -879,10 +879,14 @@ class SyntaxAnalyzer:
             if not self.match("("):
                 self.ERROR_expected_token(["("])
 
+            print("!!!!!!!!!!!!!!!!!BEFORE FUNC ARG")
             self.func_arg()
+            print("!!!!!!!!!!!!!!!!!AFTER FUNC ARG")
 
             if not self.match(")"):
+                print("!!!!!!!!!!!!!!!!! INSIDE NOT MATCH FUNC ARG")
                 self.ERROR_expected_constructor_param_closing()
+                
 
             self.object_arr_value_1D_rec()  # Parse <object_arr_value_1D_rec>
         else:
@@ -899,8 +903,10 @@ class SyntaxAnalyzer:
                 self.ERROR_expected_token(["("])
 
             self.func_arg()
+            print("DONE FUNC ARG IN object_arr_value_1D_rec")
 
             if not self.match(")"):
+                print("EXPECTED CLOSING )")
                 self.ERROR_expected_constructor_param_closing()
 
             self.object_arr_value_1D_rec()  # Recursive call for more values
