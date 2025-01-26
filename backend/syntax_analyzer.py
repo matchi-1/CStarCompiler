@@ -62,9 +62,6 @@ class SyntaxAnalyzer:
         self.lineContent = ''
         self.hasMainFunction = False  # Track if main function is found
 
-        # paren and brackets
-        self.paren_count = 0
-        self.bracket_count = 0
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
@@ -83,32 +80,9 @@ class SyntaxAnalyzer:
         self.currToken_index += 1
         if self.currToken_index < len(self.tokens):
             self.currToken = self.tokens[self.currToken_index]
-
-            if (self.currToken["tokenType"] == ")"):
-                if (self.paren_count == 0):
-                    print("something")
-                    #self.ERROR_unmatched_closing()
-                else:
-                    self.paren_count -= 1
-            if (self.currToken["tokenType"] == "]"):
-                if (self.bracket_count == 0):
-                    print("something")
-                    #self.ERROR_unmatched_closing()
-                else:
-                    self.bracket_count -= 1
-
-            if (self.currToken["tokenType"] == "("):
-                self.paren_count += 1
-            if (self.currToken["tokenType"] == "["):
-                self.bracket_count += 1
         else:
             self.currToken = None
-            if (self.paren_count != 0):
-                print('(parser)(dbg)nextToken paren error')
-                #self.ERROR_unclosed_parentheses()
-            if (self.bracket_count != 0):
-                print("ENTERING THIS OTHER EERROR")
-                #self.ERROR_unclosed_square_bracket()
+
 
 
     # Peeks at a token at the current index + offset.
