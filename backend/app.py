@@ -1717,7 +1717,7 @@ def lexer(code):
                     currWholeCount += 1
                     currState = 's300'  
                     continue
-                elif (code[i] not in alphanum + ['_'] and i != len(code)-1):
+                elif (code[i] not in alphanum and i != len(code)-1):
                     print("(dbg) unexpected")
                     add_error(unexpectedSymbol(currToken, currLine, currCol, lineContent))
                     continue

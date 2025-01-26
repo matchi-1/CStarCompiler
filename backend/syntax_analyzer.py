@@ -836,7 +836,7 @@ class SyntaxAnalyzer:
             if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["int_val"]:
                 self.ERROR_expected_integer_value()
             else:
-                self.int_val1()  # parse <int_val>
+                self.int_val([']'])    # parse <int_val>
 
             # Check if the next token is a closing square bracket
             if not self.currToken or not self.match("]"):
@@ -862,7 +862,7 @@ class SyntaxAnalyzer:
             if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["int_val"]:
                 self.ERROR_expected_integer_value()
             else:
-                self.int_val1()  
+                self.int_val([']'])  
 
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
@@ -965,10 +965,9 @@ class SyntaxAnalyzer:
 
 
     def func_arg(self):
-
         hasConstructorValue = False
         # Check if there's a value to parse
-        if self.currToken and self.value1():
+        if self.currToken and self.value([')',',']):
             # Parse the recursive part of the arguments
             self.func_arg_rec()
             hasConstructorValue = True
