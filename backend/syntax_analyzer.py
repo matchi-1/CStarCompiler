@@ -68,8 +68,8 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            # self.program()
-            self.expression([";"])
+            self.program()
+            #self.expression([";"])
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -462,14 +462,16 @@ class SyntaxAnalyzer:
 
                     self.match("return", False)
 
-                    # if not whole lit or 0: error should state that the final return statement of the main function is 0, instead it got currtoken
-                    if not self.match("whole_lit"):
+                    # Check if the final return statement is 0 (a whole literal)
+                    if not self.currToken or not (self.currToken["tokenType"] == "whole_lit" and self.currToken["tokenName"] == "0"):
                         current_value = self.currToken["tokenName"] if self.currToken else "EOF"
                         error_message = (
                             f"The main function must end with a return statement returning '0'.\n"
-                            f"Instead, encountered '{current_value}'. Ensure the main function has a final return statement as 'return 0;'."
+                            f"Instead, encountered '{current_value}'. Ensure the main function has a final return statement as 'return 0;'"
                         )
                         self.logError(error_message)
+                    else:
+                        self.match("whole_lit")  # Match the token if it's the correct "whole_lit" for "0"
 
 
                     if not self.match(";"):
@@ -763,12 +765,9 @@ class SyntaxAnalyzer:
             self.logError("Expected an identifier for class instantiation.")  # MICH CURRENTLY DOING
             # This error is just a placeholder habang wala pang semantic, cos normally it should identify if existing na ung class
 
-        print("parsed IDENTIFIER1")
-
         # Parse the second Identifier (variable name)
         if self.currToken and self.currToken["tokenType"] == "Identifier":
             self.match("Identifier")
-            print("parsed IDENTIFIER2")
         else:
             self.ERROR_missing_initializer()
         
@@ -799,16 +798,15 @@ class SyntaxAnalyzer:
     
     # Handle <classinst_cont>
     def classinst_cont(self):
-        
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=")
             if not self.match("Identifier"):  # should be the same name as the class name [SEMANTIC]
-                self.ERROR_expected_Identifier_classes() ################################################
+                self.ERROR_expected_Identifier_classes()
 
             self.match('(', False)
 
             hasConstructorValue = self.func_arg()
-            
+
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
             elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not hasConstructorValue:
@@ -816,23 +814,127 @@ class SyntaxAnalyzer:
             else:
                 self.ERROR_expected_token([")", ","])
             return True
-        
-        
 
-        elif self.currToken and self.currToken["tokenType"] == "[":################################################
+        elif self.currToken and self.currToken["tokenType"] == "[":
             self.match("[")
-            self.int_val(["]"])  # Parse <int_val> ################################################
+            self.int_val()  # Parse <int_val>
 
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
 
-            #self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr> ################################################
-        
+            self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr>
+
         else:
-            # null value = no additional tokens after the second identifier. means the line of code was just a simple object instantiation
+            # λ-production (null value) = no additional tokens after the second identifier
+            # Simple object instantiation
             pass
 
         return False
+
+    # Handle <classinst_def_1Drec_arr>
+    def classinst_def_1Drec_arr(self):
+        if self.currToken and self.currToken["tokenType"] == "[":
+            self.match("[")
+            self.int_val()
+
+            if not self.match("]"):
+                self.ERROR_unclosed_square_bracket()
+
+            self.classinst_def_2Drec_arr()  # Handle <classinst_def_2Drec_arr>
+        elif self.currToken and self.currToken["tokenType"] == "=":
+            self.match("=")
+            if not self.match("{"):
+                self.ERROR_expected_token(["{"])
+
+            self.object_arr1D_value()  # Parse <object_arr1D_value>
+
+            if not self.match("}"):
+                self.ERROR_expected_token(["}"])
+        else:
+            # λ-production
+            print("(parser) λ-production for <classinst_def_1Drec_arr>")
+
+    # Handle <classinst_def_2Drec_arr>
+    def classinst_def_2Drec_arr(self):
+        if self.currToken and self.currToken["tokenType"] == "=":
+            self.match("=")
+            if not self.match("{"):
+                self.ERROR_expected_token(["{"])
+
+            self.object_arr2D_value()  # Parse <object_arr2D_value>
+
+            if not self.match("}"):
+                self.ERROR_expected_token(["}"])
+        else:
+            # λ-production
+            print("(parser) λ-production for <classinst_def_2Drec_arr>")
+
+    # Handle <object_arr1D_value>
+    def object_arr1D_value(self):
+        if self.currToken and self.currToken["tokenType"] == "Identifier":
+            self.match("Identifier")
+            if not self.match("("):
+                self.ERROR_expected_token(["("])
+
+            self.func_arg()
+
+            if not self.match(")"):
+                self.ERROR_expected_constructor_param_closing()
+
+            self.object_arr_value_1D_rec()  # Parse <object_arr_value_1D_rec>
+        else:
+            self.ERROR_expected_Identifier_classes()
+
+    # Handle <object_arr_value_1D_rec>
+    def object_arr_value_1D_rec(self):
+        if self.currToken and self.currToken["tokenType"] == ",":
+            self.match(",")
+            if not self.match("Identifier"):
+                self.ERROR_expected_Identifier_classes()
+
+            if not self.match("("):
+                self.ERROR_expected_token(["("])
+
+            self.func_arg()
+
+            if not self.match(")"):
+                self.ERROR_expected_constructor_param_closing()
+
+            self.object_arr_value_1D_rec()  # Recursive call for more values
+        else:
+            # λ-production
+            print("(parser) λ-production for <object_arr_value_1D_rec>")
+
+    # Handle <object_arr2D_value>
+    def object_arr2D_value(self):
+        if self.currToken and self.currToken["tokenType"] == "{":
+            self.match("{")
+            self.object_arr1D_value()
+
+            if not self.match("}"):
+                self.ERROR_expected_token(["}"])
+
+            self.object_arr2D_value_rec()  # Parse <object_arr2D_value_rec>
+        else:
+            self.ERROR_expected_token(["{"])
+
+    # Handle <object_arr2D_value_rec>
+    def object_arr2D_value_rec(self):
+        if self.currToken and self.currToken["tokenType"] == ",":
+            self.match(",")
+            if not self.match("{"):
+                self.ERROR_expected_token(["{"])
+
+            self.object_arr1D_value()
+
+            if not self.match("}"):
+                self.ERROR_expected_token(["}"])
+
+            self.object_arr2D_value_rec()  # Recursive call for more values
+        else:
+            # λ-production
+            print("(parser) λ-production for <object_arr2D_value_rec>")
+
 
     def func_arg(self):
 
