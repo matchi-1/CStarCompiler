@@ -462,7 +462,7 @@ class SyntaxAnalyzer:
 
                     self.match("return", False)
 
-                    # Check if the final return statement is 0 (a whole literal)
+                    # Check if the final return statement is 0 (a whole literal) -- PLEASE DO NOT REMOVE
                     if not self.currToken or not (self.currToken["tokenType"] == "whole_lit" and self.currToken["tokenName"] == "0"):
                         current_value = self.currToken["tokenName"] if self.currToken else "EOF"
                         error_message = (
@@ -471,7 +471,7 @@ class SyntaxAnalyzer:
                         )
                         self.logError(error_message)
                     else:
-                        self.match("whole_lit")  # Match the token if it's the correct "whole_lit" for "0"
+                        self.match("whole_lit")  
 
 
                     if not self.match(";"):
@@ -817,7 +817,7 @@ class SyntaxAnalyzer:
 
         elif self.currToken and self.currToken["tokenType"] == "[":
             self.match("[")
-            self.int_val()  # Parse <int_val>
+            self.int_val([']'])  # Parse <int_val>
 
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
@@ -835,7 +835,7 @@ class SyntaxAnalyzer:
     def classinst_def_1Drec_arr(self):
         if self.currToken and self.currToken["tokenType"] == "[":
             self.match("[")
-            self.int_val()
+            self.int_val("]")
 
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
@@ -969,8 +969,7 @@ class SyntaxAnalyzer:
         else:
             print("(parser) λ-production for <func_arg_rec>")  # Handle λ (empty production)
 
-
-
+        
 #TODO: harley todos: errors, prod integration
 
     def int_val(self, stopChars):
