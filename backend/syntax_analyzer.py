@@ -79,19 +79,21 @@ class SyntaxAnalyzer:
     #-------------------- HELPER FUNCTIONS --------------------
     # Advancer for the next token
     def nextToken(self):
-        print("(parser)(dbg)currtoken: " + str(self.currToken))
+        #print("(parser)(dbg)currtoken: " + str(self.currToken))
         self.currToken_index += 1
         if self.currToken_index < len(self.tokens):
             self.currToken = self.tokens[self.currToken_index]
 
             if (self.currToken["tokenType"] == ")"):
                 if (self.paren_count == 0):
-                    self.ERROR_unmatched_closing()
+                    print("something")
+                    #self.ERROR_unmatched_closing()
                 else:
                     self.paren_count -= 1
             if (self.currToken["tokenType"] == "]"):
                 if (self.bracket_count == 0):
-                    self.ERROR_unmatched_closing()
+                    print("something")
+                    #self.ERROR_unmatched_closing()
                 else:
                     self.bracket_count -= 1
 
@@ -103,9 +105,10 @@ class SyntaxAnalyzer:
             self.currToken = None
             if (self.paren_count != 0):
                 print('(parser)(dbg)nextToken paren error')
-                self.ERROR_unclosed_parentheses()
+                #self.ERROR_unclosed_parentheses()
             if (self.bracket_count != 0):
-                self.ERROR_unclosed_square_bracket()
+                print("ENTERING THIS OTHER EERROR")
+                #self.ERROR_unclosed_square_bracket()
 
 
     # Peeks at a token at the current index + offset.
@@ -150,7 +153,7 @@ class SyntaxAnalyzer:
                 inner = False
             t = self.peek(peek_index)
             if not t:
-                self.ERROR_expected_token(stopChars)
+                return False
             print(f'(parser)(dbg) valCheck token: {t["tokenType"]}')
             if (t["tokenType"] in ["string", "string_lit"]):
                 has_string = True
@@ -412,7 +415,15 @@ class SyntaxAnalyzer:
     def ERROR_unmatched_closing(self):
         self.logError(f"Found unmatched {self.currToken["tokenType"]}.")
 
-    
+    def ERROR_expected_integer_value(self):
+        expected_tokens = PREDICT_SETS["int_val"]
+        current_value = self.currToken["tokenType"] if self.currToken else "EOF"
+        self.logError(
+            f"Expected an integer value. Allowed tokens: {', '.join(expected_tokens)}. "
+            f"Encountered: '{current_value}'."
+        )
+
+
 
     #-------------------- CFG START --------------------
     # for semantic stuff, instead of using "if not", just add else clause to add functionality in if match clause
@@ -798,6 +809,7 @@ class SyntaxAnalyzer:
     
     # Handle <classinst_cont>
     def classinst_cont(self):
+        # object instantiation
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=")
             if not self.match("Identifier"):  # should be the same name as the class name [SEMANTIC]
@@ -815,14 +827,24 @@ class SyntaxAnalyzer:
                 self.ERROR_expected_token([")", ","])
             return True
 
+        # array of objects
         elif self.currToken and self.currToken["tokenType"] == "[":
             self.match("[")
-            self.int_val([']'])  # Parse <int_val>
 
-            if not self.match("]"):
+            
+            # Check if there's an integer value or EOF
+            if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["int_val"]:
+                self.ERROR_expected_integer_value()
+            else:
+                self.int_val1()  # parse <int_val>
+
+            # Check if the next token is a closing square bracket
+            if not self.currToken or not self.match("]"):
+                print("ENTERing ERROR_unclosed_square_bracket IN CORRECT PROD")
                 self.ERROR_unclosed_square_bracket()
 
-            self.classinst_def_1Drec_arr()  # Handle <classinst_def_1Drec_arr>
+
+            self.classinst_def_1Drec_arr()   # parse <classinst_def_1Drec_arr>
 
         else:
             # λ-production (null value) = no additional tokens after the second identifier
@@ -835,12 +857,18 @@ class SyntaxAnalyzer:
     def classinst_def_1Drec_arr(self):
         if self.currToken and self.currToken["tokenType"] == "[":
             self.match("[")
-            self.int_val("]")
+            
+            # Check if there's an integer value or EOF
+            if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["int_val"]:
+                self.ERROR_expected_integer_value()
+            else:
+                self.int_val1()  
 
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
 
-            self.classinst_def_2Drec_arr()  # Handle <classinst_def_2Drec_arr>
+            self.classinst_def_2Drec_arr()  # parse <classinst_def_2Drec_arr>
+
         elif self.currToken and self.currToken["tokenType"] == "=":
             self.match("=")
             if not self.match("{"):
@@ -940,7 +968,7 @@ class SyntaxAnalyzer:
 
         hasConstructorValue = False
         # Check if there's a value to parse
-        if self.currToken and self.value([")", ","]):
+        if self.currToken and self.value1():
             # Parse the recursive part of the arguments
             self.func_arg_rec()
             hasConstructorValue = True
@@ -968,6 +996,31 @@ class SyntaxAnalyzer:
             self.func_arg()
         else:
             print("(parser) λ-production for <func_arg_rec>")  # Handle λ (empty production)
+
+
+    # SAMPLE PLACEHOLDER FOR VALUE-- SHOULD RETURN TRUE OR FALSE IF VALUE CALL WAS FOR A VALID VALUE OR NOT
+    def value1(self):
+        # Check if the current token is a "whole_lit"
+        if self.currToken and self.currToken["tokenType"] == "whole_lit":
+            print(f"(parser) Found value: {self.currToken['tokenName']} (whole_lit)")
+            self.match("whole_lit")  # Match the token
+            return True
+        else:
+            # Log an error if the token is not a valid "whole_lit"
+            self.logError("Expected a valid value type.")
+            return False
+    
+    # SAMPLE PLACEHOLDER FOR INT_VAL -- SHOULD RETURN TRUE OR FALSE IF VALUE CALL WAS FOR A VALID VALUE OR NOT
+    def int_val1(self):
+        # Check if the current token is a "whole_lit"
+        if self.currToken and self.currToken["tokenType"] == "whole_lit":
+            print(f"(parser) Found value: {self.currToken['tokenName']} (whole_lit)")
+            self.match("whole_lit")  # Match the token
+            return True
+        else:
+            # Log an error if the token is not a valid "whole_lit"
+            self.logError("Expected a valid value with type 'int'.")
+            return False
 
         
 #TODO: harley todos: errors, prod integration
