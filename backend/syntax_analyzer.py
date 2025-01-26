@@ -845,8 +845,7 @@ class SyntaxAnalyzer:
 
         elif self.currToken and self.currToken["tokenType"] == "=":
             self.match("=")
-            if not self.match("{"):
-                self.ERROR_expected_token(["{"])
+            self.match("{", False)
 
             self.object_arr1D_value()  # Parse <object_arr1D_value>
 
@@ -876,16 +875,16 @@ class SyntaxAnalyzer:
     def object_arr1D_value(self):
         if self.currToken and self.currToken["tokenType"] == "Identifier":
             self.match("Identifier")
-            if not self.match("("):
-                self.ERROR_expected_token(["("])
+            self.match("(", False)
 
-            print("!!!!!!!!!!!!!!!!!BEFORE FUNC ARG")
-            self.func_arg()
-            print("!!!!!!!!!!!!!!!!!AFTER FUNC ARG")
+            hasNewVal = self.func_arg()
 
-            if not self.match(")"):
-                print("!!!!!!!!!!!!!!!!! INSIDE NOT MATCH FUNC ARG")
+            if self.currToken and self.currToken["tokenType"] == ")":
+                self.match(')')
+            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not hasNewVal:
                 self.ERROR_expected_constructor_param_closing()
+            else:
+                self.ERROR_expected_token([")", ","])
                 
 
             self.object_arr_value_1D_rec()  # Parse <object_arr_value_1D_rec>
@@ -899,15 +898,16 @@ class SyntaxAnalyzer:
             if not self.match("Identifier"):
                 self.ERROR_expected_Identifier_classes()
 
-            if not self.match("("):
-                self.ERROR_expected_token(["("])
+            self.match("(", False)
 
-            self.func_arg()
-            print("DONE FUNC ARG IN object_arr_value_1D_rec")
+            hasNewVal = self.func_arg()
 
-            if not self.match(")"):
-                print("EXPECTED CLOSING )")
+            if self.currToken and self.currToken["tokenType"] == ")":
+                self.match(')')
+            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not hasNewVal:
                 self.ERROR_expected_constructor_param_closing()
+            else:
+                self.ERROR_expected_token([")", ","])
 
             self.object_arr_value_1D_rec()  # Recursive call for more values
         else:
@@ -921,7 +921,7 @@ class SyntaxAnalyzer:
             self.object_arr1D_value()
 
             if not self.match("}"):
-                self.ERROR_expected_token(["}"])
+                self.ERROR_unclosed_curly_braces()
 
             self.object_arr2D_value_rec()  # Parse <object_arr2D_value_rec>
         else:
@@ -931,13 +931,13 @@ class SyntaxAnalyzer:
     def object_arr2D_value_rec(self):
         if self.currToken and self.currToken["tokenType"] == ",":
             self.match(",")
-            if not self.match("{"):
-                self.ERROR_expected_token(["{"])
+
+            self.match("{", False)
 
             self.object_arr1D_value()
 
             if not self.match("}"):
-                self.ERROR_expected_token(["}"])
+                self.ERROR_unclosed_curly_braces()
 
             self.object_arr2D_value_rec()  # Recursive call for more values
         else:
