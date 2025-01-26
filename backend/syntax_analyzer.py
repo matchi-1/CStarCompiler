@@ -65,8 +65,9 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            self.program()
+            #self.program()
             #self.expression([";"])
+            self.func_method_call()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -976,6 +977,33 @@ class SyntaxAnalyzer:
             self.func_arg()
         else:
             print("(parser) λ-production for <func_arg_rec>")  # Handle λ (empty production)
+
+    def func_method_call(self):
+        self.match("Identifier")
+        self.func_method_call_mods()
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+
+
+    def func_method_call_mods(self):
+        if self.currToken and self.currToken["tokenType"] == "(":
+            # Handle (<func_arg>) -- direct func call
+            self.match("(", False)
+            self.func_arg()
+            if not self.match(")"):
+                self.ERROR_unclosed_parentheses()
+        elif self.currToken and self.currToken["tokenType"] == ".":
+            # .Identifier(<func_arg>) -- method call
+            self.match(".", False)
+            self.match("Identifier", False)
+            self.match("(", False)
+            self.func_arg()
+            if not self.match(")", False):
+                self.ERROR_unclosed_parentheses()
+        else:
+            # Handle λ-production (no further modifications)
+            self.ERROR_expected_token([".","("])
+            print("(parser) λ-production for <func_method_call_mods>")
 
 
     # SAMPLE PLACEHOLDER FOR VALUE-- SHOULD RETURN TRUE OR FALSE IF VALUE CALL WAS FOR A VALID VALUE OR NOT
