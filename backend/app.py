@@ -37,7 +37,7 @@ default_delim = newline + whitespace + [':', '/']
 type_iden_delim = newline + whitespace + ['[', '>', '/',')']
 get_set_delim = newline + whitespace + ['{', ';', '/']
 open_paren_delim = list(set(arithmetic_delim + ['\"', '!', ')', '\n', '/', '+', '-']))
-closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?', '}', '"']))
+closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?', '}', '"',',']))
 close_paren_delim = list(set(closing_delim))
 semicolon_delim = newline_delim + plaintext_delim + ['}', '/', '(']
 negative_delim = list(set(arithmetic_delim + ['/', '+']))
@@ -977,7 +977,7 @@ def lexer(code):
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected))
                 # ) symbol
                 case 'CLOSING_PAREN_CHECK':
-                    expected = ['alphanum', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', ']','?'] + [';', '\n', '/']
+                    expected = ['alphanum', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', ']','?',','] + [';', '\n', '/']
                     if (code[i] in close_paren_delim):
                         add_token(currToken, ')', currLine, currCol)
                     else:
