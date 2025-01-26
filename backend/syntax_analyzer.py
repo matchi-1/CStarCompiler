@@ -307,7 +307,7 @@ class SyntaxAnalyzer:
     def ERROR_terminating_token(self, expected_token):
         if self.currToken:
             actual_token = self.currToken["tokenName"]
-            message = f"Statement is expected to be terminated by '{expected_token}', before '{actual_token}'."
+            message = f"Statement is expected to be terminated by '{expected_token}', but got '{actual_token}'."
         else:
             message = f"Statement is expected to be terminated by '{expected_token}', but reached EOF."
         self.logError(message)
@@ -758,13 +758,13 @@ class SyntaxAnalyzer:
         
 
         # check continuation (if single class instantiation or w/ constructor)
-        hasConstructorInit = self.classinst_cont()
+        has_Constructor_or_Array_Init = self.classinst_cont()
 
         print("(parser-dbg): done after classinst_cont -- should match semicolon")
 
         # Match terminating symbol
         if self.currToken:
-            if self.currToken["tokenType"] != ";" and not hasConstructorInit:
+            if self.currToken["tokenType"] not in [";", "}"] and not has_Constructor_or_Array_Init:
                 self.ERROR_expected_token(['=', '[', ';'])
             elif self.currToken["tokenType"] == ";":
                 self.match(";")  # valid termination
@@ -772,7 +772,7 @@ class SyntaxAnalyzer:
                 self.ERROR_terminating_token(";")
         else:
             # If currToken is None, we're at EOF (End of File)
-            if not hasConstructorInit:
+            if not has_Constructor_or_Array_Init:
                 self.ERROR_expected_token(['=', '[', ';'])
             else:
                 self.ERROR_terminating_token(";")
@@ -783,6 +783,7 @@ class SyntaxAnalyzer:
     
     # Handle <classinst_cont>
     def classinst_cont(self):
+        has_Constructor_or_Array_Init = False
         # object instantiation
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=")
@@ -791,7 +792,7 @@ class SyntaxAnalyzer:
 
             self.match('(', False)
 
-            hasConstructorValue = self.func_arg()
+            has_Constructor_or_Array_Init = self.func_arg()
 
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
@@ -803,8 +804,8 @@ class SyntaxAnalyzer:
 
         # array of objects
         elif self.currToken and self.currToken["tokenType"] == "[":
+            has_Constructor_or_Array_Init = True
             self.match("[")
-
             
             # Check if there's an integer value or EOF
             if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["int_val"]:
@@ -814,7 +815,6 @@ class SyntaxAnalyzer:
 
             # Check if the next token is a closing square bracket
             if not self.currToken or not self.match("]"):
-                print("ENTERing ERROR_unclosed_square_bracket IN CORRECT PROD")
                 self.ERROR_unclosed_square_bracket()
 
 
@@ -825,7 +825,7 @@ class SyntaxAnalyzer:
             # Simple object instantiation
             pass
 
-        return False
+        return has_Constructor_or_Array_Init
 
     # Handle <classinst_def_1Drec_arr>
     def classinst_def_1Drec_arr(self):
@@ -851,6 +851,7 @@ class SyntaxAnalyzer:
             self.object_arr1D_value()  # Parse <object_arr1D_value>
 
             if not self.match("}"):
+                print("matching closing } for 1D parent prod")
                 self.ERROR_expected_token(["}"])
         else:
             # λ-production
