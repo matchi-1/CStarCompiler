@@ -844,7 +844,7 @@ class SyntaxAnalyzer:
             self.classinst_def_2Drec_arr()  # parse <classinst_def_2Drec_arr>
 
         elif self.currToken and self.currToken["tokenType"] == "=":
-            self.match("=")
+            self.match("=", False)
             self.match("{", False)
 
             self.object_arr1D_value()  # Parse <object_arr1D_value>
@@ -859,9 +859,8 @@ class SyntaxAnalyzer:
     # Handle <classinst_def_2Drec_arr>
     def classinst_def_2Drec_arr(self):
         if self.currToken and self.currToken["tokenType"] == "=":
-            self.match("=")
-            if not self.match("{"):
-                self.ERROR_expected_token(["{"])
+            self.match("=", False)
+            self.match("{", False)
 
             self.object_arr2D_value()  # Parse <object_arr2D_value>
 
@@ -917,7 +916,8 @@ class SyntaxAnalyzer:
     # Handle <object_arr2D_value>
     def object_arr2D_value(self):
         if self.currToken and self.currToken["tokenType"] == "{":
-            self.match("{")
+            self.match("{", False)
+
             self.object_arr1D_value()
 
             if not self.match("}"):
@@ -925,7 +925,7 @@ class SyntaxAnalyzer:
 
             self.object_arr2D_value_rec()  # Parse <object_arr2D_value_rec>
         else:
-            self.ERROR_expected_token(["{"])
+            self.ERROR_expected_token("{")
 
     # Handle <object_arr2D_value_rec>
     def object_arr2D_value_rec(self):
@@ -933,7 +933,7 @@ class SyntaxAnalyzer:
             self.match(",")
 
             self.match("{", False)
-
+    
             self.object_arr1D_value()
 
             if not self.match("}"):
