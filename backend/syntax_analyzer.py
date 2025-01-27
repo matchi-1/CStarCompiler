@@ -1050,7 +1050,7 @@ class SyntaxAnalyzer:
             prod = self.checkValProd(stopChars)
             if (prod == "paren_wrap"):
                 self.match("(")
-                self.int_val(")")
+                self.int_val([")"])
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
                 return True
@@ -1068,6 +1068,8 @@ class SyntaxAnalyzer:
                 self.match("Identifier")
                 self.iden_mods()
                 return True
+        else:
+            return False
 
     def value(self, stopChars):
         print('(parser) production "value" detected')
@@ -1131,6 +1133,12 @@ class SyntaxAnalyzer:
                     self.unary_exp(True)
                     return True
                 return True
+            else:
+                self.ERROR_expected_token("value")
+                return False
+        else: 
+            self.ERROR_expected_token("value")
+            return False
 
     def lit_type(self):
         print('(parser) production: "lit_type" deteted')
@@ -1149,7 +1157,7 @@ class SyntaxAnalyzer:
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
             if (self.currToken and self.currToken["tokenType"] == "("):
                 self.match("(")
-                # self.func_args() ######### FUNC_ARGS HERE
+                self.func_arg()
                 if not self.match(")"):
                     print('(parser)(dbg) iden_mods paren error')
                     self.ERROR_unclosed_parentheses()
@@ -1164,7 +1172,8 @@ class SyntaxAnalyzer:
         print('(parser) production: "as_array" detected')
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            self.int_val("]")
+            if not self.int_val(["]"]):
+                self.ERROR_expected_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
             if (self.currToken and self.currToken["tokenType"] == "["):
@@ -1174,7 +1183,8 @@ class SyntaxAnalyzer:
         print('(parser) production: "is_2d_arr" detected')
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            self.int_val("]")
+            if not self.int_val(["]"]):
+                self.ERROR_expected_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
     def object_rec(self):
@@ -1224,6 +1234,8 @@ class SyntaxAnalyzer:
                     self.unary_exp(True)
                 else:
                     self.ERROR_expected_token("{++, --}")
+        else:
+            self.ERROR_expected_token("expression")
 
 
     def negative_exp(self):
@@ -1308,10 +1320,14 @@ class SyntaxAnalyzer:
             print('(parser)(dbg)<condition>')
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
-            self.match("?")
-            self.value([":"])
-            self.match(":")
-            self.value(stopChars)
+            if not self.match("?"):
+                self.ERROR_expected_token("?")
+            if not self.value([":"]):
+                self.ERROR_expected_token("value")
+            if not self.match(":"):
+                self.ERROR_expeted_token(":")
+            if not self.value(stopChars):
+                self.ERROR_expected_token("value")
 
     #####CONDITION
 
@@ -1326,7 +1342,7 @@ class SyntaxAnalyzer:
                 self.rel_exp(stopChars)
             elif (prod == "paren_wrap"):
                 self.match("(")
-                self.bool_value(")")
+                self.bool_value([")"])
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
             else:
@@ -1341,6 +1357,8 @@ class SyntaxAnalyzer:
                     self.iden_mods()
                 elif (self.currToken["tokenType"] == "bool_lit"):
                     self.match("bool_lit")
+        else:
+            self.ERROR_expected_token("bool_value")
                 
     def rel_exp(self, stopChars):
         print('(parser) production: "rel_exp" detected')
@@ -1350,6 +1368,7 @@ class SyntaxAnalyzer:
                 self.rel_operator()
                 if not self.value(PREDICT_SETS["rel_operator"] + stopChars): 
                     print('(parser)(dbg) ERROR: expectced value')
+                    self.ERROR_expected_token("value")
         else:
             self.ERROR_expected_token("{==, !=, >, <, >=, <=}")
             
@@ -1392,6 +1411,8 @@ class SyntaxAnalyzer:
                     elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
                         self.match("Identifier")
                         self.iden_mods()
+            else:
+                self.ERROR_expected_token(PREDICT_SETS["data_types"])
         else:
             print(f'(parser)(dbg){self.currToken}')
             print('(parser)(dbg) wtf')
@@ -1407,6 +1428,8 @@ class SyntaxAnalyzer:
                 if (self.currToken and self.currToken["tokenType"] == "("):
                     if self.peek()["tokenType"] in PREDICT_SETS["data_types"]:
                         self.typecast_exp_rec()
+            else:
+                self.ERROR_expected_token(PREDICT_SETS["data_types"])
 
     def unary_exp(self, post=False):
         print('(parser) production: "unary_exp" detected')
@@ -1420,11 +1443,13 @@ class SyntaxAnalyzer:
         else:
             if (self.currToken and self.currToken["tokenType"] == "++"):
                 self.match("++")
-                self.match("Identifier")
+                if not self.match("Identifier"):
+                    self.ERROR_expected_token("Identifier")
                 self.iden_mods()
             elif (self.currToken and self.currToken["tokenType"] == "--"):
                 self.match("--")
-                self.match("Identifier")
+                if not self.match("Identifier"):
+                    self.ERROR_expected_token("Identifier")
                 self.iden_mods()
 
 
