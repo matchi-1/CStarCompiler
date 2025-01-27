@@ -101,9 +101,10 @@ class SyntaxAnalyzer:
     # Matches the current token with the expected type. Returns True if matched, False otherwise.
     def match(self, expected_token, hasSpecError=True):
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
+            print(f"token {expected_token} matched")
             self.nextToken()
             return True
-        elif hasSpecError:
+        elif not self.currToken and hasSpecError:
             print("deactivated default expected token error")
             return False
         else:
@@ -436,8 +437,8 @@ class SyntaxAnalyzer:
 
                     #### TEMPORARY code block
                     if self.currToken:  # Ensure self.currToken is not None
-                        if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
-                            self.output()
+                        #if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
+                        #    self.output()
 
                         #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
                         #    self.conditional_stmt()
@@ -447,10 +448,10 @@ class SyntaxAnalyzer:
                         #    error_message = f"'else' statements may only be used after an 'if' statement."
                         #    self.logError(error_message)
 
-                        #if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
-                        #    self.loop_stmt()
+                        if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
+                            self.loop_stmt()
 
-                        #else: break
+                        else: break
                     else:
                         # Handle EOF case
                         self.logError("Unexpected end of file while parsing.")
