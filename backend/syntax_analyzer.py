@@ -477,6 +477,10 @@ class SyntaxAnalyzer:
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
 
+                    # might have to be rephrased, for some reason it's off by one line
+                    if self.currToken: 
+                        self.logError("Unreachable code.")
+
                 elif self.currToken["tokenName"] == ";":  # int main;  GLOBAL VAR DEC
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
@@ -1434,6 +1438,7 @@ class SyntaxAnalyzer:
     def unary_exp(self, post=False):
         print('(parser) production: "unary_exp" detected')
         if (post):
+            self.match("Identifier", False)
             if (self.currToken and self.currToken["tokenType"] == "++"):
                 self.match("++")
                 # idfk man semantic ig
@@ -1736,7 +1741,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"continue_stmt\"")
 
-
+    # bare-minimum tested
     def init_arg(self):
         '''<init_arg> → <for_init_data_type> Identifier = <value> <assign_stmt_rec> <var_iden_rec> | null'''
         '''<for_init_data_type> → <data_type> | null'''
@@ -1755,7 +1760,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"init_arg\"")
 
-
+    # to continue testing
     def inc_arg(self):
         '''<inc_arg> → <unary_exp> | Identifier = <value> <assign_stmt_rec> <var_iden_rec> 
         | <output> | <func_method_call>'''
@@ -1798,7 +1803,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"inc_arg\"")
 
-
+    # bare-minimum tested
     def else_chain(self):
         '''<else_stmt> → <if_stmt> | { <ctrl_stmt_body> }'''
         print("(parser) entered production: \"else_chain\"")
@@ -1963,7 +1968,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
             self.ctrl_stmt_body()
     
-    
+    # bare-minimum tested
     def loop_stmt(self):
         print("(parser) entered production: \"loop_stmt\"")
 
@@ -1978,6 +1983,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"loop_stmt\"")
     
+    # bare-minimum tested
     def forloop_stmt(self):
         print("(parser) entered production: \"forloop_stmt\"")
 
@@ -2007,7 +2013,10 @@ class SyntaxAnalyzer:
         
         print("(parser) exited production: \"forloop_stmt\"")
     
+    # bare-minimum tested
     def while_stmt(self):
+        print("(parser) entered production: \"while_stmt\"")
+
         self.match("while", False)
         
         self.match("(", False)
@@ -2020,8 +2029,13 @@ class SyntaxAnalyzer:
             self.ctrl_stmt_body()
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
+        
+        print("(parser) exited production: \"while_stmt\"")
 
+    # bare-minimum tested
     def do_stmt(self):
+        print("(parser) entered production: \"do_stmt\"")
+        
         self.match("do", False)
         
         self.match("{", False)
@@ -2039,7 +2053,12 @@ class SyntaxAnalyzer:
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
+        print("(parser) exited production: \"do_stmt\"")
+
+    # bare-minimum tested
     def repeat_stmt(self):
+        print("(parser) entered production: \"repeat_stmt\"")
+
         self.match("repeat", False)
         self.match("(", False)
         # <int_value> here (whole_lit for now)
@@ -2047,14 +2066,27 @@ class SyntaxAnalyzer:
         # self.match("whole_lit", False)
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
+        
+        self.match("{", False)
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
+            self.ctrl_stmt_body()
+        if not self.match("}"):
+            self.ERROR_unclosed_curly_braces()
+        
+        print("(parser) exited production: \"repeat_stmt\"")
+    
     
     def return_block(self):
+        print("(parser) entered production: \"return_block\"")
+        
         self.match("return", False)
         # <ret_value> here, (literals for now)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["literals"]:
             self.ret_value()
         if not self.match(";"):
             self.ERROR_terminating_token(";")
+
+        print("(parser) exited production: \"return_block\"")
     
     # bare-minimum tested
     def ctrl_stmt_body(self):
