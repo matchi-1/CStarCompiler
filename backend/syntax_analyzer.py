@@ -8,6 +8,7 @@ PREDICT_SETS = {
     "literals": ["whole_lit", "frac_lit", "string_lit", "Identifier"], # need to add expressions here in the future
     "print_stmts" : ["print", "println"],
     "conditional_stmt" : ["if", "switch"],
+    "loop_stmt" : ["for", "while", "do", "repeat"],
     "else_chain" : ["else"],
     "unary_operator" : ["++", "--", "Identifier"],
     "init_arg" : ["Identifier", "bool", "string", "int", "long", "double", "float"],
@@ -65,9 +66,9 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            #self.program()
+            self.program()
             #self.expression([";"])
-            self.func_method_call()
+            #self.func_method_call()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -98,7 +99,7 @@ class SyntaxAnalyzer:
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
             self.nextToken()
             return True
-        elif not self.currToken and hasSpecError:
+            print("deactivated default expected token error")
             return False
         else:
             print("activating default expected token error")
@@ -376,8 +377,8 @@ class SyntaxAnalyzer:
             self.logError(f"Expected constructor parameter or closing ')', but found '{self.currToken['tokenName']}'.")
 
 
-    def ERROR_missing_condition(self):
-        self.logError(f"Expected condition after '{self.tokens[self.currToken_index - 1]}'")
+    def ERROR_missing_condition(self, condType):
+        self.logError(f"Expected condition after '{condType}' statement")
 
     def ERROR_invalid_condition(self, condType):
         self.logError(f"Invalid condition for '{condType}' statement")
@@ -433,20 +434,26 @@ class SyntaxAnalyzer:
                         if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
                             self.output()
 
-                        if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
-                            self.conditional_stmt()
+                        #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
+                        #    self.conditional_stmt()
 
-                        if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
-                            current_value = self.currToken["tokenName"]
-                            error_message = f"'else' statements may only be used after an 'if' statement."
-                            self.logError(error_message)
+                        #if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
+                        #    current_value = self.currToken["tokenName"]
+                        #    error_message = f"'else' statements may only be used after an 'if' statement."
+                        #    self.logError(error_message)
+
+                        #if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
+                        #    self.loop_stmt()
+
+                        #else: break
                     else:
                         # Handle EOF case
                         self.logError("Unexpected end of file while parsing.")
 
-
+                    print("(parser) exited temp code block")
 
                     self.match("return", False)
+                    #print("hello?????")
 
                     # Check if the final return statement is 0 (a whole literal) -- PLEASE DO NOT REMOVE
                     if not self.currToken or not (self.currToken["tokenType"] == "whole_lit" and self.currToken["tokenName"] == "0"):
@@ -1573,16 +1580,21 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"condition\"")
     
-    
+    # bare-minimum tested
     def output(self):
         '''<output> → <print_stmts>(<print_params>);'''
         print("(parser) entered production: \"output\"")
         
         '''<print_stmts> → print | println'''
         # <print_stmts> are already expected to be here before it entered func
-        self.nextToken()
+        if self.matchPredictSet("print_stmts"):
+            self.nextToken()
         self.match("(", False)
-        self.print_params()
+        
+        # won't enter print_params if null
+        if self.currToken and self.currToken["tokenType"] != ")":
+            self.print_params()
+        
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
         if not self.match(";"): 
@@ -1590,7 +1602,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"output\"")
 
-
+    # bare-minimum tested
     def print_params(self):
         '''<print_params> → <value> <output_rec> | null'''
         print("(parser) entered production: \"print_params\"")
@@ -1598,14 +1610,14 @@ class SyntaxAnalyzer:
         # if <print_params> are not null
         if self.currToken and self.currToken["tokenType"] != ")":
             ## <value> here (string_lit for now)
-            # self.match("string_lit", False)
-            self.value([",", ")"])
+            self.match("string_lit", False)
+            # self.value([",", ")"])
             if self.currToken and self.currToken["tokenType"] == ",":
                 self.output_rec()
         
         print("(parser) exited production: \"print_params\"")
 
-    
+    # bare-minimum tested
     def output_rec(self):
         '''<output_rec> → ,<value> <output_rec> | null'''
         print("(parser) entered production: \"output_rec\"")
@@ -1613,15 +1625,16 @@ class SyntaxAnalyzer:
         self.match(",", False)
         ## <value> cannot be empty
         ## <value> here (string_lit for now)
-        # if not self.match("string_lit", False):
-        if not self.value([",", ")"]):
-            self
+        self.match("Identifier", False)
+
+        #if not self.value([",", ")"]):
+        #    self
         if self.currToken and self.currToken["tokenType"] == ",":
             self.output_rec()
 
-        print("(parser) entered production: \"output_rec\"")
+        print("(parser) exited production: \"output_rec\"")
     
-    
+    # bare-minimum tested
     def conditional_stmt(self):
         '''<conditional_stmt> → <if_stmt> | <swicth_stmt>'''
         print("(parser) entered production: \"conditional_stmt\"")
@@ -1633,7 +1646,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"conditional_stmt\"")
     
-    
+    # bare-minimum tested
     def if_stmt(self):
         '''<if_stmt> → if(<condition){<ctrl_stmt_body>} <else_chain>'''
         print("(parser) entered production: \"if_stmt\"")
@@ -1672,7 +1685,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"ret_value\"")
 
-
+    # bare-minimum tested
     def break_stmt(self):
         '''<break_stmt> → break;'''
         print("(parser) entered production: \"break_stmt\"")
@@ -1683,6 +1696,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"break_stmt\"")
 
+    # bare-minimum tested
     def continue_stmt(self):
         '''<continue_stmt> → continue;'''
         print("(parser) entered production: \"continue_stmt\"")
@@ -1772,7 +1786,7 @@ class SyntaxAnalyzer:
         
         print("(parser) exited production: \"else_chain\"")
         
-    
+    # bare-minimum tested
     def switch_stmt(self):
         '''<switch_stmt> → switch (<switch_value>) {<case_stmt> <default_stmt>}'''
         print("(parser) entered production: \"switch_stmt\"")
@@ -1782,10 +1796,11 @@ class SyntaxAnalyzer:
             self.ERROR_missing_condition("switch")
         self.match("(", False)
         
-        if self.matchPredictSet("switch_value"):
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
             self.switch_value()
         else: #cannot be empty
             self.logError("'switch' condition cannot be empty.")
+        
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
         
@@ -1798,6 +1813,7 @@ class SyntaxAnalyzer:
         
         print("(parser) exited production: \"switch_stmt\"")
 
+    # bare-minimum tested
     def switch_value(self):
         '''<switch_value> → string_lit | whole_lit | Identifier<iden_mods> 
         | <arith_exp> | <negative_exp> | <typecast_exp>'''
@@ -1853,6 +1869,7 @@ class SyntaxAnalyzer:
     
         print("(parser) exited production: \"switch_value\"")
 
+    # bare-minimum tested
     def case_stmt(self):
         '''<case_stmt> → case <case_value>: <ctrl_stmt_body> <case_stmt_rec>'''
         print("(parser) entered production: \"case_stmt\"")
@@ -1867,6 +1884,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"case_stmt\"")
     
+    # bare-minimum tested
     def case_value(self):
         '''<switch_value> → string_lit | whole_lit | <arith_exp> | <negative_exp> | <typecast_exp>'''
         print("(parser) entered production: \"case_value\"")   
@@ -1909,14 +1927,17 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"case_value\"")
 
-    
+    # bare-minimum tested
     def default_stmt(self):
         self.match("default", False)
         self.match(":", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
             self.ctrl_stmt_body()
     
+    
     def loop_stmt(self):
+        print("(parser) entered production: \"loop_stmt\"")
+
         if self.currToken and self.currToken["tokenType"] == "while":
             self.while_stmt()
         elif self.currToken and self.currToken["tokenType"] == "do": 
@@ -1925,8 +1946,12 @@ class SyntaxAnalyzer:
             self.forloop_stmt()
         elif self.currToken and self.currToken["tokenType"] == "repeat":
             self.repeat_stmt()
+
+        print("(parser) exited production: \"loop_stmt\"")
     
     def forloop_stmt(self):
+        print("(parser) entered production: \"forloop_stmt\"")
+
         self.match("for", False)
         self.match("(", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
@@ -1934,7 +1959,8 @@ class SyntaxAnalyzer:
         if not self.match(";"):
             self.ERROR_terminating_token(";")
         
-        self.condition()
+        self.condition("for-loop")
+        
         if not self.match(";"):
             self.ERROR_terminating_token(";")
         
@@ -1943,12 +1969,20 @@ class SyntaxAnalyzer:
         
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
+
+        self.match("{", False)
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
+            self.ctrl_stmt_body()
+        if not self.match("}"):
+            self.ERROR_unclosed_curly_braces()
+        
+        print("(parser) exited production: \"forloop_stmt\"")
     
     def while_stmt(self):
         self.match("while", False)
         
         self.match("(", False)
-        self.condition()
+        self.condition("while")
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
         
@@ -1970,7 +2004,7 @@ class SyntaxAnalyzer:
         if not self.match("while"):
             self.logError("'do' statement must include 'while' condition.")
         self.match("(", False)
-        self.condition()
+        self.condition("while")
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
         if not self.match(";"):
@@ -1993,13 +2027,18 @@ class SyntaxAnalyzer:
         if not self.match(";"):
             self.ERROR_terminating_token(";")
     
+    # bare-minimum tested
     def ctrl_stmt_body(self):
+        print("(parser) entered production: \"ctrl_stmt_body\"")
+
         if self.currToken and self.currToken["tokenType"] == "break":
             self.break_stmt()
         elif self.currToken and self.currToken["tokenType"] == "continue":
             self.continue_stmt()
         #elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
         #self.body()
+
+        print("(parser) exited production: \"ctrl_stmt_body\"")
 
 
 
