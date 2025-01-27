@@ -25,7 +25,8 @@ PREDICT_SETS = {
     "int_val" : ["whole_lit", "Identifier", "-", "("],
     "unary_operator" : ["++", "--"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "whole_lit"],
-    "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="]
+    "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
+    "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"]
 }
 
 
@@ -2047,18 +2048,25 @@ class SyntaxAnalyzer:
     def input(self):
         print("(parser) entered production: \"input\"")
         '''<input> → in<data_type>(<input_params>)'''
-        if not self.match("in"):
-            self.ERROR_expected_token("in")
+        self.match("in", False)
+        self.match("<", False)
         
-        if not self.match("<"):
-            self.ERROR_expected_token("<")
-        self.data_type()
+        ## For literals, data types, operators, or any prods that ONLY contain terminals
+        ## use matchPredictSet and specify the name of the predict set to be used
+        ## ADD to predict set if it doesn't exist yet
+        if self.matchPredictSet("data_types"):
+            self.nextToken()
+        
         if not self.match(">"):
             self.ERROR_unclosed_angled_bracket()
         
-        if not self.match("("):
-            self.ERROR_expected_token("(")
-        self.input_params()
+        self.match("(", False)
+        
+        ## Before it even enters input_params you have to catch whether it exists or not
+        ## self.peek() allows you to check the next token w/o having to move to it
+        if self.peek() != ")":
+            self.input_params()
+        
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
         
@@ -2072,45 +2080,60 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"input_params\"")
         """<input_params> → <int_val> | <string_value> | <string_value>,<int_val> | λ"""
         
-        if self.currToken and self.currToken["tokenType"] == "int_val":
-            self.int_val([")"])
+        ## You can use literals muna for testing values, use int_val, string_val, etc.
+        ## later on when all prods are complete
+
+        if self.currToken and self.currToken["tokenType"] == "whole_lit": #int_val:
+            #self.int_val()
+            self.match("whole_lit", False)
+        
         elif self.currToken and self.currToken["tokenType"] == "string_lit":
-            self.string_value()
+            #self.string_value()
+            self.match("string_lit", False)
+            
             if self.match(","):
-                if self.currToken and self.currToken["tokenType"] == "int_val":
-                    self.int_val([")"])
-                else:
-                    self.ERROR_expected_token("int_val")
-        else:
-            print("(parser) λ production for \"input_params\" detected")
+                if not self.match("whole_lit"):
+                    ## Special error
+                    self.logError("Invalid value for 'in' statement character limit")
+
+                ## We'll use this later on when prods are complete, might have to be revised
+                
+                # if self.currToken and self.currToken["tokenType"] == "int_val":
+                #    self.int_val()
+        
+        ## Because we catch λ production for "input_params" b4 it enters the function,
+        ## we don't need this anymore
+        
+        #else:
+        #    print("(parser) λ production for \"input_params\" detected")
         
         print("(parser) exited production: \"input_params\"")
 
+
+
     def var_iden(self):
-        """<var_iden> → Identifier <var_id_mods>"""
         print("(parser) entered production: \"var_iden\"")
-        if self.match("Identifier"):
-            self.var_id_mods()
-        else:
-            self.ERROR_expected_token("Identifier")
+        """<var_iden> → Identifier <var_id_mods>"""
+
+        if self.match("Identifier", False):
+            if self.peek() != [",", "=", "["]:
+                self.var_id_mods()
+      
         print("(parser) exited production: \"var_iden\"")
 
 
     def var_id_mods(self):
-        """<var_id_mods> → <var_init> <var_iden_rec> | [<int_val>] <var_id_arr1D> | λ"""
         print("(parser) entered production: \"var_id_mods\"")
+        """<var_id_mods> → <var_init> <var_iden_rec> | [<int_val>] <var_id_arr1D> | λ"""
+    
         if self.match("="):
             self.var_init()
-            self.var_iden_rec()   
+            self.var_iden_rec()
+        
         elif self.match("["):
-            if self.matchPredictSet("value"):  #
-                self.int_val(["]"])
-                if self.match("]"):
-                    self.var_id_arr1D()
-                else:
-                    self.ERROR_unclosed_square_bracket()
-            else:
-                self.ERROR_expected_token("int_val")
+            if self.peek() == "whole_lit":
+                self.int_val()
+                self.var_id_arr1D()
         
         print("(parser) exited production: \"var_id_mods\"")
 
@@ -2120,14 +2143,11 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"var_init\"")
         
         if self.match("="):
-            if self.matchPredictSet("value"):
-                self.value(PREDICT_SETS["assign_operator"] + [",", ";"])
-            else:
-                self.ERROR_expected_token("value")
+            if self.matchPredictSet("value", False):
+                self.value(PREDICT_SETS["var_init"])
             self.assign_stmt_con()
             self.var_iden_rec()
-        else:
-            print("(parser) λ production for \"var_init\" detected")
+       
         
         print("(parser) exited production: \"var_init\"")
 
@@ -2162,31 +2182,23 @@ class SyntaxAnalyzer:
         '''<array1D_iden_rec> → , Identifier [<int_val>] <array1D_iden_rec> | λ'''
         print("(parser) entered production: \"array1D_iden_rec\"")
         if self.match(","):
-            if self.match("Identifier"):
-                if self.match("["):
+            if self.match("Identifier", False):
+                if self.match("[", False):
                     self.int_val(["]"])
                     if not self.match("]"):
                         self.ERROR_unclosed_square_bracket()
                     self.array1D_iden_rec()
-                else:
-                    self.ERROR_expected_token("[")
-            else:
-                self.ERROR_expected_token("Identifier")
         else:
             print("(parser) λ production for \"array1D_iden_rec\" detected")
 
     def array1D_init(self):
             '''<array1D_init> → = {<arr_value_1D>}'''
             print("(parser) entered production: \"array1D_init\"")
-            if self.match("="):
-                if self.match("{"):
+            if self.match("=", False):
+                if self.match("{", False):
                     self.arr_value_1D()
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
-                else:
-                    self.ERROR_expected_token("{")
-            else:
-                self.ERROR_expected_token("=")
 
     def arr_value_1D(self):
             '''<arr_value_1D> → <value> <arr_value_1D_rec>'''
@@ -2223,8 +2235,8 @@ class SyntaxAnalyzer:
             '''<array2D_iden_rec> → , Identifier [<int_val>] [<int_val>] <array2D_iden_rec> | λ'''
             print("(parser) entered production: \"array2D_iden_rec\"")
             if self.match(","):
-                if self.match("Identifier"):
-                    if self.match("["):
+                if self.match("Identifier", False):
+                    if self.match("[", False):
                         self.int_val(["]"])
                         if self.match("]") and self.match("["):
                             self.int_val(["]"])
@@ -2233,46 +2245,36 @@ class SyntaxAnalyzer:
                             self.array2D_iden_rec()
                         else:
                             self.ERROR_unclosed_square_bracket()
-                    else:
-                        self.ERROR_expected_token("[")
-                else:
-                    self.ERROR_expected_token("Identifier")
             else:
                 print("(parser) λ production for \"array2D_iden_rec\" detected")
 
     def array2D_init(self):
             '''<array2D_init> → = {<arr_value_2D>}'''
             print("(parser) entered production: \"array2D_init\"")
-            if self.match("="):
-                if self.match("{"):
+            if self.match("=", False):
+                if self.match("{", False):
                     self.arr_value_2D()
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
-                else:
-                    self.ERROR_expected_token("{")
-            else:
-                self.ERROR_expected_token("=")
-
+ 
     def arr_value_2D(self):
             '''<arr_value_2D> → {<arr_value_1D>} <arr_value_2D_rec>'''
             print("(parser) entered production: \"arr_value_2D\"")
-            if self.match("{"):
+            if self.match("{", False):
                 self.arr_value_1D()
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
                 self.arr_value_2D_rec()
-            else:
-                self.ERROR_expected_token("{")
+
 
     def arr_value_2D_rec(self):
             '''<arr_value_2D_rec> → , {<arr_value_1D>} <arr_value_2D_rec> | λ'''
             print("(parser) entered production: \"arr_value_2D_rec\"")
             if self.match(","):
-                if self.match("{"):
+                if self.match("{", False):
                     self.arr_value_1D()
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
                     self.arr_value_2D_rec()
-                else:
-                    self.ERROR_expected_token("{")
+
         
