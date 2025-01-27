@@ -2111,11 +2111,11 @@ class SyntaxAnalyzer:
         ## later on when all prods are complete
 
         if self.currToken and self.currToken["tokenType"] == "whole_lit": #int_val:
-            #self.int_val()
+            self.int_val()
             self.match("whole_lit", False)
         
         elif self.currToken and self.currToken["tokenType"] == "string_lit":
-            #self.string_value()
+            self.string_value()
             self.match("string_lit", False)
             
             if self.match(","):
@@ -2125,14 +2125,9 @@ class SyntaxAnalyzer:
 
                 ## We'll use this later on when prods are complete, might have to be revised
                 
-                # if self.currToken and self.currToken["tokenType"] == "int_val":
-                #    self.int_val()
+                if self.currToken and self.currToken["tokenType"] == "int_val":
+                    self.int_val()
         
-        ## Because we catch λ production for "input_params" b4 it enters the function,
-        ## we don't need this anymore
-        
-        #else:
-        #    print("(parser) λ production for \"input_params\" detected")
         
         print("(parser) exited production: \"input_params\"")
 
@@ -2317,31 +2312,114 @@ class SyntaxAnalyzer:
         if self.matchPredictSet("string_value", False):
             self.string_value()  
             
-            if self.match("+"):  
+            if self.match("+", False):  
                 self.matchPredictSet("string_value", False)
+                self.string_value()
    
         print("(parser) exited production: \"str_exp\"")
 
 
     def string_value(self):
         print("(parser) production: \"string_value\" detected")
-        """<string_value> → string_lit | Identifier<iden_mods> | <str_exp> | (<string_value>) | <typecast_exp>"""
+        """<string_value> → string_lit | Identifier <iden_mods> | <str_exp> | (<string_value>) | <typecast_exp>"""
+        if not self.match("string-lit", False):
+           return 
+        elif self.peek() == "+":
+                self.match("+", False)  
+                self.str_exp()
 
-        if self.match("string-lit"):
-            return
-        if self.peek() == "<":  
-            self.str_exp()
+        elif self.peek() == "(":
+                self.match("(", False)
+                self.string_value()  
+                if not self.match(")"):
+                    self.ERROR_unclosed_parentheses()
+        elif self.match("Identifier", False):
+                self.iden_mods()
+        elif self.peek() in PREDICT_SETS["typecast_exp", False]:
+                self.typecast_exp()
 
-        elif self.peek() == "(":  
-            self.match("(")
-            self.string_value()
-            self.match(")")
-
-        #elif self.peek() in PREDICT_SETS["typecast_exp"]: 
-            #self.typecast_exp()
-        #else:
-            #self.ERROR_expected_token(["string_value", "typecast_exp"])
         print("(parser) exited production: \"string_value\"")
 
 
-        
+    def assign_stmt(self):
+        print("(parser) production: \"assign_stmt\" detected")
+        """<assign_stmt> → Identifier <iden_as_var_mods> <assign_stmt_con> ;"""
+
+        if not self.match("Identifier", False):
+            self.iden_as_var_mods()
+            self.assign_stmt_con()
+
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+
+        print("(parser) exited production: \"assign_stmt\"")
+
+    def assign_stmt_con(self):
+        print("(parser) production: \"assign_stmt_con\" detected")
+        """<assign_stmt_con> → <assign_operator> <value> | <assign_stmt_rec> <assign_const>"""
+
+        if self.matchPredictSet("assign_operator"):
+            next_token = self.peek()
+            if next_token and next_token["tokenType"] == "Identifier":
+                print("(parser) entered production: \"assign_stmt_rec\"")
+                self.assign_stmt_rec()  
+                self.assign_const()  
+                print("(parser) exited production: \"assign_stmt_rec\"")
+            else:
+                self.assign_operator()
+                self.value([])
+
+        print("(parser) exited production: \"assign_stmt_con\"")
+
+    def assign_operator(self):
+            print("(parser) production: \"assign_operator\" detected")
+            """<assign_operator> → = | += | -= | *= | /= | %="""
+
+            if self.matchPredictSet("assign_operator", False):
+                self.match(self.currToken["tokenName"])
+
+            print("(parser) exited production: \"assign_operator\"")
+
+
+    def assign_stmt_rec(self):
+        print("(parser) production: \"assign_stmt_rec\" detected")
+        """<assign_stmt_rec> → <assign_operator> Identifier <iden_as_var_mods> <assign_stmt_rec> | λ"""
+        if self.matchPredictSet("assign_operator"):
+            self.assign_operator()  
+            if self.match("Identifier", False):
+                self.iden_as_var_mods() 
+
+            self.assign_stmt_rec()
+
+        print("(parser) exited production: \"assign_stmt_rec\"")
+            
+    def assign_const(self):
+        print("(parser) production: \"assign_const\" detected")
+        """<assign_const> → <assign_operator> <value> | λ"""
+
+        if self.matchPredictSet("assign_operator"):
+            self.assign_operator()
+        if not self.value([]):
+            self.ERROR_expected_token(["value"])
+
+        print("(parser) exited production: \"assign_const\"")
+
+    def iden_as_var_mods(self):
+        print("(parser) production: \"iden_as_var_mods\" detected")
+        """<iden_as_var_mods> → <as_array> <iden_as_var_mods_cont>"""
+
+        self.as_array()         
+        self.iden_as_var_mods_cont()  
+
+        print("(parser) exited production: \"iden_as_var_mods\"")
+
+    def iden_as_var_mods_cont(self):
+        print("(parser) production: \"iden_as_var_mods_cont\" detected")
+        """<iden_as_var_mods_cont> → . Identifier <as_array> | λ"""
+
+        if self.match("."):
+            self.match("Identifier", False)
+            self.as_array()  
+
+        print("(parser) exited production: \"iden_as_var_mods_cont\"")
+
