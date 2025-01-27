@@ -27,8 +27,6 @@ PREDICT_SETS = {
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "whole_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"],
-    "array2D_iden_rec": [","],
-    "array1D_iden_rec": [","],
     "string value": ["string_lit", "Identifier", "("]
 }
 
@@ -2172,8 +2170,8 @@ class SyntaxAnalyzer:
     def var_id_arr1D(self):
         '''<var_id_arr1D> → <array1D_iden_rec> | <array1D_init>'''
         print("(parser) entered production: \"var_id_arr1D\"")
-        if self.currToken["tokenType"] in PREDICT_SETS["array1D_iden_rec"]:
-            self.array1D_iden_rec()
+        if self.currToken["tokenType"] == ",":
+           self.array1D_iden_rec()
         elif self.currToken["tokenType"] == "=":
             self.array1D_init()
         else:
@@ -2228,7 +2226,7 @@ class SyntaxAnalyzer:
     def var_id_arr2D(self):
             '''<var_id_arr2D> → <array2D_iden_rec> | <array2D_init>'''
             print("(parser) entered production: \"var_id_arr2D\"")
-            if self.currToken["tokenType"] in PREDICT_SETS["array2D_iden_rec"]:
+            if self.currToken["tokenType"] == ",":
                 self.array2D_iden_rec()
             elif self.currToken["tokenType"] == "=":
                 self.array2D_init()
