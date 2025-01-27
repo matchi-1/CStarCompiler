@@ -1826,7 +1826,7 @@ def unexpectedSymbol(currToken, currLine, currCol, lineContent):
     return generateError(errorType, currToken, currLine, currCol, lineContent)
 
 def adjustConstNumError(currToken, currLine, currCol, lineContent):
-    errorType = "Cannot adjust constant number"
+    errorType = "Increment or decrement operation is not allowed on constants"
     return generateError(errorType, currToken, currLine, currCol, lineContent)
 
 #---TOKEN CLASS---#
