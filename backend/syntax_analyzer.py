@@ -26,7 +26,10 @@ PREDICT_SETS = {
     "unary_operator" : ["++", "--"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "whole_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
-    "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"]
+    "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"],
+    "array2D_iden_rec": [","],
+    "array1D_iden_rec": [","],
+    "string value": ["string_lit", "Identifier", "("]
 }
 
 
@@ -2162,9 +2165,6 @@ class SyntaxAnalyzer:
                 self.var_iden_rec()
             else:
                 self.ERROR_expected_token("Identifier")
-        else:
-            print("(parser) λ production for \"var_iden_rec\" detected")
-        
         print("(parser) exited production: \"var_iden_rec\"")
 
 
@@ -2176,7 +2176,8 @@ class SyntaxAnalyzer:
         elif self.currToken["tokenType"] == "=":
             self.array1D_init()
         else:
-            self.ERROR_expected_token(["<array1D_iden_rec>", "<array1D_init>"])
+            self.ERROR_expected_token([",", "="])
+        print("(parser) exited production: \"var_id_arr1D\"")
 
     def array1D_iden_rec(self):
         '''<array1D_iden_rec> → , Identifier [<int_val>] <array1D_iden_rec> | λ'''
@@ -2188,8 +2189,7 @@ class SyntaxAnalyzer:
                     if not self.match("]"):
                         self.ERROR_unclosed_square_bracket()
                     self.array1D_iden_rec()
-        else:
-            print("(parser) λ production for \"array1D_iden_rec\" detected")
+        print("(parser) exited production: \"array1D_iden_rec\"")
 
     def array1D_init(self):
             '''<array1D_init> → = {<arr_value_1D>}'''
@@ -2199,6 +2199,7 @@ class SyntaxAnalyzer:
                     self.arr_value_1D()
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
+                print("(parser) exited production: \"array1D_init\"")
 
     def arr_value_1D(self):
             '''<arr_value_1D> → <value> <arr_value_1D_rec>'''
@@ -2209,6 +2210,8 @@ class SyntaxAnalyzer:
             else:
                 self.ERROR_expected_token("value")
 
+            print("(parser) exited production: \"arr_value_1D\"")
+
     def arr_value_1D_rec(self):
             '''<arr_value_1D_rec> → , <value> <arr_value_1D_rec> | λ'''
             print("(parser) entered production: \"arr_value_1D_rec\"")
@@ -2218,8 +2221,8 @@ class SyntaxAnalyzer:
                     self.arr_value_1D_rec()
                 else:
                     self.ERROR_expected_token("value")
-            else:
-                print("(parser) λ production for \"arr_value_1D_rec\" detected")
+           
+            print("(parser) exited production: \"arr_value_1D_rec\"")
 
     def var_id_arr2D(self):
             '''<var_id_arr2D> → <array2D_iden_rec> | <array2D_init>'''
@@ -2229,7 +2232,9 @@ class SyntaxAnalyzer:
             elif self.currToken["tokenType"] == "=":
                 self.array2D_init()
             else:
-                self.ERROR_expected_token(["<array2D_iden_rec>", "<array2D_init>"])
+                self.ERROR_expected_token([",", "="])
+
+            print("(parser) exited production: \"var_id_arr2D\"")
 
     def array2D_iden_rec(self):
             '''<array2D_iden_rec> → , Identifier [<int_val>] [<int_val>] <array2D_iden_rec> | λ'''
@@ -2245,8 +2250,8 @@ class SyntaxAnalyzer:
                             self.array2D_iden_rec()
                         else:
                             self.ERROR_unclosed_square_bracket()
-            else:
-                print("(parser) λ production for \"array2D_iden_rec\" detected")
+
+            print("(parser) exited production: \"array2D_iden_rec\"")
 
     def array2D_init(self):
             '''<array2D_init> → = {<arr_value_2D>}'''
@@ -2256,6 +2261,7 @@ class SyntaxAnalyzer:
                     self.arr_value_2D()
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
+            print("(parser) exited production: \"array2D_init\"")
  
     def arr_value_2D(self):
             '''<arr_value_2D> → {<arr_value_1D>} <arr_value_2D_rec>'''
@@ -2266,6 +2272,8 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_curly_braces()
                 self.arr_value_2D_rec()
 
+            print("(parser) exited production: \"arr_value_2D\"")
+ 
 
     def arr_value_2D_rec(self):
             '''<arr_value_2D_rec> → , {<arr_value_1D>} <arr_value_2D_rec> | λ'''
@@ -2276,5 +2284,40 @@ class SyntaxAnalyzer:
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
                     self.arr_value_2D_rec()
+            print("(parser) exited production: \"arr_value_2D_rec\"")
+
+    def str_exp(self):
+        print("(parser) production: \"str_exp\" detected")
+        """<str_exp> → <string_value> + <string_value>"""
+
+        if self.matchPredictSet("string_value", False):
+            self.string_value()  
+            
+            if self.match("+"):  
+                self.matchPredictSet("string_value", False)
+   
+        print("(parser) exited production: \"str_exp\"")
+
+
+    def string_value(self):
+        print("(parser) production: \"string_value\" detected")
+        """<string_value> → string_lit | Identifier<iden_mods> | <str_exp> | (<string_value>) | <typecast_exp>"""
+
+        if self.match("string-lit"):
+            return
+        if self.peek() == "<":  
+            self.str_exp()
+
+        elif self.peek() == "(":  
+            self.match("(")
+            self.string_value()
+            self.match(")")
+
+        #elif self.peek() in PREDICT_SETS["typecast_exp"]: 
+            #self.typecast_exp()
+        #else:
+            #self.ERROR_expected_token(["string_value", "typecast_exp"])
+        print("(parser) exited production: \"string_value\"")
+
 
         
