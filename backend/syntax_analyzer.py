@@ -99,6 +99,7 @@ class SyntaxAnalyzer:
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
             self.nextToken()
             return True
+        elif hasSpecError:
             print("deactivated default expected token error")
             return False
         else:
