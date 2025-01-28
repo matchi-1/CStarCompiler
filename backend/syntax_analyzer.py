@@ -86,14 +86,14 @@ class SyntaxAnalyzer:
     # Matches the current token with the expected type. Returns True if matched, False otherwise.
     def match(self, expected_token, hasSpecError=True):
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
-            print(f"token {expected_token} matched")
+            print(f"(parser) token {expected_token} matched")
             self.nextToken()
             return True
         elif not self.currToken and hasSpecError:
-            print("deactivated default expected token error")
+            print("(parser) deactivating default expected token error")
             return False
         else:
-            print("activating default expected token error")
+            print("(parser) activating default expected token error")
             self.ERROR_expected_token(expected_token)
             return False
 
@@ -434,9 +434,9 @@ class SyntaxAnalyzer:
                         self.expression([";"])
 
                     #### TEMPORARY code block
-                    # if self.currToken:  # Ensure self.currToken is not None
-                    #     #if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
-                    #     #    self.output()
+                    if self.currToken:  # Ensure self.currToken is not None
+                         if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
+                             self.output()
 
                     #     #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
                     #     #    self.conditional_stmt()
@@ -446,13 +446,15 @@ class SyntaxAnalyzer:
                     #     #    error_message = f"'else' statements may only be used after an 'if' statement."
                     #     #    self.logError(error_message)
 
-                    #     if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
-                    #         self.loop_stmt()
+                         if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
+                             self.loop_stmt()
              
-                    #     else: break
-                    # else:
-                    #     # Handle EOF case
-                    #     self.logError("Unexpected end of file while parsing.")
+                         #else:
+                         #    print("(parser) broke out of loop")
+                         #    break
+                    else:
+                         # Handle EOF case
+                         self.logError("Unexpected end of file while parsing.")
 
                     #print("(parser) exited temp code block")
    
@@ -477,9 +479,13 @@ class SyntaxAnalyzer:
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
 
-                    # might have to be rephrased, for some reason it's off by one line
-                    # if self.currToken: 
-                    #     self.logError("Unreachable code.")
+                    # might have to be revisited, for some reason it's off by one line
+                    if self.currToken: 
+                        currLine = self.currToken["tokenLine"]
+                        currCol = self.currToken["tokenCol"]
+
+                        print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
+                        break
 
                 elif self.currToken["tokenName"] == ";":  # int main;  GLOBAL VAR DEC
                     ############### var assign rules here
