@@ -431,7 +431,8 @@ class SyntaxAnalyzer:
                     if self.match("{", False):
                         print("(parser) production: ### inside main")
 
-                        self.expression([";"])
+                        self.expression([";", "}"])
+                        self.match(";", False)
 
                     #### TEMPORARY code block
                     if self.currToken:  # Ensure self.currToken is not None
@@ -1173,6 +1174,7 @@ class SyntaxAnalyzer:
                 self.ERROR_expected_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
+                
     def object_rec(self):
         print('(parser) production: "object_rec" detected')
         if (self.currToken and self.currToken["tokenType"] == "."):
@@ -1317,17 +1319,19 @@ class SyntaxAnalyzer:
 
     def logic_exp(self, stopChars):
         print("(parser) production: \"logic_exp\" detected")
-        if self.currToken and self.currToken["tokenType"] == "!":
+        if self.currToken and self.currToken["tokenType"] != "!":
+            self.bool_value(PREDICT_SETS["logic_operator"] + stopChars)
+            if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]):
+                while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]):
+                    self.logic_operator()
+                    if not self.bool_value(PREDICT_SETS["logic_operator"] + stopChars): 
+                        print('(parser)(dbg) ERROR: expected value')
+                        self.ERROR_expected_token("bool value") #should i expound errors like this, bool value can be iden, bool_lit, rel_exp, logic_exp, etc.
+            # else:
+            #     self.ERROR_expected_token("{||, &&}")
+        else:   
             self.match("!", False)
-        self.bool_value(PREDICT_SETS["logic_operator"])
-        if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]):
-            while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]):
-                self.logic_operator()
-                if not self.bool_value(PREDICT_SETS["logic_operator"] + stopChars): 
-                    print('(parser)(dbg) ERROR: expected value')
-                    self.ERROR_expected_token("bool value")
-        else:
-            self.ERROR_expected_token("{||, &&}")
+            self.logic_exp(stopChars)
 
         print("(parser) production: \"logic_exp\" EXITED!!")
 
@@ -1350,29 +1354,40 @@ class SyntaxAnalyzer:
             if (prod == "<logic_exp>"):
                 self.logic_exp(stopChars)   #######<logic_exp> HERE
                 print('(parser)(dbg)<logic_exp>')
+                return True
             elif (prod == "<rel_exp>"):
                 self.rel_exp(stopChars)
+                return True
             elif (prod == "paren_wrap"):
                 self.match("(")
-                self.bool_value([")"])
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
+                if self.currToken and self.bool_value([")"]):
+                    if not self.match(")"):
+                        self.ERROR_unclosed_parentheses()
+                        return True
+                else:
+                    return False
             else:
                 if (self.currToken["tokenType"] == "("):
                     if (self.peek() in PREDICT_SETS["data_types"]):
                         self.typecast_exp()
+                        return True
                 elif (self.currToken["tokenType"] == "!"):
                     self.logic_exp(stopChars) #########<logic_exp> HERE
                     print('(parser)(dbg)<logic_exp>')
+                    return True
                 elif (self.currToken["tokenType"] == "Identifier"):
                     self.match("Identifier")
                     self.iden_mods()
+                    return True
                 elif (self.currToken["tokenType"] == "bool_lit"):
                     self.match("bool_lit")
+                    return True
                 else:
                     self.ERROR_expected_token("bool_value")
+                    return False
         else:
             self.ERROR_expected_token("bool_value")
+            return False
                 
     def rel_exp(self, stopChars):
         print('(parser) production: "rel_exp" detected')
