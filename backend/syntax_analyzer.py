@@ -14,20 +14,19 @@ PREDICT_SETS = {
     "init_arg" : ["Identifier", "bool", "string", "int", "long", "double", "float"],
     "switch_value" : ["whole_lit", "string_lit", "Identifier"], # TO ADD other exps
     "ctrl_stmt_body" : ["break", "continue"], # +body
-    "iden_mods" : ["("], # TO ADD 
     "arith_operator" : ["+", "-", "*", "/", "%"],
     "inc_arg" : ["Identifier", "--", "++", "print", "println", "("],
     "func_arg" : ["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit", ")"],
     "value":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
     "rel_operator" : ["==", "!=", "<", "<=", ">", ">="],
     "logic_operator" : ["&&", "||"],
-    "iden_mods" : ["(", "[", "."],
+    "iden_mods" : ["(", "[", "."],  # TO ADD 
     "int_val" : ["whole_lit", "Identifier", "-", "("],
     "unary_operator" : ["++", "--"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "whole_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"],
-    "string value": ["string_lit", "Identifier", "("]
+    "string value": ["string_lit", "Identifier", "("],
 }
 
 
@@ -64,18 +63,6 @@ class SyntaxAnalyzer:
 
         self.lineContent = ''
         self.hasMainFunction = False  # Track if main function is found
-
-    #-------------------- PARSER START --------------------
-    def parse(self):
-        try:
-            self.program()
-            #self.expression([";"])
-            #self.func_method_call()
-            print("Parsing completed successfully.")
-        except SyntaxError as e:
-            #print(f"Parsing incomplete with error/s: {e}")
-            print (e)
-        return self.errors
 
     #-------------------- HELPER FUNCTIONS --------------------
     # Advancer for the next token
@@ -404,6 +391,17 @@ class SyntaxAnalyzer:
         )
 
 
+    #-------------------- PARSER START --------------------
+    def parse(self):
+        try:
+            self.program()
+            #self.expression([";"])
+            #self.func_method_call()
+            print("Parsing completed successfully.")
+        except SyntaxError as e:
+            #print(f"Parsing incomplete with error/s: {e}")
+            print (e)
+        return self.errors
 
     #-------------------- CFG START --------------------
     # for semantic stuff, instead of using "if not", just add else clause to add functionality in if match clause
@@ -433,29 +431,31 @@ class SyntaxAnalyzer:
                     if self.match("{", False):
                         print("(parser) production: ### inside main")
 
+                        self.expression([";"])
+
                     #### TEMPORARY code block
-                    if self.currToken:  # Ensure self.currToken is not None
-                        #if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
-                        #    self.output()
+                    # if self.currToken:  # Ensure self.currToken is not None
+                    #     #if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
+                    #     #    self.output()
 
-                        #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
-                        #    self.conditional_stmt()
+                    #     #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
+                    #     #    self.conditional_stmt()
 
-                        #if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
-                        #    current_value = self.currToken["tokenName"]
-                        #    error_message = f"'else' statements may only be used after an 'if' statement."
-                        #    self.logError(error_message)
+                    #     #if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
+                    #     #    current_value = self.currToken["tokenName"]
+                    #     #    error_message = f"'else' statements may only be used after an 'if' statement."
+                    #     #    self.logError(error_message)
 
-                        if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
-                            self.loop_stmt()
+                    #     if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
+                    #         self.loop_stmt()
+             
+                    #     else: break
+                    # else:
+                    #     # Handle EOF case
+                    #     self.logError("Unexpected end of file while parsing.")
 
-                        else: break
-                    else:
-                        # Handle EOF case
-                        self.logError("Unexpected end of file while parsing.")
-
-                    print("(parser) exited temp code block")
-
+                    #print("(parser) exited temp code block")
+   
                     self.match("return", False)
                     #print("hello?????")
 
@@ -478,10 +478,11 @@ class SyntaxAnalyzer:
                         self.ERROR_unclosed_curly_braces()
 
                     # might have to be rephrased, for some reason it's off by one line
-                    if self.currToken: 
-                        self.logError("Unreachable code.")
+                    # if self.currToken: 
+                    #     self.logError("Unreachable code.")
 
                 elif self.currToken["tokenName"] == ";":  # int main;  GLOBAL VAR DEC
+                    ############### var assign rules here
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
 
@@ -1020,31 +1021,6 @@ class SyntaxAnalyzer:
             self.ERROR_expected_token([".","("])
             print("(parser) λ-production for <func_method_call_mods>")
 
-
-    # SAMPLE PLACEHOLDER FOR VALUE-- SHOULD RETURN TRUE OR FALSE IF VALUE CALL WAS FOR A VALID VALUE OR NOT
-    def value1(self):
-        # Check if the current token is a "whole_lit"
-        if self.currToken and self.currToken["tokenType"] == "whole_lit":
-            print(f"(parser) Found value: {self.currToken['tokenName']} (whole_lit)")
-            self.match("whole_lit")  # Match the token
-            return True
-        else:
-            # Log an error if the token is not a valid "whole_lit"
-            self.logError("Expected a valid value type.")
-            return False
-    
-    # SAMPLE PLACEHOLDER FOR INT_VAL -- SHOULD RETURN TRUE OR FALSE IF VALUE CALL WAS FOR A VALID VALUE OR NOT
-    def int_val1(self):
-        # Check if the current token is a "whole_lit"
-        if self.currToken and self.currToken["tokenType"] == "whole_lit":
-            print(f"(parser) Found value: {self.currToken['tokenName']} (whole_lit)")
-            self.match("whole_lit")  # Match the token
-            return True
-        else:
-            # Log an error if the token is not a valid "whole_lit"
-            self.logError("Expected a valid value with type 'int'.")
-            return False
-
         
 #TODO: harley todos: errors, prod integration
 
@@ -1091,7 +1067,7 @@ class SyntaxAnalyzer:
                 return True
             elif (prod == "<logic_exp>"):
                 print('(parser)(dbg) logic_exp')
-                #########<logic_exp> HERE
+                self.logic_exp(stopChars)     #########<logic_exp> HERE
                 return True
             elif (prod == "<rel_exp>"):
                 self.rel_exp(stopChars)
@@ -1101,7 +1077,7 @@ class SyntaxAnalyzer:
                 return True
             elif (prod == "<str_exp>"):
                 print('(parser)(dbg)<str_exp>')
-                ##### <str_exp> HERE
+                self.str_exp()##### <str_exp> HERE
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "in"):
                 self.match("in")
@@ -1110,7 +1086,7 @@ class SyntaxAnalyzer:
                     self.nextToken()
                     self.match(">")
                     self.match("(")
-                    #######<input_params> HERE
+                    self.input_params()#######<input_params> HERE
                     self.match(")")
                     return True
             elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
@@ -1122,7 +1098,7 @@ class SyntaxAnalyzer:
                     return True
             elif (self.currToken and self.currToken["tokenType"] == "!"):
                 print('(parser)(dbg) logic_exp')
-                #########<logic_exp> HERE
+                self.logic_exp(stopChars)   #########<logic_exp> HERE
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "-"):
                 self.negative_exp()
@@ -1213,14 +1189,14 @@ class SyntaxAnalyzer:
                 self.ternary_exp(stopChars)
             elif (prod == "<logic_exp>"):
                 print('(parser)(dbg) logic_exp')
-                #########<logic_exp> HERE
+                self.logic_exp(stopChars)       #########<logic_exp> HERE
             elif (prod == "<rel_exp>"):
                 self.rel_exp(stopChars)
             elif (prod == "<arith_exp>"):
                 self.arith_exp()
             elif (prod == "<str_exp>"):
                 print('(parser)(dbg)<str_exp>')
-                ######### <str_exp> HERE
+                self.str_exp()          ######### <str_exp> HERE
             elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
                 self.unary_exp()
             elif (self.currToken and self.currToken["tokenType"] == "("):
@@ -1228,7 +1204,7 @@ class SyntaxAnalyzer:
                     self.typecast_exp()
             elif (self.currToken and self.currToken["tokenType"] == "!"):
                 print('(parser)(dbg) logic_exp')
-                #########<logic_exp> HERE
+                self.logic_exp(stopChars) #########<logic_exp> HERE
             elif (self.currToken and self.currToken["tokenType"] == "-"):
                 self.negative_exp()
             elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
@@ -1333,14 +1309,40 @@ class SyntaxAnalyzer:
             if not self.value(stopChars):
                 self.ERROR_expected_token("value")
 
+    def logic_exp(self, stopChars):
+        print("(parser) production: \"logic_exp\" detected")
+        if self.currToken and self.currToken["tokenType"] == "!":
+            self.match("!", False)
+        self.bool_value(PREDICT_SETS["logic_operator"])
+        if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]):
+            while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]):
+                self.logic_operator()
+                if not self.bool_value(PREDICT_SETS["logic_operator"] + stopChars): 
+                    print('(parser)(dbg) ERROR: expected value')
+                    self.ERROR_expected_token("bool value")
+        else:
+            self.ERROR_expected_token("{||, &&}")
+
+        print("(parser) production: \"logic_exp\" EXITED!!")
+
+    def logic_operator(self):
+        print("(parser) production: \"logic_operator\" detected")
+        if (self.currToken and self.currToken["tokenType"] == "&&"):
+            self.match("&&")
+        elif (self.currToken and self.currToken["tokenType"] == "||"):
+            self.match("||")
+        else:
+            self.ERROR_expected_token("{||, &&}")
+
+
     #####CONDITION
 
     def bool_value(self, stopChars):
         print('(parser) production: "bool_value" detected')
-        if (self.currToken):
+        if self.currToken:
             prod = self.checkValProd(stopChars)
             if (prod == "<logic_exp>"):
-                #######<logic_exp> HERE
+                self.logic_exp(stopChars)   #######<logic_exp> HERE
                 print('(parser)(dbg)<logic_exp>')
             elif (prod == "<rel_exp>"):
                 self.rel_exp(stopChars)
@@ -1354,13 +1356,15 @@ class SyntaxAnalyzer:
                     if (self.peek() in PREDICT_SETS["data_types"]):
                         self.typecast_exp()
                 elif (self.currToken["tokenType"] == "!"):
-                    #########<logic_exp> HERE
+                    self.logic_exp(stopChars) #########<logic_exp> HERE
                     print('(parser)(dbg)<logic_exp>')
                 elif (self.currToken["tokenType"] == "Identifier"):
                     self.match("Identifier")
                     self.iden_mods()
                 elif (self.currToken["tokenType"] == "bool_lit"):
                     self.match("bool_lit")
+                else:
+                    self.ERROR_expected_token("bool_value")
         else:
             self.ERROR_expected_token("bool_value")
                 
