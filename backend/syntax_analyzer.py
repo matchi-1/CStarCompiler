@@ -1702,8 +1702,6 @@ class SyntaxAnalyzer:
         
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
-        if not self.match(";"): 
-            self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"output\"")
 
@@ -1817,7 +1815,7 @@ class SyntaxAnalyzer:
         '''<init_arg> → <for_init_data_type> Identifier = <value> <assign_stmt_rec> <var_iden_rec> | null'''
         '''<for_init_data_type> → <data_type> | null'''
         print("(parser) entered production: \"init_arg\"")
-
+        
         if self.currToken["tokenName"] in PREDICT_SETS["data_types"]:
             self.nextToken()
         self.match("Identifier", False)
@@ -1843,17 +1841,21 @@ class SyntaxAnalyzer:
             print("(parser) exited production: \"unary_exp\"")
         
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
-            if self.peek() in PREDICT_SETS["unary_operator"]:
+            print("passed id check")
+            next_token = self.peek()
+
+            if next_token and next_token["tokenType"] in PREDICT_SETS["unary_operator"]:
+                print("passed unary check")
                 print("(parser) entered production: \"unary_exp\"")
                 self.unary_exp(True)
                 print("(parser) exited production: \"unary_exp\"")
                 
-            elif self.peek() == "(":
+            elif next_token and next_token["tokenType"] == "(":
                 print("(parser) entered production: \"func_method_call\"")
                 #self.func_method_call()
                 print("(parser) exited production: \"func_method_call\"")
                 
-            elif self.peek() == "=":
+            elif next_token and next_token["tokenType"] == "=":
                 self.match("Identifier", False)
                 self.match("=", False)
                 # <value> here (literals for now)
@@ -1904,7 +1906,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
             self.switch_value()
         else: #cannot be empty
-            self.logError("'switch' condition cannot be empty.")
+            self.ERROR_empty_condition("switch")
         
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
@@ -2062,6 +2064,7 @@ class SyntaxAnalyzer:
         self.match("(", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
             self.init_arg()
+        else: print("(parser) empty init_arg detected")
         if not self.match(";"):
             self.ERROR_terminating_token(";")
         
@@ -2072,7 +2075,8 @@ class SyntaxAnalyzer:
         
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
             self.inc_arg()
-        
+        else: print("(parser) empty inc_arg detected")
+
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
 
