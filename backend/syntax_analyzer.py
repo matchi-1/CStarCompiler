@@ -4,7 +4,7 @@ PREDICT_SETS = {
     "std_lib": ["Cmath", "Cstring", "Carray"],
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_types": ["bool", "string", "int", "long", "double", "float"],
-    "class_body": [ "private" ,'static', "const", "int", "long", "bool", "float", "double", "string", "Identifier" , "private", "class", "}"],
+    "class_body": [ "private" ,'static', "const", "int", "long", "bool", "float", "double", "string", "Identifier" , "private", "class", "}", "void"],
     "literals": ["whole_lit", "frac_lit", "string_lit", "Identifier"], # need to add expressions here in the future
     "print_stmts" : ["print", "println"],
     "conditional_stmt" : ["if", "switch"],
@@ -42,11 +42,7 @@ PREDICT_SETS = {
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
     def __init__(self, tokens):
-        self.dimensionCount = 0         #for 1d or 2d array inits | counts dimensions 
-        self.isDefaultValRec = False    #for params_dec | checks if all of the default values are on the rightmost side
         self.classNames = []            #for checking if constructor name matches class name
-        self.inClassBody = False        #for redirecting to <class_body> instead of <program_constructs>
-        self.inConstructor = False      #for not requiring 'return' in function_dec()
         self.errors = []
         self.tokens = [token.to_dict() 
             for token in tokens 
@@ -444,7 +440,7 @@ class SyntaxAnalyzer:
     def parse(self):
         try:
             self.program()
-            # self.expression([";"])
+            #self.expression([";"])
             #self.func_method_call()
             print("Parsing completed successfully.")
         except SyntaxError as e:
@@ -478,13 +474,14 @@ class SyntaxAnalyzer:
                 if self.match("{", False):
                     print("(parser) production: ### inside main -- START OF MAIN BODY")
 
-                    #self.expression([";", "}"])
-                    #self.match(";", False)
+                    self.expression([";", "}"])
+                    self.match(";", False)
 
                     #### TEMPORARY code block
                     if self.currToken:  # Ensure self.currToken is not None
                         if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
                             self.output()
+                            self.match(";", False)
 
                     #     #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
                     #     #    self.conditional_stmt()
@@ -707,11 +704,10 @@ class SyntaxAnalyzer:
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
-        self.inClassBody = False
         self.program_constructs()
 
     # TODO
-    def var_dec(self):      #starts at token '=' or 'const' or 'data_types'
+    def var_dec(self, inClassBody = False):      #starts at token '=' or 'const' or 'data_types'
         print("(parser) production: \"var_dec\" detected")
 
         if not self.currToken:
@@ -732,26 +728,26 @@ class SyntaxAnalyzer:
         
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=")
-            ############# VAR ASSIGN RULES HERE
+            self.var_init()############# VAR ASSIGN RULES HERE
 
 
         if not self.match(";"): 
             self.ERROR_terminating_token(";")
         
-        if not self.inClassBody:
+        if not inClassBody:
             self.program_constructs()
 
         else:
             self.class_body()
 
     # TODO
-    def function_dec(self):
+    def function_dec(self, inClassBody = False, inConstructor = False):
         print("(parser) production: \"function_dec\" detected")
-        isNotVoid = True
+        isVoid = False
         if self.currToken["tokenType"] != "(": # if not from second calling from program_construct
             if self.currToken["tokenType"] == "void":
                 self.match("void")
-                isNotVoid = False
+                isVoid = True
             else:
                 self.matchPredictSet("data_types")
                 self.nextToken()
@@ -767,8 +763,8 @@ class SyntaxAnalyzer:
 
         self.match("{", False)
 
-        ############### FUNCTION BODY RULES HERE
-        if isNotVoid and not self.inConstructor:
+        ############### TODO: FUNCTION BODY RULES HERE
+        if not isVoid and not inConstructor:
             if not self.match("return"):
                 self.logError("Non-void functions must have return statement.")
             ### TODO: how to check return type and if it matches return statement?
@@ -779,18 +775,17 @@ class SyntaxAnalyzer:
                 self.logError("just add ';' for now, no logic for return vals yet")
                 self.ERROR_terminating_token(";")
         
-        if not isNotVoid and self.match("return"):
+        if not isVoid and self.match("return"):
             self.logError("Void functions cannot have return statement.")
 
-        if self.inConstructor and self.match("return"):
+        if inConstructor and self.match("return"):
             self.logError("Constructors cannot have return statement.")
         
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
 
-        self.inConstructor = False
 
-        if not self.inClassBody:
+        if not inClassBody:
             self.program_constructs()
 
         else:
@@ -1532,42 +1527,44 @@ class SyntaxAnalyzer:
 
     def class_body(self): # all of these are just 'if's because class_body can be null
         print("(parser) production: \"class_body\" detected")
-        self.inClassBody = True
+        inClassBody = True
         self.matchPredictSet("class_body")
 
         if self.currToken and self.currToken["tokenType"] == "private": # 17. <is_private> 
             self.match("private")
             if not self.currToken:
-                self.logError("Expected Identifier, token 'class', or token 'static'.")
-            elif self.currToken["tokenType"] != "static" and self.currToken["tokenType"] != "Identifier" and self.currToken["tokenType"] != "class":
-                self.logError("Expected Identifier, token 'class', or token 'static'.")
+                self.logError("Expected data type, function declaration, Identifier, token 'class', or token 'static' but reached EOF.")
+            elif self.currToken["tokenType"] != "static" and self.currToken["tokenType"] != "Identifier" and self.currToken["tokenType"] != "class" and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "void":
+                self.logError("Expected data type, function declaration, Identifier, token 'class', or token 'static'.")
         
         if self.currToken and self.currToken["tokenType"] == "class": # 22. <class_declaration>
             self.class_declaration()       #subclass declaration
 
         if self.currToken and self.currToken["tokenType"] == "static": # 26. <is_static> 
             self.match("static")
-            self.var_dec()      #attribute dec equivaelnt
+            self.var_dec(inClassBody)      #attribute dec equivaelnt
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_types"]: #attribute_dec or method_dec path
             self.nextToken()
             if self.match("Identifier"): 
                     if self.currToken and self.currToken["tokenType"] == "(":
-                        self.function_dec()     # method
+                        self.function_dec(inClassBody)     # method
                     elif self.currToken and self.currToken["tokenType"] == "=":
-                        self.var_dec()          # attribute
+                        self.var_dec(inClassBody)          # attribute
                     elif self.currToken and self.currToken["tokenType"] != ";":
                         self.ERROR_expected_token(["(","=", ";"])
             else:
                 self.logError("Expected a variable declaration or function declaration.")
+
+        if self.currToken and self.currToken["tokenType"] == "void":
+            self.function_dec(inClassBody)
 
         if self.currToken and self.currToken["tokenType"] == "Identifier": #for constructor path
             if self.currToken["tokenName"] == self.classNames[-1]:
                 self.match("Identifier")
                 self.classNames.pop()
                 if self.currToken and self.currToken["tokenType"] == "(":
-                    self.inConstructor = True
-                    self.function_dec() #TODO: maybe revisit in da future
+                    self.function_dec(inClassBody, inConstructor) #TODO: maybe revisit in da future   
                                         
                 else:
                     self.ERROR_expected_token("(")
@@ -1583,6 +1580,8 @@ class SyntaxAnalyzer:
 
     def params_dec(self):
         print("(parser) production: \"params_dec\" detected")
+        dimensionCount = 0
+        isDefaultValRec = False
 
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
@@ -1593,33 +1592,33 @@ class SyntaxAnalyzer:
                 if self.match("[") and self.currToken:
                     if not self.match("]"):
                         self.ERROR_unclosed_square_bracket()
-                    self.dimensionCount+=1
+                    dimensionCount+=1
 
                 if self.match("[") and self.currToken:
                     if not self.match("]"):
                         self.ERROR_unclosed_square_bracket()
-                    self.dimensionCount+=1
+                    dimensionCount+=1
 
                 if self.currToken and self.currToken["tokenType"] == "[":
                     self.logError("Only up to two dimensional arrays are allowed.")
             else: self.ERROR_expected_Identifier()
             
             if self.currToken and self.currToken["tokenType"] == "=":
-                self.isDefaultValRec = self.match("=")  # when '=' is matched in params, isDefaultValRec becomes true
-                if self.dimensionCount <= 0:        #handle when param init not array
+                isDefaultValRec = self.match("=")  # when '=' is matched in params, isDefaultValRec becomes true
+                if dimensionCount <= 0:        #handle when param init not array
                     self.matchPredictSet("literals")
                     self.nextToken()
                 else:
                     if self.currToken and not self.match("{"):
                         self.logError("Expected array initialization. E.g. {value, value, value, ...}")
                         # placeholder error for now
-                    self.array_init()
+                    self.array_init(dimensionCount)
                     print("Outside array_init")
-                    self.dimensionCount = 0
+                    dimensionCount = 0
                     if self.currToken and not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
             
-            if self.currToken and self.isDefaultValRec and self.currToken["tokenType"] != "=" and self.currToken["tokenType"] != ",":
+            if self.currToken and isDefaultValRec and self.currToken["tokenType"] != "=" and self.currToken["tokenType"] != ",":
                 self.logError("No non-default argument must follow default argument.")
                 
             if self.currToken and self.currToken["tokenType"] == ",":
@@ -1630,20 +1629,20 @@ class SyntaxAnalyzer:
 
         
         
-    def array_init(self):   
+    def array_init(self, dimensionCount):   
         print(f"(parser) production: \"array_init #{self.dimensionCount}\" detected")
         
         # data_type Identifier[int_val][int_val] = {
         #                                            ^ starts AFTER token "{" 
-        # uses self.dimensionCount
+        # uses dimensionCount
 
-        if self.dimensionCount == 2:        # for 2d arrays
+        if dimensionCount == 2:        # for 2d arrays
             self.match("{", False)
 
-            self.dimensionCount-=1
+            dimensionCount-=1
             self.array_init()       #go into array_init as 1d array
             # print("back as 2d array")
-            self.dimensionCount+=1
+            dimensionCount+=1
 
             if self.currToken and self.currToken["tokenType"] == ",":
                 self.match(",")
