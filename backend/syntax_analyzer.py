@@ -359,7 +359,7 @@ class SyntaxAnalyzer:
 
     # If no main function was found throughout the whole program
     def ERROR_no_main_func(self):
-        message = "Syntax Error: Missing 'main' function to execute the program.\nThe program must include a 'main' function as the entry point."
+        message = "Syntax Error: Missing void 'main' function to execute the program.\nThe program must include a void 'main' function as the entry point."
         self.errors.append(message)
         raise SyntaxError(message)
 
@@ -461,8 +461,6 @@ class SyntaxAnalyzer:
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
         
         self.imports_list()
-
-        print("(parser) production: ### after imports_list")
         
         """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
         # Parse constructs
@@ -548,7 +546,7 @@ class SyntaxAnalyzer:
         elif self.currToken["tokenType"] in PREDICT_SETS["conditional_stmt"]:
             self.conditional_stmt()
         
-        # Loop Statement
+        # Loop Statement 
         elif self.currToken["tokenType"] in PREDICT_SETS["loop_stmt"]:
             self.loop_stmt()
 
@@ -777,8 +775,7 @@ class SyntaxAnalyzer:
     def var_dec(self, inClassBody = False):      #starts at token '=' or 'const' or 'data_types'
         print("(parser) production: \"var_dec\" detected")
 
-        if not self.currToken:
-            self.matchPredictSet("data_types")
+
         
         if self.currToken and self.currToken["tokenType"] != "=": # if not from second calling from program_construct
             if self.currToken["tokenType"] == "const":
@@ -794,7 +791,6 @@ class SyntaxAnalyzer:
 
         
         if self.currToken and self.currToken["tokenType"] == "=":
-            self.match("=")
             self.var_init()############# VAR ASSIGN RULES HERE
 
 
@@ -831,8 +827,9 @@ class SyntaxAnalyzer:
         self.match("{", False)
 
         ############### TODO: FUNCTION BODY RULES HERE
+
         if not isVoid and not inConstructor:
-            if not self.match("return"):
+            if not self.match("return", True):
                 self.logError("Non-void functions must have return statement.")
             ### TODO: how to check return type and if it matches return statement?
 
@@ -842,7 +839,7 @@ class SyntaxAnalyzer:
                 self.logError("just add ';' for now, no logic for return vals yet")
                 self.ERROR_terminating_token(";")
         
-        if not isVoid and self.match("return"):
+        if isVoid and self.match("return"):
             self.logError("Void functions cannot have return statement.")
 
         if inConstructor and self.match("return"):
@@ -2336,7 +2333,7 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"var_init\"")
         
         if self.match("="):
-            if self.matchPredictSet("value", False):
+            if self.matchPredictSet("value"):
                 self.value(PREDICT_SETS["var_init"])
             self.assign_stmt_con()
             self.var_iden_rec()
