@@ -390,6 +390,15 @@ class SyntaxAnalyzer:
             f"Encountered: '{current_value}'."
         )
 
+    def ERROR_main_void_return(self):
+        if not self.currToken:
+            self.logError("Expected ';' to terminate the return statement, but reached end of file. Use 'return;' to exit the main function successfully.")
+        elif self.currToken["tokenType"] != ";":
+            self.logError(f"Expected ';' to terminate the return statement, but got '{self.currToken['tokenName']}' instead. Use 'return;' to exit the main function successfully.")
+
+    def ERROR_main_missing_return(self):
+        self.logError("Missing return statement in main function. Use 'return;' to exit the main function successfully.")
+
 
     #-------------------- PARSER START --------------------
     def parse(self):
@@ -423,70 +432,61 @@ class SyntaxAnalyzer:
             self.ERROR_no_main_func()
         else:
             while self.currToken:
-                if self.currToken["tokenName"] == "(":
+                self.match("(", False)
+                self.match(")", False)
 
-                    self.match("(", False)
-                    self.match(")", False)
+                if self.match("{", False):
+                    print("(parser) production: ### inside main -- START OF MAIN BODY")
 
-                    if self.match("{", False):
-                        print("(parser) production: ### inside main -- START OF MAIN BODY")
+                    #self.expression([";", "}"])
+                    #self.match(";", False)
 
-                        #self.expression([";", "}"])
-                        #self.match(";", False)
+                    #### TEMPORARY code block
+                    if self.currToken:  # Ensure self.currToken is not None
+                        if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
+                            self.output()
 
-                        #### TEMPORARY code block
-                        if self.currToken:  # Ensure self.currToken is not None
-                            if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
-                                self.output()
+                    #     #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
+                    #     #    self.conditional_stmt()
 
-                        #     #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
-                        #     #    self.conditional_stmt()
+                    #     #if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
+                    #     #    current_value = self.currToken["tokenName"]
+                    #     #    error_message = f"'else' statements may only be used after an 'if' statement."
+                    #     #    self.logError(error_message)
 
-                        #     #if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
-                        #     #    current_value = self.currToken["tokenName"]
-                        #     #    error_message = f"'else' statements may only be used after an 'if' statement."
-                        #     #    self.logError(error_message)
-
-                            if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
-                                self.loop_stmt()
-                
-                            #else:
-                            #    print("(parser) broke out of loop")
-                            #    break
-                        else:
-                            # Handle EOF case
-                            self.logError("Unexpected end of file while parsing.")
-
-                        #print("(parser) exited temp code block")
-    
-                    self.match("return", False)
-                    #print("hello?????")
-
-                    # Check if the final return statement is 0 (a whole literal) -- PLEASE DO NOT REMOVE
-                    if not self.currToken or not (self.currToken["tokenType"] == "whole_lit" and self.currToken["tokenName"] == "0"):
-                        current_value = self.currToken["tokenName"] if self.currToken else "EOF"
-                        error_message = (
-                            f"The main function must end with a return statement returning '0'.\n"
-                            f"Instead, encountered '{current_value}'. Ensure the main function has a final return statement as 'return 0;'"
-                        )
-                        self.logError(error_message)
+                        if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
+                            self.loop_stmt()
+            
+                        #else:
+                        #    print("(parser) broke out of loop")
+                        #    break
                     else:
-                        self.match("whole_lit")  
+                        # Handle EOF case
+                        self.logError("Unexpected end of file while parsing.")
+
+                    #print("(parser) exited temp code block")
+
+                if not self.match("return"):
+                    self.ERROR_main_missing_return()
+
+                if not self.currToken or self.currToken["tokenType"] != ";":
+                    self.ERROR_main_void_return()
+                
+                if not self.match(";"):
+                    self.ERROR_terminating_token(";")
 
 
-                    if not self.match(";"):
-                        self.ERROR_terminating_token(";")
 
-                    if not self.match("}"):
-                        self.ERROR_unclosed_curly_braces()
+                if not self.match("}"):
+                    self.ERROR_unclosed_curly_braces()
 
-                    # might have to be revisited, for some reason it's off by one line
-                    if self.currToken: 
-                        currLine = self.currToken["tokenLine"]
-                        currCol = self.currToken["tokenCol"]
+                # might have to be revisited, for some reason it's off by one line
+                if self.currToken: 
+                    currLine = self.currToken["tokenLine"]
+                    currCol = self.currToken["tokenCol"]
 
-                        print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
-                        break
+                    print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
+                    break
 
 
     #def code_blocks(self):
@@ -601,7 +601,8 @@ class SyntaxAnalyzer:
                     if self.currToken and self.currToken["tokenType"] == "(":
                         self.hasMainFunction = True  # Found main function
                     else:
-                        self.ERROR_expected_token(["("])
+                        print("( expected in main")
+                        self.ERROR_expected_token('(')
                 else:
                     if self.currToken:
                         if not self.match("Identifier"):
@@ -611,7 +612,8 @@ class SyntaxAnalyzer:
                             self.function_dec()
 
                         else:
-                            self.ERROR_expected_token(["("])
+                            print("( expected in iden and not main")
+                            self.ERROR_expected_token('(')
                     else:
                         self.logError("Expected a function declaration or main function.")
                 
