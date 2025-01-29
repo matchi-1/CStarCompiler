@@ -67,7 +67,7 @@ class SyntaxAnalyzer:
     #-------------------- HELPER FUNCTIONS --------------------
     # Advancer for the next token
     def nextToken(self):
-        #print("(parser)(dbg)currtoken: " + str(self.currToken))
+        # print("(parser)(dbg)currtoken: " + str(self.currToken))
         self.currToken_index += 1
         if self.currToken_index < len(self.tokens):
             self.currToken = self.tokens[self.currToken_index]
@@ -122,12 +122,12 @@ class SyntaxAnalyzer:
             t = self.peek(peek_index)
             if not t:
                 return False
-            print(f'(parser)(dbg) valCheck token: {t["tokenType"]}')
-            if (t["tokenType"] in ["string", "string_lit"]):
-                has_string = True
             if (t["tokenType"] in stopChars):
                 if not inner:
                     return prod
+            print(f'(parser)(dbg) valCheck token: {t["tokenType"]}')
+            if (t["tokenType"] in ["string", "string_lit"]):
+                has_string = True
             if (t["tokenType"] == "("):
                 paren_stack.append(t["tokenType"])
                 if (peek_index == 0):
@@ -194,16 +194,6 @@ class SyntaxAnalyzer:
                 print('(parser)(dbg) checkExp paren error')
                 self.ERROR_unclosed_parentheses()
                 return False
-            if (t["tokenType"] in PREDICT_SETS["arith_operator"]):    
-                if (num_val_index == 1): 
-                    num_val_index += 1
-                    continue # so it doesnt count unary as operators
-                if (num_val_index > 2):
-                    if (self.peek(num_val_index-1) == ")" and self.peek(num_val_index-2) in PREDICT_SETS["data_types"]):
-                        num_val_index += 1
-                        continue # to avoid looking at casting of negative exp
-                if (len(paren_stack) == 1 and len(bracket_stack) == 0): #to make sure t doesnt look in indexing
-                    return True
             elif (t["tokenType"] == "("):
                 paren_stack.append(t["tokenType"])
             elif (t["tokenType"] == "["):
@@ -218,8 +208,58 @@ class SyntaxAnalyzer:
                     self.ERROR_unmatched_closing()
                 else:
                     paren_stack.pop()
+            if (t["tokenType"] in PREDICT_SETS["arith_operator"]):    
+                if (num_val_index == 1): 
+                    num_val_index += 1
+                    continue # so it doesnt count unary as operators
+                if (num_val_index > 2):
+                    if (self.peek(num_val_index-1) == ")" and self.peek(num_val_index-2) in PREDICT_SETS["data_types"]):
+                        num_val_index += 1
+                        continue # to avoid looking at casting of negative exp
+                if (len(paren_stack) == 1 and len(bracket_stack) == 0): #to make sure t doesnt look in indexing
+                    return True
             num_val_index += 1
         return False
+    
+    def checkPostUnary(self, stopChars):
+        paren_stack = []
+        bracket_stack = []
+        inner = False
+        peek_index = 0
+        while True:
+            if (paren_stack or bracket_stack):
+                inner = True
+            else:
+                inner = False
+            t = self.peek(peek_index)
+            if not t:
+                return False
+            if (t["tokenType"] in stopChars):
+                if not inner:
+                    if (peek_index > 1):
+                        if (self.peek(peek_index-1)["tokenType"] in ["++", "--"]):
+                            return True
+                        else:
+                            return False
+                    else:
+                        return False
+            if (t["tokenType"] == "("):
+                paren_stack.append(t["tokenType"])
+            elif (t["tokenType"] == "["):
+                bracket_stack.append(t["tokenType"])
+            elif (t["tokenType"] == ")"):
+                if (not paren_stack):
+                    self.ERROR_unmatched_closing()
+                else:
+                    paren_stack.pop()
+            elif (t["tokenType"] == "]"):
+                if (not bracket_stack):
+                    self.ERROR_unmatched_closing()
+                else:
+                    bracket_stack.pop()
+            
+            
+            peek_index += 1
     
     #-------------------- SYNTAX ERRORS --------------------
     # Common Syntax Errors:    
@@ -395,7 +435,7 @@ class SyntaxAnalyzer:
     def parse(self):
         try:
             self.program()
-            #self.expression([";"])
+            # self.expression([";"])
             #self.func_method_call()
             print("Parsing completed successfully.")
         except SyntaxError as e:
@@ -1041,7 +1081,7 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_parentheses()
                 return True
             elif (prod == "<arith_exp>"):
-                self.arith_exp()
+                self.arith_exp(stopChars)
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "("):
                 if (self.peek() in PREDICT_SETS["data_types"]):
@@ -1079,7 +1119,7 @@ class SyntaxAnalyzer:
                 self.rel_exp(stopChars)
                 return True
             elif (prod == "<arith_exp>"):
-                self.arith_exp()
+                self.arith_exp(stopChars)
                 return True
             elif (prod == "<str_exp>"):
                 print('(parser)(dbg)<str_exp>')
@@ -1107,18 +1147,19 @@ class SyntaxAnalyzer:
                 self.logic_exp(stopChars)   #########<logic_exp> HERE
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "-"):
-                self.negative_exp()
+                self.negative_exp(stopChars)
                 return True
             elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]):
                 self.lit_type() 
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-                self.match("Identifier")
-                self.iden_mods()
-                if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
-                    self.unary_exp(True)
+                if self.checkPostUnary(stopChars):
+                    self.unary_exp()
                     return True
-                return True
+                else:
+                    self.match("Identifier")
+                    self.iden_mods()
+                    return True
             else:
                 self.ERROR_expected_token("value")
                 return False
@@ -1200,7 +1241,7 @@ class SyntaxAnalyzer:
             elif (prod == "<rel_exp>"):
                 self.rel_exp(stopChars)
             elif (prod == "<arith_exp>"):
-                self.arith_exp()
+                self.arith_exp(stopChars)
             elif (prod == "<str_exp>"):
                 print('(parser)(dbg)<str_exp>')
                 self.str_exp()          ######### <str_exp> HERE
@@ -1213,52 +1254,42 @@ class SyntaxAnalyzer:
                 print('(parser)(dbg) logic_exp')
                 self.logic_exp(stopChars) #########<logic_exp> HERE
             elif (self.currToken and self.currToken["tokenType"] == "-"):
-                self.negative_exp()
+                self.negative_exp(stopChars)
             elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-                self.match("Identifier")
-                self.iden_mods()
-                if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
-                    self.unary_exp(True)
-                else:
-                    self.ERROR_expected_token("{++, --}")
+                self.unary_exp()
         else:
             self.ERROR_expected_token("expression")
 
 
-    def negative_exp(self):
+    def negative_exp(self, stopChars):
         print('(parser) production: "negative_exp" detected')
         if (self.currToken and self.currToken["tokenType"] == "("):
             self.match("(")
-            self.negative_exp()
+            self.negative_exp([")"])
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
         elif (self.currToken and self.currToken["tokenType"] == "-"):
             self.match("-")
-            if self.num_value() == False:
+            if self.num_value(stopChars) == False:
                 print('(parser)(dbg) negexp num_val false ret')
                 self.ERROR_expected_num_value()
         else:
             self.ERROR_expected_num_value()
 
-    def num_value(self):
+    def num_value(self, stopChars):
         print('(parser) production: "num_value" detected')
         if (self.currToken and self.currToken["tokenType"] == "whole_lit"):
             self.match("whole_lit")
         elif (self.currToken and self.currToken["tokenType"] == "frac_lit"):
             self.match("frac_lit")
-        elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-            self.match("Identifier")
-            self.iden_mods()
-            if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
-                self.unary_exp(True) #no idea how to do this except for call the func to go to semantic ig???? bc if we reach this point its already a correct postfix unary exp
         elif (self.currToken and self.currToken["tokenType"] == "-"):
-            self.negative_exp()
+            self.negative_exp(stopChars)
         elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
             self.unary_exp()
         elif (self.currToken and self.currToken["tokenType"] == "("):
             if (self.checkArithParen()):
                 self.match("(")
-                self.arith_exp()
+                self.arith_exp([")"])
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
             else:
@@ -1266,10 +1297,16 @@ class SyntaxAnalyzer:
                     self.typecast_exp()
                 else:
                     self.match("(")
-                    if self.num_value() == False:
+                    if self.num_value([")"]) == False:
                         self.ERROR_expected_num_value()
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
+        elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
+            if self.checkPostUnary(stopChars):
+                self.unary_exp()
+            else:
+                self.match("Identifier")
+                self.iden_mods()
         else:
             return False #for error later
     
@@ -1288,13 +1325,13 @@ class SyntaxAnalyzer:
         else:
             self.ERROR_expected_token("{+, -, *, /, %}") #this will probably literally never be called because we check before calling arith_op but eh ¯\_(ツ)_/¯
 
-    def arith_exp(self): #doesnt take precedence into account, only checks form (hopefully LMAO)
+    def arith_exp(self, stopChars): #doesnt take precedence into account, only checks form (hopefully LMAO)
         print('(parser) production: "arith_exp" detected')
-        self.num_value()
+        self.num_value(PREDICT_SETS["arith_operator"])
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]):
             while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]):
                 self.arith_operator()
-                if self.num_value() == False: #not using 'not' since num_value doesnt return a True
+                if self.num_value(PREDICT_SETS["arith_operator"] + stopChars) == False: #not using 'not' since num_value doesnt return a True
                     self.ERROR_expected_num_value()
         else:
             self.ERROR_expected_token("{+, -, *, /, %}")
@@ -1387,8 +1424,12 @@ class SyntaxAnalyzer:
         else:
             self.ERROR_expected_token("bool_value")
             return False
-                
+    dbgRec = 0
     def rel_exp(self, stopChars):
+        global dbgRec
+        self.dbgRec += 1
+        if self.dbgRec > 15:
+            return False
         print('(parser) production: "rel_exp" detected')
         self.value(PREDICT_SETS["rel_operator"])
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]):
@@ -1459,27 +1500,31 @@ class SyntaxAnalyzer:
             else:
                 self.ERROR_expected_token(PREDICT_SETS["data_types"])
 
-    def unary_exp(self, post=False):
+    def unary_exp(self):
         print('(parser) production: "unary_exp" detected')
-        if (post):
-            self.match("Identifier", False)
+        if (self.currToken and self.currToken["tokenType"] == "Identifier"):
+            if not self.match("Identifier", False):
+                self.ERROR_expected_Identifier()
+            self.iden_mods()
             if (self.currToken and self.currToken["tokenType"] == "++"):
                 self.match("++")
-                # idfk man semantic ig
             elif (self.currToken and self.currToken["tokenType"] == "--"):
                 self.match("--")
-                # move onto semantic ig
+            else:
+                self.ERROR_expected_token(["++", "--"])
         else:
             if (self.currToken and self.currToken["tokenType"] == "++"):
                 self.match("++")
                 if not self.match("Identifier"):
-                    self.ERROR_expected_token("Identifier")
+                    self.ERROR_expected_Identifier()
                 self.iden_mods()
             elif (self.currToken and self.currToken["tokenType"] == "--"):
                 self.match("--")
                 if not self.match("Identifier"):
-                    self.ERROR_expected_token("Identifier")
+                    self.ERROR_expected_Identifier()
                 self.iden_mods()
+            else:
+                self.ERROR_expected_token(["++", "--"]) 
 
 
 
