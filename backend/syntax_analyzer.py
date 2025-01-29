@@ -525,8 +525,10 @@ class SyntaxAnalyzer:
                     print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
                     break
 
+    # CODE BLOCKS START HERE
+    def code_blocks(self):
 
-    #def code_blocks(self):
+
 
 
 
@@ -705,6 +707,8 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         self.program_constructs()
+
+
 
     # TODO
     def var_dec(self, inClassBody = False):      #starts at token '=' or 'const' or 'data_types'
@@ -2202,9 +2206,7 @@ class SyntaxAnalyzer:
         
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
-        
-        if not self.match(";"):
-            self.ERROR_terminating_token(";")
+    
         
         print("(parser) exited production: \"input\"")
 
@@ -2528,4 +2530,3 @@ class SyntaxAnalyzer:
             self.as_array()  
 
         print("(parser) exited production: \"iden_as_var_mods_cont\"")
-
