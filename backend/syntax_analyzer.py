@@ -429,36 +429,36 @@ class SyntaxAnalyzer:
                     self.match(")", False)
 
                     if self.match("{", False):
-                        print("(parser) production: ### inside main")
+                        print("(parser) production: ### inside main -- START OF MAIN BODY")
 
-                        self.expression([";", "}"])
-                        self.match(";", False)
+                        #self.expression([";", "}"])
+                        #self.match(";", False)
 
-                    #### TEMPORARY code block
-                    if self.currToken:  # Ensure self.currToken is not None
-                         if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
-                             self.output()
+                        #### TEMPORARY code block
+                        if self.currToken:  # Ensure self.currToken is not None
+                            if self.currToken["tokenName"] in PREDICT_SETS["print_stmts"]:
+                                self.output()
 
-                    #     #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
-                    #     #    self.conditional_stmt()
+                        #     #if self.currToken["tokenName"] in PREDICT_SETS["conditional_stmt"]:
+                        #     #    self.conditional_stmt()
 
-                    #     #if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
-                    #     #    current_value = self.currToken["tokenName"]
-                    #     #    error_message = f"'else' statements may only be used after an 'if' statement."
-                    #     #    self.logError(error_message)
+                        #     #if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
+                        #     #    current_value = self.currToken["tokenName"]
+                        #     #    error_message = f"'else' statements may only be used after an 'if' statement."
+                        #     #    self.logError(error_message)
 
-                         if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
-                             self.loop_stmt()
-             
-                         #else:
-                         #    print("(parser) broke out of loop")
-                         #    break
-                    else:
-                         # Handle EOF case
-                         self.logError("Unexpected end of file while parsing.")
+                            if self.currToken["tokenName"] in PREDICT_SETS["loop_stmt"]:
+                                self.loop_stmt()
+                
+                            #else:
+                            #    print("(parser) broke out of loop")
+                            #    break
+                        else:
+                            # Handle EOF case
+                            self.logError("Unexpected end of file while parsing.")
 
-                    #print("(parser) exited temp code block")
-   
+                        #print("(parser) exited temp code block")
+    
                     self.match("return", False)
                     #print("hello?????")
 
@@ -488,12 +488,12 @@ class SyntaxAnalyzer:
                         print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
                         break
 
-                elif self.currToken["tokenName"] == ";":  # int main;  GLOBAL VAR DEC
-                    ############### var assign rules here
-                    if not self.match(";"):
-                        self.ERROR_terminating_token(";")
 
-        
+    #def code_blocks(self):
+
+
+
+
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
         """<imports_list> → import <iostar>;<imports_rec>"""
@@ -593,37 +593,28 @@ class SyntaxAnalyzer:
             elif self.currToken["tokenType"] == "const":
                 self.var_dec()
 
-            # FUNC DEC
+            # VOID MAIN FUNCTION OR VOID FUNCTION
             elif self.currToken["tokenType"] == "void":
-                self.function_dec()
-
-            # MAY BE MAIN FUNC OR VAR DEC INIT OR VAR DEC 
-            elif self.currToken["tokenType"] == "int": #check for int main()
-                self.match("int")
+                self.match("void")
                 if self.currToken and self.currToken["tokenName"] == "main":
                     self.match("Identifier")
                     if self.currToken and self.currToken["tokenType"] == "(":
                         self.hasMainFunction = True  # Found main function
-                        print("(parser) production: #### entering main function")
-                    elif self.currToken and self.currToken["tokenType"] == "=":
-                        self.var_dec() # var dec
                     else:
-                        self.ERROR_expected_token(["(","="])
+                        self.ERROR_expected_token(["("])
                 else:
                     if self.currToken:
                         if not self.match("Identifier"):
                             self.ERROR_expected_Identifier()
         
-                        if self.currToken and self.currToken["tokenType"] == "(": # int Identifier(
+                        if self.currToken and self.currToken["tokenType"] == "(": # void Identifier(
                             self.function_dec()
 
-                        elif self.currToken and self.currToken["tokenType"] == "=": # int Identifier =
-                            self.var_dec()
-
                         else:
-                            self.ERROR_expected_token(["(","="])
+                            self.ERROR_expected_token(["("])
                     else:
-                        self.logError("Expected a variable declaration, function declaration, or main function.")
+                        self.logError("Expected a function declaration or main function.")
+                
 
             # OBJECT INSTANTIATION -- GLOBAL OBJECTS
             elif self.currToken["tokenType"] == "Identifier":
@@ -1027,6 +1018,14 @@ class SyntaxAnalyzer:
             # Handle λ-production (no further modifications)
             self.ERROR_expected_token([".","("])
             print("(parser) λ-production for <func_method_call_mods>")
+
+
+
+        # CODE BLOCKS!!!
+
+
+
+
 
         
 #TODO: harley todos: errors, prod integration
