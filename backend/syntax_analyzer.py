@@ -27,6 +27,11 @@ PREDICT_SETS = {
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"],
     "string value": ["string_lit", "Identifier", "("],
+    "expression":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
+    "var_dec":["const", "int", "long", "bool", "float", "double", "string"],
+    "output":["print", "println"],
+    "conditional_stmt":["switch", "if"],
+    "loop_stmt":["while", "do", "for", "repeat"]
 }
 
 
@@ -525,8 +530,64 @@ class SyntaxAnalyzer:
                     print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
                     break
 
-    # CODE BLOCKS START HERE
-    def code_blocks(self):
+    # # CODE BLOCKS START HERE
+    # def code_blocks(self):
+    #     print(f"(parser) Processing <code_block>: {self.currToken['tokenName']}")
+
+    #     # Variable Declaration
+    #     if self.currToken["tokenType"] in PREDICT_SETS["var_dec"]:
+    #         self.var_dec()
+
+    #     # Expression
+    #     elif self.currToken["tokenType"] in PREDICT_SETS["expression"] - ["Identifier", "in"]: # do not include identifier or in bc of ambiguity
+    #         self.expression()
+    #         if not self.match(";"):
+    #             self.ERROR_terminating_token(";")
+
+    #     # Input Statement check ;
+    #     elif self.currToken["tokenType"] == "in":
+    #         self.input_stmt()
+
+    #         # if ; after, then its a standalone input statement, if it continues then its for an expression, else if null, expect a ;
+    #         if not self.match(";"):
+    #             self.ERROR_terminating_token(";")
+        
+    #     # Output Statement
+    #     elif self.currToken["tokenType"] in PREDICT_SETS["output"]:
+    #         self.output_stmt()
+    #         if not self.match(";"):
+    #             self.ERROR_terminating_token(";")
+        
+    #     # Conditional Statement
+    #     elif self.currToken["tokenType"] in PREDICT_SETS["conditional_stmt"]:
+    #         self.conditional_stmt()
+        
+    #     # Loop Statement
+    #     elif self.currToken["tokenType"] in PREDICT_SETS["loop_stmt"]:
+    #         self.loop_stmt()
+
+    #     # Class Instantiation or Function/Method Call or Assignment/Expression
+    #     elif self.currToken["tokenType"] == "Identifier":
+    #         self.match("Identifier")  # Consume the identifier
+            
+    #         if self.currToken and self.currToken["tokenType"] == "Identifier":
+    #             # Class Instantiation (Identifier Identifier)
+    #             self.match("Identifier")
+    #             self.class_inst()
+            
+    #         elif self.currToken and self.currToken["tokenType"] == "(":
+    #             # Function/Method Call (Identifier ( ... ))
+    #             self.match("(")
+    #             self.func_method_call()
+    #             if not self.match(";"):
+    #                 self.ERROR_terminating_token(";")
+            
+    #         else:
+    #             # Could be an assignment or expression (leave it for later)
+    #             pass 
+        
+    #     # Continue parsing the rest of the code block
+    #     self.code_block()
 
 
 
