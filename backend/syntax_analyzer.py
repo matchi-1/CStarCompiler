@@ -583,20 +583,29 @@ class SyntaxAnalyzer:
             # Class Instantiation or Function/Method Call or Assignment/Expression
             elif self.currToken["tokenType"] == "Identifier":
                 self.match("Identifier")  # Consume the identifier
-                
-                if self.currToken and self.currToken["tokenType"] == "Identifier":
+
+                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]: #iden_mods now handle assignment statements and func_method calls
+                    # Identifier Modifiers check (Identifier[<int_val>], Identifier.Identifer, Identifier(), Identifier.iden() ...)
+                    # self.match("(")
+                    self.iden_mods()
+                    if not self.match(";"):     # 
+                        self.ERROR_terminating_token(";")
+
+                elif self.currToken and self.currToken["tokenType"] == "Identifier":
                     # Class Instantiation (Identifier Identifier)
                     self.match("Identifier")
                     self.class_inst()
                 
-                elif self.currToken and self.currToken["tokenType"] == "(":
-                    # Function/Method Call (Identifier ( ... ))
-                    # self.match("(")
-                    self.func_method_call()
-                    if not self.match(";"):
-                        self.ERROR_terminating_token(";")
+                # if self.currToken and self.currToken["tokenType"] == "(":
+                #     # Function/Method Call (Identifier ( ... ))
+                #     # self.match("(")
+                #     self.func_method_call()
+                #     if not self.match(";"):
+                #         self.ERROR_terminating_token(";")
                 
                 else:
+                    if not self.match(";"):     #placeholder for expression
+                        self.logError("no expressions, just put ';' first")#placeholder for expression
                     # Could be an assignment or expression (leave it for later)
                     pass 
             
@@ -1090,7 +1099,7 @@ class SyntaxAnalyzer:
         print("(parser) production: \"func_arg\" detected")
         hasConstructorValue = False
         # Check if there's a value to parse
-        if self.currToken and self.value([')',',']):
+        if self.currToken and self.currToken["tokenType"] not in [")",","] and self.value([')',',']):
             # Parse the recursive part of the arguments
             self.func_arg_rec()
             hasConstructorValue = True
@@ -1271,19 +1280,23 @@ class SyntaxAnalyzer:
             self.match("bool_lit")
 
     #TODO: func_args
-    def iden_mods(self):
+    def iden_mods(self):    #iden_mods now handle assignment statements and func_method calls
         print('(parser) production: "iden_mods" detected')
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
             if (self.currToken and self.currToken["tokenType"] == "("):
-                self.match("(")
-                self.func_arg()
-                if not self.match(")"):
-                    print('(parser)(dbg) iden_mods paren error')
-                    self.ERROR_unclosed_parentheses()
+                self.func_method_call()
+                # self.match("(") 
+                # self.func_arg()
+                # if not self.match(")"):
+                #     print('(parser)(dbg) iden_mods paren error')
+                #     self.ERROR_unclosed_parentheses()
             elif (self.currToken and self.currToken["tokenType"] == "["):
                 self.as_array()
                 if (self.currToken and self.currToken["tokenType"] == "."):
                     self.object_rec()
+
+                elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]):
+                    self.assign_stmt_con()
             elif (self.currToken and self.currToken["tokenType"] == "."):
                 self.object_rec()
 
@@ -1307,13 +1320,16 @@ class SyntaxAnalyzer:
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
                 
-    def object_rec(self):
+    def object_rec(self):   #can redirect to assign_stmt_con()
         print('(parser) production: "object_rec" detected')
         if (self.currToken and self.currToken["tokenType"] == "."):
             self.match(".")
             self.match("Identifier")
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
             self.iden_mods()
+
+        elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]):
+            self.assign_stmt_con()
 
     def expression(self, stopChars):
         print('(parser) production "expression" detected')
@@ -2622,17 +2638,22 @@ class SyntaxAnalyzer:
         print("(parser) production: \"iden_as_var_mods\" detected")
         """<iden_as_var_mods> → <as_array> <iden_as_var_mods_cont>"""
 
+        if (self.currToken and self.currToken["tokenType"] == "."):
+            self.match(".")
+            self.match("Identifier")
+            self.iden_as_var_mods()
+
         self.as_array()         
-        self.iden_as_var_mods_cont()  
+        # self.iden_as_var_mods_cont()  
 
         print("(parser) exited production: \"iden_as_var_mods\"")
 
-    def iden_as_var_mods_cont(self):
-        print("(parser) production: \"iden_as_var_mods_cont\" detected")
-        """<iden_as_var_mods_cont> → . Identifier <as_array> | λ"""
+    # def iden_as_var_mods_cont(self):
+    #     print("(parser) production: \"iden_as_var_mods_cont\" detected")
+    #     """<iden_as_var_mods_cont> → . Identifier <as_array> | λ"""
 
-        if self.match("."):
-            self.match("Identifier", False)
-            self.as_array()  
+    #     if self.match("."):
+    #         self.match("Identifier", False)
+    #         self.as_array()  
 
-        print("(parser) exited production: \"iden_as_var_mods_cont\"")
+    #     print("(parser) exited production: \"iden_as_var_mods_cont\"")
