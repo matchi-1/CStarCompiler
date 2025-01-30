@@ -32,7 +32,8 @@ PREDICT_SETS = {
     "output":["print", "println"],
     "conditional_stmt":["switch", "if"],
     "loop_stmt":["while", "do", "for", "repeat"],
-    "code_block": ["!", "(", "++", "-", "--", "Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "frac_lit", "if", 'in', "int", "long", "print", "println", "repeat", "string", "string_lit", "switch", "while", "whole_lit",]
+    "code_block": ["!", "(", "++", "-", "--", "Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "frac_lit", "if", 'in', "int", "long", "print", "println", "repeat", "string", "string_lit", "switch", "while", "whole_lit",],
+    "iden_as_var_mods": ["[","."]
 }
 
 
@@ -456,7 +457,8 @@ class SyntaxAnalyzer:
         try:
             #self.program()
             #self.expression([";"])
-            self.func_method_call()
+            self.assign_stmt()
+            #self.func_method_call()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -2545,81 +2547,81 @@ class SyntaxAnalyzer:
         print("(parser) production: \"assign_stmt\" detected")
         """<assign_stmt> → Identifier <iden_as_var_mods> <assign_stmt_con> ;"""
 
-        if not self.match("Identifier", False):
-            self.iden_as_var_mods()
-            self.assign_stmt_con()
+        if self.match("Identifier", False):
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+                self.iden_as_var_mods() # match iden mods if there are any
+            self.assign_stmt_op() # match assign operator
 
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"assign_stmt\"")
 
-    def assign_stmt_con(self):
-        print("(parser) production: \"assign_stmt_con\" detected")
-        """<assign_stmt_con> → <assign_operator> <value> | <assign_stmt_rec> <assign_const>"""
+    def assign_stmt_op(self):
+        print('(parser) production: "assign_stmt_op" detected')
 
-        if self.matchPredictSet("assign_operator", True):
+        if self.matchPredictSet("assign_operator", False):
+            match self.currToken["tokenName"]:
+                case "=" | "+=" | "-=" | "*=" | "/=" | "%=":
+                    self.match(self.currToken["tokenName"])  # Match the specific assignment operator
+                case _:
+                    self.logError(f"Expected an assignment operator, but got '{self.currToken['tokenName']}'.")
+
+            self.assign_stmt_op_con()  # Proceed to check the value or identifier
+
+
+    def assign_stmt_op_con(self):
+        print("(parser) production: \"assign_stmt_op_con\" detected")
+        if self.currToken and self.currToken["tokenType"] == "Identifier":  
+            # if it's an identifier, check if there is assignment chaining or semicolon
             next_token = self.peek()
-            if next_token and next_token["tokenType"] == "Identifier":
-                print("(parser) entered production: \"assign_stmt_rec\"")
-                self.assign_stmt_rec()  
-                self.assign_const()  
-                print("(parser) exited production: \"assign_stmt_rec\"")
-            else:
-                self.assign_operator()
-                self.value([])
 
-        print("(parser) exited production: \"assign_stmt_con\"")
+            # iden = iden; goes back to assign_stmt to match semicolon in the end
+            if next_token and next_token["tokenType"] == ";":
+                self.match("Identifier") 
 
-    def assign_operator(self):
-            print("(parser) production: \"assign_operator\" detected")
-            """<assign_operator> → = | += | -= | *= | /= | %="""
+            # next token can be from iden_as_var_mods or assign_operator (first & follow for iden in this case)
+            elif next_token and next_token["tokenType"] in (PREDICT_SETS["assign_operator"]+PREDICT_SETS["iden_as_var_mods"]):
+                self.assign_stmt_op_con_rec()
 
-            if self.matchPredictSet("assign_operator", False):
-                self.match(self.currToken["tokenName"])
+            else: # should be overruled by semantic (like if x is not declared in this scope)
+                self.match("Identifier")
+                self.ERROR_terminating_token(";")
+        
+        else: # it's not an identifier, check if it's a valid value 
+            if not self.value(";"):
+                self.ERROR_expected_token("value")
 
-            print("(parser) exited production: \"assign_operator\"")
-
-
-    def assign_stmt_rec(self):
-        print("(parser) production: \"assign_stmt_rec\" detected")
-        """<assign_stmt_rec> → <assign_operator> Identifier <iden_as_var_mods> <assign_stmt_rec> | λ"""
-        if self.matchPredictSet("assign_operator"):
-            self.assign_operator()  
-            if self.match("Identifier", False):
-                self.iden_as_var_mods() 
-
-            self.assign_stmt_rec()
-
-        print("(parser) exited production: \"assign_stmt_rec\"")
-            
-    def assign_const(self):
-        print("(parser) production: \"assign_const\" detected")
-        """<assign_const> → <assign_operator> <value> | λ"""
-
-        if self.matchPredictSet("assign_operator"):
-            self.assign_operator()
-        if not self.value([]):
-            self.ERROR_expected_token(["value"])
-
-        print("(parser) exited production: \"assign_const\"")
+    def assign_stmt_op_con_rec(self):
+        print("(parser) production: \"assign_stmt_op_con_rec\" detected")
+        self.match("Identifier")
+        if self.currToken: 
+            if self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]+PREDICT_SETS["iden_as_var_mods"]:
+                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+                    self.iden_as_var_mods() # match iden mods if there are any
+                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
+                    self.assign_stmt_op() # match operators if any, if none, it's just iden = iden pattern
+        else:
+            self.ERROR_terminating_token(";")
 
     def iden_as_var_mods(self):
         print("(parser) production: \"iden_as_var_mods\" detected")
-        """<iden_as_var_mods> → <as_array> <iden_as_var_mods_cont>"""
-
-        self.as_array()         
-        self.iden_as_var_mods_cont()  
+        if self.currToken and self.currToken["tokenType"] == "[":
+            print("(parser) production: INSIDE \"iden_as_var_mods\" going to as_array")
+            # array element
+            self.as_array()         
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+                self.iden_as_var_mods() # match iden mods if there are any
+        elif self.currToken and self.currToken["tokenType"] == ".":
+            # object attribute (can be object attribute of an array element upon recursion)
+            print("(parser) production: INSIDE \"iden_as_var_mods\" now checking identifier")
+            self.match(".")
+            self.match("Identifier", False)
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+                self.iden_as_var_mods()  # recurse for (objects with attributes) or (array with objects with attributes)
+        else:
+            print("(parser-debug): assign statement variable has no var mods")
+            pass
 
         print("(parser) exited production: \"iden_as_var_mods\"")
 
-    def iden_as_var_mods_cont(self):
-        print("(parser) production: \"iden_as_var_mods_cont\" detected")
-        """<iden_as_var_mods_cont> → . Identifier <as_array> | λ"""
-
-        if self.match("."):
-            self.match("Identifier", False)
-            self.as_array()  
-
-        
-        print("(parser) exited production: \"iden_as_var_mods_cont\"")
