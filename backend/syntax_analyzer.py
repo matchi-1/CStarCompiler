@@ -2419,46 +2419,63 @@ class SyntaxAnalyzer:
     def var_id_arr2D(self):
             '''<var_id_arr2D> → <array2D_iden_rec> | <array2D_init>'''
             print("(parser) entered production: \"var_id_arr2D\"")
-            if self.currToken["tokenType"] == ",":
-                self.array2D_iden_rec()
-            elif self.currToken["tokenType"] == "=":
-                self.array2D_init()
-            else:
-                self.ERROR_expected_token([",", "="])
+            
+            if self.currToken:
+                if self.currToken["tokenType"] == ",":
+                    self.array2D_iden_rec()
+                elif self.currToken["tokenType"] == "=":
+                    self.array2D_init()
+                #else:
+                #    self.ERROR_expected_token([",", "="])
 
             print("(parser) exited production: \"var_id_arr2D\"")
 
     def array2D_iden_rec(self):
             '''<array2D_iden_rec> → , Identifier [<int_val>] [<int_val>] <array2D_iden_rec> | λ'''
             print("(parser) entered production: \"array2D_iden_rec\"")
-            if self.match(","):
-                if self.match("Identifier", False):
-                    if self.match("[", False):
-                        self.int_val(["]"])
-                        if self.match("]") and self.match("["):
-                            self.int_val(["]"])
-                            if not self.match("]"):
-                                self.ERROR_unclosed_square_bracket()
-                            self.array2D_iden_rec()
-                        else:
-                            self.ERROR_unclosed_square_bracket()
+            
+            if self.currToken:
+                self.match(",")
+                self.match("Identifier", False)
+                
+                self.match("[", False)
+                if not self.int_val(["]"]):
+                    self.ERROR_expected_pos_integer_value()
+                if not self.match("]"):
+                    self.ERROR_unclosed_square_bracket()
+                
+                self.match("[")
+                if not self.int_val(["]"]):
+                    self.ERROR_expected_pos_integer_value()
+                if not self.match("]"):
+                    self.ERROR_unclosed_square_bracket()
+                
+                if self.currToken["tokenType"] == ",":
+                    self.array2D_iden_rec()
+                #else:
+                #    self.ERROR_unclosed_square_bracket()
 
             print("(parser) exited production: \"array2D_iden_rec\"")
 
     def array2D_init(self):
             '''<array2D_init> → = {<arr_value_2D>}'''
             print("(parser) entered production: \"array2D_init\"")
-            if self.match("=", False):
-                if self.match("{", False):
-                    self.arr_value_2D()
-                    if not self.match("}"):
-                        self.ERROR_unclosed_curly_braces()
+            
+            if self.currToken:
+                self.match("=", False)
+                self.match("{", False)
+                self.arr_value_2D()
+                if not self.match("}"):
+                    self.ERROR_unclosed_curly_braces()
+            
             print("(parser) exited production: \"array2D_init\"")
  
     def arr_value_2D(self):
             '''<arr_value_2D> → {<arr_value_1D>} <arr_value_2D_rec>'''
             print("(parser) entered production: \"arr_value_2D\"")
-            if self.match("{", False):
+            
+            if self.currToken:
+                self.match("{", False)
                 self.arr_value_1D()
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
@@ -2470,12 +2487,16 @@ class SyntaxAnalyzer:
     def arr_value_2D_rec(self):
             '''<arr_value_2D_rec> → , {<arr_value_1D>} <arr_value_2D_rec> | λ'''
             print("(parser) entered production: \"arr_value_2D_rec\"")
-            if self.match(","):
-                if self.match("{", False):
-                    self.arr_value_1D()
-                    if not self.match("}"):
-                        self.ERROR_unclosed_curly_braces()
-                    self.arr_value_2D_rec()
+            
+            if self.currToken:
+                self.match(",")
+                self.match("{", False)
+                self.arr_value_1D()
+                if not self.match("}"):
+                    self.ERROR_unclosed_curly_braces()
+                if self.currToken["tokenType"] == ",":
+                    self.arr_value_2D_rec()    
+            
             print("(parser) exited production: \"arr_value_2D_rec\"")
 
     def str_exp(self):
