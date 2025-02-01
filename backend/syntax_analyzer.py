@@ -688,6 +688,7 @@ class SyntaxAnalyzer:
             # VAR OR FUNC DEC
             elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:  # sample of custom error not using matchPredictSet
                 self.nextToken()
+
                 if self.match("Identifier"): 
                     if self.currToken and self.currToken["tokenType"] == "(":  # FUNC DEC
                         self.function_dec()
@@ -698,9 +699,6 @@ class SyntaxAnalyzer:
                 else:
                     self.logError("Expected a variable declaration or function declaration.")
     
-        ############ FOR TESTING ONLY, WILL BE MOVED --------------------------------------------------------------------------------------
-        #if self.currToken and self.matchPredictSet("print_stmts"):
-        #    self.output()
 
 
 
@@ -801,9 +799,9 @@ class SyntaxAnalyzer:
 
             self.var_iden()
 
-        if self.currToken and self.currToken["tokenType"] == "=":
+        if (self.currToken and self.currToken["tokenType"] == "=") and not self.hasMainFunction:
+            print("entered var_init from var_dec")
             self.var_init()############# VAR ASSIGN RULES HERE
-
 
         if not self.match(";"): 
             self.ERROR_terminating_token(";")
@@ -2283,7 +2281,8 @@ class SyntaxAnalyzer:
         if self.currToken: 
             if self.currToken["tokenType"] == "=":
                 self.var_init()
-                self.var_iden_rec()
+                if self.currToken["tokenType"] == ",":
+                    self.var_iden_rec()
         
             elif self.currToken["tokenType"] == "[":
                 self.match("[", False)
@@ -2296,22 +2295,30 @@ class SyntaxAnalyzer:
 
 
     def var_init(self):     #TODO: doesnt allow array_init pa
-        """<var_init> → = <value> <assign_stmt_con> <var_iden_rec> | λ"""
+        """<var_init> → = <value> | = Identifier <var_assign_rec> | λ"""
         print("(parser) entered production: \"var_init\"")
         
         if self.currToken:
             if self.currToken["tokenType"] == "=":
-                self.match("=")
-                if self.matchPredictSet("value", False):
-                    self.value(PREDICT_SETS["var_init"])
-                
-                self.assign_stmt_op()
-                self.var_iden_rec()
-       
+                self.match("=", False)
+                if self.currToken["tokenType"] == "Identifier":
+                    print("is identifier")
+                    self.match("Identifier", False)
+                    if self.currToken["tokenType"] == "=":
+                        self.var_init()
+                else:
+                    print("is NOT identifier")
+                    if self.matchPredictSet("value", False):
+                        self.value(PREDICT_SETS["var_init"])
+
+                #if self.currToken["tokenType"] == "=":
+                #    self.var_assign_rec()
+                    #self.var_iden_rec()\
+                #self.var_assign_rec()
         
         print("(parser) exited production: \"var_init\"")
 
-
+    
     def var_iden_rec(self):
         """<var_iden_rec> → , Identifier <var_init> <var_iden_rec> | λ"""
         print("(parser) entered production: \"var_iden_rec\"")
