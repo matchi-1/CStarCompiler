@@ -863,7 +863,6 @@ class SyntaxAnalyzer:
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
 
-
         if not inClassBody:
             self.program_constructs()
 
@@ -1436,7 +1435,7 @@ class SyntaxAnalyzer:
             if not self.value([":"]):
                 self.ERROR_expected_token("value")
             if not self.match(":"):
-                self.ERROR_expeted_token(":")
+                self.ERROR_expected_token(":")
             if not self.value(stopChars):
                 self.ERROR_expected_token("value")
 
@@ -1751,9 +1750,7 @@ class SyntaxAnalyzer:
         
         # if <print_params> are not null
         if self.currToken and self.currToken["tokenType"] != ")":
-            ## <value> here (string_lit for now)
-            self.match("string_lit", False)
-            # self.value([",", ")"])
+            self.value([",", ")"])
             if self.currToken and self.currToken["tokenType"] == ",":
                 self.output_rec()
         
@@ -1765,12 +1762,9 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"output_rec\"")
         
         self.match(",", False)
-        ## <value> cannot be empty
-        ## <value> here (string_lit for now)
-        self.match("Identifier", False)
 
-        #if not self.value([",", ")"]):
-        #    self
+        if not self.value([",", ")"]):
+            self.logError("Expected parameter")
         if self.currToken and self.currToken["tokenType"] == ",":
             self.output_rec()
 
@@ -1819,11 +1813,8 @@ class SyntaxAnalyzer:
         '''<ret_value> → <value> | null'''
         print("(parser) entered production: \"ret_value\"")
 
-        if self.peek() != ";":
-            # <value> here (literals for now)
+        if self.peek()["tokenType"] != ";":
             self.value([";"])
-            # self.matchPredictSet("literals")
-            # self.nextToken() 
 
         print("(parser) exited production: \"ret_value\"")
 
@@ -1857,13 +1848,11 @@ class SyntaxAnalyzer:
         
         if self.currToken["tokenName"] in PREDICT_SETS["data_types"]:
             self.nextToken()
-        self.match("Identifier", False)
-        self.match("=", False)
-        # <value> here (literals for now)
-        # if self.currToken["tokenName"] in PREDICT_SETS["literals"]:
-            # self.nextToken()
-        self.value(PREDICT_SETS["assign_operator"] + [",", ";"])
-        #self.assign_stmt_rec()
+        
+        self.var_iden()
+        #self.match("Identifier", False)
+
+        #self.value(PREDICT_SETS["assign_operator"] + [",", ";"])
         #self.var_iden_rec()
 
         print("(parser) exited production: \"init_arg\"")
@@ -1973,12 +1962,12 @@ class SyntaxAnalyzer:
         
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
             
-            if self.peek() in PREDICT_SETS["iden_mods"]:
+            if self.peek()["tokenType"] in PREDICT_SETS["iden_mods"]:
                 print("(parser) entered production: \"iden_mods\"")
                 #self.iden_mods()
                 print("(parser) exited production: \"iden_mods\"")
            
-            elif self.peek() in PREDICT_SETS["arith_operator"]:
+            elif self.peek()["tokenType"] in PREDICT_SETS["arith_operator"]:
                 print("(parser) entered production: \"arith_exp\"")
                 #self.arith_exp()
                 print("(parser) exited production: \"arith_exp\"")
@@ -1995,18 +1984,18 @@ class SyntaxAnalyzer:
             
             else: # for when a madman decides to do this ((((((((()))))))))
                 for x in self.peek(x):
-                    if x == "(":
+                    if x["tokenType"] == "(":
                         continue
-                    elif x == "-":
+                    elif x["tokenType"] == "-":
                         print("(parser) entered production: \"negative_exp\"")
                         #self.negative_exp()
                         print("(parser) exited production: \"negative_exp\"")
-                        break;
-                    elif x == ("whole_lit" or "Identifier"):
+                        break
+                    elif x["tokenType"] == ("whole_lit" or "Identifier"):
                         print("(parser) entered production: \"arith_exp\"")
                         #self.arith_exp()
                         print("(parser) exited production: \"arith_exp\"")
-                        break;
+                        break
                     else:
                         self.logError("Invalid value for 'switch' statement.")
        
@@ -2033,33 +2022,35 @@ class SyntaxAnalyzer:
     # bare-minimum tested
     def case_value(self):
         '''<switch_value> → string_lit | whole_lit | <arith_exp> | <negative_exp> | <typecast_exp>'''
-        print("(parser) entered production: \"case_value\"")   
+        print("(parser) entered production: \"case_value\"") 
+
+        nextToken = self.peek()  
 
         if self.currToken and self.currToken["tokenType"] == "string_lit": 
-            if self.peek() == "+":
+            if self.nextToken and self.nextToken["tokenType"] == "+":
                 print("(parser) entered production: \"str_exp\"")
-                #self.str_exp()
+                self.str_exp()
                 print("(parser) exited production: \"str_exp\"")
             else:
                 self.match("string_lit", False)
             
         elif self.currToken and self.currToken["tokenType"] == "whole_lit": 
-            if self.peek() in PREDICT_SETS["arith_operator"]:
+            if self.nextToken and self.nextToken["tokenType"] in PREDICT_SETS["arith_operator"]:
                 print("(parser) entered production: \"arith_exp\"")
-                #self.arith_exp()
+                self.arith_exp()
                 print("(parser) exited production: \"arith_exp\"")
             else:
                 self.match("whole_lit", False)
         
         elif self.currToken and self.currToken["tokenType"] == "-":
             print("(parser) entered production: \"negative_exp\"")
-            #self.negative_exp()
+            self.negative_exp()
             print("(parser) exited production: \"negative_exp\"") 
         
         elif self.currToken and self.currToken["tokenType"] == "(":
-            if self.peek() in PREDICT_SETS["data_types"]:
+            if self.nextToken and self.nextToken["tokenType"] in PREDICT_SETS["data_types"]:
                 print("(parser) entered production: \"typecast_exp\"")
-                #self.typecast_exp()
+                self.typecast_exp()
                 print("(parser) exited production: \"typecast_exp\"")
             
             else: 
@@ -2237,7 +2228,7 @@ class SyntaxAnalyzer:
         self.match("(", False)
         
 
-        if self.peek() != ")":
+        if self.peek()["tokenType"] != ")":
             self.input_params()
         
         if not self.match(")"):
@@ -2314,7 +2305,7 @@ class SyntaxAnalyzer:
                 if self.matchPredictSet("value", False):
                     self.value(PREDICT_SETS["var_init"])
                 
-                self.assign_stmt_con()
+                self.assign_stmt_op()
                 self.var_iden_rec()
        
         
@@ -2475,18 +2466,18 @@ class SyntaxAnalyzer:
         """<string_value> → string_lit | Identifier <iden_mods> | <str_exp> | (<string_value>) | <typecast_exp>"""
         if not self.match("string-lit", False):
            return 
-        elif self.peek() == "+":
+        elif self.peek()["tokenType"] == "+":
                 self.match("+", False)  
                 self.str_exp()
 
-        elif self.peek() == "(":
+        elif self.peek()["tokenType"] == "(":
                 self.match("(", False)
                 self.string_value()  
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
         elif self.match("Identifier", False):
                 self.iden_mods()
-        elif self.peek() in PREDICT_SETS["typecast_exp", False]:
+        elif self.peek()["tokenType"] in PREDICT_SETS["typecast_exp", False]:
                 self.typecast_exp()
 
         print("(parser) exited production: \"string_value\"")
