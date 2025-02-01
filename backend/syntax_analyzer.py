@@ -1120,8 +1120,9 @@ class SyntaxAnalyzer:
         print("(parser) production: \"func_method_call\" detected")
         self.match("Identifier")      
         self.func_method_call_mods()      
-        if not self.match(";"):
-            self.ERROR_terminating_token(";")
+        
+        #if not self.match(";"):
+        #    self.ERROR_terminating_token(";")
 
 
     def func_method_call_mods(self):
@@ -1473,6 +1474,8 @@ class SyntaxAnalyzer:
     def bool_value(self, stopChars):
         print('(parser) production: "bool_value" detected')
         if self.currToken:
+            if self.currToken["tokenType"] == stopChars:
+                return False
             prod = self.checkValProd(stopChars)
             if (prod == "<logic_exp>"):
                 self.logic_exp(stopChars)   #######<logic_exp> HERE
@@ -1508,9 +1511,9 @@ class SyntaxAnalyzer:
                 else:
                     self.ERROR_expected_token("bool_value")
                     return False
-        else:
-            self.ERROR_expected_token("bool_value")
-            return False
+        #else:
+        #    self.ERROR_expected_token("bool_value")
+        #    return False
     dbgRec = 0
     def rel_exp(self, stopChars):
         global dbgRec
@@ -1716,7 +1719,7 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"condition\"")
         
         ## <bool_value> here (only bool_lit for now)
-        if not self.match("bool_lit"):      # for some reason in the 'match' function, this goes to the 'else' block when it shouldnt i rly dk why, i dont wanna change the match function because when i did other parts didnt work. so now the errors down here is somehow inaccessible during my testing
+        if not self.bool_value([")",";"]):      # for some reason in the 'match' function, this goes to the 'else' block when it shouldnt i rly dk why, i dont wanna change the match function because when i did other parts didnt work. so now the errors down here is somehow inaccessible during my testing
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.ERROR_missing_condition(condType)
             else: 
@@ -1876,7 +1879,7 @@ class SyntaxAnalyzer:
             if next_token and next_token["tokenType"] in PREDICT_SETS["unary_operator"]:
                 print("passed unary check")
                 print("(parser) entered production: \"unary_exp\"")
-                self.unary_exp(True)
+                self.unary_exp()
                 print("(parser) exited production: \"unary_exp\"")
                 
             elif next_token and next_token["tokenType"] == "(":
@@ -1884,10 +1887,12 @@ class SyntaxAnalyzer:
                 self.func_method_call()
                 print("(parser) exited production: \"func_method_call\"")
                 
-            elif next_token and next_token["tokenType"] == "=":
+            elif next_token and next_token["tokenType"] in PREDICT_SETS["assign_operator"]:
+                print("passed assign op check")
                 self.match("Identifier", False)
-                self.match("=", False)
-                self.value(PREDICT_SETS["assign_operator"] + [",", ")"])
+                if self.matchPredictSet("assign_operator", False):
+                    self.nextToken()
+                self.value([")"])
                 
                 #if self.currToken["tokenType"] == ",":
                 #    self.var_iden_rec()
@@ -2242,8 +2247,7 @@ class SyntaxAnalyzer:
         
 
         if self.currToken and self.currToken["tokenType"] == "whole_lit": #int_val:
-            self.int_val()
-            self.match("whole_lit", False)
+            self.int_val([")"])
         
         elif self.currToken and self.currToken["tokenType"] == "string_lit":
             self.string_value()
@@ -2251,8 +2255,8 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] == ",":
                 self.match(",")
 
-                if self.currToken and self.currToken["tokenType"] == "int_val":
-                    self.int_val()
+                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
+                    self.int_val(")")
                 else: self.logError("Invalid value for 'in' statement character limit")
         
         print("(parser) exited production: \"input_params\"")
