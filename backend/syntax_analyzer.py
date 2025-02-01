@@ -2236,8 +2236,7 @@ class SyntaxAnalyzer:
         
         self.match("(", False)
         
-        ## Before it even enters input_params you have to catch whether it exists or not
-        ## self.peek() allows you to check the next token w/o having to move to it
+
         if self.peek() != ")":
             self.input_params()
         
@@ -2252,8 +2251,6 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"input_params\"")
         """<input_params> → <int_val> | <string_value> | <string_value>,<int_val> | λ"""
         
-        ## You can use literals muna for testing values, use int_val, string_val, etc.
-        ## later on when all prods are complete
 
         if self.currToken and self.currToken["tokenType"] == "whole_lit": #int_val:
             self.int_val()
@@ -2268,7 +2265,6 @@ class SyntaxAnalyzer:
                     ## Special error
                     self.logError("Invalid value for 'in' statement character limit")
 
-                ## We'll use this later on when prods are complete, might have to be revised
                 
                 if self.currToken and self.currToken["tokenType"] == "int_val":
                     self.int_val()
