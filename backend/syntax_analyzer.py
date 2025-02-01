@@ -457,7 +457,7 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            self.expression([";"])
+            self.program()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -1474,8 +1474,6 @@ class SyntaxAnalyzer:
     def bool_value(self, stopChars):
         print('(parser) production: "bool_value" detected')
         if self.currToken:
-            if self.currToken["tokenType"] == stopChars:
-                return False
             prod = self.checkValProd(stopChars)
             if (prod == "<logic_exp>"):
                 self.logic_exp(stopChars)   #######<logic_exp> HERE
@@ -1511,9 +1509,9 @@ class SyntaxAnalyzer:
                 else:
                     self.ERROR_expected_token("bool_value")
                     return False
-        #else:
-        #    self.ERROR_expected_token("bool_value")
-        #    return False
+        else:
+            self.ERROR_expected_token("bool_value")
+            return False
     dbgRec = 0
     def rel_exp(self, stopChars):
         global dbgRec
