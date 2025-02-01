@@ -169,11 +169,13 @@ class SyntaxAnalyzer:
                 if not inner:
                     if (t["tokenType"] == "<"):
                         if (self.peek(peek_index+1) and self.peek(peek_index+1)["tokenType"] in PREDICT_SETS["data_types"]):
+                            print('(parser)(dbg) found datatype ahead')
                             peek_index += 1
                             continue
                     if (t["tokenType"] == ">"):
                         if (peek_index > 0):
-                            if (self.peek(peek_index-1) in PREDICT_SETS["data_types"]):
+                            if (self.peek(peek_index-1)["tokenType"] in PREDICT_SETS["data_types"]):
+                                print('(parser)(dbg) found datatype behind')
                                 peek_index += 1
                                 continue
                     if (prod != "<logic_exp>"):
@@ -455,7 +457,7 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            self.program()
+            self.expression([";"])
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -1194,17 +1196,6 @@ class SyntaxAnalyzer:
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
                 return True
-            elif (self.currToken and self.currToken["tokenType"] == "in"):
-                self.input()
-                #self.match("in")
-                #self.match("<")
-                #if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_types"]):
-                #    self.nextToken()
-                #    self.match(">")
-                #    self.match("(")
-                #    self.input_params()#######<input_params> HERE
-                #    self.match(")")
-                return True
             elif (prod == "<ternary_exp>"):
                 self.ternary_exp(stopChars)
                 return True
@@ -1221,6 +1212,17 @@ class SyntaxAnalyzer:
             elif (prod == "<str_exp>"):
                 print('(parser)(dbg)<str_exp>')
                 self.str_exp()##### <str_exp> HERE
+                return True
+            elif (self.currToken and self.currToken["tokenType"] == "in"):
+                self.input()
+                #self.match("in")
+                #self.match("<")
+                #if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_types"]):
+                #    self.nextToken()
+                #    self.match(">")
+                #    self.match("(")
+                #    self.input_params()#######<input_params> HERE
+                #    self.match(")")
                 return True
             elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
                 self.unary_exp()
