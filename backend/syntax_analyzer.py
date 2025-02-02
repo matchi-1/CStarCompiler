@@ -147,15 +147,18 @@ class SyntaxAnalyzer:
             elif (t["tokenType"] == "["):
                 bracket_stack.append(t["tokenType"])
             elif (t["tokenType"] == ")"):
-                if (not paren_stack):
-                    self.ERROR_unmatched_closing()
-                else:
-                    paren_stack.pop()
-                if not outer_exists:
+                if not outer_exists and len(paren_stack)==1:
+                    print('(parser)(dbg) outer doesnt exist')
+                    print(f'(parser)(dbg) paren_stack cont: {paren_stack}')
+                    print('(parser)(dbg) next token is ', self.peek(peek_index+1)["tokenType"])
                     if (self.peek(peek_index+1) and self.peek(peek_index+1)["tokenType"] in stopChars):
                         return "paren_wrap"
                     else:
                         outer_exists = True
+                if (not paren_stack):
+                    self.ERROR_unmatched_closing()
+                else:
+                    paren_stack.pop()
             elif (t["tokenType"] == "]"):
                 if (not bracket_stack):
                     self.ERROR_unmatched_closing()
@@ -432,7 +435,7 @@ class SyntaxAnalyzer:
         self.logError(f"Condition cannot be empty for '{condType}' statement")
 
     def ERROR_expected_num_value(self):
-        self.logError("Expected numerical value.")
+        self.logError(f"Expected numerical value. Got {self.currToken["tokenType"]} instead.")
     
     def ERROR_unmatched_closing(self):
         self.logError(f"Found unmatched {self.currToken["tokenType"]}.")
@@ -1431,34 +1434,46 @@ class SyntaxAnalyzer:
     def num_value(self, stopChars):
         print('(parser) production: "num_value" detected')
         if (self.currToken and self.currToken["tokenType"] == "whole_lit"):
+            print(f'(parser)(dbg) {self.currToken["tokenName"]} is whole_lit')
             self.match("whole_lit")
+            return True
         elif (self.currToken and self.currToken["tokenType"] == "frac_lit"):
             self.match("frac_lit")
+            return True
         elif (self.currToken and self.currToken["tokenType"] == "-"):
             self.negative_exp(stopChars)
+            return True
         elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
             self.unary_exp()
+            return True
         elif (self.currToken and self.currToken["tokenType"] == "("):
             if (self.checkArithParen()):
                 self.match("(")
                 self.arith_exp([")"])
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
+                return True
             else:
+                print('(parser)(dbg) not arith paren')
                 if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
                     self.typecast_exp()
+                    return True
                 else:
                     self.match("(")
                     if self.num_value([")"]) == False:
                         self.ERROR_expected_num_value()
+                    print('(parser)(dbg) we got a num_val!')
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
+                    return True
         elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
             if self.checkPostUnary(stopChars):
                 self.unary_exp()
+                return True
             else:
                 self.match("Identifier")
                 self.iden_mods()
+                return True
         else:
             return False #for error later
     
