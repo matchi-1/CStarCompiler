@@ -1456,7 +1456,8 @@ class SyntaxAnalyzer:
 
     def arith_exp(self, stopChars): #doesnt take precedence into account, only checks form (hopefully LMAO)
         print('(parser) production: "arith_exp" detected')
-        self.num_value(PREDICT_SETS["arith_operator"])
+        if not self.num_value(PREDICT_SETS["arith_operator"]):
+            self.ERROR_expected_num_value()
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]):
             while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]):
                 self.arith_operator()
