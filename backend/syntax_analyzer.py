@@ -791,15 +791,16 @@ class SyntaxAnalyzer:
         elif self.currToken and self.currToken["tokenType"] == "static": # found static, Check <is_const><is_void>dtype iden and check whether '(' | '= | , | ;'
             checkAfterPossibleNulls(self, 1)
 
-        elif self.currToken:   #not private or class or Identifiah, but its in PREDICT_SETS["class_body"]
+        elif self.currToken and self.currToken["tokenType"] != "}":   #not private or class or Identifiah, but its in PREDICT_SETS["class_body"]
             checkAfterPossibleNulls(self, 0)
                 
+        if self.currToken and self.currToken["tokenType"] == "}":
+            return
         
-        if self.currToken and self.currToken["tokenType"] != "}":
-            self.class_body()
-
         if not self.currToken:
             self.ERROR_unclosed_curly_braces()
+
+        self.class_body()
 
     def attribute_dec(self, inClassBody = True): 
         print("(parser) production: \"attribute_dec\" detected")
