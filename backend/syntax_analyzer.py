@@ -861,7 +861,6 @@ class SyntaxAnalyzer:
     def var_dec(self, inClassBody = False):      #starts at token '=' or 'const' or 'data_types'
         print("(parser) production: \"var_dec\" detected")
 
-        
         if self.currToken and self.currToken["tokenType"] != "=": # if not from second calling from program_construct
             if self.currToken["tokenType"] == "const":
                 self.match("const")
@@ -2292,7 +2291,7 @@ class SyntaxAnalyzer:
                 self.var_id_mods()
             elif self.currToken["tokenType"] == ";":
                 pass
-            else: self.logError(f"Unexpected token '{self.currToken["tokenType"]}' for variable declaration.")
+            else: self.logError(f"Unexpected token '{self.currToken["tokenType"]}' for variable declaration. Expected [',', '=', '[', ';'].")
       
         print("(parser) exited production: \"var_iden\"")
 
