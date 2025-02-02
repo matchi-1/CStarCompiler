@@ -1693,15 +1693,22 @@ def lexer(code):
         if (currState not in ['s253', 's247', 's249']):
             if (code[i] == ' '):
                 if (transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):
-                    add_token(currToken, 'Identifier', currLine, currCol)
+                    if currToken not in ['&', '|']:
+                        add_token(currToken, 'Identifier', currLine, currCol)
+                    else:
+                        add_error(unexpectedSymbol(currToken, currLine, currCol, lineContent))
                 continue
             if (code[i] == '\n'):
                 if (i != len(code)-1):
                     if (transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):
-                        add_token(currToken, 'Identifier', currLine, currCol)
+                        if currToken not in ['&', '|']:
+                            add_token(currToken, 'Identifier', currLine, currCol)
+                        else:
+                            add_error(unexpectedSymbol(currToken, currLine, currCol, lineContent))
                     continue
                 
         #check states
+        print(f'(dbg) transition val {transition(currState, code[i])}')
         if (transition(currState, code[i]) != 'UNDEFINED'):
             print(f'(dbg) in {currState} transitions')  
             currToken += code[i]
@@ -1729,6 +1736,7 @@ def lexer(code):
                     currState = 's244'
                 continue
             else:
+                print('(dbg) not in s0')
                 if (currState == 's249'):
                     currToken += code[i]
                     continue
@@ -1745,6 +1753,7 @@ def lexer(code):
                     continue
                 elif (code[i] in iden_delim): #check delim
                     if (currToken):
+                        print(f'(dbg) currtoken valid: {currToken}')
                         if (currToken[0] not in alphabetic_chars + ['_']):
                             print('(dbg) other idnefirst error')
                             print('(dbg) symbol ', code[i])
