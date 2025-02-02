@@ -2318,7 +2318,7 @@ class SyntaxAnalyzer:
 
 
     def var_init(self):     #TODO: doesnt allow array_init pa ## array_init is allowed na -Alex
-        """<var_init> → = <value> | = <assign_stmt> | = (<assign_stmt>) | λ"""
+        """<var_init> → = <value> | = <assign_stmt> | λ"""
         print("(parser) entered production: \"var_init\"")
         
         if self.currToken and self.currToken["tokenType"]:
@@ -2331,16 +2331,7 @@ class SyntaxAnalyzer:
                     print("is value")
                     if self.matchPredictSet("value", False):
                         self.value(PREDICT_SETS["var_init"])
-            
-            elif self.currToken and self.currToken["tokenType"] == "(":
-                self.match("(", False)
-                self.assign_stmt_or_func_method_call()
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                    self.nextToken()
-                    self.assign_stmt_op_con_rec()
- 
+
             else:
                 print("is NOT identifier")
                 if self.matchPredictSet("value", False):
@@ -2348,7 +2339,6 @@ class SyntaxAnalyzer:
                         self.logError("Invalid value for variable declaration.")
         
         print("(parser) exited production: \"var_init\"")
-
 
     
     def var_iden_rec(self):
@@ -2584,7 +2574,7 @@ class SyntaxAnalyzer:
             self.assign_stmt_op_con()  # Proceed to check the value or identifier
 
 
-    def assign_stmt_op_con(self): #TODO: make changes sa cfg on implemented ((())) handler
+    def assign_stmt_op_con(self):
         print("(parser) production: \"assign_stmt_op_con\" detected")
         
         if self.currToken and self.currToken["tokenType"] == "Identifier":  
@@ -2599,23 +2589,10 @@ class SyntaxAnalyzer:
             elif next_token and next_token["tokenType"] in (PREDICT_SETS["assign_operator"]+PREDICT_SETS["iden_as_var_mods"]):
                 self.assign_stmt_op_con_rec()
 
-            elif next_token and next_token["tokenType"] == ")":
-                self.match("Identifier")
-                pass
-
             else: # should be overruled by semantic (like if x is not declared in this scope)
                 self.match("Identifier")
                 self.ERROR_terminating_token(";")
-
-        elif self.currToken and self.currToken["tokenType"] == "(":
-            self.match("(", False)
-            self.assign_stmt_op_con()
-            if not self.match(")"):
-                self.ERROR_unclosed_parentheses()
-            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                self.nextToken()
-                self.assign_stmt_op_con_rec()
-
+            
         else: # it's not an identifier, check if it's a valid value 
             if not self.value(";"):
                 self.ERROR_expected_token("value")
