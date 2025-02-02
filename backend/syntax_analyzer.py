@@ -679,7 +679,7 @@ class SyntaxAnalyzer:
 
             # VOID MAIN FUNCTION OR VOID FUNCTION
             elif self.currToken["tokenType"] == "void":
-                if self.peek()["tokenName"] == "main":
+                if self.peek() and self.peek()["tokenName"] == "main":
                     self.match("void")
                     self.match("Identifier")
                     self.hasMainFunction = True
@@ -708,7 +708,7 @@ class SyntaxAnalyzer:
                 else:
                     self.logError("Expected a variable declaration or function declaration.")
     
-
+        else: self.ERROR_expected_token(PREDICT_SETS["program_constructs"])
 
 
     # TODO
