@@ -1734,7 +1734,7 @@ class SyntaxAnalyzer:
         
         
     def array_init(self, dimensionCount):   
-        print(f"(parser) production: \"array_init #{self.dimensionCount}\" detected")
+        print(f"(parser) production: \"array_init #{dimensionCount}\" detected")
         
         # data_type Identifier[int_val][int_val] = {
         #                                            ^ starts AFTER token "{" 
