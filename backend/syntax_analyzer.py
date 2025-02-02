@@ -2288,8 +2288,10 @@ class SyntaxAnalyzer:
         """<var_iden> → Identifier <var_id_mods>"""
 
         if self.match("Identifier", False):
-            if self.currToken["tokenType"] in [",", "=", "["]:
+            if self.currToken["tokenType"] in ["=", "["]:
                 self.var_id_mods()
+            elif self.currToken["tokenType"] == ",":
+                self.var_iden_rec()
             elif self.currToken["tokenType"] == ";":
                 pass
             else: self.logError(f"Unexpected token '{self.currToken["tokenType"]}' for variable declaration. Expected [',', '=', '[', ';'].")
@@ -2329,9 +2331,15 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=", False)
             if self.currToken["tokenType"] == "Identifier":
-                if self.peek()["tokenType"] in PREDICT_SETS["assign_operator"] + PREDICT_SETS["iden_as_var_mods"]:
-                    print("is identifier")
-                    self.assign_stmt()
+                if self.peek()["tokenType"] == ";":
+                    self.match("Identifier")
+                    pass
+                elif self.peek()["tokenType"] in PREDICT_SETS["assign_operator"] + PREDICT_SETS["iden_as_var_mods"]:
+                    self.match("Identifier")
+                    if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+                        self.iden_as_var_mods()
+                    if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
+                        self.assign_stmt_op()
                 else:
                     print("is value")
                     if self.matchPredictSet("value", False):
@@ -2344,6 +2352,8 @@ class SyntaxAnalyzer:
                         self.logError("Invalid value for variable declaration.")
             
         print("(parser) exited production: \"var_init\"")
+
+    #def var_init_iden_con(self):
 
     
     def var_iden_rec(self):
