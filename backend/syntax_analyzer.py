@@ -1925,7 +1925,7 @@ class SyntaxAnalyzer:
                 self.nextToken()
                 self.var_iden()
         elif self.currToken["tokenType"] == "Identifier":
-            self.assign_stmt_or_func_method_call()
+            self.assign_stmt()
         
         #if self.currToken["tokenType"] == ",":
         #    self.var_iden_rec()
@@ -2329,9 +2329,9 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=", False)
             if self.currToken["tokenType"] == "Identifier":
-                if self.peek()["tokenType"] in PREDICT_SETS["assign_operator"]:
+                if self.peek()["tokenType"] in PREDICT_SETS["assign_operator"] + PREDICT_SETS["iden_as_var_mods"]:
                     print("is identifier")
-                    self.assign_stmt_or_func_method_call()
+                    self.assign_stmt()
                 else:
                     print("is value")
                     if self.matchPredictSet("value", False):
@@ -2565,6 +2565,16 @@ class SyntaxAnalyzer:
                 self.iden_mods()
         print("(parser) exited production: \"string_value\"")
 
+
+    def assign_stmt(self):
+        print("(parser) production: \"assign_stmt\" detected")
+        """<assign_stmt> → Identifier <iden_as_var_mods> <assign_stmt_con> ;"""
+        if self.match("Identifier", False):
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+                self.iden_as_var_mods() # match iden mods if there are any
+            self.assign_stmt_op() # match assign operator
+
+        print("(parser) exited production: \"assign_stmt\"")
 
     def assign_stmt_op(self):
         print('(parser) production: "assign_stmt_op" detected')
