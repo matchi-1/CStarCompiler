@@ -9,7 +9,6 @@ PREDICT_SETS = {
     "print_stmts" : ["print", "println"],
     "conditional_stmt" : ["if", "switch"],
     "loop_stmt" : ["for", "while", "do", "repeat"],
-    "else_chain" : ["else"],
     "unary_operator" : ["++", "--", "Identifier"],
     "init_arg" : ["Identifier", "bool", "string", "int", "long", "double", "float"],
     "switch_value" : ["whole_lit", "string_lit", "Identifier", "(", "-"], # TO ADD other exps
@@ -22,7 +21,6 @@ PREDICT_SETS = {
     "logic_operator" : ["&&", "||"],
     "iden_mods" : ["(", "[", "."],  # TO ADD 
     "int_val" : ["whole_lit", "Identifier", "-", "("],
-    "unary_operator" : ["++", "--"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "bool_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"],
@@ -30,9 +28,7 @@ PREDICT_SETS = {
     "expression":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
     "var_dec":["const", "int", "long", "bool", "float", "double", "string"],
     "output":["print", "println"],
-    "conditional_stmt":["switch", "if"],
-    "loop_stmt":["while", "do", "for", "repeat"],
-    "code_block": ["++","--","Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
+    "code_block": ["++", "--", "Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
     "iden_as_var_mods": ["[","."],
     "body": []  # Placeholder for now
 }
@@ -540,12 +536,23 @@ class SyntaxAnalyzer:
                 if self.peek() and self.peek()["tokenType"] == "Identifier":
                     self.class_inst()
                 
+                elif self.peek() and self.peek()["tokenType"] in [item for item in PREDICT_SETS["unary_operator"] if item != "Identifier"]:
+                    self.unary_exp()
+                    if not self.currToken or self.currToken["tokenType"] != ";":
+                        self.ERROR_terminating_token(";")
+                    self.match(";")
+                
                 else: 
                     self.assign_stmt_or_func_method_call()
                     if not self.currToken or self.currToken["tokenType"] != ";":
                         self.ERROR_terminating_token(";")
                     self.match(";")
-            
+
+            elif self.currToken["tokenType"] in [item for item in PREDICT_SETS["unary_operator"] if item != "Identifier"]:
+                self.unary_exp()
+                if not self.currToken or self.currToken["tokenType"] != ";":
+                    self.ERROR_terminating_token(";")
+                self.match(";")
                    
                 
             # else:
@@ -1870,7 +1877,7 @@ class SyntaxAnalyzer:
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
 
-        if self.currToken["tokenName"] in PREDICT_SETS["else_chain"]:
+        if self.currToken and self.currToken["tokenName"] == "else":
             self.else_chain()
 
         print("(parser) entered production: \"if_stmt\"")
@@ -1980,17 +1987,28 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"else_chain\"")
 
         self.match("else", False)
-        if self.currToken and self.currToken["tokenType"] == "if":
-            self.if_stmt()
-        else:
-            self.match("{", False)
-            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                self.ctrl_stmt_body()
-            if not self.match("}"):
-                self.ERROR_unclosed_curly_braces()
+        self.else_stmt()
         
         print("(parser) exited production: \"else_chain\"")
         
+    def else_stmt(self):
+        print("(parser) entered production: \"else_stmt\"")
+
+        if self.currToken and self.currToken["tokenType"] == "if":
+            self.if_stmt()
+
+        elif self.currToken and self.currToken["tokenType"] == "{":
+            self.match("{")
+            self.ctrl_stmt_body()
+            if not self.currToken:
+                self.ERROR_unclosed_curly_braces()
+            self.match("}", False)
+        else:
+            self.ERROR_expected_token(["if", "{"])
+
+        print("(parser) exited production: \"else_stmt\"")
+
+
     # bare-minimum tested
     def switch_stmt(self):
         '''<switch_stmt> → switch (<switch_value>) {<case_stmt> <default_stmt>}'''
@@ -2162,10 +2180,10 @@ class SyntaxAnalyzer:
         self.match("{", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
             self.ctrl_stmt_body()
-        if not self.match("}"):
+        if not self.match("}", True):
             self.ERROR_unclosed_curly_braces()
         
-        if not self.match("while"):
+        if not self.match("while", True):
             self.logError("'do' statement must include 'while' condition.")
         self.match("(", False)
         self.condition("while")
