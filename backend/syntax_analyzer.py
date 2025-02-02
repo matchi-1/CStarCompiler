@@ -2297,22 +2297,26 @@ class SyntaxAnalyzer:
         """<var_init> → = <value> | = Identifier <var_init> | λ"""
         print("(parser) entered production: \"var_init\"")
         
-        if self.currToken:
-            if self.currToken["tokenType"] == "=":
-                self.match("=", False)
-                if self.currToken["tokenType"] == "Identifier":
+        if self.currToken and self.currToken["tokenType"] == "=":
+            self.match("=", False)
+            if self.currToken["tokenType"] == "Identifier":
+                if self.peek()["tokenType"] == '=':
                     print("is identifier")
                     self.match("Identifier", False)
                     if self.currToken["tokenType"] == "=":
                         self.var_init()
                 else:
-                    print("is NOT identifier")
+                    print("is value")
                     if self.matchPredictSet("value", False):
                         self.value(PREDICT_SETS["var_init"])
+            else:
+                print("is NOT identifier")
+                if self.matchPredictSet("value", False):
+                    self.value(PREDICT_SETS["var_init"])
 
-                #if self.currToken["tokenType"] == "=":
-                #    self.var_assign_rec()
-                    #self.var_iden_rec()\
+            #if self.currToken["tokenType"] == "=":
+            #    self.var_assign_rec()
+                #self.var_iden_rec()\
                 #self.var_assign_rec()
         
         print("(parser) exited production: \"var_init\"")
@@ -2519,7 +2523,7 @@ class SyntaxAnalyzer:
         
         if self.currToken["tokenType"] == "string_lit":
            self.match("string_lit")
-           if self.peek()["tokenType"] == "+":
+           if self.currToken["tokenType"] == "+":
                 self.match("+", False)  
                 self.str_exp()
            
