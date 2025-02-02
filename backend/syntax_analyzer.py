@@ -12,7 +12,7 @@ PREDICT_SETS = {
     "else_chain" : ["else"],
     "unary_operator" : ["++", "--", "Identifier"],
     "init_arg" : ["Identifier", "bool", "string", "int", "long", "double", "float"],
-    "switch_value" : ["whole_lit", "string_lit", "Identifier"], # TO ADD other exps
+    "switch_value" : ["whole_lit", "string_lit", "Identifier", "(", "-"], # TO ADD other exps
     "ctrl_stmt_body" : ["break", "continue"], # +body
     "arith_operator" : ["+", "-", "*", "/", "%"],
     "inc_arg" : ["Identifier", "--", "++", "print", "println", "("],
@@ -76,8 +76,6 @@ class SyntaxAnalyzer:
             self.currToken = self.tokens[self.currToken_index]
         else:
             self.currToken = None
-
-
 
     # Peeks at a token at the current index + offset.
     def peek(self, offset=1):
@@ -2042,40 +2040,25 @@ class SyntaxAnalyzer:
             
             if self.peek()["tokenType"] in PREDICT_SETS["iden_mods"]:
                 print("(parser) entered production: \"iden_mods\"")
-                #self.iden_mods()
+                self.iden_mods()
                 print("(parser) exited production: \"iden_mods\"")
            
             elif self.peek()["tokenType"] in PREDICT_SETS["arith_operator"]:
                 print("(parser) entered production: \"arith_exp\"")
-                #self.arith_exp()
+                self.arith_exp()
                 print("(parser) exited production: \"arith_exp\"")
 
             else:
                 self.match("Identifier", False)
                 
         elif self.currToken and self.currToken["tokenType"] == "(":
-            
-            if self.peek() in PREDICT_SETS["data_types"]:
-                print("(parser) entered production: \"typecast_exp\"")
-                #self.typecast_exp()
-                print("(parser) exited production: \"typecast_exp\"")
-            
-            else: # for when a madman decides to do this ((((((((()))))))))
-                for x in self.peek(x):
-                    if x["tokenType"] == "(":
-                        continue
-                    elif x["tokenType"] == "-":
-                        print("(parser) entered production: \"negative_exp\"")
-                        #self.negative_exp()
-                        print("(parser) exited production: \"negative_exp\"")
-                        break
-                    elif x["tokenType"] == ("whole_lit" or "Identifier"):
-                        print("(parser) entered production: \"arith_exp\"")
-                        #self.arith_exp()
-                        print("(parser) exited production: \"arith_exp\"")
-                        break
-                    else:
-                        self.logError("Invalid value for 'switch' statement.")
+            if self.peek()["tokenType"] in PREDICT_SETS["data_types"]:
+                self.typecast_exp()
+            else:
+                self.match("(")
+                self.switch_value()
+                if not self.match(")"):
+                    self.ERROR_unclosed_parentheses()
        
         else:
             self.logError("'switch' condition cannot be empty.")
@@ -2105,7 +2088,7 @@ class SyntaxAnalyzer:
         nextToken = self.peek()  
 
         if self.currToken and self.currToken["tokenType"] == "string_lit": 
-            if self.nextToken and self.nextToken["tokenType"] == "+":
+            if nextToken and nextToken["tokenType"] == "+":
                 print("(parser) entered production: \"str_exp\"")
                 self.str_exp([":", ")"])
                 print("(parser) exited production: \"str_exp\"")
@@ -2113,20 +2096,20 @@ class SyntaxAnalyzer:
                 self.match("string_lit", False)
             
         elif self.currToken and self.currToken["tokenType"] == "whole_lit": 
-            if self.nextToken and self.nextToken["tokenType"] in PREDICT_SETS["arith_operator"]:
+            if nextToken and nextToken["tokenType"] in PREDICT_SETS["arith_operator"]:
                 print("(parser) entered production: \"arith_exp\"")
-                self.arith_exp()
+                self.arith_exp([":", ")"])
                 print("(parser) exited production: \"arith_exp\"")
             else:
                 self.match("whole_lit", False)
         
         elif self.currToken and self.currToken["tokenType"] == "-":
             print("(parser) entered production: \"negative_exp\"")
-            self.negative_exp()
+            self.negative_exp([":", ")"])
             print("(parser) exited production: \"negative_exp\"") 
         
         elif self.currToken and self.currToken["tokenType"] == "(":
-            if self.nextToken and self.nextToken["tokenType"] in PREDICT_SETS["data_types"]:
+            if nextToken and nextToken["tokenType"] in PREDICT_SETS["data_types"]:
                 print("(parser) entered production: \"typecast_exp\"")
                 self.typecast_exp()
                 print("(parser) exited production: \"typecast_exp\"")
@@ -2136,9 +2119,12 @@ class SyntaxAnalyzer:
                 self.case_value()
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
+                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]:
+                    self.nextToken()
+                    self.case_value()
 
         else:
-            self.logError("Invalid value for 'switch' statement.")
+            self.logError("Invalid value for 'case' statement.")
 
         print("(parser) exited production: \"case_value\"")
 
@@ -2634,6 +2620,7 @@ class SyntaxAnalyzer:
 
     def assign_stmt_op_con(self):
         print("(parser) production: \"assign_stmt_op_con\" detected")
+        
         if self.currToken and self.currToken["tokenType"] == "Identifier":  
             # if it's an identifier, check if there is assignment chaining or semicolon
             next_token = self.peek()
@@ -2649,7 +2636,7 @@ class SyntaxAnalyzer:
             else: # should be overruled by semantic (like if x is not declared in this scope)
                 self.match("Identifier")
                 self.ERROR_terminating_token(";")
-        
+            
         else: # it's not an identifier, check if it's a valid value 
             if not self.value(";"):
                 self.ERROR_expected_token("value")
