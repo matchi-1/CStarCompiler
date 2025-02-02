@@ -1248,7 +1248,8 @@ class SyntaxAnalyzer:
             print(f'(parser)(dbg) value prod: {prod}')
             if (prod == "paren_wrap"):
                 self.match("(")
-                self.value([")"])
+                if not self.value([")"]):
+                    self.logError("Expected valid value inside parenthesis.")
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
                 return True
