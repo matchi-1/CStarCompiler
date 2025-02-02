@@ -2183,9 +2183,10 @@ class SyntaxAnalyzer:
 
         self.match("repeat", False)
         self.match("(", False)
-        # <int_value> here (whole_lit for now)
-        self.int_val([")"])
-        # self.match("whole_lit", False)
+
+        if not self.int_val([")"]):
+            self.ERROR_expected_pos_integer_value()
+
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
         
