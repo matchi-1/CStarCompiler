@@ -540,7 +540,7 @@ class SyntaxAnalyzer:
 
             # Class Instantiation or Function/Method Call or Assignment/Expression
             elif self.currToken["tokenType"] == "Identifier":
-                if self.peek()["tokenType"] == "Identifier":
+                if self.peek() and self.peek()["tokenType"] == "Identifier":
                     self.class_inst()
                 
                 else: 
@@ -1574,6 +1574,9 @@ class SyntaxAnalyzer:
                 elif (self.currToken["tokenType"] == "bool_lit"):
                     self.match("bool_lit")
                     return True
+                elif (self.currToken and self.currToken["tokenType"] == "in"):
+                    self.input()
+                    return True
                 else:
                     self.ERROR_expected_token("bool_value")
                     return False
@@ -1829,7 +1832,8 @@ class SyntaxAnalyzer:
         self.match(",", False)
 
         if not self.value([",", ")"]):
-            self.logError("Expected parameter")
+            message = f"Expected value after ',', got '{self.currToken['tokenType'] if self.currToken else 'EOF'}' instead."
+            self.logError(message)
         if self.currToken and self.currToken["tokenType"] == ",":
             self.output_rec()
 
@@ -2240,6 +2244,8 @@ class SyntaxAnalyzer:
         ## ADD to predict set if it doesn't exist yet
         if self.matchPredictSet("data_types"):
             self.nextToken()
+        else:
+            self.ERROR_expected_token(PREDICT_SETS["data_types"])
         
         if not self.match(">"):
             self.ERROR_unclosed_angled_bracket()
