@@ -1952,18 +1952,13 @@ class SyntaxAnalyzer:
                 self.unary_exp()
                 print("(parser) exited production: \"unary_exp\"")
                 
-            elif next_token and next_token["tokenType"] == "(":
-                print("(parser) entered production: \"func_method_call\"")
-                self.func_method_call()
-                print("(parser) exited production: \"func_method_call\"")
-                
-            elif next_token and next_token["tokenType"] in PREDICT_SETS["assign_operator"]:
-                print("passed assign op check")
-                self.match("Identifier", False)
-                if self.matchPredictSet("assign_operator", False):
-                    self.nextToken()
-                self.value([")"])
-                
+            elif next_token and next_token["tokenType"] in PREDICT_SETS["iden_mods"]+ PREDICT_SETS["assign_operator"]:
+                print("(parser) entered production from [inc-arg]: \"assign_stmt_or_func_method_call\"")
+                self.assign_stmt_or_func_method_call()
+                print("(parser) exited production from [inc-arg]: \"assign_stmt_or_func_method_call\"")
+            else:
+                self.nextToken()
+                self.ERROR_expected_token(PREDICT_SETS["iden_mods"] + PREDICT_SETS["unary_operator"] + PREDICT_SETS["assign_operator"])
                 #if self.currToken["tokenType"] == ",":
                 #    self.var_iden_rec()
 
@@ -2595,20 +2590,20 @@ class SyntaxAnalyzer:
             # if it's an identifier, check if there is assignment chaining or semicolon
             next_token = self.peek()
 
-            # iden = iden; goes back to assign_stmt to match semicolon in the end
-            if next_token and next_token["tokenType"] == ";":
+            # iden = iden; goes back to assign_stmt to match semicolon in codeblocks 
+            if next_token and next_token["tokenType"] in [";", ")"]:  # ";" for dec, ")" for loops
                 self.match("Identifier") 
 
             # next token can be from iden_as_var_mods or assign_operator (first & follow for iden in this case)
             elif next_token and next_token["tokenType"] in (PREDICT_SETS["assign_operator"]+PREDICT_SETS["iden_as_var_mods"]):
                 self.assign_stmt_op_con_rec()
 
-            else: # should be overruled by semantic (like if x is not declared in this scope)
-                self.match("Identifier")
-                self.ERROR_terminating_token(";")
+            # else: # should be overruled by semantic (like if x is not declared in this scope)
+            #     self.match("Identifier")
+            #     self.ERROR_terminating_token(";")
             
-        else: # it's not an identifier, check if it's a valid value 
-            if not self.value(";"):
+        else: # it's not an identifier, check if it's a valid value -- ";" for dec, ")" for loops
+            if not self.value([';',')']):
                 self.ERROR_expected_token("value")
 
 
