@@ -539,12 +539,14 @@ class SyntaxAnalyzer:
 
             # Class Instantiation or Function/Method Call or Assignment/Expression
             elif self.currToken["tokenType"] == "Identifier":
-                self.assign_stmt_or_func_method_call()
-
-                if not self.currToken or self.currToken["tokenType"] != ";":
-                   self.ERROR_terminating_token(";")
-
-                self.match(";")
+                if self.peek()["tokenType"] == "Identifier":
+                    self.class_inst()
+                
+                else: 
+                    self.assign_stmt_or_func_method_call()
+                    if not self.currToken or self.currToken["tokenType"] != ";":
+                        self.ERROR_terminating_token(";")
+                    self.match(";")
             
                    
                 
@@ -734,7 +736,7 @@ class SyntaxAnalyzer:
     def class_body(self): # all of these are just 'if's because class_body can be null
         print("(parser) production: \"class_body\" detected")
         inClassBody = True
-        self.matchPredictSet("class_body")
+        self.matchPredictSet("class_body", False)
 
         if self.currToken and self.currToken["tokenType"] == "private": # 17. <is_private> 
             self.match("private")
@@ -748,17 +750,55 @@ class SyntaxAnalyzer:
 
         if self.currToken and self.currToken["tokenType"] == "static": # 26. <is_static> 
             self.match("static")
-            self.var_dec(inClassBody)      #attribute dec equivaelnt
+
+            if self.currToken:
+                if self.currToken["tokenType"] == "const":
+                    self.var_dec(inClassBody)      #attribute dec equivaelnt
+
+                elif self.currToken["tokenType"] == "void":
+                    self.function_dec(inClassBody)  #method
+
+                elif self.matchPredictSet("data_types"):
+                    self.nextToken()
+                    print('data type matched')
+
+                    if self.currToken["tokenType"] == "Identifier": 
+                        self.match("Identifier")
+                        if self.currToken:
+                            if self.currToken["tokenType"] == "(":
+                                self.function_dec(inClassBody) #method
+                            elif self.currToken["tokenType"] in ["=", ";"]:
+                                self.var_dec(inClassBody)
+                            elif self.currToken["tokenType"] == ",":
+                                self.var_iden_rec()
+                                if not self.match(";"):
+                                    self.ERROR_terminating_token(";")
+                        else: #nothing after private* static* dtype 'Iden'
+                            self.ERROR_expected_token(["=","(", ";", ","])
+                    else: self.logError("Expected a variable declaration or function declaration.")
+
+            else: #nothing after 'static' 
+                self.ERROR_expected_token(["const","void", "data type"])
+            
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_types"]: #attribute_dec or method_dec path
             self.nextToken()
-            if self.match("Identifier"): 
-                    if self.currToken and self.currToken["tokenType"] == "(":
-                        self.function_dec(inClassBody)     # method
-                    elif self.currToken and self.currToken["tokenType"] == "=":
-                        self.var_dec(inClassBody)          # attribute
-                    elif self.currToken and self.currToken["tokenType"] != ";":
-                        self.ERROR_expected_token(["(","=", ";"])
+            print('data type matched')
+            if self.currToken:
+                if self.currToken["tokenType"] == "Identifier": 
+                        self.match("Identifier")
+                        if self.currToken:
+                            if self.currToken["tokenType"] == "(":
+                                self.function_dec(inClassBody) #method
+                            elif self.currToken["tokenType"] in ["=", ";"]:
+                                self.var_dec(inClassBody)
+                            elif self.currToken["tokenType"] == ",":
+                                self.var_iden_rec()
+                                if not self.match(";"):
+                                    self.ERROR_terminating_token(";")
+                        else: #nothing after private* static* 'dtype'
+                            self.ERROR_expected_token(["=","(", ";"])
+                else: self.logError("Expected a variable declaration or function declaration.")
             else:
                 self.logError("Expected a variable declaration or function declaration.")
 
@@ -767,7 +807,7 @@ class SyntaxAnalyzer:
 
         if self.currToken and self.currToken["tokenType"] == "Identifier": #for constructor path
             if self.currToken["tokenName"] == self.classNames[-1]:
-                self.match("Identifier")
+                inConstructor = self.match("Identifier")
                 self.classNames.pop()
                 if self.currToken and self.currToken["tokenType"] == "(":
                     self.function_dec(inClassBody, inConstructor) #TODO: maybe revisit in da future   
@@ -818,7 +858,7 @@ class SyntaxAnalyzer:
             self.code_block()
 
     # TODO
-    def function_dec(self, inClassBody = False, inConstructor = False):
+    def function_dec(self, inClassBody = False, inConstructor = False):     #starts at iden'(' or 'void' or 'dtype'
         print("(parser) production: \"function_dec\" detected")
         isVoid = False
         if self.currToken["tokenType"] != "(": # if not from second calling from program_construct
@@ -844,8 +884,9 @@ class SyntaxAnalyzer:
         print("(parser) production: \"code_block\" EXITED!! Back to function_dec")
 
         if not isVoid and not inConstructor:
-            if not self.match("return", True):
-                self.logError("Non-void functions must have return statement.")
+            if self.currToken and self.currToken["tokenType"] == "return":
+                self.match("return", False)
+            else: self.logError("Non-void functions must have return statement.")
             ### TODO: how to check return type and if it matches return statement?
 
             ################## <return_block> or <ret_value> HERE
@@ -854,10 +895,10 @@ class SyntaxAnalyzer:
                 self.logError("just add ';' for now, no logic for return vals yet")
                 self.ERROR_terminating_token(";")
         
-        if isVoid and self.match("return"):
+        if isVoid and self.currToken["tokenType"] == "return":
             self.logError("Void functions cannot have return statement.")
 
-        if inConstructor and self.match("return"):
+        if inConstructor and self.currToken["tokenType"] == "return":
             self.logError("Constructors cannot have return statement.")
         
         if not self.match("}"):
@@ -2261,7 +2302,7 @@ class SyntaxAnalyzer:
         """<var_iden> → Identifier <var_id_mods>"""
 
         if self.match("Identifier", False):
-            if self.currToken not in [",", "=", "["]:
+            if self.currToken["tokenType"] in [",", "=", "["]:
                 self.var_id_mods()
       
         print("(parser) exited production: \"var_iden\"")
