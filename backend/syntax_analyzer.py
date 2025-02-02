@@ -33,9 +33,10 @@ PREDICT_SETS = {
     "conditional_stmt":["switch", "if"],
     "loop_stmt":["while", "do", "for", "repeat"],
     "code_block": ["!", "(", "++", "-", "--", "Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "frac_lit", "if", 'in', "int", "long", "print", "println", "repeat", "string", "string_lit", "switch", "while", "whole_lit",],
-    "iden_as_var_mods": ["[","."]
+    "iden_as_var_mods": ["[","."],
+    "body": []  # Placeholder for now
 }
-
+PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 
 # reminders for predict sets:
  
@@ -560,6 +561,24 @@ class SyntaxAnalyzer:
             self.code_block()
 
 
+    def body(self, isVoid = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
+        print(f"(parser) Processing <body>: {self.currToken['tokenName'] if self.currToken else 'None'}, isVoid = {isVoid}")
+
+
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
+            self.code_block()
+
+            if self.currToken["tokenType"] == "return": #having two returns in a non void function will give this error
+                self.return_block(isVoid)
+                isVoid = True       
+                # TODO: DEAD CODE (CODE AFTER RETURN) ERROR IMPLEMENTATION
+
+            self.body(isVoid)
+        
+    
+
+        print("(parser) production: \"body\" exited!!!!!!")
+
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
         """<imports_list> → import <iostar>;<imports_rec>"""
@@ -661,29 +680,15 @@ class SyntaxAnalyzer:
 
             # VOID MAIN FUNCTION OR VOID FUNCTION
             elif self.currToken["tokenType"] == "void":
-                self.match("void")
-                if self.currToken and self.currToken["tokenName"] == "main":
+                if self.peek()["tokenName"] == "main":
+                    self.match("void")
                     self.match("Identifier")
-                    if self.currToken and self.currToken["tokenType"] == "(":
-                        self.hasMainFunction = True  # Found main function
-                    else:
-                        self.ERROR_expected_token('(')
+                    self.hasMainFunction = True
+
                 else:
-                    if self.currToken:
-                        if not self.match("Identifier"):
-                            self.ERROR_expected_Identifier()
-        
-                        if self.currToken and self.currToken["tokenType"] == "(": # void Identifier(
-                            self.function_dec()
-                            print("(parser) production: \"function_dec\" EXITED!! Back to program_constructs")
+                    self.function_dec()
 
-                        else:
-                            print("( expected in iden and not main")
-                            self.ERROR_expected_token('(')
-                    else:
-                        self.logError("Expected a function declaration or main function.")
-                
-
+            
             # OBJECT INSTANTIATION -- GLOBAL OBJECTS
             elif self.currToken["tokenType"] == "Identifier":
                 print("(parser): ENTERING CLASS INST")
@@ -883,7 +888,7 @@ class SyntaxAnalyzer:
             self.code_block()
 
     # TODO
-    def function_dec(self, inClassBody = False, inConstructor = False):     #starts at iden'(' or 'void' or 'dtype'
+    def function_dec(self, inClassBody = False):     #starts at iden'(' or 'void' or 'dtype'
         print("(parser) production: \"function_dec\" detected")
         isVoid = False
         if self.currToken["tokenType"] != "(": # if not from second calling from program_construct
@@ -905,27 +910,9 @@ class SyntaxAnalyzer:
 
         self.match("{", False)
 
-        self.code_block() ############### TODO: FUNCTION BODY RULES HERE
-        print("(parser) production: \"code_block\" EXITED!! Back to function_dec")
+        self.body(isVoid) ############### TODO: FUNCTION BODY RULES HERE
+        print("(parser) production: \"body\" EXITED!! Back to function_dec")
 
-        if not isVoid and not inConstructor:
-            if self.currToken and self.currToken["tokenType"] == "return":
-                self.match("return", False)
-            else: self.logError("Non-void functions must have return statement.")
-            ### TODO: how to check return type and if it matches return statement?
-
-            ################## <return_block> or <ret_value> HERE
-
-            if not self.match(";"):
-                self.logError("just add ';' for now, no logic for return vals yet")
-                self.ERROR_terminating_token(";")
-        
-        if isVoid and self.currToken["tokenType"] == "return":
-            self.logError("Void functions cannot have return statement.")
-
-        if inConstructor and self.currToken["tokenType"] == "return":
-            self.logError("Constructors cannot have return statement.")
-        
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
 
@@ -1796,7 +1783,7 @@ class SyntaxAnalyzer:
             else: 
                 self.ERROR_invalid_condition(condType)
 
-        print("(parser) exited production: \"condition\"")
+        
     
     # bare-minimum tested
     def output(self):
@@ -1867,12 +1854,13 @@ class SyntaxAnalyzer:
             self.ERROR_missing_condition("if")
         self.match("(", False)
         self.condition("if")
+        print("(parser) exited production: \"condition\", back to prod if_stmt")
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
         
         self.match("{", False)
 
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["code_block"]:
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
             self.ctrl_stmt_body()
 
         if not self.match("}"):
@@ -1884,12 +1872,19 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"if_stmt\"")
 
     
-    def ret_value(self):
+    def ret_value(self, isVoid = False):
         '''<ret_value> → <value> | null'''
         print("(parser) entered production: \"ret_value\"")
 
-        if self.peek()["tokenType"] != ";":
-            self.value([";"])
+        if not isVoid and self.currToken["tokenType"] == ";":
+            self.logError("Non-Void functions must return a value.")
+        
+        elif not isVoid:
+            print("returned from value prod: ",{ self.value([";"])} )
+        elif isVoid and self.currToken["tokenType"] != ";":
+            self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
+
+
 
         print("(parser) exited production: \"ret_value\"")
 
@@ -2245,13 +2240,13 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"repeat_stmt\"")
     
     
-    def return_block(self):
+    def return_block(self, isVoid = False):
         print("(parser) entered production: \"return_block\"")
         
         self.match("return", False)
-        # <ret_value> here, (literals for now)
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["literals"]:
-            self.ret_value()
+        # # <ret_value> here, (literals for now)
+        # if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["literals"]:
+        self.ret_value(isVoid)
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
@@ -2264,13 +2259,15 @@ class SyntaxAnalyzer:
         if self.currToken:
             if self.currToken["tokenType"] == "break":
                 self.break_stmt()
-            elif self.currToken["tokenType"] == "continue":
+            if self.currToken["tokenType"] == "continue":
                 self.continue_stmt()
-            elif self.currToken["tokenType"] in PREDICT_SETS["code_block"] + ["return"]:
-                self.code_block()
+            if self.currToken["tokenType"] in PREDICT_SETS["body"]:
+                self.body()
+
+            if self.currToken["tokenType"] not in ["}", "case"]:
+                self.ctrl_stmt_body()
 
         print("(parser) exited production: \"ctrl_stmt_body\"")
-
 
 
 #jeh
