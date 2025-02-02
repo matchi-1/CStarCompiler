@@ -734,95 +734,118 @@ class SyntaxAnalyzer:
 
     
     def class_body(self): # all of these are just 'if's because class_body can be null
+
+        def checkAfterPossibleNulls(self, currentPeek = 1): # checks after <is_private> <is_static>, then checks <is_const> <is_void?????>
+            print("(inClassBody) in checkAfterPossibleNulls()")  ##### * = one or zero, not zero or many, of the tokens
+
+            class_peek = self.peek(currentPeek)["tokenType"]
+
+            if class_peek and class_peek == "const": # found 'private* static* const > ' => attribute_dec
+                    self.attribute_dec(inClassBody)
+
+            elif class_peek and class_peek == "void": # found 'private* static* void > ' => methods_dec
+                self.methods_dec(inClassBody)
+
+            elif class_peek and class_peek in PREDICT_SETS["data_types"]: # checking 'private* static* dtype > '
+                    class_peek = self.peek(currentPeek + 1)["tokenType"]
+
+                    if class_peek and class_peek == "Identifier": # checking 'private* static dtype Iden > '
+                        class_peek = self.peek(currentPeek + 2)["tokenType"]
+                        if class_peek and class_peek == "(":    # found 'private* static* dtype iden(' => methods_dec
+                            self.methods_dec(inClassBody)      
+                            
+                        elif class_peek and class_peek in ["=", ",", ";"]: # found 'private* static* dtype iden = | , | ;' => attribute_dec
+                            self.attribute_dec(inClassBody)
+
+                        else: self.ERROR_expected_token(["=", ",", ";", "("]) # found 'private* static* dtype iden <EOF or invalid token>' 
+
+                    else: self.ERROR_expected_token("Identifier") # found 'private* static* dtype <EOF or invalid token>' 
+
+            else: self.ERROR_expected_token(["const", "void"] + PREDICT_SETS["data_types"])   # found 'private* static* <EOF or invalid token>' 
+
+
+    #def class_body(self):--------------------------------------------------------------------
         print("(parser) production: \"class_body\" detected")
+        self.matchPredictSet("class_body", False)   #throws error if currToken not in here
         inClassBody = True
-        self.matchPredictSet("class_body", False)
 
-        if self.currToken and self.currToken["tokenType"] == "private": # 17. <is_private> 
-            self.match("private")
-            if not self.currToken:
-                self.logError("Expected data type, function declaration, Identifier, token 'class', or token 'static' but reached EOF.")
-            elif self.currToken["tokenType"] != "static" and self.currToken["tokenType"] != "Identifier" and self.currToken["tokenType"] != "class" and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "void":
-                self.logError("Expected data type, function declaration, Identifier, token 'class', or token 'static'.")
-        
-        if self.currToken and self.currToken["tokenType"] == "class": # 22. <class_declaration>
-            self.class_declaration()       #subclass declaration
+        if self.currToken and self.currToken["tokenType"] == "private": # checking 'private >'
+            class_peek = self.peek()["tokenType"]   
+            if class_peek and class_peek == "static": # found ' private static >', check next tokens in this func
+                checkAfterPossibleNulls(self, 2) 
 
-        if self.currToken and self.currToken["tokenType"] == "static": # 26. <is_static> 
-            self.match("static")
+            elif class_peek and class_peek == "class": # found 'private class >' => class_dick
+                self.class_declaration()
 
-            if self.currToken:
-                if self.currToken["tokenType"] == "const":
-                    self.var_dec(inClassBody)      #attribute dec equivaelnt
+            else: checkAfterPossibleNulls(self, 1) #found private, but not class and not static. Check <is_const><is_void>dtype iden and check whether '(' | '= | , | ;'
 
-                elif self.currToken["tokenType"] == "void":
-                    self.function_dec(inClassBody)  #method
+        elif self.currToken and self.currToken["tokenType"] == "class":  # found 'class >' => class_declaration of indenpenepcnedeCECEde()
+            self.class_declaration()
 
-                elif self.matchPredictSet("data_types"):
-                    self.nextToken()
-                    print('data type matched')
+        elif self.currToken and self.currToken["tokenType"] == "Identifier": #can only be constructor
+            self.constructor_dec()
 
-                    if self.currToken["tokenType"] == "Identifier": 
-                        self.match("Identifier")
-                        if self.currToken:
-                            if self.currToken["tokenType"] == "(":
-                                self.function_dec(inClassBody) #method
-                            elif self.currToken["tokenType"] in ["=", ";"]:
-                                self.var_dec(inClassBody)
-                            elif self.currToken["tokenType"] == ",":
-                                self.var_iden_rec()
-                                if not self.match(";"):
-                                    self.ERROR_terminating_token(";")
-                        else: #nothing after private* static* dtype 'Iden'
-                            self.ERROR_expected_token(["=","(", ";", ","])
-                    else: self.logError("Expected a variable declaration or function declaration.")
+        elif self.currToken and self.currToken["tokenType"] == "static": # found static, Check <is_const><is_void>dtype iden and check whether '(' | '= | , | ;'
+            checkAfterPossibleNulls(self, 1)
 
-            else: #nothing after 'static' 
-                self.ERROR_expected_token(["const","void", "data type"])
-            
-
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_types"]: #attribute_dec or method_dec path
-            self.nextToken()
-            print('data type matched')
-            if self.currToken:
-                if self.currToken["tokenType"] == "Identifier": 
-                        self.match("Identifier")
-                        if self.currToken:
-                            if self.currToken["tokenType"] == "(":
-                                self.function_dec(inClassBody) #method
-                            elif self.currToken["tokenType"] in ["=", ";"]:
-                                self.var_dec(inClassBody)
-                            elif self.currToken["tokenType"] == ",":
-                                self.var_iden_rec()
-                                if not self.match(";"):
-                                    self.ERROR_terminating_token(";")
-                        else: #nothing after private* static* 'dtype'
-                            self.ERROR_expected_token(["=","(", ";"])
-                else: self.logError("Expected a variable declaration or function declaration.")
-            else:
-                self.logError("Expected a variable declaration or function declaration.")
-
-        if self.currToken and self.currToken["tokenType"] == "void":
-            self.function_dec(inClassBody)
-
-        if self.currToken and self.currToken["tokenType"] == "Identifier": #for constructor path
-            if self.currToken["tokenName"] == self.classNames[-1]:
-                inConstructor = self.match("Identifier")
-                self.classNames.pop()
-                if self.currToken and self.currToken["tokenType"] == "(":
-                    self.function_dec(inClassBody, inConstructor) #TODO: maybe revisit in da future   
-                                        
-                else:
-                    self.ERROR_expected_token("(")
-            else:
-                self.logError("Expected data type or access modifier ('private' or 'static'). Constructors must have the same name as its class.") 
-                #TODO: fix error message here, just a placeholder
+        elif self.currToken:   #not private or class or Identifiah, but its in PREDICT_SETS["class_body"]
+            checkAfterPossibleNulls(self, 0)
+                
         
         if self.currToken and self.currToken["tokenType"] != "}":
             self.class_body()
 
         if not self.currToken:
             self.ERROR_unclosed_curly_braces()
+
+    def attribute_dec(self, inClassBody = True): 
+        print("(parser) production: \"attribute_dec\" detected")
+
+        if self.currToken:
+            if self.currToken["tokenType"] == "private":
+                self.match("private")
+            if self.currToken["tokenType"] == "static":
+                self.match("static")
+
+            self.var_dec(inClassBody)
+
+        print("(parser) production: \"attribute_dec\" exited!!!!!")
+
+    def methods_dec(self, inClassBody = True): 
+        print("(parser) production: \"methods_dec\" detected")
+
+        if self.currToken:
+            if self.currToken["tokenType"] == "private":
+                self.match("private")
+            if self.currToken["tokenType"] == "static":
+                self.match("static")
+
+            self.function_dec(inClassBody)
+
+        print("(parser) production: \"methods_dec\" exited!!!!!")
+
+    def constructor_dec(self): 
+        print("(parser) production: \"constructor_dec\" detected")
+
+        if self.currToken["tokenName"] != self.classNames[-1]: 
+            self.logError("Constructors must have the same name as its class.") 
+            #TODO: fix error message here, just a placeholder
+
+        
+        self.match("Identifier", False)
+        self.classNames.pop()
+        self.match("(", False)
+        self.params_dec()
+        if not self.match(")"):
+            self.ERROR_unclosed_parentheses()
+
+        self.match("{", False)
+        self.code_block()
+        if not self.match("}"):
+            self.ERROR_unclosed_curly_braces()
+
+        print("(parser) production: \"constructor_dec\" exited!!!!!")
+
 
     # TODO
     def var_dec(self, inClassBody = False):      #starts at token '=' or 'const' or 'data_types'
@@ -1456,8 +1479,7 @@ class SyntaxAnalyzer:
 
     def arith_exp(self, stopChars): #doesnt take precedence into account, only checks form (hopefully LMAO)
         print('(parser) production: "arith_exp" detected')
-        if not self.num_value(PREDICT_SETS["arith_operator"]):
-            self.ERROR_expected_num_value()
+        self.num_value(PREDICT_SETS["arith_operator"])
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]):
             while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]):
                 self.arith_operator()
@@ -1881,19 +1903,18 @@ class SyntaxAnalyzer:
 
     # bare-minimum tested
     def init_arg(self):
-        '''<init_arg> → <data_type> <var_iden>| <assign_stmt> | null'''
+        '''<init_arg> → <for_init_data_type> <var_iden>| null'''
+        '''<for_init_data_type> → <data_type> | null'''
 
         print("(parser) entered production: \"init_arg\"")
         
         if self.currToken["tokenName"] in PREDICT_SETS["data_types"]:
-            if self.matchPredictSet("data_types", False):
-                self.nextToken()
-                self.var_iden()
-        elif self.currToken["tokenType"] == "Identifier":
-            self.assign_stmt_or_func_method_call()
+            self.nextToken()
         
-        #if self.currToken["tokenType"] == ",":
-        #    self.var_iden_rec()
+        self.var_iden()
+        
+        if self.currToken["tokenType"] == ",":
+            self.var_iden_rec()
 
         print("(parser) exited production: \"init_arg\"")
 
@@ -2207,8 +2228,7 @@ class SyntaxAnalyzer:
         self.match("repeat", False)
         self.match("(", False)
         # <int_value> here (whole_lit for now)
-        if not self.int_val([")"]):
-            self.ERROR_expected_pos_integer_value()
+        self.int_val([")"])
         # self.match("whole_lit", False)
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
@@ -2287,7 +2307,7 @@ class SyntaxAnalyzer:
             self.int_val([")"])
         
         elif self.currToken and self.currToken["tokenType"] == "string_lit":
-            self.string_value()
+            self.string_value([")"])
             
             if self.currToken and self.currToken["tokenType"] == ",":
                 self.match(",")
@@ -2307,8 +2327,6 @@ class SyntaxAnalyzer:
         if self.match("Identifier", False):
             if self.currToken["tokenType"] in [",", "=", "["]:
                 self.var_id_mods()
-            elif self.currToken["tokenType"] == ".":
-                self.logError("Unexpected token '.' in variable declaration.")
       
         print("(parser) exited production: \"var_iden\"")
 
@@ -2322,7 +2340,7 @@ class SyntaxAnalyzer:
                 self.var_init()
                 if self.currToken["tokenType"] == ",":
                     self.var_iden_rec()
-    
+        
             elif self.currToken["tokenType"] == "[":
                 self.match("[", False)
                 if not self.int_val(["]"]):
@@ -2338,23 +2356,22 @@ class SyntaxAnalyzer:
         """<var_init> → = <value> | = Identifier <var_init> | λ"""
         print("(parser) entered production: \"var_init\"")
         
-        if self.currToken["tokenType"] in PREDICT_SETS["var_init"]:
-            if self.matchPredictSet("var_init"):
-                self.nextToken()
-                if self.currToken["tokenType"] == "Identifier":
-                    if self.peek()["tokenType"] in PREDICT_SETS["var_init"]:
-                        print("is identifier")
-                        self.match("Identifier", False)
-                        if self.currToken["tokenType"] in PREDICT_SETS["var_init"]:
-                            self.var_init()
-                    else:
-                        print("is value")
-                        if self.matchPredictSet("value", False):
-                            self.value(PREDICT_SETS["var_init"])
+        if self.currToken and self.currToken["tokenType"] == "=":
+            self.match("=", False)
+            if self.currToken["tokenType"] == "Identifier":
+                if self.peek()["tokenType"] == '=':
+                    print("is identifier")
+                    self.match("Identifier", False)
+                    if self.currToken["tokenType"] == "=":
+                        self.var_init()
                 else:
-                    print("is NOT identifier")
+                    print("is value")
                     if self.matchPredictSet("value", False):
                         self.value(PREDICT_SETS["var_init"])
+            else:
+                print("is NOT identifier")
+                if self.matchPredictSet("value", False):
+                    self.value(PREDICT_SETS["var_init"])
 
             #if self.currToken["tokenType"] == "=":
             #    self.var_assign_rec()
