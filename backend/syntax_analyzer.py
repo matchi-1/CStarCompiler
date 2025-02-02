@@ -370,7 +370,7 @@ class SyntaxAnalyzer:
             self.logError(f"Expected {expected_token}, but reached EOF.")
         else:
             self.logError(
-                f"Expected {expected_token}, but got '{self.currToken['tokenName']}'."
+                f"Expected '{expected_token}', but got '{self.currToken['tokenName']}'."
             )
 
     # If no main function was found throughout the whole program
@@ -2344,6 +2344,8 @@ class SyntaxAnalyzer:
         if self.match("Identifier", False):
             if self.currToken["tokenType"] in [",", "=", "["]:
                 self.var_id_mods()
+            elif self.currToken["tokenType"] == ";":
+                pass
             else: self.logError(f"Unexpected token '{self.currToken["tokenType"]}' for variable declaration.")
       
         print("(parser) exited production: \"var_iden\"")
@@ -2391,7 +2393,8 @@ class SyntaxAnalyzer:
             else:
                 print("is NOT identifier")
                 if self.matchPredictSet("value", False):
-                    self.value(PREDICT_SETS["var_init"])
+                    if not self.value(PREDICT_SETS["var_init"]):
+                        self.logError("Invalid value for variable declaration.")
         
         print("(parser) exited production: \"var_init\"")
 
