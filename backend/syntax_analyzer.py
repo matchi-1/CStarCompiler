@@ -2351,6 +2351,7 @@ class SyntaxAnalyzer:
         """<var_id_mods> → <var_init> <var_iden_rec> | [<int_val>] <var_id_arr1D> | λ"""
     
         if self.currToken: 
+
             if self.currToken["tokenType"] == "=":
                 self.var_init()
                 if self.currToken["tokenType"] == ",":
@@ -2363,6 +2364,9 @@ class SyntaxAnalyzer:
                 if not self.match("]", True):
                     self.ERROR_unclosed_square_bracket()
                 self.var_id_arr1D()
+            
+            elif self.currToken["tokenType"] == ",":
+                self.var_iden_rec()
         
         print("(parser) exited production: \"var_id_mods\"")
 
