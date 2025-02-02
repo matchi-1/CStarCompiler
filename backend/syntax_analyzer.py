@@ -1880,18 +1880,19 @@ class SyntaxAnalyzer:
 
     # bare-minimum tested
     def init_arg(self):
-        '''<init_arg> → <for_init_data_type> <var_iden>| null'''
-        '''<for_init_data_type> → <data_type> | null'''
+        '''<init_arg> → <data_type> <var_iden>| <assign_stmt> | null'''
 
         print("(parser) entered production: \"init_arg\"")
         
         if self.currToken["tokenName"] in PREDICT_SETS["data_types"]:
-            self.nextToken()
+            if self.matchPredictSet("data_types", False):
+                self.nextToken()
+                self.var_iden()
+        elif self.currToken["tokenType"] == "Identifier":
+            self.assign_stmt_or_func_method_call()
         
-        self.var_iden()
-        
-        if self.currToken["tokenType"] == ",":
-            self.var_iden_rec()
+        #if self.currToken["tokenType"] == ",":
+        #    self.var_iden_rec()
 
         print("(parser) exited production: \"init_arg\"")
 
@@ -2305,6 +2306,8 @@ class SyntaxAnalyzer:
         if self.match("Identifier", False):
             if self.currToken["tokenType"] in [",", "=", "["]:
                 self.var_id_mods()
+            elif self.currToken["tokenType"] == ".":
+                self.logError("Unexpected token '.' in variable declaration.")
       
         print("(parser) exited production: \"var_iden\"")
 
@@ -2318,7 +2321,7 @@ class SyntaxAnalyzer:
                 self.var_init()
                 if self.currToken["tokenType"] == ",":
                     self.var_iden_rec()
-        
+    
             elif self.currToken["tokenType"] == "[":
                 self.match("[", False)
                 if not self.int_val(["]"]):
@@ -2334,22 +2337,23 @@ class SyntaxAnalyzer:
         """<var_init> → = <value> | = Identifier <var_init> | λ"""
         print("(parser) entered production: \"var_init\"")
         
-        if self.currToken and self.currToken["tokenType"] == "=":
-            self.match("=", False)
-            if self.currToken["tokenType"] == "Identifier":
-                if self.peek()["tokenType"] == '=':
-                    print("is identifier")
-                    self.match("Identifier", False)
-                    if self.currToken["tokenType"] == "=":
-                        self.var_init()
+        if self.currToken["tokenType"] in PREDICT_SETS["var_init"]:
+            if self.matchPredictSet("var_init"):
+                self.nextToken()
+                if self.currToken["tokenType"] == "Identifier":
+                    if self.peek()["tokenType"] in PREDICT_SETS["var_init"]:
+                        print("is identifier")
+                        self.match("Identifier", False)
+                        if self.currToken["tokenType"] in PREDICT_SETS["var_init"]:
+                            self.var_init()
+                    else:
+                        print("is value")
+                        if self.matchPredictSet("value", False):
+                            self.value(PREDICT_SETS["var_init"])
                 else:
-                    print("is value")
+                    print("is NOT identifier")
                     if self.matchPredictSet("value", False):
                         self.value(PREDICT_SETS["var_init"])
-            else:
-                print("is NOT identifier")
-                if self.matchPredictSet("value", False):
-                    self.value(PREDICT_SETS["var_init"])
 
             #if self.currToken["tokenType"] == "=":
             #    self.var_assign_rec()
