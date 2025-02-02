@@ -149,7 +149,6 @@ class SyntaxAnalyzer:
                 if not outer_exists and len(paren_stack)==1:
                     print('(parser)(dbg) outer doesnt exist')
                     print(f'(parser)(dbg) paren_stack cont: {paren_stack}')
-                    print('(parser)(dbg) next token is ', self.peek(peek_index+1)["tokenType"])
                     if (self.peek(peek_index+1) and self.peek(peek_index+1)["tokenType"] in stopChars):
                         return "paren_wrap"
                     else:
@@ -1497,7 +1496,7 @@ class SyntaxAnalyzer:
         print('(parser) production: "ternary_exp" detected')
         if (self.currToken and self.currToken["tokenType"] == "("):
             self.match("(")
-            ####<condition> HERE
+            self.condition("ternary")
             print('(parser)(dbg)<condition>')
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
