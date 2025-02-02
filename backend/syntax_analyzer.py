@@ -32,7 +32,7 @@ PREDICT_SETS = {
     "output":["print", "println"],
     "conditional_stmt":["switch", "if"],
     "loop_stmt":["while", "do", "for", "repeat"],
-    "code_block": ["Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
+    "code_block": ["++","--","Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
     "iden_as_var_mods": ["[","."],
     "body": []  # Placeholder for now
 }
@@ -398,9 +398,6 @@ class SyntaxAnalyzer:
     def ERROR_expected_stdlib(self):
         self.logError("Expected a standard library (Cmath, Cstring, Carray).")
 
-    def ERROR_expected_Identifier(self):
-        self.logError("Expected Identifier.")
-
     def ERROR_expected_Identifier_classes(self):
         if not self.currToken:  # EOF case
             self.logError("Expected an identifier, but reached EOF (End of File).")
@@ -723,7 +720,7 @@ class SyntaxAnalyzer:
             self.classNames.append(self.currToken["tokenName"])      # handles constructor name logic of recursive classes within classes
             self.match("Identifier")
         else:
-            self.ERROR_expected_Identifier()
+            self.ERROR_expected_token("Identifier")
         
         self.match("{", False)
 
@@ -869,7 +866,7 @@ class SyntaxAnalyzer:
             self.nextToken()
             
             if not self.currToken or self.currToken["tokenType"] != "Identifier":
-                self.ERROR_expected_Identifier()
+                self.ERROR_expected_token("Identifier")
 
             self.var_iden()
 
@@ -901,7 +898,7 @@ class SyntaxAnalyzer:
                 self.matchPredictSet("data_types")
                 self.nextToken()
             if not self.match("Identifier"):
-                self.ERROR_expected_Identifier()
+                self.ERROR_expected_token("Identifier")
 
         self.match("(", False)
             
@@ -1658,7 +1655,7 @@ class SyntaxAnalyzer:
         print('(parser) production: "unary_exp" detected')
         if (self.currToken and self.currToken["tokenType"] == "Identifier"):
             if not self.match("Identifier", False):
-                self.ERROR_expected_Identifier()
+                self.ERROR_expected_token("Identifier")
             self.iden_mods()
             if (self.currToken and self.currToken["tokenType"] == "++"):
                 self.match("++")
@@ -1670,12 +1667,12 @@ class SyntaxAnalyzer:
             if (self.currToken and self.currToken["tokenType"] == "++"):
                 self.match("++")
                 if not self.match("Identifier"):
-                    self.ERROR_expected_Identifier()
+                    self.ERROR_expected_token("Identifier")
                 self.iden_mods()
             elif (self.currToken and self.currToken["tokenType"] == "--"):
                 self.match("--")
                 if not self.match("Identifier"):
-                    self.ERROR_expected_Identifier()
+                    self.ERROR_expected_token("Identifier")
                 self.iden_mods()
             else:
                 self.ERROR_expected_token(["++", "--"]) 
@@ -1708,7 +1705,7 @@ class SyntaxAnalyzer:
 
                         if self.currToken and self.currToken["tokenType"] == "[":
                             self.logError("Only up to two dimensional arrays are allowed.")
-            else: self.ERROR_expected_Identifier()
+            else: self.ERROR_expected_token("Identifier")
             
             if self.currToken and self.currToken["tokenType"] == "=":
                 isDefaultValRec = self.match("=")  # when '=' is matched in params, isDefaultValRec becomes true
@@ -2352,8 +2349,6 @@ class SyntaxAnalyzer:
                         self.logError("Invalid value for variable declaration.")
             
         print("(parser) exited production: \"var_init\"")
-
-    #def var_init_iden_con(self):
 
     
     def var_iden_rec(self):
