@@ -23,7 +23,7 @@ PREDICT_SETS = {
     "iden_mods" : ["(", "[", "."],  # TO ADD 
     "int_val" : ["whole_lit", "Identifier", "-", "("],
     "unary_operator" : ["++", "--"],
-    "lit_type": ["whole_lit", "frac_lit", "string_lit", "whole_lit"],
+    "lit_type": ["whole_lit", "frac_lit", "string_lit", "bool_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"],
     "string_value": ["string_lit", "Identifier", "("],
