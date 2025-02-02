@@ -2631,8 +2631,8 @@ class SyntaxAnalyzer:
             print("(parser) production: INSIDE \"iden_as_var_mods\" going to as_array")
             # array element
             self.as_array()         
-            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-                self.iden_as_var_mods() # match iden mods if there are any
+            if self.currToken and self.currToken["tokenType"] == ".":  # iden[x].
+                self.iden_as_var_mods_con() # match iden mods if there are any
         elif self.currToken and self.currToken["tokenType"] == ".":
             # object attribute (can be object attribute of an array element upon recursion)
             print("(parser) production: INSIDE \"iden_as_var_mods\" now checking identifier")
@@ -2645,6 +2645,12 @@ class SyntaxAnalyzer:
             pass
 
         print("(parser) exited production: \"iden_as_var_mods\"")
+
+    def iden_as_var_mods_con(self):
+        self.match(".")
+        self.match("Identifier", False)
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+            self.iden_as_var_mods()  # recurse for (objects with attributes) or (array with objects with attributes)
 
     def assign_stmt_or_func_method_call(self):
         print("(parser) production: \"assign_stmt_or_func_method_call\" detected")
