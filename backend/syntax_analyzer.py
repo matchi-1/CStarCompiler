@@ -716,7 +716,7 @@ class SyntaxAnalyzer:
 
 
     # TODO
-    def class_declaration(self):
+    def class_declaration(self, inClassBody = False):
         print("(parser) production: \"class_declaration\" detected")
         if self.currToken["tokenType"] == "private":
             self.match("private")
@@ -739,7 +739,10 @@ class SyntaxAnalyzer:
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
-        self.program_constructs()
+        if inClassBody:
+            self.class_body()
+        else:
+            self.program_constructs()
 
     
     def class_body(self): # all of these are just 'if's because class_body can be null
@@ -788,12 +791,12 @@ class SyntaxAnalyzer:
                 checkAfterPossibleNulls(self, 2, True) 
 
             elif class_peek and class_peek == "class": # found 'private class >' => class_dick
-                self.class_declaration()
+                self.class_declaration(inClassBody)
 
             else: checkAfterPossibleNulls(self, 1) #found private, but not class and not static. Check <is_const><is_void>dtype iden and check whether '(' | '= | , | ;'
 
         elif self.currToken and self.currToken["tokenType"] == "class":  # found 'class >' => class_declaration of indenpenepcnedeCECEde()
-            self.class_declaration()
+            self.class_declaration(inClassBody)
 
         elif self.currToken and self.currToken["tokenType"] == "Identifier": #can only be constructor
             self.constructor_dec()
@@ -811,6 +814,7 @@ class SyntaxAnalyzer:
             self.ERROR_unclosed_curly_braces()
 
         self.class_body()
+        inClassBody = False     #tf if i know if this does anything
 
     def attribute_dec(self, inClassBody = True): 
         print("(parser) production: \"attribute_dec\" detected")
@@ -1684,101 +1688,127 @@ class SyntaxAnalyzer:
             else:
                 self.ERROR_expected_token(["++", "--"]) 
 
+    def ret_type(self):
+        print("(parser) production: \"ret_type\" detected")
+
+        if self.currToken["tokenType"] in PREDICT_SETS["data_types"]:
+            self.nextToken()
+        else:
+            self.match("Identifier")
+
+        print("(parser) production: \"ret_type\" exited!!!!!")
+
+
+
+    def params_var(self):
+        print("(parser) production: \"params_var\" detected")
+
+        if self.currToken:
+            self.match("Identifier", False)
+            if self.currToken:
+                if self.peek(-2)["tokenType"] == "Identifier" and self.currToken:
+                    if self.currToken["tokenType"] == "=":
+                        self.logError("No default values for objects.")
+            self.params_var_cont()
+        else:
+            self.ERROR_expected_token("Identifier")
+
+        print("(parser) production: \"params_var\" exited!!!!!")
+
+
+    def params_var_cont(self):
+        print("(parser) production: \"params_var_cont\" detected")
+
+        if self.currToken:
+            if self.currToken["tokenType"] == "=":
+                self.match("=")
+                if not self.value([",", ")"]):
+                    self.ERROR_expected_token("value")
+                self.params_def_rec()
+
+            elif self.currToken["tokenType"] == "[":
+                self.is_array()
+            self.params_var_rec()
+
+        print("(parser) production: \"params_var_cont\" exited!!!!!")
+
+
+    def params_var_rec(self):
+        print("(parser) production: \"params_var_rec\" detected")
+
+        if self.currToken:
+            if self.currToken["tokenType"] == ",":
+                self.match(",")
+                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
+                    self.logError("Expected data type or Identifier (Class name).")
+                self.params_dec()
+    
+        print("(parser) production: \"params_var_rec\" exited!!!!!")
+
+
+    def params_def_rec(self, isDefault = False):
+        print("(parser) production: \"params_def_rec\" detected")
+
+        if self.currToken:
+            if self.currToken["tokenType"] == ",":
+                self.match(",")
+                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
+                    self.logError("Expected data type or Identifier (Class name).")
+                self.ret_type()
+
+                self.match("Identifier", False)
+                self.params_def_rec_cont(isDefault)
+
+        print("(parser) production: \"params_def_rec\" exited!!!!!")
+
+    def params_def_rec_cont(self,isDefault = False ):
+        print("(parser) production: \"params_def_rec_cont\" detected")
+
+        if self.currToken:
+            if not self.currToken and isDefault or self.currToken["tokenType"] != "=":
+                self.logError("No non-default parameter must fullow a default parameter.")
+            self.match("=", True)
+            if not self.value([",", ")"]):
+                    self.ERROR_expected_token("value")
+            self.params_def_rec(True)
+
+        print("(parser) production: \"params_def_rec_cont\" exited!!!!!")
+
+
+    def is_array(self):
+        print("(parser) production: \"is_array\" detected")
+
+        self.match("[", False)
+        if not self.match("]", False):
+            self.ERROR_unclosed_square_bracket()
+
+        if self.currToken and self.currToken["tokenType"] == "[":
+            self.match("[", False)
+            if not self.match("]", False):
+                self.ERROR_unclosed_square_bracket()
+
+        if self.currToken and self.currToken["tokenType"] == "[":
+            self.logError("Only up to 2-dimensions are allowed.")
+
+        if self.currToken and self.currToken["tokenType"] == "=":
+            self.logError("No default array values are allowed.")
+        print("(parser) production: \"is_array\" exited!!!!!")
+
+
 
     def params_dec(self):
         print("(parser) production: \"params_dec\" detected")
-        dimensionCount = 0
-        isDefaultValRec = False
+
 
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
-                self.logError("Expected data type or Identifier.")
-            self.nextToken()
+                self.logError("Expected data type or Identifier (Class name).")
+            self.ret_type()
+            self.params_var()
 
-            if self.match("Identifier"):
-                if self.currToken:
-                    if self.currToken["tokenType"] == "[": #check if 1d array
-                        self.match("[", False)
-                        if not self.match("]"):
-                            self.ERROR_unclosed_square_bracket()
-
-                        dimensionCount+=1
-
-                        if self.currToken["tokenType"] == "[" and self.currToken:
-                            self.match("[", False)
-                            if not self.match("]"):
-                                self.ERROR_unclosed_square_bracket()
-                            dimensionCount+=1
-
-                        if self.currToken and self.currToken["tokenType"] == "[":
-                            self.logError("Only up to two dimensional arrays are allowed.")
-            else: self.ERROR_expected_token("Identifier")
-            
-            if self.currToken and self.currToken["tokenType"] == "=":
-                isDefaultValRec = self.match("=")  # when '=' is matched in params, isDefaultValRec becomes true
-                if dimensionCount <= 0:        #handle when param init not array
-                    self.matchPredictSet("literals")
-                    self.nextToken()
-                else:
-                    if self.currToken and not self.match("{"):
-                        self.logError("Expected array initialization. E.g. {value, value, value, ...}")
-                        # placeholder error for now
-                    self.array_init(dimensionCount)
-                    print("Outside array_init")
-                    dimensionCount = 0
-                    if self.currToken and not self.match("}"):
-                        self.ERROR_unclosed_curly_braces()
-            
-            if self.currToken and isDefaultValRec and self.currToken["tokenType"] != "=" and self.currToken["tokenType"] != ",":
-                self.logError("No non-default argument must follow default argument.")
-                
-            if self.currToken and self.currToken["tokenType"] == ",":
-                self.match(",")
-                if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
-                    self.logError("Expected data type or Identifier.")
-                self.params_dec()   #recurse when ',' is found
 
         
-        
-    def array_init(self, dimensionCount):   
-        print(f"(parser) production: \"array_init #{dimensionCount}\" detected")
-        
-        # data_type Identifier[int_val][int_val] = {
-        #                                            ^ starts AFTER token "{" 
-        # uses dimensionCount
 
-        if dimensionCount == 2:        # for 2d arrays
-            self.match("{", False)
-
-            dimensionCount-=1
-            self.array_init()       #go into array_init as 1d array
-            # print("back as 2d array")
-            dimensionCount+=1
-
-            if self.currToken and self.currToken["tokenType"] == ",":
-                self.match(",")
-                self.array_init()   #go into array_init as 2d array
-
-            elif not self.currToken or not self.match("}"):     #outer 2d array closing bracket
-                # print("from 2d na error")
-                self.ERROR_unclosed_curly_braces()
-
-        else:               #for 1d array and inner 2darray {}'s
-            self.matchPredictSet("literals")    #TODO: maybe add different error here? pwede expressions d2 but not yet implemented
-            self.nextToken()
-
-            if self.currToken and self.currToken["tokenType"] == ",":
-                    self.match(",")
-                    if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["literals"] and self.currToken["tokenType"] != "Identifier":
-                        self.logError("Expected literal or Identifier.")
-                    self.array_init()       #recurse if found a ',' token
-
-            elif self.currToken and self.currToken["tokenType"] == "}":      #inner 1d array closing bracket
-                self.match("}")
-            
-            else:
-                #print("from 1d na error")
-                self.ERROR_unclosed_curly_braces()
     
   
   # ALEX start here
@@ -2011,7 +2041,7 @@ class SyntaxAnalyzer:
 
     # bare-minimum tested
     def switch_stmt(self):
-        '''<switch_stmt> → switch (<switch_value>) {<case_stmt> <default_stmt>}'''
+        '''<switch_stmt> → switch (<value>) {<case_stmt> <default_stmt>}'''
         print("(parser) entered production: \"switch_stmt\"")
 
         self.match("switch", False)
