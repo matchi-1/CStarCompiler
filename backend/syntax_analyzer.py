@@ -2326,7 +2326,7 @@ class SyntaxAnalyzer:
         """<var_init> → = <value> | = <assign_stmt> | λ"""
         print("(parser) entered production: \"var_init\"")
         
-        if self.currToken and self.currToken["tokenType"]:
+        if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=", False)
             if self.currToken["tokenType"] == "Identifier":
                 if self.peek()["tokenType"] in PREDICT_SETS["assign_operator"]:
@@ -2342,7 +2342,7 @@ class SyntaxAnalyzer:
                 if self.matchPredictSet("value", False):
                     if not self.value(PREDICT_SETS["var_init"]):
                         self.logError("Invalid value for variable declaration.")
-        
+            
         print("(parser) exited production: \"var_init\"")
 
     
