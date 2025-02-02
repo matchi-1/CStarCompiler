@@ -369,7 +369,7 @@ class SyntaxAnalyzer:
             self.logError(f"Expected {expected_token}, but reached EOF.")
         else:
             self.logError(
-                f"Expected '{expected_token}', but got '{self.currToken['tokenName']}'."
+                f"Expected {expected_token}, but got '{self.currToken['tokenName']}'."
             )
 
     # If no main function was found throughout the whole program
@@ -741,13 +741,13 @@ class SyntaxAnalyzer:
     
     def class_body(self): # all of these are just 'if's because class_body can be null
 
-        def checkAfterPossibleNulls(self, currentPeek = 1): # checks after <is_private> <is_static>, then checks <is_const> <is_void?????>
+        def checkAfterPossibleNulls(self, currentPeek = 1, foundStatic = False): # checks after <is_private> <is_static>, then checks <is_const> <is_void?????>
             print("(inClassBody) in checkAfterPossibleNulls()")  ##### * = one or zero, not zero or many, of the tokens
 
             class_peek = self.peek(currentPeek)["tokenType"]
 
             if class_peek and class_peek == "const": # found 'private* static* const > ' => attribute_dec
-                    self.attribute_dec(inClassBody)
+                self.attribute_dec(inClassBody)
 
             elif class_peek and class_peek == "void": # found 'private* static* void > ' => methods_dec
                 self.methods_dec(inClassBody)
@@ -767,7 +767,11 @@ class SyntaxAnalyzer:
 
                     else: self.ERROR_expected_token("Identifier") # found 'private* static* dtype <EOF or invalid token>' 
 
-            else: self.ERROR_expected_token(["const", "void"] + PREDICT_SETS["data_types"])   # found 'private* static* <EOF or invalid token>' 
+            else: 
+                if foundStatic:
+                    self.nextToken()  # skip private static to throw proper error
+                self.nextToken()
+                self.ERROR_expected_token(["const", "void"] + PREDICT_SETS["data_types"])   # found 'private* static* <EOF or invalid token>' 
 
 
     #def class_body(self):--------------------------------------------------------------------
@@ -778,7 +782,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "private": # checking 'private >'
             class_peek = self.peek()["tokenType"]   
             if class_peek and class_peek == "static": # found ' private static >', check next tokens in this func
-                checkAfterPossibleNulls(self, 2) 
+                checkAfterPossibleNulls(self, 2, True) 
 
             elif class_peek and class_peek == "class": # found 'private class >' => class_dick
                 self.class_declaration()
