@@ -32,7 +32,7 @@ PREDICT_SETS = {
     "output":["print", "println"],
     "conditional_stmt":["switch", "if"],
     "loop_stmt":["while", "do", "for", "repeat"],
-    "code_block": ["!", "(", "++", "-", "--", "Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "frac_lit", "if", 'in', "int", "long", "print", "println", "repeat", "string", "string_lit", "switch", "while", "whole_lit",],
+    "code_block": ["Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
     "iden_as_var_mods": ["[","."],
     "body": []  # Placeholder for now
 }
