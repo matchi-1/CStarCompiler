@@ -20,7 +20,7 @@ PREDICT_SETS = {
     "rel_operator" : ["==", "!=", "<", "<=", ">", ">="],
     "logic_operator" : ["&&", "||"],
     "iden_mods" : ["(", "[", "."],  # TO ADD 
-    "int_val" : ["whole_lit", "Identifier", "-", "("],
+    "int_val" : ["whole_lit", "Identifier", "-", "(", "in"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "bool_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"],
@@ -383,7 +383,7 @@ class SyntaxAnalyzer:
         self.logError("Unclosed parentheses: Expected ')'.")
     
     def ERROR_unclosed_curly_braces(self):
-        self.logError("Unclosed curly braces: Expected '}'.")
+        self.logError(f"Unclosed curly braces: Expected '}}', got '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_unclosed_square_bracket(self):
         self.logError("Unclosed square bracket: Expected ']'.")
@@ -1245,6 +1245,7 @@ class SyntaxAnalyzer:
         print('(parser) production: "int_val" detected')
         if (self.currToken and self.matchPredictSet("int_val")):
             prod = self.checkValProd(stopChars)
+            print
             if (prod == "paren_wrap"):
                 self.match("(")
                 self.int_val([")"])
@@ -1265,11 +1266,14 @@ class SyntaxAnalyzer:
                 self.match("Identifier")
                 self.iden_mods()
                 return True
+            elif (self.currToken and self.currToken["tokenType"] == "in"):
+                self.input()
+                return True
         else:
             return False
 
     def value(self, stopChars):
-        print('(parser) production "value" detected')
+        print(f'(parser) checking for..... "value", stopping at {stopChars}')
         if (self.currToken):
             prod = self.checkValProd(stopChars)
             print(f'(parser)(dbg) value prod: {prod}')
@@ -1944,7 +1948,7 @@ class SyntaxAnalyzer:
         '''<ret_value> → <value> | null'''
         print("(parser) entered production: \"ret_value\"")
 
-        if not isVoid and self.currToken["tokenType"] == ";":
+        if not isVoid and self.currToken["tokenType"] == ";" and not self.hasMainFunction:
             self.logError("Non-Void functions must return a value.")
         
         elif not isVoid:
@@ -2098,14 +2102,14 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"case_stmt\"")
 
         self.match("case", False)
-        print(self.case_value())
+        self.case_value()
         self.match(":", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
             self.ctrl_stmt_body()
         if self.currToken and self.currToken["tokenType"] == "case":
             self.case_stmt()
 
-        print("(parser) exited production: \"case_stmt\"")
+        print("(parser) exited production: \"case_stmt\" !!!!!!!!!!!")
     
     # bare-minimum tested
     def case_value(self):
@@ -2122,8 +2126,10 @@ class SyntaxAnalyzer:
             self.match("-", False)
             self.match("whole_lit", False)
 
-        else:
+        elif self.currToken:
             self.logError("Invalid value for 'case' statement.")
+
+        else: self.logError("'case' must be preceded with a valid value (Whole Number or String).")
 
         print("(parser) exited production: \"case_value\"")
 
@@ -2273,7 +2279,7 @@ class SyntaxAnalyzer:
             elif self.currToken["tokenType"] in PREDICT_SETS["body"]:
                 self.body()
 
-            if self.currToken["tokenType"] not in ["}", "case", "default"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and self.currToken["tokenType"] not in ["}", "case", "default"]:
                 self.ctrl_stmt_body()
 
         print("(parser) exited production: \"ctrl_stmt_body\"")
@@ -2382,12 +2388,12 @@ class SyntaxAnalyzer:
                 if self.peek()["tokenType"] == ";":
                     self.match("Identifier")
                     pass
-                elif self.peek()["tokenType"] in PREDICT_SETS["assign_operator"] + PREDICT_SETS["iden_as_var_mods"]:
-                    self.match("Identifier")
-                    if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-                        self.iden_as_var_mods()
-                    if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                        self.assign_stmt_op()
+                # elif self.peek()["tokenType"] in PREDICT_SETS["assign_operator"] + PREDICT_SETS["iden_as_var_mods"]:
+                #     self.match("Identifier")
+                #     if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+                #         self.iden_as_var_mods()
+                #     if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
+                #         self.assign_stmt_op()
                 else:
                     print("is value")
                     if self.matchPredictSet("value", False):
