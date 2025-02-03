@@ -769,10 +769,10 @@ class SyntaxAnalyzer:
                         if class_peek and class_peek == "(":    # found 'private* static* dtype iden(' => methods_dec
                             self.methods_dec(inClassBody)      
                             
-                        elif class_peek and class_peek in ["=", ",", ";"]: # found 'private* static* dtype iden = | , | ;' => attribute_dec
+                        elif class_peek and class_peek in [ ",", ";"] + PREDICT_SETS["assign_operator"]: # found 'private* static* dtype iden = | , | ;' => attribute_dec
                             self.attribute_dec(inClassBody)
 
-                        else: self.ERROR_expected_token(["=", ",", ";", "("]) # found 'private* static* dtype iden <EOF or invalid token>' 
+                        else: self.ERROR_expected_token([ ",", ";", "("] + PREDICT_SETS["assign_operator"]) # found 'private* static* dtype iden <EOF or invalid token>' 
 
                     else: self.ERROR_expected_token("Identifier") # found 'private* static* dtype <EOF or invalid token>' 
 
@@ -862,6 +862,11 @@ class SyntaxAnalyzer:
 
         self.match("{", False)
         self.code_block()
+        
+        if self.currToken and self.currToken["tokenType"] == "return":
+            self.logError("Constructors cannot have return statements.")
+
+
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
 
@@ -1372,6 +1377,8 @@ class SyntaxAnalyzer:
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
+            if self.currToken and self.currToken["tokenType"] == "[":
+                self.logError("Only up to 2-dimensions of arrays are allowed.")
                 
     def object_rec(self):
         print('(parser) production: "object_rec" detected')
@@ -1555,7 +1562,7 @@ class SyntaxAnalyzer:
     #####CONDITION
 
     def bool_value(self, stopChars):
-        print('(parser) production: "bool_value" detected')
+        print(f'(parser) checking for "bool_value"......., stopping at {stopChars}')
         if self.currToken:
             prod = self.checkValProd(stopChars)
             if (prod == "<logic_exp>"):
@@ -2082,8 +2089,8 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"case_stmt\"")
 
         self.match("case", False)
-        self.case_value()
-        self.match(":")
+        print(self.case_value())
+        self.match(":", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
             self.ctrl_stmt_body()
         if self.currToken and self.currToken["tokenType"] == "case":
@@ -2171,12 +2178,13 @@ class SyntaxAnalyzer:
             self.init_arg()
         else: print("(parser) empty init_arg detected")
         if not self.match(";"):
-            self.ERROR_terminating_token(";")
+            self.logError(f"Initialization argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
         
         self.condition("for-loop",[";"])
         
         if not self.match(";"):
-            self.ERROR_terminating_token(";")
+            self.logError(f"Condition argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
+
         
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
             self.inc_arg()
