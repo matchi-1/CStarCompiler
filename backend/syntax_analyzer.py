@@ -1591,7 +1591,7 @@ class SyntaxAnalyzer:
                     return False
             else:
                 if (self.currToken["tokenType"] == "("):
-                    if (self.peek() in PREDICT_SETS["data_types"]):
+                    if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
                         self.typecast_exp()
                         return True
                 elif (self.currToken["tokenType"] == "!"):
