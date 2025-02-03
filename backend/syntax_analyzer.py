@@ -2108,9 +2108,9 @@ class SyntaxAnalyzer:
             
         elif self.currToken and self.currToken["tokenType"] == "whole_lit": 
             if nextToken and nextToken["tokenType"] in PREDICT_SETS["arith_operator"]:
-                print("(parser) entered production: \"arith_exp\"")
-                self.arith_exp([":", ")"])
-                print("(parser) exited production: \"arith_exp\"")
+                self.match("whole_lit", False)
+                self.nextToken()
+                self.case_value()
             else:
                 self.match("whole_lit", False)
         
