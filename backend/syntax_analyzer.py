@@ -2334,7 +2334,7 @@ class SyntaxAnalyzer:
                 self.match(",")
 
                 if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
-                    self.int_val(")")
+                    self.int_val([")"])
                 else: self.logError("Invalid value for 'in' statement character limit")
         
         print("(parser) exited production: \"input_params\"")
