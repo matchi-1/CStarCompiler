@@ -976,7 +976,7 @@ class SyntaxAnalyzer:
 
         # Continue parsing program constructs
         if self.currToken:
-            if self.currToken["tokenType"] in PREDICT_SETS["program_constructs"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["program_constructs"] and not self.hasMainFunction:
                 self.program_constructs()
     
     # Handle <classinst_cont>
