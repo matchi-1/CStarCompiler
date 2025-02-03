@@ -249,6 +249,7 @@ class SyntaxAnalyzer:
                 if not inner:
                     if (peek_index > 1):
                         if (self.peek(peek_index-1)["tokenType"] in ["++", "--"]):
+                            print('(parser)(dbg) checkpostunary returning true')
                             return True
                         else:
                             return False
@@ -1289,7 +1290,7 @@ class SyntaxAnalyzer:
                 #    self.input_params()#######<input_params> HERE
                 #    self.match(")")
                 return True
-            elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
+            elif (self.currToken and self.currToken["tokenType"] in ["++", "--"]):
                 self.unary_exp()
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "("):
@@ -1307,6 +1308,7 @@ class SyntaxAnalyzer:
                 self.lit_type() 
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
+                print(f'(parser)(dbg) num_val checkpostun val: {self.checkPostUnary(stopChars)}')
                 if self.checkPostUnary(stopChars):
                     self.unary_exp()
                     return True
@@ -1397,7 +1399,7 @@ class SyntaxAnalyzer:
             elif (prod == "<str_exp>"):
                 print('(parser)(dbg)<str_exp>')
                 self.str_exp(stopChars)          ######### <str_exp> HERE
-            elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
+            elif (self.currToken and self.currToken["tokenType"] in ["++", "--"]):
                 self.unary_exp()
             elif (self.currToken and self.currToken["tokenType"] == "("):
                 if (self.peek() in PREDICT_SETS["data_types"]):
@@ -1430,6 +1432,7 @@ class SyntaxAnalyzer:
 
     def num_value(self, stopChars):
         print('(parser) production: "num_value" detected')
+        print(f'(parser)(dbg) num_val stopchar: {stopChars}')
         if (self.currToken and self.currToken["tokenType"] == "whole_lit"):
             print(f'(parser)(dbg) {self.currToken["tokenName"]} is whole_lit')
             self.match("whole_lit")
@@ -1440,7 +1443,7 @@ class SyntaxAnalyzer:
         elif (self.currToken and self.currToken["tokenType"] == "-"):
             self.negative_exp(stopChars)
             return True
-        elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["unary_operator"]):
+        elif (self.currToken and self.currToken["tokenType"] in ["++", "--"]):
             self.unary_exp()
             return True
         elif (self.currToken and self.currToken["tokenType"] == "("):
