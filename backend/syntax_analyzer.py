@@ -975,7 +975,9 @@ class SyntaxAnalyzer:
 
 
         # Continue parsing program constructs
-        self.program_constructs()
+        if self.currToken:
+            if self.currToken["tokenType"] in PREDICT_SETS["program_constructs"]:
+                self.program_constructs()
     
     # Handle <classinst_cont>
     def classinst_cont(self):
@@ -1596,6 +1598,7 @@ class SyntaxAnalyzer:
         else:
             self.ERROR_expected_token("bool_value")
             return False
+
     def rel_exp(self, stopChars):
         print('(parser) production: "rel_exp" detected')
         self.value(PREDICT_SETS["rel_operator"])
