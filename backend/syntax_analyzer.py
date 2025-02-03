@@ -862,10 +862,9 @@ class SyntaxAnalyzer:
 
         self.match("{", False)
         self.code_block()
-        
-        if self.currToken and self.currToken["tokenType"] == "return":
-            self.logError("Constructors cannot have return statements.")
 
+        if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["code_block"]+["}"]:
+            self.logError(f"Unexpected '{self.currToken["tokenType"]}' in constructor.")
 
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
