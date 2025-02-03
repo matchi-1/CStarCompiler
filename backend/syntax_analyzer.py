@@ -1862,7 +1862,8 @@ class SyntaxAnalyzer:
         
         # if <print_params> are not null
         if self.currToken and self.currToken["tokenType"] != ")":
-            self.value([",", ")"])
+            if not self.value([",", ")"]):
+                self.logError("Invalid 'print' statement parameter.")
             if self.currToken and self.currToken["tokenType"] == ",":
                 self.output_rec()
         
@@ -2538,7 +2539,7 @@ class SyntaxAnalyzer:
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
                 
-                self.match("[")
+                self.match("[", False)
                 if not self.int_val(["]"]):
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
@@ -2546,6 +2547,7 @@ class SyntaxAnalyzer:
                 
                 if self.currToken["tokenType"] == ",":
                     self.array2D_iden_rec()
+                
                 #else:
                 #    self.ERROR_unclosed_square_bracket()
 
