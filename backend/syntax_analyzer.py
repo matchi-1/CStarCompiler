@@ -710,7 +710,7 @@ class SyntaxAnalyzer:
                             next_token = next_tokens["tokenType"]
                             if next_token == "(":  # FUNC DEC
                                 self.function_dec()
-                            if next_token in ["=", ";", ","]:  # VAR DEC
+                            if next_token in ["=", ";", ",", "["]:  # VAR DEC
                                 self.var_dec("program_constructs")
                         else: self.ERROR_expected_token(["(","=",";" ])
                     else:
