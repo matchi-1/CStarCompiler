@@ -1511,7 +1511,7 @@ class SyntaxAnalyzer:
         print('(parser) production: "ternary_exp" detected')
         if (self.currToken and self.currToken["tokenType"] == "("):
             self.match("(")
-            self.condition("ternary")
+            self.condition("ternary",[")"])
             print('(parser)(dbg)<condition>')
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
@@ -1817,12 +1817,12 @@ class SyntaxAnalyzer:
     
   
   # ALEX start here
-    def condition(self, condType):      #TODO: change bool_lit here to allow logic/rel exps
+    def condition(self, condType, stopChar):      #TODO: change bool_lit here to allow logic/rel exps
         '''<condition> → <bool_value>'''
         print("(parser) entered production: \"condition\"")
         
         ## <bool_value> here (only bool_lit for now)
-        if not self.bool_value([";"]):      # for some reason in the 'match' function, this goes to the 'else' block when it shouldnt i rly dk why, i dont wanna change the match function because when i did other parts didnt work. so now the errors down here is somehow inaccessible during my testing
+        if not self.bool_value(stopChar):      # for some reason in the 'match' function, this goes to the 'else' block when it shouldnt i rly dk why, i dont wanna change the match function because when i did other parts didnt work. so now the errors down here is somehow inaccessible during my testing
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.ERROR_missing_condition(condType)
             else: 
@@ -1904,7 +1904,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "{":
             self.ERROR_missing_condition("if")
         self.match("(", False)
-        self.condition("if")
+        self.condition("if",[")"])
         print("(parser) exited production: \"condition\", back to prod if_stmt")
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
@@ -2172,7 +2172,7 @@ class SyntaxAnalyzer:
         if not self.match(";"):
             self.ERROR_terminating_token(";")
         
-        self.condition("for-loop")
+        self.condition("for-loop",[";"])
         
         if not self.match(";"):
             self.ERROR_terminating_token(";")
@@ -2199,7 +2199,7 @@ class SyntaxAnalyzer:
         self.match("while", False)
         
         self.match("(", False)
-        self.condition("while")
+        self.condition("while",[")"])
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
         
@@ -2229,7 +2229,7 @@ class SyntaxAnalyzer:
             self.logError("'do' statement must include 'while' condition after '}'.")
         if not self.match("(", True):
             self.logError("'while' statement must be preceded by parentheses-enclosed condition.")
-        self.condition("while")
+        self.condition("while",[")"])
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
         if not self.match(";", True):
@@ -2278,12 +2278,12 @@ class SyntaxAnalyzer:
         if self.currToken:
             if self.currToken["tokenType"] == "break":
                 self.break_stmt()
-            if self.currToken["tokenType"] == "continue":
+            elif self.currToken["tokenType"] == "continue":
                 self.continue_stmt()
-            if self.currToken["tokenType"] in PREDICT_SETS["body"]:
+            elif self.currToken["tokenType"] in PREDICT_SETS["body"]:
                 self.body()
 
-            if self.currToken["tokenType"] not in ["}", "case"]:
+            if self.currToken["tokenType"] not in ["}", "case", "default"]:
                 self.ctrl_stmt_body()
 
         print("(parser) exited production: \"ctrl_stmt_body\"")
