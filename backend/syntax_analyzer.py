@@ -12,7 +12,7 @@ PREDICT_SETS = {
     "unary_operator" : ["++", "--", "Identifier"],
     "init_arg" : ["Identifier", "bool", "string", "int", "long", "double", "float"],
     "switch_value" : ["whole_lit", "string_lit", "Identifier", "(", "-"], # TO ADD other exps
-    "ctrl_stmt_body" : ["break", "continue"], # +body
+    "ctrl_stmt_body" : ["break", "continue"], 
     "arith_operator" : ["+", "-", "*", "/", "%"],
     "inc_arg" : ["Identifier", "--", "++", "print", "println", "("],
     "func_arg" : ["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit", ")"],
@@ -33,6 +33,8 @@ PREDICT_SETS = {
     "body": []  # Placeholder for now
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
+PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
+
 
 # reminders for predict sets:
  
@@ -90,7 +92,7 @@ class SyntaxAnalyzer:
             print(f"('match' function) token {expected_token} matched")
             self.nextToken()
             return True
-        elif not self.currToken and hasSpecError:
+        elif hasSpecError:
             print("('match' function) deactivating default expected token error")
             return False
         else:
@@ -737,8 +739,8 @@ class SyntaxAnalyzer:
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
 
-        if not self.match(";"):
-            self.ERROR_terminating_token(";")
+        if not self.match(";", True):
+            self.logError("Class Declaration is expected to be terminated by ';' after '}'.")
 
         if inClassBody:
             self.class_body()
@@ -1832,8 +1834,13 @@ class SyntaxAnalyzer:
         
         '''<print_stmts> → print | println'''
         # <print_stmts> are already expected to be here before it entered func
-        if self.matchPredictSet("print_stmts"):
-            self.nextToken()
+        if self.matchPredictSet("print_stmts", False):
+            match self.currToken["tokenType"]:
+                case "print":
+                    self.match("print")
+                case "println":
+                    self.match("println")
+
         self.match("(", False)
         
         # won't enter print_params if null
@@ -2050,7 +2057,7 @@ class SyntaxAnalyzer:
         self.match("(", False)
         
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
-            if not self.value(")"):
+            if not self.value([")", "{"]):
                 self.ERROR_empty_condition("switch")
         
         if not self.match(")"): 
@@ -2208,19 +2215,22 @@ class SyntaxAnalyzer:
         self.match("do", False)
         
         self.match("{", False)
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-            self.ctrl_stmt_body()
+        print()
+        if self.currToken:
+            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
+                self.ctrl_stmt_body()
         if not self.match("}", True):
             self.ERROR_unclosed_curly_braces()
         
         if not self.match("while", True):
-            self.logError("'do' statement must include 'while' condition.")
-        self.match("(", False)
+            self.logError("'do' statement must include 'while' condition after '}'.")
+        if not self.match("(", True):
+            self.logError("'while' statement must be preceded by parentheses-enclosed condition.")
         self.condition("while")
         if not self.match(")"):
             self.ERROR_unclosed_parentheses()
-        if not self.match(";"):
-            self.ERROR_terminating_token(";")
+        if not self.match(";", True):
+            self.logError("'while' statements must be terminated by ';' in a do-while statement.")
 
         print("(parser) exited production: \"do_stmt\"")
 
