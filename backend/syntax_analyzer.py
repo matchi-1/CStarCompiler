@@ -513,7 +513,7 @@ class SyntaxAnalyzer:
         if self.currToken:
             # Variable Declaration
             if self.currToken["tokenType"] in PREDICT_SETS["var_dec"]: 
-                self.var_dec()
+                self.var_dec("code_block")
                 print("(parser) production: \"var_dec\" EXITED!! Back to code_block")
             
             # Output Statement
@@ -682,7 +682,7 @@ class SyntaxAnalyzer:
 
             # VAR DEC
             elif self.currToken["tokenType"] == "const":
-                self.var_dec()
+                self.var_dec("program_constructs")
 
             # VOID MAIN FUNCTION OR VOID FUNCTION
             elif self.currToken["tokenType"] == "void":
@@ -709,7 +709,7 @@ class SyntaxAnalyzer:
                     if self.currToken and self.currToken["tokenType"] == "(":  # FUNC DEC
                         self.function_dec()
                     elif self.currToken and self.currToken["tokenType"] in ["=", ";"]:  # VAR DEC
-                        self.var_dec()
+                        self.var_dec("program_constructs")
                     else:
                         self.ERROR_expected_token(["(","=",";" ])
                 else:
@@ -828,7 +828,7 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == "static":
                 self.match("static")
 
-            self.var_dec(inClassBody)
+            self.var_dec("class_body")
 
         print("(parser) production: \"attribute_dec\" exited!!!!!")
 
@@ -874,7 +874,7 @@ class SyntaxAnalyzer:
 
 
     # TODO
-    def var_dec(self, inClassBody = False):      #starts at token '=' or 'const' or 'data_types'
+    def var_dec(self, location):      #starts at token '=' or 'const' or 'data_types'
         print("(parser) production: \"var_dec\" detected")
 
         if self.currToken and self.currToken["tokenType"] not in ["=", ";"]: # if not from second calling from program_construct
@@ -896,14 +896,17 @@ class SyntaxAnalyzer:
         if not self.match(";"): 
             self.ERROR_terminating_token(";")
         
-        if not inClassBody and not self.hasMainFunction:
+        if location == "program_constructs":
             self.program_constructs()
 
-        elif not self.hasMainFunction:
+        elif location == "class_body":
             self.class_body()
 
-        else:
+        elif location == "code_block":
             self.code_block()
+        elif location == "function_dec":
+            self.function_dec()
+
 
     # TODO
     def function_dec(self, inClassBody = False):     #starts at iden'(' or 'void' or 'dtype'
@@ -1378,7 +1381,7 @@ class SyntaxAnalyzer:
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
             if self.currToken and self.currToken["tokenType"] == "[":
-                self.logError("Only up to 2-dimensions of arrays are allowed.")
+                self.logError("Only up to 2 dimensions of arrays are allowed.")
                 
     def object_rec(self):
         print('(parser) production: "object_rec" detected')
@@ -2137,9 +2140,9 @@ class SyntaxAnalyzer:
                 self.case_value()
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
-                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]:
-                    self.nextToken()
-                    self.case_value()
+        elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]:
+            self.nextToken()
+            self.case_value()
 
         else:
             self.logError("Invalid value for 'case' statement.")
