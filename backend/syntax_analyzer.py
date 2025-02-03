@@ -1670,7 +1670,6 @@ class SyntaxAnalyzer:
         if (self.currToken and self.currToken["tokenType"] == "Identifier"):
             if not self.match("Identifier", False):
                 self.ERROR_expected_token("Identifier")
-            self.iden_mods()
             if (self.currToken and self.currToken["tokenType"] == "++"):
                 self.match("++")
             elif (self.currToken and self.currToken["tokenType"] == "--"):
@@ -1682,12 +1681,10 @@ class SyntaxAnalyzer:
                 self.match("++")
                 if not self.match("Identifier"):
                     self.ERROR_expected_token("Identifier")
-                self.iden_mods()
             elif (self.currToken and self.currToken["tokenType"] == "--"):
                 self.match("--")
                 if not self.match("Identifier"):
                     self.ERROR_expected_token("Identifier")
-                self.iden_mods()
             else:
                 self.ERROR_expected_token(["++", "--"]) 
 
