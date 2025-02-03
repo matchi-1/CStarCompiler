@@ -1258,7 +1258,8 @@ class SyntaxAnalyzer:
             print
             if (prod == "paren_wrap"):
                 self.match("(")
-                self.int_val([")"])
+                if not self.int_val([")"]):
+                    self.logError("Expected valid integer value inside parenthesis.")
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
                 return True
