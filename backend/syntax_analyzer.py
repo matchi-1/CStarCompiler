@@ -1312,7 +1312,7 @@ class SyntaxAnalyzer:
                 self.unary_exp()
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "("):
-                if (self.peek() in PREDICT_SETS["data_types"]):
+                if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
                     self.typecast_exp()
                     return True
             elif (self.currToken and self.currToken["tokenType"] == "!"):
@@ -2378,7 +2378,7 @@ class SyntaxAnalyzer:
         
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=", False)
-            if self.currToken["tokenType"] == "Identifier":
+            if self.currToken and self.currToken["tokenType"] == "Identifier":
                 if self.peek()["tokenType"] == ";":
                     self.match("Identifier")
                     pass
