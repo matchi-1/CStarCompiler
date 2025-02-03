@@ -2622,7 +2622,7 @@ class SyntaxAnalyzer:
                 print('(parser)(dbg)<str_exp>')
                 self.str_exp(stopChars)
             elif (self.currToken and self.currToken["tokenType"] == "("):
-                if (self.peek() in PREDICT_SETS["data_types"]):
+                if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
                     self.typecast_exp()
             elif (self.currToken and self.currToken["tokenType"] == "string_lit"):
                 self.match("string_lit", False)
