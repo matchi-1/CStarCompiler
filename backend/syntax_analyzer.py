@@ -121,6 +121,7 @@ class SyntaxAnalyzer:
         inner = False
         outer_exists = True
         has_string = False
+        is_plus = False
         prod = "single"
         peek_index = 0 #so that it counts currToken LOL THIS IS NOT HOW PEEK() IS SUPPOSED TO BE USED BUT IT WORKS
         while True:
@@ -133,10 +134,20 @@ class SyntaxAnalyzer:
                 return False
             if (t["tokenType"] in stopChars):
                 if not inner:
+                    if is_plus and has_string:
+                        prod = "<str_exp>"
                     return prod
             print(f'(parser)(dbg) valCheck token: {t["tokenType"]}')
-            if (t["tokenType"] in ["string", "string_lit"]):
-                has_string = True
+            # if (t["tokenType"] in ["string", "string_lit"]):
+            if (t["tokenType"] == "string_lit"):
+                if not inner:
+                    has_string = True
+            if (t["tokenType"] == "string"):
+                if peek_index > 0:
+                    if (self.peek(peek_index-1) and self.peek(peek_index-1)["tokenType"] == "("):
+                        if (self.peek(peek_index+1) and self.peek(peek_index+1)["tokenType"] == ")"):
+                            if not inner:
+                                has_string = True
             if (t["tokenType"] == "("):
                 paren_stack.append(t["tokenType"])
                 if (peek_index == 0):
@@ -189,10 +200,9 @@ class SyntaxAnalyzer:
                             peek_index += 1
                             continue # to avoid looking at casting of negative exp
                     if prod not in ["<rel_exp>", "<logic_exp>"]:
-                        if (t["tokenType"] == "+" and has_string):
-                            prod = "<str_exp>"
-                        else:
-                            prod = "<arith_exp>"
+                        if t["tokenType"] == "+":
+                            is_plus = True
+                        prod = "<arith_exp>"
             peek_index += 1
                         
     def checkArithParen(self):
@@ -1316,7 +1326,7 @@ class SyntaxAnalyzer:
                 self.unary_exp()
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "("):
-                if (self.peek() in PREDICT_SETS["data_types"]):
+                if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
                     self.typecast_exp()
                     return True
             elif (self.currToken and self.currToken["tokenType"] == "!"):
@@ -1595,7 +1605,7 @@ class SyntaxAnalyzer:
                     return False
             else:
                 if (self.currToken["tokenType"] == "("):
-                    if (self.peek() in PREDICT_SETS["data_types"]):
+                    if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
                         self.typecast_exp()
                         return True
                 elif (self.currToken["tokenType"] == "!"):
@@ -1791,7 +1801,7 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             if not self.currToken and isDefault or self.currToken["tokenType"] != "=":
-                self.logError("No non-default parameter must fullow a default parameter.")
+                self.logError("No non-default parameter must follow a default parameter.")
             self.match("=", True)
             if not self.value([",", ")"]):
                     self.ERROR_expected_token("value")
@@ -2113,7 +2123,7 @@ class SyntaxAnalyzer:
     
     # bare-minimum tested
     def case_value(self):
-        '''<switch_value> → string_lit | whole_lit | <arith_exp> | <negative_exp> | <typecast_exp>'''
+        '''<switch_value> → string_lit | whole_lit | <negative_exp> '''
         print("(parser) entered production: \"case_value\"") 
 
         if self.currToken and self.currToken["tokenType"] == "string_lit": 
@@ -2384,7 +2394,7 @@ class SyntaxAnalyzer:
         
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=", False)
-            if self.currToken["tokenType"] == "Identifier":
+            if self.currToken and self.currToken["tokenType"] == "Identifier":
                 if self.peek()["tokenType"] == ";":
                     self.match("Identifier")
                     pass
