@@ -1797,7 +1797,7 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             if not self.currToken and isDefault or self.currToken["tokenType"] != "=":
-                self.logError("No non-default parameter must fullow a default parameter.")
+                self.logError("No non-default parameter must follow a default parameter.")
             self.match("=", True)
             if not self.value([",", ")"]):
                     self.ERROR_expected_token("value")
@@ -2119,7 +2119,7 @@ class SyntaxAnalyzer:
     
     # bare-minimum tested
     def case_value(self):
-        '''<switch_value> → string_lit | whole_lit | <arith_exp> | <negative_exp> | <typecast_exp>'''
+        '''<switch_value> → string_lit | whole_lit | <negative_exp> '''
         print("(parser) entered production: \"case_value\"") 
 
         if self.currToken and self.currToken["tokenType"] == "string_lit": 
