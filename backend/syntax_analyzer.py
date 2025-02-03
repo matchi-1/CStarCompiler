@@ -537,7 +537,7 @@ class SyntaxAnalyzer:
             # Class Instantiation or Function/Method Call or Assignment/Expression
             elif self.currToken["tokenType"] == "Identifier":
                 if self.peek() and self.peek()["tokenType"] == "Identifier":
-                    self.class_inst()
+                    self.class_inst("code_block")
                 
                 elif self.peek() and self.peek()["tokenType"] in [item for item in PREDICT_SETS["unary_operator"] if item != "Identifier"]:
                     self.unary_exp()
@@ -698,7 +698,7 @@ class SyntaxAnalyzer:
             # OBJECT INSTANTIATION -- GLOBAL OBJECTS
             elif self.currToken["tokenType"] == "Identifier":
                 print("(parser): ENTERING CLASS INST")
-                self.class_inst()
+                self.class_inst("program_constructs")
                 print("(parser): DONE CLASS INST")
                 
             # VAR OR FUNC DEC
@@ -949,7 +949,7 @@ class SyntaxAnalyzer:
 
 
     # MICH START HERE
-    def class_inst(self):
+    def class_inst(self, location):
         print("(parser) production: \"class_inst\" detected")
 
         # Parse the first Identifier (class name or type)
@@ -987,8 +987,11 @@ class SyntaxAnalyzer:
 
         # Continue parsing program constructs
         if self.currToken:
-            if self.currToken["tokenType"] in PREDICT_SETS["program_constructs"] and not self.hasMainFunction:
+            if location == "program_constructs":
                 self.program_constructs()
+            elif location == "code_block":
+                self.code_block()
+            
     
     # Handle <classinst_cont>
     def classinst_cont(self):
