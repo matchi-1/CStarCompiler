@@ -387,10 +387,10 @@ class SyntaxAnalyzer:
         raise SyntaxError(message)
 
     def ERROR_unclosed_angled_bracket(self):
-        self.logError("Unclosed angled bracket: Expected '>'.") ## should we add line no. + col. num sa mga error d2
+        self.logError(f"Unclosed angled bracket: Expected '>', got '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ") ## should we add line no. + col. num sa mga error d2
 
     def ERROR_unclosed_parentheses(self):
-        self.logError("Unclosed parentheses: Expected ')'.")
+        self.logError(f"Unclosed parentheses: Expected ')', got '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
     
     def ERROR_unclosed_curly_braces(self):
         self.logError(f"Unclosed curly braces: Expected '}}', got '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
@@ -439,7 +439,7 @@ class SyntaxAnalyzer:
         self.logError(f"Condition cannot be empty for '{condType}' statement")
 
     def ERROR_expected_num_value(self):
-        self.logError(f"Expected numerical value. Got {self.currToken["tokenType"]} instead.")
+        self.logError(f"Expected numerical value. Got '{self.currToken["tokenType"] if self.currToken else EOF}' instead.")
     
     def ERROR_unmatched_closing(self):
         self.logError(f"Found unmatched {self.currToken["tokenType"]}.")
@@ -1300,7 +1300,7 @@ class SyntaxAnalyzer:
                 return True
             elif (prod == "<logic_exp>"):
                 print('(parser)(dbg) logic_exp')
-                self.logic_exp(stopChars)     #########<logic_exp> HERE
+                self.logic_exp(stopChars)     
                 return True
             elif (prod == "<rel_exp>"):
                 self.rel_exp(stopChars)
@@ -1310,18 +1310,10 @@ class SyntaxAnalyzer:
                 return True
             elif (prod == "<str_exp>"):
                 print('(parser)(dbg)<str_exp>')
-                self.str_exp(stopChars)##### <str_exp> HERE
+                self.str_exp(stopChars)
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "in"):
                 self.input()
-                #self.match("in")
-                #self.match("<")
-                #if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_types"]):
-                #    self.nextToken()
-                #    self.match(">")
-                #    self.match("(")
-                #    self.input_params()#######<input_params> HERE
-                #    self.match(")")
                 return True
             elif (self.currToken and self.currToken["tokenType"] in ["++", "--"]):
                 self.unary_exp()
@@ -1332,7 +1324,7 @@ class SyntaxAnalyzer:
                     return True
             elif (self.currToken and self.currToken["tokenType"] == "!"):
                 print('(parser)(dbg) logic_exp')
-                self.logic_exp(stopChars)   #########<logic_exp> HERE
+                self.logic_exp(stopChars)   
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "-"):
                 self.negative_exp(stopChars)
@@ -1365,7 +1357,7 @@ class SyntaxAnalyzer:
         elif (self.currToken and self.currToken["tokenType"] == "bool_lit"):
             self.match("bool_lit")
 
-    #TODO: func_args
+
     def iden_mods(self):
         print('(parser) production: "iden_mods" detected')
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
@@ -1509,6 +1501,9 @@ class SyntaxAnalyzer:
                 self.match("Identifier")
                 self.iden_mods()
                 return True
+        elif (self.currToken and self.currToken["tokenType"] == "in"):
+            self.input()
+            return True
         else:
             return False #for error later
     
@@ -1681,6 +1676,8 @@ class SyntaxAnalyzer:
                     elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
                         self.match("Identifier")
                         self.iden_mods()
+                    elif (self.currToken and self.currToken["tokenType"] == "in"):
+                        self.input()
             else:
                 self.ERROR_expected_token(PREDICT_SETS["data_types"])
         else:
