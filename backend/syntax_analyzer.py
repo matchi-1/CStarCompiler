@@ -2112,43 +2112,15 @@ class SyntaxAnalyzer:
         '''<switch_value> → string_lit | whole_lit | <arith_exp> | <negative_exp> | <typecast_exp>'''
         print("(parser) entered production: \"case_value\"") 
 
-        nextToken = self.peek()  
-
         if self.currToken and self.currToken["tokenType"] == "string_lit": 
-            if nextToken and nextToken["tokenType"] == "+":
-                print("(parser) entered production: \"str_exp\"")
-                self.str_exp([":", ")"])
-                print("(parser) exited production: \"str_exp\"")
-            else:
-                self.match("string_lit", False)
+            self.match("string_lit", False)
             
         elif self.currToken and self.currToken["tokenType"] == "whole_lit": 
-            if nextToken and nextToken["tokenType"] in PREDICT_SETS["arith_operator"]:
-                self.match("whole_lit", False)
-                self.nextToken()
-                self.case_value()
-            else:
-                self.match("whole_lit", False)
+            self.match("whole_lit", False)
         
         elif self.currToken and self.currToken["tokenType"] == "-":
-            print("(parser) entered production: \"negative_exp\"")
-            self.negative_exp([":", ")"])
-            print("(parser) exited production: \"negative_exp\"") 
-        
-        elif self.currToken and self.currToken["tokenType"] == "(":
-            if nextToken and nextToken["tokenType"] in PREDICT_SETS["data_types"]:
-                print("(parser) entered production: \"typecast_exp\"")
-                self.typecast_exp()
-                print("(parser) exited production: \"typecast_exp\"")
-            
-            else: 
-                self.match("(", False)
-                self.case_value()
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-        elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]:
-            self.nextToken()
-            self.case_value()
+            self.match("-", False)
+            self.match("whole_lit", False)
 
         else:
             self.logError("Invalid value for 'case' statement.")
