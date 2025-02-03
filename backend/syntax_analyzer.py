@@ -2395,20 +2395,22 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=", False)
             if self.currToken and self.currToken["tokenType"] == "Identifier":
-                if self.peek()["tokenType"] == ";":
-                    self.match("Identifier")
-                    pass
-                # elif self.peek()["tokenType"] in PREDICT_SETS["assign_operator"] + PREDICT_SETS["iden_as_var_mods"]:
-                #     self.match("Identifier")
-                #     if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-                #         self.iden_as_var_mods()
-                #     if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                #         self.assign_stmt_op()
-                else:
-                    print("is value")
-                    if self.matchPredictSet("value", False):
-                        self.value(PREDICT_SETS["var_init"])
+                self.assign_stmt_op_con()
+                #if self.peek()["tokenType"] == ";":
+                #    self.match("Identifier")
+                #    pass
+                #elif self.peek()["tokenType"] in PREDICT_SETS["assign_operator"] + PREDICT_SETS["iden_as_var_mods"]:
+                    #
+                    #self.match("Identifier")
+                    #if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+                    #    self.iden_as_var_mods()
+                    #if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
+                    #    self.assign_stmt_op()
 
+                #else:
+                #    print("is value")
+                #    if self.matchPredictSet("value", False):
+                #        self.value(PREDICT_SETS["var_init"])
             else:
                 print("is NOT identifier")
                 if self.matchPredictSet("value", False):
