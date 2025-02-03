@@ -1879,11 +1879,11 @@ def compile_code():
     tokens, errors = lexer_results  # Unpack the results
 
     # Calls syntax analyzer
-    # try:
-    #     analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-    #     errors += analyzer.parse()    # comment out to just test for lexer
-    # except SyntaxError as e:
-    #     print(e)
+    try:
+        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+        errors += analyzer.parse()    # comment out to just test for lexer
+    except SyntaxError as e:
+        print(e)
 
 
     # Convert Token objects to dictionaries

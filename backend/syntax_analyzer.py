@@ -1566,7 +1566,7 @@ class SyntaxAnalyzer:
                 if self.currToken and self.bool_value([")"]):
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
-                        return True
+                    return True
                 else:
                     return False
             else:
@@ -1820,7 +1820,7 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"condition\"")
         
         ## <bool_value> here (only bool_lit for now)
-        if not self.bool_value([")",";"]):      # for some reason in the 'match' function, this goes to the 'else' block when it shouldnt i rly dk why, i dont wanna change the match function because when i did other parts didnt work. so now the errors down here is somehow inaccessible during my testing
+        if not self.bool_value([";"]):      # for some reason in the 'match' function, this goes to the 'else' block when it shouldnt i rly dk why, i dont wanna change the match function because when i did other parts didnt work. so now the errors down here is somehow inaccessible during my testing
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.ERROR_missing_condition(condType)
             else: 
