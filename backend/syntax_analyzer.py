@@ -703,17 +703,19 @@ class SyntaxAnalyzer:
                 
             # VAR OR FUNC DEC
             elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:  # sample of custom error not using matchPredictSet
-                self.nextToken()
-
-                if self.match("Identifier"): 
-                    if self.currToken and self.currToken["tokenType"] == "(":  # FUNC DEC
-                        self.function_dec()
-                    elif self.currToken and self.currToken["tokenType"] in ["=", ";"]:  # VAR DEC
-                        self.var_dec("program_constructs")
+                if self.peek():
+                    if self.peek()["tokenType"] == "Identifier":
+                        next_tokens = self.peek(2)
+                        if next_tokens:
+                            next_token = next_tokens["tokenType"]
+                            if next_token == "(":  # FUNC DEC
+                                self.function_dec()
+                            if next_token in ["=", ";", ","]:  # VAR DEC
+                                self.var_dec("program_constructs")
+                        else: self.ERROR_expected_token(["(","=",";" ])
                     else:
-                        self.ERROR_expected_token(["(","=",";" ])
-                else:
-                    self.logError("Expected a variable declaration or function declaration.")
+                        self.logError("Expected a variable declaration or function declaration.")
+
     
         else: self.ERROR_expected_token(PREDICT_SETS["program_constructs"])
 
@@ -862,9 +864,10 @@ class SyntaxAnalyzer:
 
         self.match("{", False)
         self.code_block()
+        
+        if self.currToken and self.currToken["tokenType"] == "return":
+            self.logError("Constructors cannot have return statements.")
 
-        if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["code_block"]+["}"]:
-            self.logError(f"Unexpected '{self.currToken["tokenType"]}' in constructor.")
 
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
@@ -903,6 +906,7 @@ class SyntaxAnalyzer:
 
         elif location == "code_block":
             self.code_block()
+
         elif location == "function_dec":
             self.function_dec()
 
