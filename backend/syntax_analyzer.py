@@ -708,10 +708,10 @@ class SyntaxAnalyzer:
                 if self.match("Identifier"): 
                     if self.currToken and self.currToken["tokenType"] == "(":  # FUNC DEC
                         self.function_dec()
-                    elif self.currToken and self.currToken["tokenType"] == "=":  # VAR DEC
+                    elif self.currToken and self.currToken["tokenType"] in ["=", ";"]:  # VAR DEC
                         self.var_dec()
                     else:
-                        self.ERROR_expected_token(["(","="])
+                        self.ERROR_expected_token(["(","=",";" ])
                 else:
                     self.logError("Expected a variable declaration or function declaration.")
     
@@ -872,7 +872,7 @@ class SyntaxAnalyzer:
     def var_dec(self, inClassBody = False):      #starts at token '=' or 'const' or 'data_types'
         print("(parser) production: \"var_dec\" detected")
 
-        if self.currToken and self.currToken["tokenType"] != "=": # if not from second calling from program_construct
+        if self.currToken and self.currToken["tokenType"] not in ["=", ";"]: # if not from second calling from program_construct
             if self.currToken["tokenType"] == "const":
                 self.match("const")
 
@@ -2670,11 +2670,14 @@ class SyntaxAnalyzer:
             elif next_token and next_token["tokenType"] in (PREDICT_SETS["assign_operator"]+PREDICT_SETS["iden_as_var_mods"]):
                 self.assign_stmt_op_con_rec()
 
+            elif next_token and next_token["tokenType"] == "(":
+                self.assign_stmt_or_func_method_call()
             # else: # should be overruled by semantic (like if x is not declared in this scope)
             #     self.match("Identifier")
             #     self.ERROR_terminating_token(";")
             
         else: # it's not an identifier, check if it's a valid value -- ";" for dec, ")" for loops
+            print("chcking")
             if not self.value([';',')']):
                 self.ERROR_expected_token("value")
 
