@@ -1810,32 +1810,32 @@ def generateError(errorType, currToken, currLine, currCol, lineContent, leadingS
         return ''
     return errorMsg
 
-def delimError(currToken, currLine, currCol, incorrectDelim, lineContent, expected):
+def delimError(currToken, currLine, currCol, incorrectDelim, lineContent, expected, leadingSpaces):
     errorType = f"Unexpected {'newline' if incorrectDelim == '\\n' else incorrectDelim} for"
     additionalInfo = f"Expected delimiters: {expected}"
-    return generateError(errorType, currToken[:-1], currLine, currCol, lineContent, additionalInfo, leadingSpaces)
+    return generateError(errorType, currToken[:-1], currLine, currCol, lineContent, leadingSpaces, additionalInfo)
 
-def idenFirstError(currToken, currLine, currCol, lineContent):
+def idenFirstError(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Identifier must start with an alpha character"
     return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
-def stringMissingClose(currToken, currLine, currCol, lineContent):
+def stringMissingClose(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Missing closing \" for string literal"
     return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
-def escSeqError(currToken, currLine, currCol, lineContent):
+def escSeqError(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Invalid escape sequence for string literal"
     return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
-def charLengthError(currToken, currLine, currCol, lineContent):
+def charLengthError(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Invalid character length for character literal"
     return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
-def wholeRangeError(currToken, currLine, currCol, lineContent):
+def wholeRangeError(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Numeric exceeding max range"
     return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
-def fracPrecError(currToken, currLine, currCol, lineContent):
+def fracPrecError(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Numeric exceeding max precision"
     return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
@@ -1843,7 +1843,7 @@ def unexpectedSymbol(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Unexpected symbol"
     return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
-def adjustConstNumError(currToken, currLine, currCol, lineContent):
+def adjustConstNumError(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Increment or decrement operation is not allowed on constants"
     return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
