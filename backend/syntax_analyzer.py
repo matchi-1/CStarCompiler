@@ -1784,31 +1784,59 @@ class SyntaxAnalyzer:
         print("(parser) production: \"params_var_rec\" exited!!!!!")
 
 
-    def params_def_rec(self, isDefault = False):
+    def params_def_rec(self):
+        # def rec means that there is already a default param before current params rec
         print("(parser) production: \"params_def_rec\" detected")
 
         if self.currToken:
             if self.currToken["tokenType"] == ",":
                 self.match(",")
-                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
-                    self.logError("Expected data type or Identifier (Class name).")
-                self.ret_type()
 
+                # def rec should be followed by only a data_type since objs dont have default params
+                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"]:
+                    if self.currToken:
+                        self.logError(f"Expected data type for non-default variable declaration, instead got {self.currToken["tokenType"]}.\nCannot declare arrays, objects, or non-default variables at this point due to existing default parameters.")
+                    else:
+                        self.logError(f"Expected data type for non-default variable declaration.\nCannot declare arrays, objects, or non-default variables at this point due to existing default parameters.")
+                
+                # match datatype
+                if self.currToken["tokenType"] in PREDICT_SETS["data_types"]:
+                    self.nextToken()
+                
                 self.match("Identifier", False)
-                self.params_def_rec_cont(isDefault)
+
+                # if after default param the syntax is just <dtype> iden w/o initializing, throw error
+                if not self.currToken or self.currToken and self.currToken["tokenType"] != "=":
+                    # always look for '=' since default param before already exists
+                    # EOF
+                    if not self.currToken:
+                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead reached EOF.")
+                    # closed the func params with )
+                    elif self.currToken["tokenType"] == ')':
+                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value.")
+                    # Random token
+                    elif self.currToken and self.currToken["tokenType"] != "=":
+                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got {self.currToken["tokenType"]}.")
+                
+                # if = is the next token, proceed to params_def_rec_cont
+                elif self.currToken and self.currToken["tokenType"] == "=":
+                    self.params_def_rec_cont()
 
         print("(parser) production: \"params_def_rec\" exited!!!!!")
 
-    def params_def_rec_cont(self,isDefault = False ):
+    def params_def_rec_cont(self):
         print("(parser) production: \"params_def_rec_cont\" detected")
+        # match =, since this is already checked in params_def_rec
+        self.match("=")
 
-        if self.currToken:
-            if not self.currToken and isDefault or self.currToken["tokenType"] != "=":
-                self.logError("No non-default parameter must follow a default parameter.")
-            self.match("=", True)
-            if not self.value([",", ")"]):
-                    self.ERROR_expected_token("value")
-            self.params_def_rec(True)
+        # check valid value
+        if not self.value([",", ")"]):
+            self.ERROR_expected_token("value")
+        
+        # if next token is ',' go back to params_def_rec
+        if self.currToken and self.currToken["tokenType"] == ',':
+            self.params_def_rec()
+            
 
         print("(parser) production: \"params_def_rec_cont\" exited!!!!!")
 
@@ -1837,7 +1865,7 @@ class SyntaxAnalyzer:
     def params_dec(self):
         print("(parser) production: \"params_dec\" detected")
 
-
+        # if not empty params func
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
                 self.logError("Expected data type or Identifier (Class name).")
