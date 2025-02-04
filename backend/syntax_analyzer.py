@@ -23,7 +23,7 @@ PREDICT_SETS = {
     "int_val" : ["whole_lit", "Identifier", "-", "(", "in"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "bool_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
-    "var_init": ["=", "+=", "-=", "*=", "/=", "%=", ",", ";"],
+    "var_init": ["=", ",", ";"],
     "string_value": ["string_lit", "Identifier", "("],
     "expression":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
     "var_dec":["const", "int", "long", "bool", "float", "double", "string"],
@@ -898,8 +898,8 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == "const":
                 self.match("const")
 
-            self.matchPredictSet("data_types", False)
-            self.nextToken()
+            if self.matchPredictSet("data_types", False):
+                self.nextToken()
             
             if not self.currToken or self.currToken["tokenType"] != "Identifier":
                 self.ERROR_expected_token("Identifier")
@@ -2398,33 +2398,13 @@ class SyntaxAnalyzer:
 
 
     def var_init(self):     #TODO: doesnt allow array_init pa ## array_init is allowed na -Alex
-        """<var_init> → = <value> | = <assign_stmt> | λ"""
+        """<var_init> → = <value> | λ"""
         print("(parser) entered production: \"var_init\"")
         
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=", False)
-            if self.currToken and self.currToken["tokenType"] == "Identifier":
-                # self.assign_stmt_op_con()
-                #if self.peek()["tokenType"] == ";":
-                #    self.match("Identifier")
-                #    pass
-                #elif self.peek()["tokenType"] in PREDICT_SETS["assign_operator"] + PREDICT_SETS["iden_as_var_mods"]:
-                    #
-                    #self.match("Identifier")
-                    #if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-                    #    self.iden_as_var_mods()
-                    #if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                    #    self.assign_stmt_op()
-
-                # else:
-                   print("is value")
-                   if self.matchPredictSet("value", False):
-                       self.value(PREDICT_SETS["var_init"])
-            else:
-                print("is NOT identifier")
-                if self.matchPredictSet("value", False):
-                    if not self.value(PREDICT_SETS["var_init"]):
-                        self.logError("Invalid value for variable declaration.")
+            if not self.value(PREDICT_SETS["var_init"]):
+                self.logError("Invalid value for variable declaration.")
             
         print("(parser) exited production: \"var_init\"")
 
