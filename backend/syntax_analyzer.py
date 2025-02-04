@@ -688,49 +688,48 @@ class SyntaxAnalyzer:
         print("(parser) production: \"program_constructs\" detected: currtoken is \""
       + str(self.currToken["tokenName"])+"\"" if self.currToken else "None" + "\"")
         
-        if self.currToken:
-            if self.matchPredictSet("program_constructs"):  # Token is a valid start for program constructs
-                print("(parser-dbg) inside program_constructs: " + str(self.currToken["tokenName"]))
+        if self.currToken and self.matchPredictSet("program_constructs"):  # Top checking for predict sets, will automatically throw error if there are unexpected tokens (di na kailangan ng else statement for unexpected tokens)
+            print("(parser-dbg) inside program_constructs: " + str(self.currToken["tokenName"]))
+            
+            # CLASS DEC
+            if self.currToken["tokenType"] == "private" or self.currToken["tokenType"] == "class":
+                self.class_declaration()
+
+            # VAR DEC
+            elif self.currToken["tokenType"] == "const":
+                self.var_dec("program_constructs")
+
+            # VOID MAIN FUNCTION OR VOID FUNCTION
+            elif self.currToken["tokenType"] == "void":
+                if self.peek() and self.peek()["tokenName"] == "main":
+                    self.match("void")
+                    self.match("Identifier")
+                    self.hasMainFunction = True
+
+                else:
+                    self.function_dec()
+
+            
+            # OBJECT INSTANTIATION -- GLOBAL OBJECTS
+            elif self.currToken["tokenType"] == "Identifier":
+                print("(parser): ENTERING CLASS INST")
+                self.class_inst("program_constructs")
+                print("(parser): DONE CLASS INST")
                 
-                # CLASS DEC
-                if self.currToken["tokenType"] == "private" or self.currToken["tokenType"] == "class":
-                    self.class_declaration()
-
-                # VAR DEC
-                elif self.currToken["tokenType"] == "const":
-                    self.var_dec("program_constructs")
-
-                # VOID MAIN FUNCTION OR VOID FUNCTION
-                elif self.currToken["tokenType"] == "void":
-                    if self.peek() and self.peek()["tokenName"] == "main":
-                        self.match("void")
-                        self.match("Identifier")
-                        self.hasMainFunction = True
-
+            # VAR OR FUNC DEC
+            elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:  # sample of custom error not using matchPredictSet
+                if self.peek():
+                    if self.peek()["tokenType"] == "Identifier":
+                        next_tokens = self.peek(2)
+                        if next_tokens:
+                            next_token = next_tokens["tokenType"]
+                            if next_token == "(":  # FUNC DEC
+                                self.function_dec()
+                            if next_token in ["=", ";", ",", "["]:  # VAR DEC
+                                self.var_dec("program_constructs")
+                        else: self.ERROR_expected_token(["(","=",";" ])
                     else:
-                        self.function_dec()
-
-                
-                # OBJECT INSTANTIATION -- GLOBAL OBJECTS
-                elif self.currToken["tokenType"] == "Identifier":
-                    print("(parser): ENTERING CLASS INST")
-                    self.class_inst("program_constructs")
-                    print("(parser): DONE CLASS INST")
-                    
-                # VAR OR FUNC DEC
-                elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:  # sample of custom error not using matchPredictSet
-                    if self.peek():
-                        if self.peek()["tokenType"] == "Identifier":
-                            next_tokens = self.peek(2)
-                            if next_tokens:
-                                next_token = next_tokens["tokenType"]
-                                if next_token == "(":  # FUNC DEC
-                                    self.function_dec()
-                                if next_token in ["=", ";", ",", "["]:  # VAR DEC
-                                    self.var_dec("program_constructs")
-                            else: self.ERROR_expected_token(["(","=",";" ])
-                        else:
-                            self.logError("Expected a variable declaration or function declaration.")
+                        self.logError("Expected a variable declaration or function declaration.")
 
     
         else: self.ERROR_expected_token(PREDICT_SETS["program_constructs"])
