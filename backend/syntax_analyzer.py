@@ -460,6 +460,11 @@ class SyntaxAnalyzer:
     def ERROR_main_missing_return(self):
         self.logError("Missing return statement in main function. Use 'return;' to exit the main function successfully.")
 
+    def ERROR_array_as_param_no_val(self):
+        if self.currToken:
+            self.logError(f"Dimensions in arrays as parameters should not have any value. Expected closing bracket ']', but got '{self.currToken['tokenName']}'.")
+        else:
+            self.logError("Expected closing bracket ']', but reached EOF.")
 
     #-------------------- PARSER START --------------------
     def parse(self):
@@ -1811,14 +1816,14 @@ class SyntaxAnalyzer:
     def is_array(self):
         print("(parser) production: \"is_array\" detected")
 
-        self.match("[", False)
-        if not self.match("]", False):
-            self.ERROR_unclosed_square_bracket()
+        self.match("[")
+        if not self.match("]"):
+            self.ERROR_array_as_param_no_val()
 
         if self.currToken and self.currToken["tokenType"] == "[":
-            self.match("[", False)
-            if not self.match("]", False):
-                self.ERROR_unclosed_square_bracket()
+            self.match("[")
+            if not self.match("]"):
+                self.ERROR_array_as_param_no_val()
 
         if self.currToken and self.currToken["tokenType"] == "[":
             self.logError("Only up to 2-dimensions are allowed.")
