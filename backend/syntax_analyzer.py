@@ -732,9 +732,8 @@ class SyntaxAnalyzer:
                         else:
                             self.logError("Expected a variable declaration or function declaration.")
 
-            else:
-                self.matchPredictSet("program_constructs", False) # throw predict set default error. says that token should match any of the predict sets
-        
+    
+        else: self.ERROR_expected_token(PREDICT_SETS["program_constructs"])
 
 
     # TODO
@@ -812,7 +811,7 @@ class SyntaxAnalyzer:
             if class_peek and class_peek == "static": # found ' private static >', check next tokens in this func
                 checkAfterPossibleNulls(self, 2, True) 
 
-            elif class_peek and class_peek == "class": # found 'private class >' => class_dick
+            elif class_peek and class_peek == "class": # found 'private class >' => clas_dec
                 self.class_declaration(inClassBody)
 
             else: checkAfterPossibleNulls(self, 1) #found private, but not class and not static. Check <is_const><is_void>dtype iden and check whether '(' | '= | , | ;'
@@ -1219,10 +1218,6 @@ class SyntaxAnalyzer:
         print("(parser) production: \"func_method_call\" detected")
         self.match("Identifier")      
         self.func_method_call_mods()      
-        
-        #if not self.match(";"):
-        #    self.ERROR_terminating_token(";")
-
 
     def func_method_call_mods(self):
         print("(parser) production: \"func_method_call_mods\" detected")
@@ -1425,14 +1420,14 @@ class SyntaxAnalyzer:
                 self.ternary_exp(stopChars)
             elif (prod == "<logic_exp>"):
                 print('(parser)(dbg) logic_exp')
-                self.logic_exp(stopChars)       #########<logic_exp> HERE
+                self.logic_exp(stopChars)
             elif (prod == "<rel_exp>"):
                 self.rel_exp(stopChars)
             elif (prod == "<arith_exp>"):
                 self.arith_exp(stopChars)
             elif (prod == "<str_exp>"):
                 print('(parser)(dbg)<str_exp>')
-                self.str_exp(stopChars)          ######### <str_exp> HERE
+                self.str_exp(stopChars)         
             elif (self.currToken and self.currToken["tokenType"] in ["++", "--"]):
                 self.unary_exp()
             elif (self.currToken and self.currToken["tokenType"] == "("):
@@ -1440,7 +1435,7 @@ class SyntaxAnalyzer:
                     self.typecast_exp()
             elif (self.currToken and self.currToken["tokenType"] == "!"):
                 print('(parser)(dbg) logic_exp')
-                self.logic_exp(stopChars) #########<logic_exp> HERE
+                self.logic_exp(stopChars)
             elif (self.currToken and self.currToken["tokenType"] == "-"):
                 self.negative_exp(stopChars)
             elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
@@ -1567,8 +1562,6 @@ class SyntaxAnalyzer:
                     if not self.bool_value(PREDICT_SETS["logic_operator"] + stopChars): 
                         print('(parser)(dbg) ERROR: expected value')
                         self.ERROR_expected_token("bool value") #should i expound errors like this, bool value can be iden, bool_lit, rel_exp, logic_exp, etc.
-            # else:
-            #     self.ERROR_expected_token("{||, &&}")
         else:   
             self.match("!", False)
             self.logic_exp(stopChars)
@@ -1592,7 +1585,7 @@ class SyntaxAnalyzer:
         if self.currToken:
             prod = self.checkValProd(stopChars)
             if (prod == "<logic_exp>"):
-                self.logic_exp(stopChars)   #######<logic_exp> HERE
+                self.logic_exp(stopChars)
                 print('(parser)(dbg)<logic_exp>')
                 return True
             elif (prod == "<rel_exp>"):
@@ -1612,7 +1605,7 @@ class SyntaxAnalyzer:
                         self.typecast_exp()
                         return True
                 elif (self.currToken["tokenType"] == "!"):
-                    self.logic_exp(stopChars) #########<logic_exp> HERE
+                    self.logic_exp(stopChars)
                     print('(parser)(dbg)<logic_exp>')
                     return True
                 elif (self.currToken["tokenType"] == "Identifier"):
@@ -1739,7 +1732,6 @@ class SyntaxAnalyzer:
         print("(parser) production: \"ret_type\" exited!!!!!")
 
 
-
     def params_var(self):
         print("(parser) production: \"params_var\" detected")
 
@@ -1826,19 +1818,16 @@ class SyntaxAnalyzer:
 
         print("(parser) production: \"params_def_rec\" exited!!!!!")
 
-    def params_def_rec_cont(self):
+    def params_def_rec_cont(self,isDefault = False ):
         print("(parser) production: \"params_def_rec_cont\" detected")
-        # match =, since this is already checked in params_def_rec
-        self.match("=")
 
-        # check valid value
-        if not self.value([",", ")"]):
-            self.ERROR_expected_token("value")
-        
-        # if next token is ',' go back to params_def_rec
-        if self.currToken and self.currToken["tokenType"] == ',':
-            self.params_def_rec()
-            
+        if self.currToken:
+            if not self.currToken and isDefault or self.currToken["tokenType"] != "=":
+                self.logError("No non-default parameter must follow a default parameter.")
+            self.match("=", True)
+            if not self.value([",", ")"]):
+                    self.ERROR_expected_token("value")
+            self.params_def_rec(True)
 
         print("(parser) production: \"params_def_rec_cont\" exited!!!!!")
 
@@ -1863,37 +1852,29 @@ class SyntaxAnalyzer:
         print("(parser) production: \"is_array\" exited!!!!!")
 
 
-
     def params_dec(self):
         print("(parser) production: \"params_dec\" detected")
 
-        # if not empty params func
+
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
                 self.logError("Expected data type or Identifier (Class name).")
             self.ret_type()
             self.params_var()
 
-
-        
-
-    
   
   # ALEX start here
-    def condition(self, condType, stopChar):      #TODO: change bool_lit here to allow logic/rel exps
+    def condition(self, condType, stopChar):  
         '''<condition> → <bool_value>'''
         print("(parser) entered production: \"condition\"")
         
-        ## <bool_value> here (only bool_lit for now)
-        if not self.bool_value(stopChar):      # for some reason in the 'match' function, this goes to the 'else' block when it shouldnt i rly dk why, i dont wanna change the match function because when i did other parts didnt work. so now the errors down here is somehow inaccessible during my testing
+        if not self.bool_value(stopChar):      
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.ERROR_missing_condition(condType)
             else: 
                 self.ERROR_invalid_condition(condType)
 
         
-    
-    # bare-minimum tested
     def output(self):
         '''<output> → <print_stmts>(<print_params>);'''
         print("(parser) entered production: \"output\"")
@@ -1918,7 +1899,6 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"output\"")
 
-    # bare-minimum tested
     def print_params(self):
         '''<print_params> → <value> <output_rec> | null'''
         print("(parser) entered production: \"print_params\"")
@@ -1932,7 +1912,6 @@ class SyntaxAnalyzer:
         
         print("(parser) exited production: \"print_params\"")
 
-    # bare-minimum tested
     def output_rec(self):
         '''<output_rec> → ,<value> <output_rec> | null'''
         print("(parser) entered production: \"output_rec\"")
@@ -1947,7 +1926,6 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"output_rec\"")
     
-    # bare-minimum tested
     def conditional_stmt(self):
         '''<conditional_stmt> → <if_stmt> | <swicth_stmt>'''
         print("(parser) entered production: \"conditional_stmt\"")
@@ -1959,8 +1937,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"conditional_stmt\"")
     
-    # bare-minimum tested
-    def if_stmt(self): # TODO: syntax allows: if(true){iden}
+    def if_stmt(self): 
         '''<if_stmt> → if(<condition){<ctrl_stmt_body>} <else_chain>'''
         print("(parser) entered production: \"if_stmt\"")
 
@@ -2428,7 +2405,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=", False)
             if self.currToken and self.currToken["tokenType"] == "Identifier":
-                self.assign_stmt_op_con()
+                # self.assign_stmt_op_con()
                 #if self.peek()["tokenType"] == ";":
                 #    self.match("Identifier")
                 #    pass
@@ -2440,10 +2417,10 @@ class SyntaxAnalyzer:
                     #if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
                     #    self.assign_stmt_op()
 
-                #else:
-                #    print("is value")
-                #    if self.matchPredictSet("value", False):
-                #        self.value(PREDICT_SETS["var_init"])
+                # else:
+                   print("is value")
+                   if self.matchPredictSet("value", False):
+                       self.value(PREDICT_SETS["var_init"])
             else:
                 print("is NOT identifier")
                 if self.matchPredictSet("value", False):
@@ -2818,7 +2795,7 @@ class SyntaxAnalyzer:
             self.assign_func_method_mods()
 
         else:
-            self.ERROR_expected_token(["[", "(", "."]  + PREDICT_SETS["assign_operator"])
+            self.ERROR_expected_token(["++", "--", "[", "(", "."]  + PREDICT_SETS["assign_operator"])
             
 
     def assign_func_method_mods(self):
