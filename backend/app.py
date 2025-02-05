@@ -1309,7 +1309,7 @@ def lexer(code):
                         add_token(currToken, '--', currLine, currCol)
                     elif (code[i] in numbers):
                         currToken += code[i]
-                        add_error(adjustConstNumError(currToken, currLine, currCol, lineContent))
+                        add_error(adjustConstNumError(currToken, currLine, currCol, lineContent, leadingSpaces))
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1376,7 +1376,7 @@ def lexer(code):
                         add_token(currToken, '++', currLine, currCol)
                     elif (code[i] in numbers):
                         currToken += code[i]
-                        add_error(adjustConstNumError(currToken, currLine, currCol, lineContent))
+                        add_error(adjustConstNumError(currToken, currLine, currCol, lineContent, leadingSpaces))
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))

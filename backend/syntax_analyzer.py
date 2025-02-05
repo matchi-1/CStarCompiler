@@ -465,6 +465,8 @@ class SyntaxAnalyzer:
             self.logError(f"Dimensions in arrays as parameters should not have any value. Expected closing bracket ']', but got '{self.currToken['tokenName']}'.")
         else:
             self.logError("Expected closing bracket ']', but reached EOF.")
+    def ERROR_adjust_constant(self):
+        self.logError("Increment or decrement operation is not allowed on constants.")
 
     #-------------------- PARSER START --------------------
     def parse(self):
@@ -1272,6 +1274,8 @@ class SyntaxAnalyzer:
                     self.typecast_exp()
                     return True
             elif (self.currToken and self.currToken["tokenType"] == "whole_lit"):
+                if self.checkPostUnary(stopChars):
+                    self.ERROR_adjust_constant()
                 self.match("whole_lit")
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
@@ -1331,6 +1335,8 @@ class SyntaxAnalyzer:
                 self.negative_exp(stopChars)
                 return True
             elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]):
+                if self.checkPostUnary(stopChars):
+                    self.ERROR_adjust_constant()
                 self.lit_type() 
                 return True
             elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
@@ -1463,9 +1469,13 @@ class SyntaxAnalyzer:
         print(f'(parser)(dbg) num_val stopchar: {stopChars}')
         if (self.currToken and self.currToken["tokenType"] == "whole_lit"):
             print(f'(parser)(dbg) {self.currToken["tokenName"]} is whole_lit')
+            if self.checkPostUnary(stopChars):
+                self.ERROR_adjust_constant()
             self.match("whole_lit")
             return True
         elif (self.currToken and self.currToken["tokenType"] == "frac_lit"):
+            if self.checkPostUnary(stopChars):
+                self.ERROR_adjust_constant()
             self.match("frac_lit")
             return True
         elif (self.currToken and self.currToken["tokenType"] == "-"):
@@ -1612,6 +1622,8 @@ class SyntaxAnalyzer:
                     self.iden_mods()
                     return True
                 elif (self.currToken["tokenType"] == "bool_lit"):
+                    if self.checkPostUnary(stopChars):
+                        self.ERROR_adjust_constant()
                     self.match("bool_lit")
                     return True
                 elif (self.currToken and self.currToken["tokenType"] == "in"):
@@ -2625,6 +2637,8 @@ class SyntaxAnalyzer:
             elif (self.currToken and self.currToken["tokenType"] == "in"):
                 self.input()
             elif (self.currToken and self.currToken["tokenType"] == "string_lit"):
+                if self.checkPostUnary(stopChars):
+                    self.ERROR_adjust_constant()
                 self.match("string_lit", False)
             elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
                 self.match("Identifier")
