@@ -1593,7 +1593,11 @@ class SyntaxAnalyzer:
         print(f'(parser) checking for "bool_value"......., stopping at {stopChars}')
         if self.currToken:
             prod = self.checkValProd(stopChars)
-            if (prod == "<logic_exp>"):
+            if (prod == "<ternary_exp>"):
+                self.ternary_exp(stopChars)
+                print('(parser)(dbg)bool_val ternary, exiting bool_value...')
+                return True
+            elif (prod == "<logic_exp>"):
                 self.logic_exp(stopChars)
                 print('(parser)(dbg)<logic_exp>')
                 return True
@@ -1606,7 +1610,7 @@ class SyntaxAnalyzer:
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
                     return True
-                else:
+                else: 
                     return False
             else:
                 if (self.currToken["tokenType"] == "("):
