@@ -35,6 +35,8 @@ PREDICT_SETS = {
     "mult_div_cont":["*", "/"],
     "atom":["in", "--", "++", "Identifier", "bool_lit", "whole_lit", "frac_lit", "string_lit"],
     "mods_post_op":["[", "(", "++", "--", "."]
+    , "iden_dec": [ "const", "void", "bool", "string", "int", "long", "double", "float" ]
+    , "iden_dec_cont": [ "=", ",", "[" ]
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -314,8 +316,7 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            #self.program()
-            self.value()
+            self.program()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -340,7 +341,6 @@ class SyntaxAnalyzer:
             self.ERROR_no_main_func()
         else:
             while self.currToken:
-                self.match("(", False)
                 self.match(")", False)
 
                 self.match("{", False)
@@ -535,51 +535,100 @@ class SyntaxAnalyzer:
       + str(self.currToken["tokenName"])+"\"" if self.currToken else "None" + "\"")
         
         if self.currToken:
-            if self.matchPredictSet("program_constructs"):  # Token is a valid start for program constructs
-                print("(parser-dbg) inside program_constructs: " + str(self.currToken["tokenName"]))
-                
-                # CLASS DEC
-                if self.currToken["tokenType"] == "private" or self.currToken["tokenType"] == "class":
+            if self.matchPredictSet("program_constructs", False):  # Token is a valid start for program constructs
+                currentTokenType = self.currToken["tokenType"]
+                if currentTokenType in ["private", "class"]:
                     self.class_declaration()
-
-                # VAR DEC
-                elif self.currToken["tokenType"] == "const":
-                    self.var_dec("program_constructs")
-
-                # VOID MAIN FUNCTION OR VOID FUNCTION
-                elif self.currToken["tokenType"] == "void":
-                    if self.peek() and self.peek()["tokenName"] == "main":
-                        self.match("void")
-                        self.match("Identifier")
-                        self.hasMainFunction = True
-
-                    else:
-                        self.function_dec()
-
-                
-                # OBJECT INSTANTIATION -- GLOBAL OBJECTS
-                elif self.currToken["tokenType"] == "Identifier":
-                    print("(parser): ENTERING CLASS INST")
+                elif currentTokenType in PREDICT_SETS["iden_dec"]:
+                    self.iden_dec()
+                else:
+                    print(f"identifier? {currentTokenType}")
                     self.class_inst("program_constructs")
-                    print("(parser): DONE CLASS INST")
-                    
-                # VAR OR FUNC DEC
-                elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:  # sample of custom error not using matchPredictSet
-                    if self.peek():
-                        if self.peek()["tokenType"] == "Identifier":
-                            next_tokens = self.peek(2)
-                            if next_tokens:
-                                next_token = next_tokens["tokenType"]
-                                if next_token == "(":  # FUNC DEC
-                                    self.function_dec()
-                                if next_token in ["=", ";", ",", "["]:  # VAR DEC
-                                    self.var_dec("program_constructs")
-                            else: self.ERROR_expected_token(["(","=",";" ])
-                        else:
-                            self.logError("Expected a variable declaration or function declaration.")
+            if not self.hasMainFunction:
+                self.program_constructs()
+        
+
+    def iden_dec(self):
+        print("(parser) production: \"iden_dec\" detected")
+
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+            if currentTokenType == "const":
+                self.match("const")
+                if self.currToken["tokenType"] == "void":
+                    self.logError("Void function cannot be preceded by 'const'.")
+                elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
+                    self.data_type()
+                    self.match("Identifier",False)
+                    self.var_dec_cont()
+                    if not self.match(";"):
+                        self.ERROR_terminating_token(";")
+
+            elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
+                self.logError(f"Expected data type or void, got {currentTokenType} instead.")
+
+            elif currentTokenType == "void":
+                self.match("void")
+                if self.currToken:
+                    if self.currToken and self.currToken["tokenName"] == "main":
+                        self.hasMainFunction = True
+                    self.match("Identifier", False)
+                else:
+                    self.logError("Expected identifier (function name).")
+                self.match("(", False)
+                self.params_dec_start()
+
+            elif currentTokenType in PREDICT_SETS["data_type"]:
+                self.data_type()
+                self.match("Identifier", False)
+                self.iden_dec_cont()
+            
+            else:
+                self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
+
+    def iden_dec_cont(self):
+        print("(parser) production: \"iden_dec_cont\" detected")
+
+        if self.currToken:
+
+            if self.currToken["tokenType"] == "(":
+                self.params_dec_start()
+            elif self.currToken["tokenType"] in PREDICT_SETS["iden_dec_cont"]:
+                self.var_dec_cont()
+                if not self.match(";"):
+                    self.ERROR_terminating_token(";")
+            else: self.ERROR_expected_token(["("] + PREDICT_SETS["iden_dec_cont"])
+
+        else: self.ERROR_expected_token(["("] + PREDICT_SETS["iden_dec_cont"])
+
+
+    def var_dec_cont(self):
+        print("(parser) production: \"var_dec_cont\" detected")
+
+        if self.currToken:
+            if self.currToken["tokenType"] == "[":
+                self.match("[", False)
+                self.arith_exp()
+                if not self.match("]"):
+                    self.ERROR_unclosed_square_bracket()
+                self.var_id_arr1D()
 
             else:
-                self.matchPredictSet("program_constructs", False) # throw predict set default error. says that token should match any of the predict sets
+                self.var_init()
+                self.var_iden_rec()
+
+
+    def params_dec_start(self):
+        print("(parser) production: \"params_dec_start\" detected")
+        self.match("(")
+        self.params_dec()
+        if not self.match(")", True):
+            self.ERROR_unclosed_parentheses()
+        self.match("{", False)
+        self.body()
+        if not self.match("}"):
+            self.ERROR_unclosed_curly_braces()
+
 
     # TODO
     def class_declaration(self, inClassBody = False):
@@ -1498,7 +1547,7 @@ class SyntaxAnalyzer:
 
 
     def params_dec(self):
-        print("(parser) production: \"params_dec\" detected")
+        print(f"(parser) production: \"params_dec\" detected, {self.currToken["tokenType"] if self.currToken else EOF}")
 
 
         if self.currToken and self.currToken["tokenType"] != ")":
@@ -1617,7 +1666,7 @@ class SyntaxAnalyzer:
             self.logError("Non-Void functions must return a value.")
         
         elif not isVoid:
-            print("returned from value prod: ",{ self.value([";"])} )
+            print("returned from value prod: ",{ } )
         elif isVoid and self.currToken["tokenType"] != ";":
             self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
 
