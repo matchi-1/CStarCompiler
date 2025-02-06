@@ -32,11 +32,12 @@ PREDICT_SETS = {
     "iden_as_var_mods": ["[","."],
     "body": [],  # Placeholder for now
     "add_min_cont":["+", "-"],
-    "mult_div_cont":["*", "/"],
+    "mult_div_modulo_cont":["*", "/", "%"],
     "atom":["in", "--", "++", "Identifier", "bool_lit", "whole_lit", "frac_lit", "string_lit"],
-    "mods_post_op":["[", "(", "++", "--", "."]
-    , "iden_dec": [ "const", "void", "bool", "string", "int", "long", "double", "float" ]
-    , "iden_dec_cont": [ "=", ",", "[" ]
+    "mods_post_op":["[", "(", "++", "--", "."],
+    "iden_dec": [ "const", "void", "bool", "string", "int", "long", "double", "float" ],
+    "iden_dec_cont": [ "=", ",", "[" ],
+    "term_join_operators": ["+", "-", "*", "/", "%", "==", "!=", "<", "<=", ">", ">=", "&&", "||"]
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -311,12 +312,14 @@ class SyntaxAnalyzer:
             self.logError("Expected a valid value, instead reached EOF.")
     def ERROR_inc_dec_not_int(self):
         self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.")
-
+    def ERROR_expected_operator(self):
+        self.logError(f"Expected a valid operator in between operands, instead got '{self.currToken['tokenName']}'.\nEnsure that there is a valid operator before a valid operand.")
 
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            self.program()
+            #self.program()
+            self.value()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -1155,9 +1158,13 @@ class SyntaxAnalyzer:
     def logic_exp(self):
         print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         is_valid_value = self.rel_exp()
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
-            is_valid_value = self.logic_exp_cont()
         
+        if self.currToken:
+            if self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
+                is_valid_value = self.logic_exp_cont()
+            elif self.currToken["tokenType"] not in PREDICT_SETS["term_join_operators"]:  # throw an error for missing operator
+                self.ERROR_expected_operator()
+                
         return is_valid_value
     
     def logic_exp_cont(self):
@@ -1234,19 +1241,24 @@ class SyntaxAnalyzer:
     def term(self):
         print("(parser-value-chain): Entered \"term\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         is_valid_value = self.factor()
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_cont"]:
-            is_valid_value = self.mult_div_cont()
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_modulo_cont"]:
+            is_valid_value = self.mult_div_modulo_cont()
 
         return is_valid_value
 
-    def mult_div_cont(self):
-        print("(parser-value-chain): Entered \"mult_div_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+    def mult_div_modulo_cont(self):
+        print("(parser-value-chain): Entered \"mult_div_modulo_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "*":
                 self.match("*")
             case "/":
                 self.match("/")
+            case "%":
+                self.match("%")
         is_valid_value = self.factor()
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_modulo_cont"]:
+            is_valid_value = self.mult_div_modulo_cont()
+
 
         return is_valid_value
     

@@ -49,9 +49,9 @@ comma_delim = dot_delim + numbers + ['(', '{', '"']
 slash_delim = plaintext_delim + ['\n', '(', '+', '-']
 question_delim = newline + plaintext_delim + ['(', '/', '\"']
 colon_delim = newline + plaintext_delim + ['(', '/', '\"']
-open_bracket_delim = alphanum + whitespace + ['\n', '/', '(', ']']
+open_bracket_delim = alphanum + whitespace + ['\n', '/', '(', ']','+', '-']
 open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/', '\"', '(', '+', '-']
-close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}']
+close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}', '+', '-']
 plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
 great_less_delim = list(set(arithmetic_delim + ['/', '+', '-']))
 great_delim = great_less_delim + [';']
@@ -59,14 +59,14 @@ equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '!','{']))
 in_delim = newline_delim + ['<', '/']
 this_delim = newline_delim + ['.', '/']
 void_delim = newline + whitespace + ['/']
-decrement_delim = alphabetic_chars + whitespace + newline + [';', ')', '/', '+', '*', '%', '(']
+decrement_delim = alphabetic_chars + whitespace + newline + [';', ')', '/', '+', '*', '%', '(', ']']
 subtract_assign_delim = list(set(arithmetic_delim + ['/','+','-']))
 not_equal_delim = alphanum + newline + whitespace + ['(', '!','\"','+','-']
 modulo_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
 and_or_delim =  alphabetic_chars + whitespace + ['(', '\n', '/', '!']
 multi_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
 divi_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
-increment_delim = alphabetic_chars + newline_delim + [')', ';', '/', '-', '*', '%', '(']
+increment_delim = alphabetic_chars + whitespace + newline_delim + [')', ';', '/', '-', '*', '%', '(', ']']
 add_assign_delim = list(set(arithmetic_delim + ['/', '\"', '+', '-']))
 equal_equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '+', '-']))
 import_delim = newline + whitespace + ['<', '/']
@@ -1086,7 +1086,7 @@ def lexer(code):
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                 # [ symbol
                 case 'OPEN_BRACKET_CHECK':
-                    expected = ['alphanum', ']', '/', '\n', '('] + whitespace
+                    expected = ['alphanum', ']', '/', '\n', '(', '+', '-'] + whitespace
                     if (code[i] in open_bracket_delim):
                         add_token(currToken, '[', currLine, currCol)
                     else:
@@ -1110,7 +1110,7 @@ def lexer(code):
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                 # } symbol
                 case 'CLOSING_CURLY_CHECK':
-                    expected = ['alphanum', ' ', ';', ',','}'] + newline_delim
+                    expected = ['alphanum', ' ', ';', ',','}', '+', '-'] + newline_delim
                     if (code[i] in close_curly_delim):
                         add_token(currToken, '}', currLine, currCol)
                     else:
@@ -1304,7 +1304,7 @@ def lexer(code):
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                 # -- symbol
                 case 'DECREMENT_CHECK':
-                    expected = whitespace + ['alphabetic_chars'] + [';', ')', '/', '+', '*', '%', '('] + newline
+                    expected = whitespace + ['alphabetic_chars'] + [';', ')', '/', '+', '*', '%', '(', ']'] + newline
                     if (code[i] in decrement_delim):
                         add_token(currToken, '--', currLine, currCol)
                     elif (code[i] in numbers):
@@ -1371,7 +1371,7 @@ def lexer(code):
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                 # ++ symbol
                 case 'INCREMENT_CHECK':
-                    expected = whitespace + ['alphabetic_chars', ')', ';', '/', '-', '*', '%', '(']
+                    expected = whitespace + ['alphabetic_chars', ')', ';', '/', '-', '*', '%', '(', ']']
                     if (code[i] in increment_delim):
                         add_token(currToken, '++', currLine, currCol)
                     elif (code[i] in numbers):
