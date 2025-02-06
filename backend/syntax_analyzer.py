@@ -322,7 +322,8 @@ class SyntaxAnalyzer:
         try:
             #self.program()
             #self.value()
-            self.class_inst('program_constructs')
+            #self.class_inst('program_constructs')
+            self.assign_stmt()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -2157,96 +2158,23 @@ class SyntaxAnalyzer:
 
         if self.matchPredictSet("assign_operator", False):
             match self.currToken["tokenName"]:
-                case "=" | "+=" | "-=" | "*=" | "/=" | "%=":
-                    self.match(self.currToken["tokenName"])  # Match the specific assignment operator
+                case "=":
+                    self.match("=") 
+                case "+=":
+                    self.match("+=") 
+                case "-=":
+                    self.match("-=") 
+                case "*=":
+                    self.match("*=")
+                case "/=":
+                    self.match("/=") 
+                case "%=":
+                    self.match("%=")
                 case _:
                     self.logError(f"Expected an assignment operator, but got '{self.currToken['tokenName']}'.")
 
-            self.assign_stmt_op_con()  # Proceed to check the value or identifier
-
-
-    def assign_stmt_op_con(self):
-        print("(parser) production: \"assign_stmt_op_con\" detected")
-        
-        if self.currToken and self.currToken["tokenType"] == "Identifier":  
-            print("IDENTIFIER DETECTED")
-            # if it's an identifier, check if there is assignment chaining or semicolon
-            next_token = self.peek()
-
-            # iden = iden; goes back to assign_stmt to match semicolon in codeblocks 
-            if (next_token and next_token["tokenType"] in [";", ")"]):  # ";" for dec, ")" for loops
-                print("MATCHING ; OR )")
-                self.match("Identifier") 
-
-            # next token can be assign_operator already 
-            elif next_token and next_token["tokenType"] in PREDICT_SETS["assign_operator"]:
-                print("MATCHING assign_operator  ;   iden = iden = ")
-                self.match("Identifier")
-                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                    self.assign_stmt_op() # iden = iden += 
-
-            # iden = iden()    
-            elif next_token and next_token["tokenType"] == "(":
-                print("MATCHING func call as value  ;   iden = iden()  ")
-                self.value([';',')'])
-
-            # iden var mods next token but parser doesnt know if its a value or just iden that can be reassigned a value of
-            elif next_token and next_token["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-                print("ENTERING VALUE / CHAINING AMBIGUITY -- PEEK TIL ASSIGN OP FOUND")
-                # start peek until it reaches assign operator. 
-                isValue = True
-                stopCharFound = False
-                peek_ctr = 1
-                while(isValue and not stopCharFound):
-                    next_token1 = self.peek(peek_ctr)
-                    if next_token1 and next_token1["tokenType"] in PREDICT_SETS["assign_operator"]:
-                        print("ASSIGN OP FOUND")
-                        isValue = False # it is not a standalone value, should continue to assignment chaining
-                        break
-                    elif next_token1 and next_token1["tokenType"] in [';',')']:
-                        stopCharFound = True   # stopper
-                        break
-                    peek_ctr += 1
-                
-                if not isValue: # since it found an assign op, check correct syntax
-                    self.match("Identifier")
-                    if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]: 
-                        self.iden_as_var_mods() # match iden mods if there are any
-
-                    self.assign_stmt_op() # match operators for chaining
-
-                else: # is supposed to be a value. check if valid syntax
-                    print("IS SUPPOSED TO BE A VALUE")
-                    if not self.value([';',')']):
-                        self.ERROR_expected_token("value")
-                
-
-             # iden = iden (null or unexpected token but not stop char): consume iden to trigger parent prod error
-            else:
-                print("IDENTIFIER DETECTED BUT NOT TERMINATED BY STOP CHAR OR HAS RANDOM TOKEN")
-                self.match("Identifier")
-
-            
-        else: # it's not an identifier, check if it's a valid value -- ";" for dec, ")" for loops
-            print("chcking")
-            if not self.value([';',')']):
-                self.ERROR_expected_token("value")
-
-
-    def assign_stmt_op_con_rec(self):
-        print("(parser) production: \"assign_stmt_op_con_rec\" detected")
-        # start peek until it reaches either operators or stopchars. if operator, parse self.value(stopchars), elif continue this code
-        
-        self.match("Identifier")
-        if self.currToken: 
-            if self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]+PREDICT_SETS["iden_as_var_mods"]:
-                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-                    self.iden_as_var_mods() # match iden mods if there are any
-                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                    self.assign_stmt_op() # match operators if any, if none, it's just iden = iden pattern
-
-        #else:
-        #    self.ERROR_terminating_token(";")    # commented out bc not all assign stmts need to end with ;
+            if not self.value([';',')']):  # check valid value
+                self.ERROR_expected_token("value") 
 
     def iden_as_var_mods(self):
         print("(parser) production: \"iden_as_var_mods\" detected")
