@@ -314,6 +314,8 @@ class SyntaxAnalyzer:
         self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.")
     def ERROR_expected_operator(self):
         self.logError(f"Expected a valid operator in between operands, instead got '{self.currToken['tokenName']}'.\nEnsure that there is a valid operator before a valid operand.")
+    def ERROR_further_class_access(self):
+        self.logError("Cstar doesn't allow subclasses. An attempt to access a subclass and/or its attributes or methods is not supported.")
 
     #-------------------- PARSER START --------------------
     def parse(self):
@@ -1259,7 +1261,6 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_modulo_cont"]:
             is_valid_value = self.mult_div_modulo_cont()
 
-
         return is_valid_value
     
     def factor(self):
@@ -1366,22 +1367,28 @@ class SyntaxAnalyzer:
     def iden_mods(self):
         print('(parser) production: "iden_mods" detected')
         is_valid_value = True
-        if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
-            if (self.currToken and self.currToken["tokenType"] == "("):
-                self.match("(")
-                is_valid_value = self.func_arg()
-                if not self.match(")"):
-                    print('(parser)(dbg) iden_mods paren error')
-                    is_valid_value = False
-                    self.ERROR_unclosed_parentheses()
-            elif (self.currToken and self.currToken["tokenType"] == "["):
-                is_valid_value = self.as_array()
-                if (self.currToken and self.currToken["tokenType"] == "."):
-                    self.object_rec()
-            elif (self.currToken and self.currToken["tokenType"] == "."):
-                is_valid_value = self.object_rec()
-
+        if self.currToken and self.currToken["tokenType"] in ['(', '[']:
+            is_valid_value = self.is_func_method_arr()
+        elif (self.currToken and self.currToken["tokenType"] == "."):
+            self.match(".")
+            is_valid_value = self.match("Identifier", False)
+            if self.currToken and self.currToken["tokenType"] in ['(', '[']:
+                is_valid_value = self.is_func_method_arr()
+                if self.currToken and self.currToken["tokenType"] == '.':
+                    self.ERROR_further_class_access()
         return is_valid_value 
+
+    def is_func_method_arr(self):
+        if (self.currToken and self.currToken["tokenType"] == "("):
+            self.match("(")
+            is_valid_value = self.func_arg()
+            if not self.match(")"):
+                is_valid_value = False
+                self.ERROR_unclosed_parentheses()
+        elif (self.currToken and self.currToken["tokenType"] == "["):
+            is_valid_value = self.as_array()
+        
+        return is_valid_value
 
     def as_array(self):
         print('(parser) production: "as_array" detected')
