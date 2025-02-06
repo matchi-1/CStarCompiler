@@ -34,7 +34,7 @@ PREDICT_SETS = {
     "add_min_cont":["+", "-"],
     "mult_div_cont":["*", "/"],
     "atom":["in", "--", "++", "Identifier", "bool_lit", "whole_lit", "frac_lit", "string_lit"],
-    "mods_post_op":["[", "(", "++", "--"]
+    "mods_post_op":["[", "(", "++", "--", "."]
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -1212,23 +1212,23 @@ class SyntaxAnalyzer:
             self.input()
         elif self.currToken and self.currToken["tokenType"] == "--":
             self.match("--")
-            if self.currToken and self.currToken["tokenType"] == "Identifier":
-                self.match("Identifier")
-            elif self.currToken and self.currToken["tokenType"] == "whole_lit":
-                self.ERROR_inc_dec_constant()
-            elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
-                self.ERROR_inc_dec_not_int()
-            else:
-                self.ERROR_expected_token("Identifier")
+            if not self.match("Identifier"):
+                if self.currToken and self.currToken["tokenType"] == "whole_lit":
+                    self.ERROR_inc_dec_constant()
+                elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
+                    self.ERROR_inc_dec_not_int()
+                else:
+                    self.ERROR_expected_token("Identifier")
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
             self.match("Identifier")
+            print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:
                 self.mods_post_op()
         
 
     def mods_post_op(self):
         print("(parser-value-chain): Entered \"mods_post_op\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        if self.currToken and self.currToken["tokenType"] in ["[", "("]:
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]:
             self.iden_mods()
         elif self.currToken and self.currToken["tokenType"] in ["++", "--"]:
             self.mods_post_op_con()
