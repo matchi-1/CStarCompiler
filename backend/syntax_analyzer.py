@@ -4,7 +4,7 @@ PREDICT_SETS = {
     "std_lib": ["Cmath", "Cstring", "Carray"],
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_type": ["bool", "string", "int", "long", "double", "float"],
-    "class_body": [ "private" ,'static', "const", "int", "long", "bool", "float", "double", "string", "Identifier" , "private", "class", "}", "void"],
+    "class_body": [ "private" , "const", "int", "long", "bool", "float", "double", "string" , "void"],
     "literals": ["whole_lit", "frac_lit", "string_lit", "Identifier"], # need to add expressions here in the future
     "print_stmts" : ["print", "println"],
     "conditional_stmt" : ["if", "switch"],
@@ -26,9 +26,8 @@ PREDICT_SETS = {
     "var_init": ["=", ",", ";"],
     "string_value": ["string_lit", "Identifier", "("],
     "expression":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
-    "var_dec":["const", "int", "long", "bool", "float", "double", "string"],
     "output":["print", "println"],
-    "code_block": ["++", "--", "Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
+    "code_block": [ "const", "++", "--", "Identifier", "bool", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
     "iden_as_var_mods": ["[","."],
     "body": [],  # Placeholder for now
     "add_min_cont":["+", "-"],
@@ -37,11 +36,14 @@ PREDICT_SETS = {
     "mods_post_op":["[", "(", "++", "--", "."],
     "iden_dec": [ "const", "void", "bool", "string", "int", "long", "double", "float" ],
     "iden_dec_cont": [ "=", ",", "[" ],
-    "term_join_operators": ["+", "-", "*", "/", "%", "==", "!=", "<", "<=", ">", ">=", "&&", "||"]
+    "term_join_operators": ["+", "-", "*", "/", "%", "==", "!=", "<", "<=", ">", ">=", "&&", "||"],
+    "class_as_func_post": ["Identifier", "++", "--", ],
+    "assign_func_method_mods": ["[", "(", "."],
+    "assign_func_method_mods_cont": ["[", "("],
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
-
+PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDICT_SETS["assign_func_method_mods"] #bruh pt.2 pt.2
 
 # reminders for predict sets:
  
@@ -321,9 +323,7 @@ class SyntaxAnalyzer:
     def parse(self):
         try:
             #self.program()
-            #self.value()
-            #self.class_inst('program_constructs')
-            self.assign_stmt()
+            self.value()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -342,15 +342,16 @@ class SyntaxAnalyzer:
         """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
         # Parse constructs
         self.program_constructs()
-
+        print(f"BACK AT MAIN PROGRAM : {self.hasMainFunction}")
         # Check for main function presence
         if not self.hasMainFunction:
             self.ERROR_no_main_func()
         else:
             while self.currToken:
-                self.match(")", False)
-
-                self.match("{", False)
+                self.match("(")
+                if not self.match(")", True):
+                    self.ERROR_unclosed_parentheses()
+                self.match("{")
                 print("(parser) production: \"main_body\" detected")
 
                 self.code_block()
@@ -373,66 +374,116 @@ class SyntaxAnalyzer:
                     currCol = self.currToken["tokenCol"]
 
                     print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
+                    self.errors.append(f"Warning at line {currLine}: Unreachable code detected.")
                     break
 
     # CODE BLOCKS START HERE
     def code_block(self):       
         print(f"(parser) Processing <code_block>: {self.currToken['tokenName'] if self.currToken else 'None'}")
-        if self.currToken:
-            # Variable Declaration
-            if self.currToken["tokenType"] in PREDICT_SETS["var_dec"]: 
-                self.var_dec("code_block")
-                print("(parser) production: \"var_dec\" EXITED!! Back to code_block")
+        
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["code_block"]:
+            currentTokenType = self.currToken["tokenType"]
+
+            if currentTokenType == "Identifier":
+                self.match("Identifier")
+                self.class_as_func_post()
+                if not self.match(";", True):
+                    self.ERROR_terminating_token(";")
+
+            elif currentTokenType in [["const"] + PREDICT_SETS["data_type"]]:    
+                if currentTokenType == "const":
+                    self.match("const")
+                self.data_type()
+
+            elif currentTokenType == "++":
+                self.match("++")
+                self.match("Identifier", False)
+                if not self.match(";"):
+                    self.ERROR_terminating_token(";")
+
+            elif currentTokenType == "--":
+                self.match("--")
+                self.match("Identifier", False)
+                if not self.match(";"):
+                    self.ERROR_terminating_token(";")
             
-            # Output Statement
-            elif self.currToken["tokenType"] in PREDICT_SETS["output"]:
+            elif currentTokenType in PREDICT_SETS["output"]:
                 self.output()
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
-                print("(parser) production: \"output_stmt\" EXITED!! Back to code_block")
-            
-            # Conditional Statement
-            elif self.currToken["tokenType"] in PREDICT_SETS["conditional_stmt"]:
+
+            elif currentTokenType in PREDICT_SETS["conditional_stmt"]:
                 self.conditional_stmt()
-                print("(parser) production: \"conditional_stmt\" EXITED!! Back to code_block")
-            
-            # Loop Statement 
-            elif self.currToken["tokenType"] in PREDICT_SETS["loop_stmt"]:
+                
+            elif currentTokenType in PREDICT_SETS["loop_stmt"]:
                 self.loop_stmt()
-                print("(parser) production: \"loop_stmt\" EXITED!! Back to code_block")
-
-
-            # Class Instantiation or Function/Method Call or Assignment/Expression
-            elif self.currToken["tokenType"] == "Identifier":
-                if self.peek() and self.peek()["tokenType"] == "Identifier":
-                    self.class_inst("code_block")
-                
-                elif self.peek() and self.peek()["tokenType"] in [item for item in PREDICT_SETS["unary_operator"] if item != "Identifier"]:
-                    self.unary_exp()
-                    if not self.currToken or self.currToken["tokenType"] != ";":
-                        self.ERROR_terminating_token(";")
-                    self.match(";")
-                
-                else: 
-                    self.assign_stmt_or_func_method_call()
-                    if not self.currToken or self.currToken["tokenType"] != ";":
-                        self.ERROR_terminating_token(";")
-                    self.match(";")
-
-            elif self.currToken["tokenType"] in [item for item in PREDICT_SETS["unary_operator"] if item != "Identifier"]:
-                self.unary_exp()
-                if not self.currToken or self.currToken["tokenType"] != ";":
-                    self.ERROR_terminating_token(";")
-                self.match(";")
-                   
-                
-            # else:
-            #     # Could be an assignment or expression (leave it for later)
-            #     pass 
-            
-            # Continue parsing the rest of the code block
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["code_block"]:
+        
+            else: self.logError("You're not supposed to see this.")
             self.code_block()
+
+    def class_as_func_post(self):       
+        print("(parser) production: \"class_as_func_post\" detected")
+
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+            if currentTokenType in PREDICT_SETS["class_as_func_post"]:
+                if currentTokenType == "Identifier":
+                    self.match("Identifier")
+                    self.classinst_cont()
+
+                elif currentTokenType == "++":
+                    self.match("++")
+                elif currentTokenType == "--":
+                    self.match("--")
+
+                else: self.assign_func_method_mods()
+
+
+            else: self.ERROR_expected_token(PREDICT_SETS["class_as_func_post"])
+
+    def assign_func_method_mods(self):
+        print("(parser) production: \"assign_func_method_mods\" detected")
+
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+            if currentTokenType in PREDICT_SETS["assign_func_method_mods"]:
+                if currentTokenType in PREDICT_SETS["assign_operator" + ["["]]:
+                    self.as_array()
+                    self.assign_stmt_op()
+
+                elif currentTokenType == "(":
+                    self.match("(")
+                    self.func_arg()
+                    if not self.match(")"):
+                        self.ERROR_unclosed_parentheses()
+
+                elif currentTokenType == ".":
+                    self.match(".")
+                    self.match("Identifier")
+                    self.assign_func_method_mods_cont()
+
+            else: self.ERROR_expected_token(PREDICT_SETS["assign_func_method_mods"])
+        else: self.ERROR_expected_token(PREDICT_SETS["assign_func_method_mods"])
+
+
+    def assign_func_method_mods_cont(self):
+        print("(parser) production: \"assign_func_method_mods_cont\" detected")
+
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+            if currentTokenType in PREDICT_SETS["assign_func_method_mods_cont"]:
+                if currentTokenType == "[":
+                    self.as_array()
+                    self.assign_stmt_op()
+
+                elif currentTokenType == "(":
+                    self.match("(")
+                    self.func_arg()
+                    if not self.match(")"):
+                        self.ERROR_unclosed_parentheses()
+                
+            else: self.ERROR_expected_token(["[", "("])
+        else: self.ERROR_expected_token(["[", "("])
 
 
     def body(self, isVoid = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
@@ -551,12 +602,13 @@ class SyntaxAnalyzer:
                 else:
                     print(f"identifier? {currentTokenType}")
                     self.class_inst("program_constructs")
-            if not self.hasMainFunction:
-                self.program_constructs()
+        if not self.hasMainFunction and not self.currToken and (self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["program_constructs"]):
+            self.program_constructs()
         
 
     def iden_dec(self):
         print("(parser) production: \"iden_dec\" detected")
+        
 
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
@@ -577,13 +629,15 @@ class SyntaxAnalyzer:
             elif currentTokenType == "void":
                 self.match("void")
                 if self.currToken:
-                    if self.currToken and self.currToken["tokenName"] == "main":
+                    if self.currToken["tokenName"] == "main":
                         self.hasMainFunction = True
+                        print("MAIN FUNCTION FOUND!!!!")
                     self.match("Identifier", False)
                 else:
                     self.logError("Expected identifier (function name).")
                 self.match("(", False)
-                self.params_dec_start()
+                if not self.hasMainFunction:
+                    self.params_dec_start()
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 self.data_type()
@@ -626,15 +680,18 @@ class SyntaxAnalyzer:
 
 
     def params_dec_start(self):
-        print("(parser) production: \"params_dec_start\" detected")
-        self.match("(")
-        self.params_dec()
-        if not self.match(")", True):
-            self.ERROR_unclosed_parentheses()
-        self.match("{", False)
-        self.body()
-        if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
+        
+        if not self.hasMainFunction:
+            print("(parser) production: \"params_dec_start\" detected")
+            self.match("(")
+            self.params_dec()
+            if not self.match(")", True):
+                self.ERROR_unclosed_parentheses()
+        
+            self.match("{", False)
+            self.body()
+            if not self.match("}"):
+                self.ERROR_unclosed_curly_braces()
 
 
     # TODO
@@ -654,6 +711,11 @@ class SyntaxAnalyzer:
         self.match("{", False)
 
         self.class_body()
+        self.constructor_dec()
+        self.class_body()
+
+        if self.currToken and self.currToken["tokenType"] == "Identifier":
+            self.logError(f"Only one constructor per class allowed. Expected: {PREDICT_SETS['class_body']}")
 
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
@@ -668,128 +730,48 @@ class SyntaxAnalyzer:
 
     
     def class_body(self): # all of these are just 'if's because class_body can be null
-
-        def checkAfterPossibleNulls(self, currentPeek = 1, foundStatic = False): # checks after <is_private> <is_static>, then checks <is_const> <is_void?????>
-            print("(inClassBody) in checkAfterPossibleNulls()")  ##### * = one or zero, not zero or many, of the tokens
-
-            class_peek = self.peek(currentPeek)["tokenType"]
-
-            if class_peek and class_peek == "const": # found 'private* static* const > ' => attribute_dec
-                self.attribute_dec(inClassBody)
-
-            elif class_peek and class_peek == "void": # found 'private* static* void > ' => methods_dec
-                self.methods_dec(inClassBody)
-
-            elif class_peek and class_peek in PREDICT_SETS["data_type"]: # checking 'private* static* dtype > '
-                    class_peek = self.peek(currentPeek + 1)["tokenType"]
-
-                    if class_peek and class_peek == "Identifier": # checking 'private* static dtype Iden > '
-                        class_peek = self.peek(currentPeek + 2)["tokenType"]
-                        if class_peek and class_peek == "(":    # found 'private* static* dtype iden(' => methods_dec
-                            self.methods_dec(inClassBody)      
-                            
-                        elif class_peek and class_peek in [ ",", ";"] + PREDICT_SETS["assign_operator"]: # found 'private* static* dtype iden = | , | ;' => attribute_dec
-                            self.attribute_dec(inClassBody)
-
-                        else: self.ERROR_expected_token([ ",", ";", "("] + PREDICT_SETS["assign_operator"]) # found 'private* static* dtype iden <EOF or invalid token>' 
-
-                    else: self.ERROR_expected_token("Identifier") # found 'private* static* dtype <EOF or invalid token>' 
-
-            else: 
-                if foundStatic:
-                    self.nextToken()  # skip private static to throw proper error
-                self.nextToken()
-                self.ERROR_expected_token(["const", "void"] + PREDICT_SETS["data_type"])   # found 'private* static* <EOF or invalid token>' 
-
-
-    #def class_body(self):--------------------------------------------------------------------
         print("(parser) production: \"class_body\" detected")
-        self.matchPredictSet("class_body", False)   #throws error if currToken not in here
-        inClassBody = True
-
-        if self.currToken and self.currToken["tokenType"] == "private": # checking 'private >'
-            class_peek = self.peek()["tokenType"]   
-            if class_peek and class_peek == "static": # found ' private static >', check next tokens in this func
-                checkAfterPossibleNulls(self, 2, True) 
-
-            elif class_peek and class_peek == "class": # found 'private class >' => clas_dec
-                self.class_declaration(inClassBody)
-
-            else: checkAfterPossibleNulls(self, 1) #found private, but not class and not static. Check <is_const><is_void>dtype iden and check whether '(' | '= | , | ;'
-
-        elif self.currToken and self.currToken["tokenType"] == "class":  # found 'class >' => class_declaration of indenpenepcnedeCECEde()
-            self.class_declaration(inClassBody)
-
-        elif self.currToken and self.currToken["tokenType"] == "Identifier": #can only be constructor
-            self.constructor_dec()
-
-        elif self.currToken and self.currToken["tokenType"] == "static": # found static, Check <is_const><is_void>dtype iden and check whether '(' | '= | , | ;'
-            checkAfterPossibleNulls(self, 1)
-
-        elif self.currToken and self.currToken["tokenType"] != "}":   #not private or class or Identifiah, but its in PREDICT_SETS["class_body"]
-            checkAfterPossibleNulls(self, 0)
-                
-        if self.currToken and self.currToken["tokenType"] == "}":
-            return
         
-        if not self.currToken:
-            self.ERROR_unclosed_curly_braces()
-
-        self.class_body()
-        inClassBody = False     #tf if i know if this does anything
-
-    def attribute_dec(self, inClassBody = True): 
-        print("(parser) production: \"attribute_dec\" detected")
-
-        if self.currToken:
-            if self.currToken["tokenType"] == "private":
-                self.match("private")
-            if self.currToken["tokenType"] == "static":
-                self.match("static")
-
-            self.var_dec("class_body")
-
-        print("(parser) production: \"attribute_dec\" exited!!!!!")
-
-    def methods_dec(self, inClassBody = True): 
-        print("(parser) production: \"methods_dec\" detected")
-
-        if self.currToken:
-            if self.currToken["tokenType"] == "private":
-                self.match("private")
-            if self.currToken["tokenType"] == "static":
-                self.match("static")
-
-            self.function_dec(inClassBody)
-
-        print("(parser) production: \"methods_dec\" exited!!!!!")
+        inClassBody = True
+        if self.matchPredictSet("class_body", True):   #throws no error if currToken not in here
+            
+            if self.currToken:
+                if self.currToken["tokenType"] == "private":
+                    self.match("private")
+                
+                self.iden_dec()
+                self.class_body()
+            inClassBody = False     #tf if i know if this does anything
 
     def constructor_dec(self): 
-        print("(parser) production: \"constructor_dec\" detected")
+        
+        if self.currToken:
+            if self.currToken["tokenType"] == "Identifier":
+                print("(parser) production: \"constructor_dec\" detected")
+                if self.currToken["tokenName"] != self.classNames[-1]: 
+                    self.logError("Constructors must have the same name as its class.") 
+                    #TODO: maybe fix error message here, just a placeholder
 
-        if self.currToken["tokenName"] != self.classNames[-1]: 
-            self.logError("Constructors must have the same name as its class.") 
-            #TODO: fix error message here, just a placeholder
+                self.match("Identifier", False)
+                self.classNames.pop()
+                self.match("(", False)
+                self.params_dec()
+                if not self.match(")"):
+                    self.ERROR_unclosed_parentheses()
+
+                self.match("{", False)
+                self.code_block()
+                
+                if self.currToken and self.currToken["tokenType"] == "return":
+                    self.logError("Constructors cannot have return statements.")
+
+
+                if not self.match("}"):
+                    self.ERROR_unclosed_curly_braces()
+
+            print("(parser) production: \"constructor_dec\" exited!!!!!")
 
         
-        self.match("Identifier", False)
-        self.classNames.pop()
-        self.match("(", False)
-        self.params_dec()
-        if not self.match(")"):
-            self.ERROR_unclosed_parentheses()
-
-        self.match("{", False)
-        self.code_block()
-        
-        if self.currToken and self.currToken["tokenType"] == "return":
-            self.logError("Constructors cannot have return statements.")
-
-
-        if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
-
-        print("(parser) production: \"constructor_dec\" exited!!!!!")
 
 
     # TODO
@@ -828,40 +810,6 @@ class SyntaxAnalyzer:
             self.function_dec()
 
 
-    # TODO
-    def function_dec(self, inClassBody = False):     #starts at iden'(' or 'void' or 'dtype'
-        print("(parser) production: \"function_dec\" detected")
-        isVoid = False
-        if self.currToken["tokenType"] != "(": # if not from second calling from program_construct
-            if self.currToken["tokenType"] == "void":
-                self.match("void")
-                isVoid = True
-            else:
-                self.matchPredictSet("data_type")
-                self.nextToken()
-            if not self.match("Identifier"):
-                self.ERROR_expected_token("Identifier")
-
-        self.match("(", False)
-            
-        self.params_dec() ############### PARAM RULES HERE
-        
-        if not self.match(")"):
-            self.ERROR_unclosed_parentheses()
-
-        self.match("{", False)
-
-        self.body(isVoid) ############### TODO: FUNCTION BODY RULES HERE
-        print("(parser) production: \"body\" EXITED!! Back to function_dec")
-
-        if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
-
-        if not inClassBody:
-            self.program_constructs()
-
-        else:
-            self.class_body()
 
 
 
