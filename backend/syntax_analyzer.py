@@ -321,7 +321,8 @@ class SyntaxAnalyzer:
     def parse(self):
         try:
             #self.program()
-            self.value()
+            #self.value()
+            self.class_inst('program_constructs')
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -878,27 +879,14 @@ class SyntaxAnalyzer:
         else:
             self.ERROR_missing_initializer()
         
-
-        # check continuation (if single class instantiation or w/ constructor)
-        has_Constructor_or_Array_Init = self.classinst_cont()
-
-        print("(parser-dbg): done after classinst_cont -- should match semicolon")
+        if self.currToken and self.currToken["tokenType"] == '=': # check if there is object instantiation
+            self.classinst_cont()
 
         # Match terminating symbol
-        if self.currToken:
-            if self.currToken["tokenType"] not in [";", "}"] and not has_Constructor_or_Array_Init:
-                self.ERROR_expected_token(['=', '[', ';'])
-            elif self.currToken["tokenType"] == ";":
-                self.match(";")  # valid termination
-            else:
-                self.ERROR_terminating_token(";")
+        if self.currToken and self.currToken["tokenType"] == ';':
+            self.match(";")  
         else:
-            # If currToken is None, we're at EOF (End of File)
-            if not has_Constructor_or_Array_Init:
-                self.ERROR_expected_token(['=', '[', ';'])
-            else:
-                self.ERROR_terminating_token(";")
-
+            self.ERROR_terminating_token(";")
 
         # Continue parsing program constructs
         if self.currToken:
@@ -920,7 +908,7 @@ class SyntaxAnalyzer:
 
             self.match('(', False)
 
-            has_Constructor_or_Array_Init = self.func_arg(true)
+            has_Constructor_or_Array_Init = self.func_arg(True)
 
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
@@ -928,155 +916,6 @@ class SyntaxAnalyzer:
                 self.ERROR_expected_constructor_param_closing()
             else:
                 self.ERROR_expected_token([")", ","])
-            return True
-
-        # array of objects
-        elif self.currToken and self.currToken["tokenType"] == "[":
-            has_Constructor_or_Array_Init = True
-            self.match("[")
-            
-            # Check if there's an integer value or EOF
-            if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["int_val"]:
-                self.ERROR_expected_pos_integer_value(['whole_lit', 'Identifier','('])
-            else:
-                self.int_val([']'])    # parse <int_val>
-
-            # Check if the next token is a closing square bracket
-            if not self.currToken or not self.match("]"):
-                self.ERROR_unclosed_square_bracket()
-
-
-            self.classinst_def_1Drec_arr()   # parse <classinst_def_1Drec_arr>
-
-        else:
-            # λ-production (null value) = no additional tokens after the second identifier
-            # Simple object instantiation
-            pass
-
-        return has_Constructor_or_Array_Init
-
-    # Handle <classinst_def_1Drec_arr>
-    def classinst_def_1Drec_arr(self):
-        print("(parser) production: \"classinst_def_1Drec_arr\" detected")
-        if self.currToken and self.currToken["tokenType"] == "[":
-            self.match("[")
-            
-            # Check if there's an integer value or EOF
-            if self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["int_val"]:
-                self.ERROR_expected_pos_integer_value()
-            else:
-                self.int_val([']'])  
-
-            if not self.match("]"):
-                self.ERROR_unclosed_square_bracket()
-
-            self.classinst_def_2Drec_arr()  # parse <classinst_def_2Drec_arr>
-
-        elif self.currToken and self.currToken["tokenType"] == "=":
-            self.match("=", False)
-            self.match("{", False)
-
-            self.object_arr1D_value()  # Parse <object_arr1D_value>
-
-            if not self.match("}"):
-                print("matching closing } for 1D parent prod")
-                self.ERROR_unclosed_curly_braces()
-        else:
-            # λ-production
-            print("(parser) λ-production for <classinst_def_1Drec_arr>")
-
-    # Handle <classinst_def_2Drec_arr>
-    def classinst_def_2Drec_arr(self):
-        print("(parser) production: \"classinst_def_2Drec_arr\" detected")
-        if self.currToken and self.currToken["tokenType"] == "=":
-            self.match("=", False)
-            self.match("{", False)
-
-            self.object_arr2D_value()  # Parse <object_arr2D_value>
-
-            if not self.match("}"):
-                self.ERROR_unclosed_curly_braces()
-        else:
-            # λ-production
-            print("(parser) λ-production for <classinst_def_2Drec_arr>")
-
-    # Handle <object_arr1D_value>
-    def object_arr1D_value(self):
-        print("(parser) production: \"object_arr1D_value\" detected")
-        if self.currToken and self.currToken["tokenType"] == "Identifier":
-            self.match("Identifier")
-            self.match("(", False)
-
-            hasNewVal = self.func_arg()
-
-            if self.currToken and self.currToken["tokenType"] == ")":
-                self.match(')')
-            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not hasNewVal:
-                self.ERROR_expected_constructor_param_closing()
-            else:
-                self.ERROR_expected_token([")", ","])
-                
-
-            self.object_arr_value_1D_rec()  # Parse <object_arr_value_1D_rec>
-        else:
-            self.ERROR_expected_Identifier_classes()
-
-    # Handle <object_arr_value_1D_rec>
-    def object_arr_value_1D_rec(self):
-        print("(parser) production: \"object_arr_value_1D_rec\" detected")
-        if self.currToken and self.currToken["tokenType"] == ",":
-            self.match(",")
-            if not self.match("Identifier"):
-                self.ERROR_expected_Identifier_classes()
-
-            self.match("(", False)
-
-            hasNewVal = self.func_arg()
-
-            if self.currToken and self.currToken["tokenType"] == ")":
-                self.match(')')
-            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not hasNewVal:
-                self.ERROR_expected_constructor_param_closing()
-            else:
-                self.ERROR_expected_token([")", ","])
-
-            self.object_arr_value_1D_rec()  # Recursive call for more values
-        else:
-            # λ-production
-            print("(parser) λ-production for <object_arr_value_1D_rec>")
-
-    # Handle <object_arr2D_value>
-    def object_arr2D_value(self):
-        print("(parser) production: \"object_arr2D_value\" detected")
-        if self.currToken and self.currToken["tokenType"] == "{":
-            self.match("{", False)
-
-            self.object_arr1D_value()
-
-            if not self.match("}"):
-                self.ERROR_unclosed_curly_braces()
-
-            self.object_arr2D_value_rec()  # Parse <object_arr2D_value_rec>
-        else:
-            self.ERROR_expected_token("{")
-
-    # Handle <object_arr2D_value_rec>
-    def object_arr2D_value_rec(self):
-        print("(parser) production: \"object_arr2D_value_rec\" detected")
-        if self.currToken and self.currToken["tokenType"] == ",":
-            self.match(",")
-
-            self.match("{", False)
-    
-            self.object_arr1D_value()
-
-            if not self.match("}"):
-                self.ERROR_unclosed_curly_braces()
-
-            self.object_arr2D_value_rec()  # Recursive call for more values
-        else:
-            # λ-production
-            print("(parser) λ-production for <object_arr2D_value_rec>")
 
 
     def func_arg(self, asConstructor = False):
@@ -1153,19 +992,22 @@ class SyntaxAnalyzer:
 
     # Uses of predict sets in value:
     #  - when checking for cont. if the next operator is any of the expressions, only enter cont prods
-    def value(self):
+    def stopCharOrOperatorCheck(self, stopChars):
+        if self.currToken["tokenType"] not in PREDICT_SETS["term_join_operators"] + stopChars:  # throw an error for missing operator
+                self.ERROR_expected_operator()
+    
+    def value(self, stopChars):
         print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        return self.logic_exp()
+        return self.logic_exp(stopChars)
 
-    def logic_exp(self):
+    def logic_exp(self, stopChars):
         print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         is_valid_value = self.rel_exp()
         
         if self.currToken:
             if self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
                 is_valid_value = self.logic_exp_cont()
-            elif self.currToken["tokenType"] not in PREDICT_SETS["term_join_operators"]:  # throw an error for missing operator
-                self.ERROR_expected_operator()
+            self.stopCharOrOperatorCheck(stopChars)
                 
         return is_valid_value
     
@@ -2299,19 +2141,6 @@ class SyntaxAnalyzer:
             
             print("(parser) exited production: \"arr_value_2D_rec\"")
 
-    def str_exp(self, stopChars):
-        print("(parser) production: \"str_exp\" detected")
-        """<str_exp> → <string_value> + <string_value>"""
-
-        if self.matchPredictSet("string_value", False):
-            self.string_value(["+"])  
-            if (self.currToken and self.currToken["tokenType"] == "+"):
-                while (self.currToken and self.currToken["tokenType"] == "+"):
-                    self.match("+", False)
-                    self.string_value(["+"] + stopChars)
-
-        print("(parser) exited production: \"str_exp\"")
-
 
     def assign_stmt(self):
         print("(parser) production: \"assign_stmt\" detected")
@@ -2434,17 +2263,13 @@ class SyntaxAnalyzer:
                 print("(parser) production: INSIDE \"iden_as_var_mods\" going to as_array")
                 # array element
                 self.as_array() 
+
         else:
             print("(parser-debug): assign statement variable has no var mods")
             pass
 
         print("(parser) exited production: \"iden_as_var_mods\"")
 
-    def iden_as_var_mods_con(self):
-        self.match(".")
-        self.match("Identifier", False)
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-            self.iden_as_var_mods()  # recurse for (objects with attributes) or (array with objects with attributes)
 
     def assign_stmt_or_func_method_call(self):
         print("(parser) production: \"assign_stmt_or_func_method_call\" detected")
