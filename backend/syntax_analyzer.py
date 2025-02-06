@@ -829,11 +829,14 @@ class SyntaxAnalyzer:
     def func_arg(self, asConstructor = False):
         print("(parser) production: \"func_arg\" detected")
         hasConstructorValue = False
+        isValidFuncArg = True
         # Check if there's a value to parse
-        if self.currToken and self.value([')',',']):
-            # Parse the recursive part of the arguments
-            isValidFuncArg = self.func_arg_rec()
-            hasConstructorValue = True
+        if self.currToken and self.currToken["tokenType"]in PREDICT_SETS["value"]:
+            if self.value([',',')']):
+                if self.currToken and self.currToken["tokenType"] == ',':
+                    # Parse the recursive part of the arguments when , is detected
+                    isValidFuncArg = self.func_arg_rec()
+                hasConstructorValue = True
         else:
             print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
         return hasConstructorValue if asConstructor else isValidFuncArg
