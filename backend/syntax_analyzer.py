@@ -303,9 +303,9 @@ class SyntaxAnalyzer:
     def ERROR_inc_dec_constant(self):
         self.logError("Increment or decrement operation is not allowed on constants.")
     def ERROR_expected_valid_value(self):
-        if not self.currToken:
+        if self.currToken:
             self.logError(f"Expected a valid value, instead got '{self.currToken['tokenName']}'.")
-        elif self.currToken["tokenType"] != ";":
+        else:
             self.logError("Expected a valid value, instead reached EOF.")
     def ERROR_inc_dec_not_int(self):
         self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.")
@@ -1095,17 +1095,17 @@ class SyntaxAnalyzer:
     # Uses of predict sets in value:
     #  - when checking for cont. if the next operator is any of the expressions, only enter cont prods
     def value(self):
-        print("(parser-value-chain): Entered \"value\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         self.logic_exp()
 
     def logic_exp(self):
-        print("(parser-value-chain): Entered \"logic_exp\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         self.rel_exp()
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
             self.logic_exp_cont()
     
     def logic_exp_cont(self):
-        print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "&&":
                 self.match("&&")
@@ -1115,7 +1115,7 @@ class SyntaxAnalyzer:
         self.logic_exp_cont()
 
     def rel_exp(self):
-        print("(parser-value-chain): Entered \"rel_exp\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"rel_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] == "!":
             self.match("!")
             self.rel_exp() # !!!!!!!<term>
@@ -1126,7 +1126,7 @@ class SyntaxAnalyzer:
             self.rel_exp_cont()
     
     def rel_exp_cont(self):
-        print("(parser-value-chain): Entered \"rel_exp_cont\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"rel_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "==":
                 self.match("==")
@@ -1147,31 +1147,31 @@ class SyntaxAnalyzer:
             self.rel_exp_cont()
     
     def arith_exp(self):
-        print("(parser-value-chain): Entered \"arith_exp\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"arith_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         self.term()
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
             self.add_min_cont()
 
     def add_min_cont(self):
-        print("(parser-value-chain): Entered \"add_min_cont\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"add_min_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "+":
                 self.match("+")
             case "-":
                 self.match("-")
-        
+        self.term()
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
             self.add_min_cont()
 
     def term(self):
-        print("(parser-value-chain): Entered \"term\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"term\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         self.factor()
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_cont"]:
             self.mult_div_cont()
     
     def mult_div_cont(self):
-        print("(parser-value-chain): Entered \"mult_div_cont\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"mult_div_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "*":
                 self.match("*")
@@ -1180,7 +1180,7 @@ class SyntaxAnalyzer:
         self.factor()
     
     def factor(self):
-        print("(parser-value-chain): Entered \"factor\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"factor\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] == "-":
             self.match("-")
             self.factor()
@@ -1193,7 +1193,7 @@ class SyntaxAnalyzer:
             self.ERROR_expected_valid_value()
     
     def cast_val(self):
-        print("(parser-value-chain): Entered \"cast_val\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"cast_val\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
             self.data_type()
             if not self.match(")"):
@@ -1205,7 +1205,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_parentheses()
 
     def atom(self):
-        print("(parser-value-chain): Entered \"atom\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]:
             self.lit_type()
         elif self.currToken and self.currToken["tokenType"] == "in":
@@ -1227,14 +1227,14 @@ class SyntaxAnalyzer:
         
 
     def mods_post_op(self):
-        print("(parser-value-chain): Entered \"mods_post_op\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"mods_post_op\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] in ["[", "("]:
             self.iden_mods()
         elif self.currToken and self.currToken["tokenType"] in ["++", "--"]:
             self.mods_post_op_con()
     
     def mods_post_op_con(self):
-        print("(parser-value-chain): Entered \"mods_post_op_con\", current token: " + self.currToken["tokenType"])
+        print("(parser-value-chain): Entered \"mods_post_op_con\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "++":
                 self.match("++")
