@@ -324,7 +324,7 @@ class SyntaxAnalyzer:
         try:
             self.program()
             #self.value()
-            print("Parsing completed successfully.")
+            self.errors.append("Parsing completed successfully. No Syntax Errors found.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
             print (e)
