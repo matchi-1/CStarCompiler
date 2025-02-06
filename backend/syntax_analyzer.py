@@ -866,7 +866,7 @@ class SyntaxAnalyzer:
 
             self.match('(', False)
 
-            has_Constructor_or_Array_Init = self.func_arg()
+            has_Constructor_or_Array_Init = self.func_arg(true)
 
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
@@ -1025,30 +1025,33 @@ class SyntaxAnalyzer:
             print("(parser) λ-production for <object_arr2D_value_rec>")
 
 
-    def func_arg(self):
+    def func_arg(self, asConstructor = False):
         print("(parser) production: \"func_arg\" detected")
         hasConstructorValue = False
         # Check if there's a value to parse
         if self.currToken and self.value([')',',']):
             # Parse the recursive part of the arguments
-            self.func_arg_rec()
+            isValidFuncArg = self.func_arg_rec()
             hasConstructorValue = True
         else:
             print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
-        return hasConstructorValue
+        return hasConstructorValue if asConstructor else isValidFuncArg
     
 
     def func_arg_rec(self):
         print("(parser) production: \"func_arg_rec\" detected")
+        isValidFuncArg = True
         # Check for a comma indicating more arguments
         if self.currToken and self.currToken["tokenType"] == ",":
             # Peek ahead to check the token after the comma
             next_token = self.peek()
             if not next_token:
                 # If there's no next token, it means EOF after the comma
+                isValidFuncArg = False
                 self.logError("Expected another value after ',' but reached EOF.")
             elif next_token["tokenType"] not in PREDICT_SETS["value"]:
                 # If the next token is not a valid value
+                isValidFuncArg = False
                 self.logError(f"Expected another value after ',' but got '{next_token['tokenName']}'.")
 
             self.match(",")  # Match the comma
@@ -1058,6 +1061,8 @@ class SyntaxAnalyzer:
             self.func_arg()
         else:
             print("(parser) λ-production for <func_arg_rec>")  # Handle λ (empty production)
+
+        return isValidFuncArg
 
     def func_method_call(self):    
         print("(parser) production: \"func_method_call\" detected")
@@ -1096,13 +1101,15 @@ class SyntaxAnalyzer:
     #  - when checking for cont. if the next operator is any of the expressions, only enter cont prods
     def value(self):
         print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        self.logic_exp()
+        return self.logic_exp()
 
     def logic_exp(self):
         print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        self.rel_exp()
+        is_valid_value = self.rel_exp()
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
-            self.logic_exp_cont()
+            is_valid_value = self.logic_exp_cont()
+        
+        return is_valid_value
     
     def logic_exp_cont(self):
         print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
@@ -1111,19 +1118,23 @@ class SyntaxAnalyzer:
                 self.match("&&")
             case "||":
                 self.match("||")
-        self.rel_exp()
-        self.logic_exp_cont()
+        is_valid_value = self.rel_exp()
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
+            is_valid_value = self.logic_exp_cont()
+        return is_valid_value
 
     def rel_exp(self):
         print("(parser-value-chain): Entered \"rel_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] == "!":
             self.match("!")
-            self.rel_exp() # !!!!!!!<term>
+            is_valid_value = self.rel_exp() # !!!!!!!<term>
           
-        self.arith_exp()
+        is_valid_value = self.arith_exp()
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
-            self.rel_exp_cont()
+            is_valid_value = self.rel_exp_cont()
+        
+        return is_valid_value
     
     def rel_exp_cont(self):
         print("(parser-value-chain): Entered \"rel_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
@@ -1141,17 +1152,21 @@ class SyntaxAnalyzer:
             case "<=":
                 self.match("!=")
 
-        self.arith_exp()
+        is_valid_value = self.arith_exp()
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
-            self.rel_exp_cont()
+            is_valid_value = self.rel_exp_cont()
+        
+        return is_valid_value
     
     def arith_exp(self):
         print("(parser-value-chain): Entered \"arith_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        self.term()
+        is_valid_value = self.term()
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
-            self.add_min_cont()
+            is_valid_value = self.add_min_cont()
+
+        return is_valid_value
 
     def add_min_cont(self):
         print("(parser-value-chain): Entered \"add_min_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
@@ -1160,16 +1175,21 @@ class SyntaxAnalyzer:
                 self.match("+")
             case "-":
                 self.match("-")
-        self.term()
+        is_valid_value = self.term()
+
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
-            self.add_min_cont()
+            is_valid_value = self.add_min_cont()
+
+        return is_valid_value
 
     def term(self):
         print("(parser-value-chain): Entered \"term\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        self.factor()
+        is_valid_value = self.factor()
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_cont"]:
-            self.mult_div_cont()
-    
+            is_valid_value = self.mult_div_cont()
+
+        return is_valid_value
+
     def mult_div_cont(self):
         print("(parser-value-chain): Entered \"mult_div_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
@@ -1177,35 +1197,45 @@ class SyntaxAnalyzer:
                 self.match("*")
             case "/":
                 self.match("/")
-        self.factor()
+        is_valid_value = self.factor()
+
+        return is_valid_value
     
     def factor(self):
         print("(parser-value-chain): Entered \"factor\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] == "-":
             self.match("-")
-            self.factor()
+            is_valid_value = self.factor()
         elif self.currToken and self.currToken["tokenType"] == "(":
             self.match("(")
-            self.cast_val()
+            is_valid_value = self.cast_val()
         elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["atom"]:
-            self.atom()
+            is_valid_value = self.atom()
         else:
+            is_valid_value = False
             self.ERROR_expected_valid_value()
+
+        return is_valid_value
     
     def cast_val(self):
         print("(parser-value-chain): Entered \"cast_val\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
             self.data_type()
             if not self.match(")"):
+                is_valid_value = False
                 self.ERROR_unclosed_parentheses()
-            self.value()
+            is_valid_value = self.value()
         elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
-            self.value()
+            is_valid_value = self.value()
             if not self.match(")"):
+                is_valid_value = False
                 self.ERROR_unclosed_parentheses()
+
+        return is_valid_value
 
     def atom(self):
         print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]:
             self.lit_type()
         elif self.currToken and self.currToken["tokenType"] == "in":
@@ -1213,6 +1243,7 @@ class SyntaxAnalyzer:
         elif self.currToken and self.currToken["tokenType"] == "--":
             self.match("--")
             if not self.match("Identifier"):
+                is_valid_value = False
                 if self.currToken and self.currToken["tokenType"] == "whole_lit":
                     self.ERROR_inc_dec_constant()
                 elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
@@ -1224,14 +1255,17 @@ class SyntaxAnalyzer:
             print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:
                 self.mods_post_op()
-        
+
+        return is_valid_value
 
     def mods_post_op(self):
         print("(parser-value-chain): Entered \"mods_post_op\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]:
-            self.iden_mods()
+            is_valid_value = self.iden_mods()
         elif self.currToken and self.currToken["tokenType"] in ["++", "--"]:
             self.mods_post_op_con()
+        return is_valid_value
     
     def mods_post_op_con(self):
         print("(parser-value-chain): Entered \"mods_post_op_con\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
@@ -1270,49 +1304,66 @@ class SyntaxAnalyzer:
 
     def iden_mods(self):
         print('(parser) production: "iden_mods" detected')
+        is_valid_value = True
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
             if (self.currToken and self.currToken["tokenType"] == "("):
                 self.match("(")
-                self.func_arg()
+                is_valid_value = self.func_arg()
                 if not self.match(")"):
                     print('(parser)(dbg) iden_mods paren error')
+                    is_valid_value = False
                     self.ERROR_unclosed_parentheses()
             elif (self.currToken and self.currToken["tokenType"] == "["):
-                self.as_array()
+                is_valid_value = self.as_array()
                 if (self.currToken and self.currToken["tokenType"] == "."):
                     self.object_rec()
             elif (self.currToken and self.currToken["tokenType"] == "."):
-                self.object_rec()
+                is_valid_value = self.object_rec()
+
+        return is_valid_value 
 
     def as_array(self):
         print('(parser) production: "as_array" detected')
+        is_valid_value = True
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            if not self.int_val(["]"]):
+            if not self.arith_exp():
+                is_valid_value = False
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
+                is_valid_value = False
                 self.ERROR_unclosed_square_bracket()
             if (self.currToken and self.currToken["tokenType"] == "["):
-                self.is_2d_arr()
+                is_valid_value = self.is_2d_arr()
+
+        return is_valid_value 
 
     def is_2d_arr(self):
+        is_valid_value = True
         print('(parser) production: "is_2d_arr" detected')
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            if not self.int_val(["]"]):
+            if not self.arith_exp():
+                is_valid_value = False
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
+                is_valid_value = False
                 self.ERROR_unclosed_square_bracket()
             if self.currToken and self.currToken["tokenType"] == "[":
+                is_valid_value = False
                 self.logError("Only up to 2 dimensions of arrays are allowed.")
-                
+        return is_valid_value
+
     def object_rec(self):
         print('(parser) production: "object_rec" detected')
+        is_valid_value = True
         if (self.currToken and self.currToken["tokenType"] == "."):
             self.match(".")
-            self.match("Identifier")
+            self.match("Identifier",False)
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
-            self.iden_mods()
+            is_valid_value = self.iden_mods()
+
+        return is_valid_value
 
     
     def ret_type(self):
@@ -1854,7 +1905,7 @@ class SyntaxAnalyzer:
         self.match("repeat", False)
         self.match("(", False)
 
-        if not self.int_val([")"]):
+        if not self.arith_exp():
             self.ERROR_expected_pos_integer_value()
 
         if not self.match(")"):
@@ -1935,7 +1986,7 @@ class SyntaxAnalyzer:
         
 
         if self.currToken and self.currToken["tokenType"] == "whole_lit": #int_val:
-            self.int_val([")"])
+            self.arith_exp()
         
         elif self.currToken and self.currToken["tokenType"] == "string_lit":
             self.string_value([")"])
@@ -1944,7 +1995,7 @@ class SyntaxAnalyzer:
                 self.match(",")
 
                 if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
-                    self.int_val([")"])
+                    self.arith_exp()
                 else: self.logError("Invalid value for 'in' statement character limit")
         
         print("(parser) exited production: \"input_params\"")
@@ -1980,7 +2031,7 @@ class SyntaxAnalyzer:
         
             elif self.currToken["tokenType"] == "[":
                 self.match("[", False)
-                if not self.int_val(["]"]):
+                if not self.arith_exp():
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]", True):
                     self.ERROR_unclosed_square_bracket()
@@ -2032,7 +2083,7 @@ class SyntaxAnalyzer:
                 self.array1D_init()
             elif self.currToken["tokenType"] == "[":
                 self.match("[", False)
-                if not self.int_val(["]"]):
+                if not self.arith_exp():
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]", True):
                     self.ERROR_unclosed_square_bracket()
@@ -2049,7 +2100,7 @@ class SyntaxAnalyzer:
             self.match(",")
             self.match("Identifier", False)
             self.match("[", False)
-            if not self.int_val(["]"]):
+            if not self.arith_exp():
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
@@ -2125,13 +2176,13 @@ class SyntaxAnalyzer:
                 self.match("Identifier", False)
                 
                 self.match("[", False)
-                if not self.int_val(["]"]):
+                if not self.arith_exp():
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
                 
                 self.match("[", False)
-                if not self.int_val(["]"]):
+                if not self.arith_exp():
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
