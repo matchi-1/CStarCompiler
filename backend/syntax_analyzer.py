@@ -1427,17 +1427,6 @@ class SyntaxAnalyzer:
                 self.logError("Only up to 2 dimensions of arrays are allowed.")
         return is_valid_value
 
-    def object_rec(self):
-        print('(parser) production: "object_rec" detected')
-        is_valid_value = True
-        if (self.currToken and self.currToken["tokenType"] == "."):
-            self.match(".")
-            self.match("Identifier",False)
-        if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
-            is_valid_value = self.iden_mods()
-
-        return is_valid_value
-
     
     def ret_type(self):
         print("(parser) production: \"ret_type\" detected")
@@ -2436,15 +2425,15 @@ class SyntaxAnalyzer:
             print("(parser) production: INSIDE \"iden_as_var_mods\" going to as_array")
             # array element
             self.as_array()         
-            if self.currToken and self.currToken["tokenType"] == ".":  # iden[x].
-                self.iden_as_var_mods_con() # match iden mods if there are any
         elif self.currToken and self.currToken["tokenType"] == ".":
             # object attribute (can be object attribute of an array element upon recursion)
             print("(parser) production: INSIDE \"iden_as_var_mods\" now checking identifier")
             self.match(".")
             self.match("Identifier", False)
-            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-                self.iden_as_var_mods()  # recurse for (objects with attributes) or (array with objects with attributes)
+            if self.currToken and self.currToken["tokenType"] == "[":
+                print("(parser) production: INSIDE \"iden_as_var_mods\" going to as_array")
+                # array element
+                self.as_array() 
         else:
             print("(parser-debug): assign statement variable has no var mods")
             pass

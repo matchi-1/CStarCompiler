@@ -78,7 +78,7 @@ iden_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', 
 str_lit_delim = list(set(newline + whitespace + logical_operator_delim + ['+', ')', ',', ';', '/', ':', '!', '=', '}', '?']))
 nbl_delim = list(set(arithmetic_operator + relational_operator_delim + logical_operator_delim + whitespace + newline + [',', ')', ']', '}', ':', '=', ';', '/', '?']))
 func_delim = newline_delim + ['(']
-
+closing_bracket_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '|', ')', '[', ']', ':', ';']
 
 def transition(currState, currChar):
     match currState:
@@ -1094,7 +1094,7 @@ def lexer(code):
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                 # ] symbol
                 case 'CLOSING_BRACKET_CHECK':
-                    expected = [i for i in iden_delim if i not in ["?", "{", "}", "("]]
+                    expected = closing_bracket_delim
                     if (code[i] in expected):
                         add_token(currToken, ']', currLine, currCol)
                     else:
