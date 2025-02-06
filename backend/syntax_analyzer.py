@@ -1281,6 +1281,7 @@ class SyntaxAnalyzer:
     
     def cast_val(self):
         print("(parser-value-chain): Entered \"cast_val\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
             self.data_type()
             if not self.match(")"):
@@ -1292,7 +1293,11 @@ class SyntaxAnalyzer:
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
-
+        else:
+            if self.currToken:
+                self.logError(f"Expected a data type for typecasting or a valid value, instead got '{self.currToken["tokenName"]}'.")
+            else:
+                self.logError(f"Expected a data type for typecasting or a valid value, instead reached EOF.")
         return is_valid_value
 
     def atom(self):
@@ -1374,8 +1379,8 @@ class SyntaxAnalyzer:
             is_valid_value = self.match("Identifier", False)
             if self.currToken and self.currToken["tokenType"] in ['(', '[']:
                 is_valid_value = self.is_func_method_arr()
-                if self.currToken and self.currToken["tokenType"] == '.':
-                    self.ERROR_further_class_access()
+            elif self.currToken and self.currToken["tokenType"] == '.':
+                self.ERROR_further_class_access()
         return is_valid_value 
 
     def is_func_method_arr(self):
