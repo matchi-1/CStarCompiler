@@ -3,7 +3,7 @@ PREDICT_SETS = {
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "std_lib": ["Cmath", "Cstring", "Carray"],
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
-    "data_types": ["bool", "string", "int", "long", "double", "float"],
+    "data_type": ["bool", "string", "int", "long", "double", "float"],
     "class_body": [ "private" ,'static', "const", "int", "long", "bool", "float", "double", "string", "Identifier" , "private", "class", "}", "void"],
     "literals": ["whole_lit", "frac_lit", "string_lit", "Identifier"], # need to add expressions here in the future
     "print_stmts" : ["print", "println"],
@@ -30,7 +30,11 @@ PREDICT_SETS = {
     "output":["print", "println"],
     "code_block": ["++", "--", "Identifier", "bool", "bool_lit", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
     "iden_as_var_mods": ["[","."],
-    "body": []  # Placeholder for now
+    "body": [],  # Placeholder for now
+    "add_min_cont":["+", "-"],
+    "mult_div_cont":["*", "/"],
+    "atom":["in", "--", "++", "Identifier", "bool_lit", "whole_lit", "frac_lit", "string_lit"],
+    "mods_post_op":["[", "(", "++", "--"]
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -115,175 +119,6 @@ class SyntaxAnalyzer:
                 return False
         return True
 
-    def checkValProd(self, stopChars): # this is so fucking stupid hsohlskjhfouihouHJDF
-        paren_stack = []
-        bracket_stack = []
-        inner = False
-        outer_exists = True
-        has_string = False
-        is_plus = False
-        prod = "single"
-        peek_index = 0 #so that it counts currToken LOL THIS IS NOT HOW PEEK() IS SUPPOSED TO BE USED BUT IT WORKS
-        while True:
-            if (paren_stack or bracket_stack):
-                inner = True
-            else:
-                inner = False
-            t = self.peek(peek_index)
-            if not t:
-                return False
-            if (t["tokenType"] in stopChars):
-                if not inner:
-                    if is_plus and has_string:
-                        prod = "<str_exp>"
-                    return prod
-            print(f'(parser)(dbg) valCheck token: {t["tokenType"]}')
-            # if (t["tokenType"] in ["string", "string_lit"]):
-            if (t["tokenType"] == "string_lit"):
-                if not inner:
-                    has_string = True
-            if (t["tokenType"] == "string"):
-                if peek_index > 0:
-                    if (self.peek(peek_index-1) and self.peek(peek_index-1)["tokenType"] == "("):
-                        if (self.peek(peek_index+1) and self.peek(peek_index+1)["tokenType"] == ")"):
-                            if not inner:
-                                has_string = True
-            if (t["tokenType"] == "("):
-                paren_stack.append(t["tokenType"])
-                if (peek_index == 0):
-                    outer_exists = False
-            elif (t["tokenType"] == "["):
-                bracket_stack.append(t["tokenType"])
-            elif (t["tokenType"] == ")"):
-                if not outer_exists and len(paren_stack)==1:
-                    print('(parser)(dbg) outer doesnt exist')
-                    print(f'(parser)(dbg) paren_stack cont: {paren_stack}')
-                    if (self.peek(peek_index+1) and self.peek(peek_index+1)["tokenType"] in stopChars):
-                        return "paren_wrap"
-                    else:
-                        outer_exists = True
-                if (not paren_stack):
-                    self.ERROR_unmatched_closing()
-                else:
-                    paren_stack.pop()
-            elif (t["tokenType"] == "]"):
-                if (not bracket_stack):
-                    self.ERROR_unmatched_closing()
-                else:
-                    bracket_stack.pop()
-            elif (t["tokenType"] == "?" and not inner):
-                return "<ternary_exp>"
-            elif (t["tokenType"] in PREDICT_SETS["logic_operator"]):
-                prod = "<logic_exp>"
-            elif (t["tokenType"] in PREDICT_SETS["rel_operator"]):
-                if not inner:
-                    if (t["tokenType"] == "<"):
-                        if (self.peek(peek_index+1) and self.peek(peek_index+1)["tokenType"] in PREDICT_SETS["data_types"]):
-                            print('(parser)(dbg) found datatype ahead')
-                            peek_index += 1
-                            continue
-                    if (t["tokenType"] == ">"):
-                        if (peek_index > 0):
-                            if (self.peek(peek_index-1)["tokenType"] in PREDICT_SETS["data_types"]):
-                                print('(parser)(dbg) found datatype behind')
-                                peek_index += 1
-                                continue
-                    if (prod != "<logic_exp>"):
-                        prod = "<rel_exp>"
-            elif (t["tokenType"] in PREDICT_SETS["arith_operator"]):
-                if not inner:
-                    if (peek_index == 0): 
-                        peek_index += 1
-                        continue # so it doesnt count unary as operators
-                    if (peek_index > 1):
-                        if (self.peek(peek_index-1) == ")" and self.peek(peek_index-2) in PREDICT_SETS["data_types"]):
-                            peek_index += 1
-                            continue # to avoid looking at casting of negative exp
-                    if prod not in ["<rel_exp>", "<logic_exp>"]:
-                        if t["tokenType"] == "+":
-                            is_plus = True
-                        prod = "<arith_exp>"
-            peek_index += 1
-                        
-    def checkArithParen(self):
-        # this 'solution' is so fucking stupid but this shit is making me go schizo it works for now 
-        # scan the outer paren to see if there are any arith_ops and if there are then read it as arith_exp otherwise its a num_val
-        paren_stack = ['(']
-        bracket_stack = []
-        num_val_index = 1
-        while (len(paren_stack) > 0):
-            t = self.peek(num_val_index)
-            if not t:
-                print('(parser)(dbg) checkExp paren error')
-                self.ERROR_unclosed_parentheses()
-                return False
-            elif (t["tokenType"] == "("):
-                paren_stack.append(t["tokenType"])
-            elif (t["tokenType"] == "["):
-                bracket_stack.append(t["tokenType"])
-            elif (t["tokenType"] == "]"):
-                if (not bracket_stack):
-                    self.ERROR_unmatched_closing()
-                else:
-                    bracket_stack.pop()
-            elif (t["tokenType"] == ")"):
-                if (not paren_stack):
-                    self.ERROR_unmatched_closing()
-                else:
-                    paren_stack.pop()
-            if (t["tokenType"] in PREDICT_SETS["arith_operator"]):    
-                if (num_val_index == 1): 
-                    num_val_index += 1
-                    continue # so it doesnt count unary as operators
-                if (num_val_index > 2):
-                    if (self.peek(num_val_index-1) == ")" and self.peek(num_val_index-2) in PREDICT_SETS["data_types"]):
-                        num_val_index += 1
-                        continue # to avoid looking at casting of negative exp
-                if (len(paren_stack) == 1 and len(bracket_stack) == 0): #to make sure t doesnt look in indexing
-                    return True
-            num_val_index += 1
-        return False
-    
-    def checkPostUnary(self, stopChars):
-        paren_stack = []
-        bracket_stack = []
-        inner = False
-        peek_index = 0
-        while True:
-            if (paren_stack or bracket_stack):
-                inner = True
-            else:
-                inner = False
-            t = self.peek(peek_index)
-            if not t:
-                return False
-            if (t["tokenType"] in stopChars):
-                if not inner:
-                    if (peek_index > 1):
-                        if (self.peek(peek_index-1)["tokenType"] in ["++", "--"]):
-                            print('(parser)(dbg) checkpostunary returning true')
-                            return True
-                        else:
-                            return False
-                    else:
-                        return False
-            if (t["tokenType"] == "("):
-                paren_stack.append(t["tokenType"])
-            elif (t["tokenType"] == "["):
-                bracket_stack.append(t["tokenType"])
-            elif (t["tokenType"] == ")"):
-                if (not paren_stack):
-                    self.ERROR_unmatched_closing()
-                else:
-                    paren_stack.pop()
-            elif (t["tokenType"] == "]"):
-                if (not bracket_stack):
-                    self.ERROR_unmatched_closing()
-                else:
-                    bracket_stack.pop()
-            
-            
-            peek_index += 1
     
     #-------------------- SYNTAX ERRORS --------------------
     # Common Syntax Errors:    
@@ -465,13 +300,22 @@ class SyntaxAnalyzer:
             self.logError(f"Dimensions in arrays as parameters should not have any value. Expected closing bracket ']', but got '{self.currToken['tokenName']}'.")
         else:
             self.logError("Expected closing bracket ']', but reached EOF.")
-    def ERROR_adjust_constant(self):
+    def ERROR_inc_dec_constant(self):
         self.logError("Increment or decrement operation is not allowed on constants.")
+    def ERROR_expected_valid_value(self):
+        if not self.currToken:
+            self.logError(f"Expected a valid value, instead got '{self.currToken['tokenName']}'.")
+        elif self.currToken["tokenType"] != ";":
+            self.logError("Expected a valid value, instead reached EOF.")
+    def ERROR_inc_dec_not_int(self):
+        self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.")
+
 
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            self.program()
+            #self.program()
+            self.value()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
@@ -720,7 +564,7 @@ class SyntaxAnalyzer:
                     print("(parser): DONE CLASS INST")
                     
                 # VAR OR FUNC DEC
-                elif self.currToken["tokenType"] in PREDICT_SETS["data_types"]:  # sample of custom error not using matchPredictSet
+                elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:  # sample of custom error not using matchPredictSet
                     if self.peek():
                         if self.peek()["tokenType"] == "Identifier":
                             next_tokens = self.peek(2)
@@ -780,7 +624,7 @@ class SyntaxAnalyzer:
             elif class_peek and class_peek == "void": # found 'private* static* void > ' => methods_dec
                 self.methods_dec(inClassBody)
 
-            elif class_peek and class_peek in PREDICT_SETS["data_types"]: # checking 'private* static* dtype > '
+            elif class_peek and class_peek in PREDICT_SETS["data_type"]: # checking 'private* static* dtype > '
                     class_peek = self.peek(currentPeek + 1)["tokenType"]
 
                     if class_peek and class_peek == "Identifier": # checking 'private* static dtype Iden > '
@@ -799,7 +643,7 @@ class SyntaxAnalyzer:
                 if foundStatic:
                     self.nextToken()  # skip private static to throw proper error
                 self.nextToken()
-                self.ERROR_expected_token(["const", "void"] + PREDICT_SETS["data_types"])   # found 'private* static* <EOF or invalid token>' 
+                self.ERROR_expected_token(["const", "void"] + PREDICT_SETS["data_type"])   # found 'private* static* <EOF or invalid token>' 
 
 
     #def class_body(self):--------------------------------------------------------------------
@@ -893,14 +737,14 @@ class SyntaxAnalyzer:
 
 
     # TODO
-    def var_dec(self, location):      #starts at token '=' or 'const' or 'data_types'
+    def var_dec(self, location):      #starts at token '=' or 'const' or 'data_type'
         print("(parser) production: \"var_dec\" detected")
 
         if self.currToken and self.currToken["tokenType"] not in ["=", ";"]: # if not from second calling from program_construct
             if self.currToken["tokenType"] == "const":
                 self.match("const")
 
-            if self.matchPredictSet("data_types", False):
+            if self.matchPredictSet("data_type", False):
                 self.nextToken()
             
             if not self.currToken or self.currToken["tokenType"] != "Identifier":
@@ -937,7 +781,7 @@ class SyntaxAnalyzer:
                 self.match("void")
                 isVoid = True
             else:
-                self.matchPredictSet("data_types")
+                self.matchPredictSet("data_type")
                 self.nextToken()
             if not self.match("Identifier"):
                 self.ERROR_expected_token("Identifier")
@@ -1248,110 +1092,169 @@ class SyntaxAnalyzer:
             print("(parser) λ-production for <func_method_call_mods>")
 
 
+    # Uses of predict sets in value:
+    #  - when checking for cont. if the next operator is any of the expressions, only enter cont prods
+    def value(self):
+        print("(parser-value-chain): Entered \"value\", current token: " + self.currToken["tokenType"])
+        self.logic_exp()
 
-        # CODE BLOCKS!!!
+    def logic_exp(self):
+        print("(parser-value-chain): Entered \"logic_exp\", current token: " + self.currToken["tokenType"])
+        self.rel_exp()
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
+            self.logic_exp_cont()
+    
+    def logic_exp_cont(self):
+        print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + self.currToken["tokenType"])
+        match self.currToken["tokenType"]:
+            case "&&":
+                self.match("&&")
+            case "||":
+                self.match("||")
+        self.rel_exp()
+        self.logic_exp_cont()
 
+    def rel_exp(self):
+        print("(parser-value-chain): Entered \"rel_exp\", current token: " + self.currToken["tokenType"])
+        if self.currToken and self.currToken["tokenType"] == "!":
+            self.match("!")
+            self.rel_exp() # !!!!!!!<term>
+          
+        self.arith_exp()
+
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
+            self.rel_exp_cont()
+    
+    def rel_exp_cont(self):
+        print("(parser-value-chain): Entered \"rel_exp_cont\", current token: " + self.currToken["tokenType"])
+        match self.currToken["tokenType"]:
+            case "==":
+                self.match("==")
+            case "!=":
+                self.match("!=")
+            case ">":
+                self.match("==")
+            case ">=":
+                self.match("!=")
+            case "<":
+                self.match("==")
+            case "<=":
+                self.match("!=")
+
+        self.arith_exp()
+
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
+            self.rel_exp_cont()
+    
+    def arith_exp(self):
+        print("(parser-value-chain): Entered \"arith_exp\", current token: " + self.currToken["tokenType"])
+        self.term()
+
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
+            self.add_min_cont()
+
+    def add_min_cont(self):
+        print("(parser-value-chain): Entered \"add_min_cont\", current token: " + self.currToken["tokenType"])
+        match self.currToken["tokenType"]:
+            case "+":
+                self.match("+")
+            case "-":
+                self.match("-")
         
-#TODO: harley todos: errors, prod integration
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
+            self.add_min_cont()
 
-    def int_val(self, stopChars):
-        print('(parser) production: "int_val" detected')
-        if (self.currToken and self.matchPredictSet("int_val")):
-            prod = self.checkValProd(stopChars)
-            print
-            if (prod == "paren_wrap"):
-                self.match("(")
-                if not self.int_val([")"]):
-                    self.logError("Expected valid integer value inside parenthesis.")
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-                return True
-            elif (prod == "<arith_exp>"):
-                self.arith_exp(stopChars)
-                return True
-            elif (self.currToken and self.currToken["tokenType"] == "("):
-                if (self.peek() in PREDICT_SETS["data_types"]):
-                    self.typecast_exp()
-                    return True
-            elif (self.currToken and self.currToken["tokenType"] == "whole_lit"):
-                if self.checkPostUnary(stopChars):
-                    self.ERROR_adjust_constant()
-                self.match("whole_lit")
-                return True
-            elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-                self.match("Identifier")
-                self.iden_mods()
-                return True
-            elif (self.currToken and self.currToken["tokenType"] == "in"):
-                self.input()
-                return True
+    def term(self):
+        print("(parser-value-chain): Entered \"term\", current token: " + self.currToken["tokenType"])
+        self.factor()
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_cont"]:
+            self.mult_div_cont()
+    
+    def mult_div_cont(self):
+        print("(parser-value-chain): Entered \"mult_div_cont\", current token: " + self.currToken["tokenType"])
+        match self.currToken["tokenType"]:
+            case "*":
+                self.match("*")
+            case "/":
+                self.match("/")
+        self.factor()
+    
+    def factor(self):
+        print("(parser-value-chain): Entered \"factor\", current token: " + self.currToken["tokenType"])
+        if self.currToken and self.currToken["tokenType"] == "-":
+            self.match("-")
+            self.factor()
+        elif self.currToken and self.currToken["tokenType"] == "(":
+            self.match("(")
+            self.cast_val()
+        elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["atom"]:
+            self.atom()
         else:
-            return False
+            self.ERROR_expected_valid_value()
+    
+    def cast_val(self):
+        print("(parser-value-chain): Entered \"cast_val\", current token: " + self.currToken["tokenType"])
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
+            self.data_type()
+            if not self.match(")"):
+                self.ERROR_unclosed_parentheses()
+            self.value()
+        elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
+            self.value()
+            if not self.match(")"):
+                self.ERROR_unclosed_parentheses()
 
-    def value(self, stopChars):
-        print(f'(parser) checking for..... "value", stopping at {stopChars}')
-        if (self.currToken):
-            prod = self.checkValProd(stopChars)
-            print(f'(parser)(dbg) value prod: {prod}')
-            if (prod == "paren_wrap"):
-                self.match("(")
-                if not self.value([")"]):
-                    self.logError("Expected valid value inside parenthesis.")
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-                return True
-            elif (prod == "<ternary_exp>"):
-                self.ternary_exp(stopChars)
-                return True
-            elif (prod == "<logic_exp>"):
-                print('(parser)(dbg) logic_exp')
-                self.logic_exp(stopChars)     
-                return True
-            elif (prod == "<rel_exp>"):
-                self.rel_exp(stopChars)
-                return True
-            elif (prod == "<arith_exp>"):
-                self.arith_exp(stopChars)
-                return True
-            elif (prod == "<str_exp>"):
-                print('(parser)(dbg)<str_exp>')
-                self.str_exp(stopChars)
-                return True
-            elif (self.currToken and self.currToken["tokenType"] == "in"):
-                self.input()
-                return True
-            elif (self.currToken and self.currToken["tokenType"] in ["++", "--"]):
-                self.unary_exp()
-                return True
-            elif (self.currToken and self.currToken["tokenType"] == "("):
-                if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
-                    self.typecast_exp()
-                    return True
-            elif (self.currToken and self.currToken["tokenType"] == "!"):
-                print('(parser)(dbg) logic_exp')
-                self.logic_exp(stopChars)   
-                return True
-            elif (self.currToken and self.currToken["tokenType"] == "-"):
-                self.negative_exp(stopChars)
-                return True
-            elif (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]):
-                if self.checkPostUnary(stopChars):
-                    self.ERROR_adjust_constant()
-                self.lit_type() 
-                return True
-            elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-                print(f'(parser)(dbg) num_val checkpostun val: {self.checkPostUnary(stopChars)}')
-                if self.checkPostUnary(stopChars):
-                    self.unary_exp()
-                    return True
-                else:
-                    self.match("Identifier")
-                    self.iden_mods()
-                    return True
+    def atom(self):
+        print("(parser-value-chain): Entered \"atom\", current token: " + self.currToken["tokenType"])
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]:
+            self.lit_type()
+        elif self.currToken and self.currToken["tokenType"] == "in":
+            self.input()
+        elif self.currToken and self.currToken["tokenType"] == "--":
+            self.match("--")
+            if self.currToken and self.currToken["tokenType"] == "Identifier":
+                self.match("Identifier")
+            elif self.currToken and self.currToken["tokenType"] == "whole_lit":
+                self.ERROR_inc_dec_constant()
+            elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
+                self.ERROR_inc_dec_not_int()
             else:
-                return False
-        else: 
-            return False
+                self.ERROR_expected_token("Identifier")
+        elif self.currToken and self.currToken["tokenType"] == "Identifier":
+            self.match("Identifier")
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:
+                self.mods_post_op()
+        
+
+    def mods_post_op(self):
+        print("(parser-value-chain): Entered \"mods_post_op\", current token: " + self.currToken["tokenType"])
+        if self.currToken and self.currToken["tokenType"] in ["[", "("]:
+            self.iden_mods()
+        elif self.currToken and self.currToken["tokenType"] in ["++", "--"]:
+            self.mods_post_op_con()
+    
+    def mods_post_op_con(self):
+        print("(parser-value-chain): Entered \"mods_post_op_con\", current token: " + self.currToken["tokenType"])
+        match self.currToken["tokenType"]:
+            case "++":
+                self.match("++")
+            case "--":
+                self.match("--")  
+
+    def data_type(self):
+        match self.currToken["tokenType"]:
+            case "int":
+                self.match("int")
+            case "long":
+                self.match("long")
+            case "float":
+                self.match("float")
+            case "double":
+                self.match("double")
+            case "bool":
+                self.match("bool")
+            case "string":
+                self.match("string")
 
     def lit_type(self):
         print('(parser) production: "lit_type" detected')
@@ -1411,335 +1314,11 @@ class SyntaxAnalyzer:
         if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]):
             self.iden_mods()
 
-    def expression(self, stopChars):
-        print('(parser) production "expression" detected')
-        if (self.currToken):
-            prod = self.checkValProd(stopChars)
-            print(f'(parser)(dbg) expression prod: {prod}')
-            if (prod == "paren_wrap"):
-                self.match("(")
-                self.expression([")"])
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-            elif (prod == "<ternary_exp>"):
-                self.ternary_exp(stopChars)
-            elif (prod == "<logic_exp>"):
-                print('(parser)(dbg) logic_exp')
-                self.logic_exp(stopChars)
-            elif (prod == "<rel_exp>"):
-                self.rel_exp(stopChars)
-            elif (prod == "<arith_exp>"):
-                self.arith_exp(stopChars)
-            elif (prod == "<str_exp>"):
-                print('(parser)(dbg)<str_exp>')
-                self.str_exp(stopChars)         
-            elif (self.currToken and self.currToken["tokenType"] in ["++", "--"]):
-                self.unary_exp()
-            elif (self.currToken and self.currToken["tokenType"] == "("):
-                if (self.peek() in PREDICT_SETS["data_types"]):
-                    self.typecast_exp()
-            elif (self.currToken and self.currToken["tokenType"] == "!"):
-                print('(parser)(dbg) logic_exp')
-                self.logic_exp(stopChars)
-            elif (self.currToken and self.currToken["tokenType"] == "-"):
-                self.negative_exp(stopChars)
-            elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-                self.unary_exp()
-        else:
-            self.ERROR_expected_token("expression")
-
-
-    def negative_exp(self, stopChars):
-        print('(parser) production: "negative_exp" detected')
-        if (self.currToken and self.currToken["tokenType"] == "("):
-            self.match("(")
-            self.negative_exp([")"])
-            if not self.match(")"):
-                self.ERROR_unclosed_parentheses()
-        elif (self.currToken and self.currToken["tokenType"] == "-"):
-            self.match("-")
-            if self.num_value(stopChars) == False:
-                print('(parser)(dbg) negexp num_val false ret')
-                self.ERROR_expected_num_value()
-        else:
-            self.ERROR_expected_num_value()
-
-    def num_value(self, stopChars):
-        print('(parser) production: "num_value" detected')
-        print(f'(parser)(dbg) num_val stopchar: {stopChars}')
-        if (self.currToken and self.currToken["tokenType"] == "whole_lit"):
-            print(f'(parser)(dbg) {self.currToken["tokenName"]} is whole_lit')
-            if self.checkPostUnary(stopChars):
-                self.ERROR_adjust_constant()
-            self.match("whole_lit")
-            return True
-        elif (self.currToken and self.currToken["tokenType"] == "frac_lit"):
-            if self.checkPostUnary(stopChars):
-                self.ERROR_adjust_constant()
-            self.match("frac_lit")
-            return True
-        elif (self.currToken and self.currToken["tokenType"] == "-"):
-            self.negative_exp(stopChars)
-            return True
-        elif (self.currToken and self.currToken["tokenType"] in ["++", "--"]):
-            self.unary_exp()
-            return True
-        elif (self.currToken and self.currToken["tokenType"] == "("):
-            if (self.checkArithParen()):
-                self.match("(")
-                self.arith_exp([")"])
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-                return True
-            else:
-                print('(parser)(dbg) not arith paren')
-                if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
-                    self.typecast_exp()
-                    return True
-                else:
-                    self.match("(")
-                    if self.num_value([")"]) == False:
-                        self.ERROR_expected_num_value()
-                    print('(parser)(dbg) we got a num_val!')
-                    if not self.match(")"):
-                        self.ERROR_unclosed_parentheses()
-                    return True
-        elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-            if self.checkPostUnary(stopChars):
-                self.unary_exp()
-                return True
-            else:
-                self.match("Identifier")
-                self.iden_mods()
-                return True
-        elif (self.currToken and self.currToken["tokenType"] == "in"):
-            self.input()
-            return True
-        else:
-            return False #for error later
     
-    def arith_operator(self):
-        print('(parser) producton: "arith_operator" detected')
-        if (self.currToken and self.currToken["tokenType"] == "+"):
-            self.match("+")
-        elif (self.currToken and self.currToken["tokenType"] == "-"):
-            self.match("-")
-        elif (self.currToken and self.currToken["tokenType"] == "/"):
-            self.match("/")
-        elif (self.currToken and self.currToken["tokenType"] == "*"):
-            self.match("*")
-        elif (self.currToken and self.currToken["tokenType"] == "%"):
-            self.match("%")
-        else:
-            self.ERROR_expected_token("{+, -, *, /, %}") #this will probably literally never be called because we check before calling arith_op but eh ¯\_(ツ)_/¯
-
-    def arith_exp(self, stopChars): #doesnt take precedence into account, only checks form (hopefully LMAO)
-        print('(parser) production: "arith_exp" detected')
-        self.num_value(PREDICT_SETS["arith_operator"])
-        if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]):
-            while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_operator"]):
-                self.arith_operator()
-                if self.num_value(PREDICT_SETS["arith_operator"] + stopChars) == False: #not using 'not' since num_value doesnt return a True
-                    self.ERROR_expected_num_value()
-        else:
-            self.ERROR_expected_token("{+, -, *, /, %}")
-
-    def ternary_exp(self, stopChars):
-        print('(parser) production: "ternary_exp" detected')
-        if (self.currToken and self.currToken["tokenType"] == "("):
-            self.match("(")
-            self.condition("ternary",[")"])
-            print('(parser)(dbg)<condition>')
-            if not self.match(")"):
-                self.ERROR_unclosed_parentheses()
-            if not self.match("?"):
-                self.ERROR_expected_token("?")
-            if not self.value([":"]):
-                self.ERROR_expected_token("value")
-            if not self.match(":"):
-                self.ERROR_expected_token(":")
-            if not self.value(stopChars):
-                self.ERROR_expected_token("value")
-
-    def logic_exp(self, stopChars):
-        print("(parser) production: \"logic_exp\" detected")
-        if self.currToken and self.currToken["tokenType"] != "!":
-            self.bool_value(PREDICT_SETS["logic_operator"] + stopChars)
-            if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]):
-                while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]):
-                    self.logic_operator()
-                    if not self.bool_value(PREDICT_SETS["logic_operator"] + stopChars): 
-                        print('(parser)(dbg) ERROR: expected value')
-                        self.ERROR_expected_token("bool value") #should i expound errors like this, bool value can be iden, bool_lit, rel_exp, logic_exp, etc.
-        else:   
-            self.match("!", False)
-            self.logic_exp(stopChars)
-
-        print("(parser) production: \"logic_exp\" EXITED!!")
-
-    def logic_operator(self):
-        print("(parser) production: \"logic_operator\" detected")
-        if (self.currToken and self.currToken["tokenType"] == "&&"):
-            self.match("&&")
-        elif (self.currToken and self.currToken["tokenType"] == "||"):
-            self.match("||")
-        else:
-            self.ERROR_expected_token("{||, &&}")
-
-
-    #####CONDITION
-
-    def bool_value(self, stopChars):
-        print(f'(parser) checking for "bool_value"......., stopping at {stopChars}')
-        if self.currToken:
-            prod = self.checkValProd(stopChars)
-            if (prod == "<ternary_exp>"):
-                self.ternary_exp(stopChars)
-                print('(parser)(dbg)bool_val ternary, exiting bool_value...')
-                return True
-            elif (prod == "<logic_exp>"):
-                self.logic_exp(stopChars)
-                print('(parser)(dbg)<logic_exp>')
-                return True
-            elif (prod == "<rel_exp>"):
-                self.rel_exp(stopChars)
-                return True
-            elif (prod == "paren_wrap"):
-                self.match("(")
-                if self.currToken and self.bool_value([")"]):
-                    if not self.match(")"):
-                        self.ERROR_unclosed_parentheses()
-                    return True
-                else: 
-                    return False
-            else:
-                if (self.currToken["tokenType"] == "("):
-                    if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
-                        self.typecast_exp()
-                        return True
-                elif (self.currToken["tokenType"] == "!"):
-                    self.logic_exp(stopChars)
-                    print('(parser)(dbg)<logic_exp>')
-                    return True
-                elif (self.currToken["tokenType"] == "Identifier"):
-                    self.match("Identifier")
-                    self.iden_mods()
-                    return True
-                elif (self.currToken["tokenType"] == "bool_lit"):
-                    if self.checkPostUnary(stopChars):
-                        self.ERROR_adjust_constant()
-                    self.match("bool_lit")
-                    return True
-                elif (self.currToken and self.currToken["tokenType"] == "in"):
-                    self.input()
-                    return True
-                else:
-                    self.ERROR_expected_token("bool_value")
-                    return False
-        else:
-            self.ERROR_expected_token("bool_value")
-            return False
-
-    def rel_exp(self, stopChars):
-        print('(parser) production: "rel_exp" detected')
-        self.value(PREDICT_SETS["rel_operator"])
-        if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]):
-            while (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]):
-                self.rel_operator()
-                if not self.value(PREDICT_SETS["rel_operator"] + stopChars): 
-                    print('(parser)(dbg) ERROR: expectced value')
-                    self.ERROR_expected_token("value")
-        else:
-            self.ERROR_expected_token("{==, !=, >, <, >=, <=}")
-            
-    def rel_operator(self):
-        print('(parser) producton: "rel_operator" detected')
-        if (self.currToken and self.currToken["tokenType"] == "=="):
-            self.match("==")
-        elif (self.currToken and self.currToken["tokenType"] == "!="):
-            self.match("!=")
-        elif (self.currToken and self.currToken["tokenType"] == ">"):
-            self.match(">")
-        elif (self.currToken and self.currToken["tokenType"] == "<"):
-            self.match("<")
-        elif (self.currToken and self.currToken["tokenType"] == ">="):
-            self.match(">=")
-        elif (self.currToken and self.currToken["tokenType"] == "<="):
-            self.match("<=")
-        else:
-            self.ERROR_expected_token("{==, !=, >, <, >=, <=}")
-
-    def typecast_exp(self):
-        print('(parser) production: "typecast_exp" detected')
-        if (self.currToken and self.currToken["tokenType"] == "("):
-            self.match("(")
-            if (self.currToken and self.matchPredictSet("data_types")):
-                self.nextToken()
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-                if (self.currToken and self.currToken["tokenType"] == "("):
-                    if self.peek()["tokenType"] in PREDICT_SETS["data_types"]:
-                        self.typecast_exp_rec()
-                    else:
-                        self.match("(")
-                        self.value([")"])
-                        if not self.match(")"):
-                            self.ERROR_unclosed_parentheses()
-                else:
-                    if (self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]):
-                        self.lit_type()
-                    elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-                        self.match("Identifier")
-                        self.iden_mods()
-                    elif (self.currToken and self.currToken["tokenType"] == "in"):
-                        self.input()
-            else:
-                self.ERROR_expected_token(PREDICT_SETS["data_types"])
-        else:
-            print(f'(parser)(dbg){self.currToken}')
-            print('(parser)(dbg) wtf')
-
-    def typecast_exp_rec(self):
-        print('(parser) production: "typecast_exp_rec" detected')
-        if (self.currToken and self.currToken["tokenType"] == "("):
-            self.match("(")
-            if (self.currToken and self.matchPredictSet("data_types")):
-                self.nextToken()
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-                if (self.currToken and self.currToken["tokenType"] == "("):
-                    if self.peek()["tokenType"] in PREDICT_SETS["data_types"]:
-                        self.typecast_exp_rec()
-            else:
-                self.ERROR_expected_token(PREDICT_SETS["data_types"])
-
-    def unary_exp(self):
-        print('(parser) production: "unary_exp" detected')
-        if (self.currToken and self.currToken["tokenType"] == "Identifier"):
-            if not self.match("Identifier", False):
-                self.ERROR_expected_token("Identifier")
-            if (self.currToken and self.currToken["tokenType"] == "++"):
-                self.match("++")
-            elif (self.currToken and self.currToken["tokenType"] == "--"):
-                self.match("--")
-            else:
-                self.ERROR_expected_token(["++", "--"])
-        else:
-            if (self.currToken and self.currToken["tokenType"] == "++"):
-                self.match("++")
-                if not self.match("Identifier"):
-                    self.ERROR_expected_token("Identifier")
-            elif (self.currToken and self.currToken["tokenType"] == "--"):
-                self.match("--")
-                if not self.match("Identifier"):
-                    self.ERROR_expected_token("Identifier")
-            else:
-                self.ERROR_expected_token(["++", "--"]) 
-
     def ret_type(self):
         print("(parser) production: \"ret_type\" detected")
 
-        if self.currToken["tokenType"] in PREDICT_SETS["data_types"]:
+        if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
             self.nextToken()
         else:
             self.match("Identifier")
@@ -1786,7 +1365,7 @@ class SyntaxAnalyzer:
         if self.currToken:
             if self.currToken["tokenType"] == ",":
                 self.match(",")
-                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
+                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
                     self.logError("Expected data type or Identifier (Class name).")
                 self.params_dec()
     
@@ -1802,14 +1381,14 @@ class SyntaxAnalyzer:
                 self.match(",")
 
                 # def rec should be followed by only a data_type since objs dont have default params
-                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"]:
+                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"]:
                     if self.currToken:
                         self.logError(f"Expected data type for non-default variable declaration, instead got {self.currToken["tokenType"]}.\nCannot declare arrays, objects, or non-default variables at this point due to existing default parameters.")
                     else:
                         self.logError(f"Expected data type for non-default variable declaration.\nCannot declare arrays, objects, or non-default variables at this point due to existing default parameters.")
                 
                 # match datatype
-                if self.currToken["tokenType"] in PREDICT_SETS["data_types"]:
+                if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                     self.nextToken()
                 
                 self.match("Identifier", False)
@@ -1872,7 +1451,7 @@ class SyntaxAnalyzer:
 
 
         if self.currToken and self.currToken["tokenType"] != ")":
-            if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_types"] and self.currToken["tokenType"] != "Identifier":
+            if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
                 self.logError("Expected data type or Identifier (Class name).")
             self.ret_type()
             self.params_var()
@@ -2023,8 +1602,8 @@ class SyntaxAnalyzer:
 
         print("(parser) entered production: \"init_arg\"")
         
-        if self.currToken["tokenName"] in PREDICT_SETS["data_types"]:
-            if self.matchPredictSet("data_types", False):
+        if self.currToken["tokenName"] in PREDICT_SETS["data_type"]:
+            if self.matchPredictSet("data_type", False):
                 self.nextToken()
                 self.var_iden()
         elif self.currToken["tokenType"] == "Identifier":
@@ -2331,10 +1910,10 @@ class SyntaxAnalyzer:
         ## For literals, data types, operators, or any prods that ONLY contain terminals
         ## use matchPredictSet and specify the name of the predict set to be used
         ## ADD to predict set if it doesn't exist yet
-        if self.matchPredictSet("data_types"):
+        if self.matchPredictSet("data_type"):
             self.nextToken()
         else:
-            self.ERROR_expected_token(PREDICT_SETS["data_types"])
+            self.ERROR_expected_token(PREDICT_SETS["data_type"])
         
         if not self.match(">"):
             self.ERROR_unclosed_angled_bracket()
@@ -2619,35 +2198,6 @@ class SyntaxAnalyzer:
                     self.string_value(["+"] + stopChars)
 
         print("(parser) exited production: \"str_exp\"")
-
-
-    def string_value(self, stopChars):
-        print("(parser) entered production: \"string_value\"")
-        """<string_value> → string_lit | Identifier <iden_mods> | <str_exp> | (<string_value>) | <typecast_exp>"""
-        
-        if (self.currToken):
-            prod = self.checkValProd(stopChars)
-            if (prod == "paren_wrap"):
-                self.match("(")
-                self.string_value([")"])
-                if not self.match(")"):
-                    self.ERROR_unclosed_parentheses()
-            elif (prod == "<str_exp>"):
-                print('(parser)(dbg)<str_exp>')
-                self.str_exp(stopChars)
-            elif (self.currToken and self.currToken["tokenType"] == "("):
-                if (self.peek()["tokenType"] in PREDICT_SETS["data_types"]):
-                    self.typecast_exp()
-            elif (self.currToken and self.currToken["tokenType"] == "in"):
-                self.input()
-            elif (self.currToken and self.currToken["tokenType"] == "string_lit"):
-                if self.checkPostUnary(stopChars):
-                    self.ERROR_adjust_constant()
-                self.match("string_lit", False)
-            elif (self.currToken and self.currToken["tokenType"] == "Identifier"):
-                self.match("Identifier")
-                self.iden_mods()
-        print("(parser) exited production: \"string_value\"")
 
 
     def assign_stmt(self):
