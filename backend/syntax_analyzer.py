@@ -771,47 +771,6 @@ class SyntaxAnalyzer:
 
             print("(parser) production: \"constructor_dec\" exited!!!!!")
 
-        
-
-
-    # TODO
-    def var_dec(self, location):      #starts at token '=' or 'const' or 'data_type'
-        print("(parser) production: \"var_dec\" detected")
-
-        if self.currToken and self.currToken["tokenType"] not in ["=", ";"]: # if not from second calling from program_construct
-            if self.currToken["tokenType"] == "const":
-                self.match("const")
-
-            if self.matchPredictSet("data_type", False):
-                self.nextToken()
-            
-            if not self.currToken or self.currToken["tokenType"] != "Identifier":
-                self.ERROR_expected_token("Identifier")
-
-            self.var_iden()
-
-        if (self.currToken and self.currToken["tokenType"] == "=") and not self.hasMainFunction:
-            print("entered var_init from var_dec")
-            self.var_init()############# VAR ASSIGN RULES HERE
-
-        if not self.match(";"): 
-            self.ERROR_terminating_token(";")
-        
-        if location == "program_constructs":
-            self.program_constructs()
-
-        elif location == "class_body":
-            self.class_body()
-
-        elif location == "code_block":
-            self.code_block()
-
-        elif location == "function_dec":
-            self.function_dec()
-
-
-
-
 
     # MICH START HERE
     def class_inst(self, location):
@@ -1940,6 +1899,8 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]", True):
                     self.ERROR_unclosed_square_bracket()
+                if self.currToken and self.currToken["tokenType"] == "[":
+                    self.logError("Only up to 2 dimensions of arrays are allowed.")
                 self.var_id_arr2D()
         
         print("(parser) exited production: \"var_id_arr1D\"")
@@ -2039,6 +2000,8 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
+                if self.currToken and self.currToken["tokenType"] == "[":
+                    self.logError("Only up to 2 dimensions of arrays are allowed.")
                 
                 if self.currToken["tokenType"] == ",":
                     self.array2D_iden_rec()
