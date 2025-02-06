@@ -322,8 +322,8 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            #self.program()
-            self.value()
+            self.program()
+            #self.value()
             print("Parsing completed successfully.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
