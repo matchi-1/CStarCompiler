@@ -86,21 +86,21 @@ def transition(currState, currChar):
             match currChar:
                 case 'b':  currState = 's1'
                 case 'c':  currState = 's11'
-                case 'd':  currState = 's36'
-                case 'e':  currState = 's51'
-                case 'f':  currState = 's56'
-                case 'i':  currState = 's70'
-                case 'l':  currState = 's83'
-                case 'p':  currState = 's88'
-                case 'r':  currState = 's102'
-                case 's':  currState = 's114'
-                case 't':  currState = 's132'
-                case 'v':  currState = 's141'
-                case 'w':  currState = 's146'
+                case 'd':  currState = 's32'
+                case 'e':  currState = 's47'
+                case 'f':  currState = 's52'
+                case 'i':  currState = 's66'
+                case 'l':  currState = 's79'
+                case 'p':  currState = 's84'
+                case 'r':  currState = 's98'
+                case 's':  currState = 's110'
+                case 't':  currState = 's123'
+                case 'v':  currState = 's132'
+                case 'w':  currState = 's137'
                 case '-':  currState = 'DASH_CHECK'
                 case '!':  currState = 'NEGATION_CHECK'
                 case '%':  currState = 'MODULO_CHECK'
-                case '&':  currState = 's166'
+                case '&':  currState = 's157'
                 case '(':  currState = 'OPEN_PAREN_CHECK'
                 case ')':  currState = 'CLOSING_PAREN_CHECK'
                 case '*':  currState = 'ASTERISK_CHECK'
@@ -113,8 +113,8 @@ def transition(currState, currChar):
                 case ']':  currState = 'CLOSING_BRACKET_CHECK'
                 case '{':  currState = 'OPEN_CURLY_CHECK'
                 case '}':  currState = 'CLOSING_CURLY_CHECK'
-                case '|':  currState = 's207'
-                case '"':  currState = 's253'
+                case '|':  currState = 's194'
+                case '"':  currState = 's224'
                 case '+':  currState = 'PLUS_CHECK'
                 case '<':  currState = 'OPEN_ANGLE_CHECK'
                 case '>':  currState = 'CLOSING_ANGLE_CHECK'
@@ -165,9 +165,8 @@ def transition(currState, currChar):
         case 's11':
             match currChar:
                 case 'a':  currState = 's12'
-                case 'h':  currState = 's16'
-                case 'l':  currState = 's20'
-                case 'o':  currState = 's25'
+                case 'l':  currState = 's16'
+                case 'o':  currState = 's21'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
@@ -188,120 +187,120 @@ def transition(currState, currChar):
                 case 'a':  currState = 's17'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
-
+        
         case 's17':
             match currChar:
-                case 'r':  currState = 'CHAR_CHECK'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's20':
-            match currChar:
-                case 'a':  currState = 's21'
+                case 's':  currState = 's18'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
-        case 's21':
-            match currChar:
-                case 's':  currState = 's22'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-        
-        case 's22':
+        case 's18':
             match currChar:
                 case 's':  currState = 'CLASS_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
+        case 's21':
+            match currChar:
+                case 'n':  currState = 's22'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's22':
+            match currChar:
+                case 't':  currState = 's23'
+                case 's':  currState = 's29'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+                
+        case 's23':
+            match currChar:
+                case 'i':  currState = 's24'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's24':
+            match currChar:
+                case 'n':  currState = 's25'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
         case 's25':
             match currChar:
-                case 'n':  currState = 's26'
+                case 'u':  currState = 's26'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's26':
             match currChar:
-                case 't':  currState = 's27'
-                case 's':  currState = 's33'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-                
-        case 's27':
-            match currChar:
-                case 'i':  currState = 's28'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's28':
-            match currChar:
-                case 'n':  currState = 's29'
+                case 'e':  currState = 'CONTINUE_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's29':
             match currChar:
-                case 'u':  currState = 's30'
+                case 't':  currState = 'CONST_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's30':
+        case 's32':
             match currChar:
-                case 'e':  currState = 'CONTINUE_CHECK'
+                case 'e':  currState = 's33'
+                case 'o':  currState = 'DO_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's33':
             match currChar:
-                case 't':  currState = 'CONST_CHECK'
+                case 'f':  currState = 's34'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's34':
+            match currChar:
+                case 'a':  currState = 's35'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's35':
+            match currChar:
+                case 'u':  currState = 's36'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's36':
             match currChar:
-                case 'e':  currState = 's37'
-                case 'o':  currState = 'DO_CHECK'
+                case 'l':  currState = 's37'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's37':
             match currChar:
-                case 'f':  currState = 's38'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's38':
-            match currChar:
-                case 'a':  currState = 's39'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's39':
-            match currChar:
-                case 'u':  currState = 's40'
+                case 't':  currState = 'DEFAULT_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's40':
             match currChar:
-                case 'l':  currState = 's41'
+                case 'u':  currState = 's42'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's41':
+        case 's42':
             match currChar:
-                case 't':  currState = 'DEFAULT_CHECK'
+                case 'b':  currState = 's43'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's43':
+            match currChar:
+                case 'l':  currState = 's44'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's44':
             match currChar:
-                case 'u':  currState = 's46'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's46':
-            match currChar:
-                case 'b':  currState = 's47'
+                case 'e':  currState = 'DOUBLE_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
@@ -313,89 +312,71 @@ def transition(currState, currChar):
 
         case 's48':
             match currChar:
-                case 'e':  currState = 'DOUBLE_CHECK'
+                case 's':  currState = 's49'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's51':
-            match currChar:
-                case 'l':  currState = 's52'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's51':
-            match currChar:
-                case 'l':  currState = 's52'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's52':
-            match currChar:
-                case 's':  currState = 's53'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's53':
+        case 's49':
             match currChar:
                 case 'e':  currState = 'ELSE_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's56':
+        case 's52':
             match currChar:
-                case 'a':  currState = 's57'
-                case 'l':  currState = 's62'
-                case 'o':  currState = 's67'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's57':
-            match currChar:
+                case 'a':  currState = 's53'
                 case 'l':  currState = 's58'
+                case 'o':  currState = 's63'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's58':
+        case 's53':
             match currChar:
-                case 's':  currState = 's59'
+                case 'l':  currState = 's54'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's59':
+        case 's54':
+            match currChar:
+                case 's':  currState = 's55'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's55':
             match currChar:
                 case 'e':  currState = 'FALSE_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's62':
+        case 's58':
             match currChar:
-                case 'o':  currState = 's63'
+                case 'o':  currState = 's59'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's63':
+        case 's59':
             match currChar:
-                case 'a':  currState = 's64'
+                case 'a':  currState = 's60'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's64':
+        case 's60':
             match currChar:
                 case 't':  currState = 'FLOAT_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's67':
+        case 's63':
             match currChar:
                 case 'r':  currState = 'FOR_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's70':
-            print("(dbg) in s70 now")
+        case 's66':
+            print("(dbg) in s66 now")
             match currChar:
                 case 'f':  currState = 'IF_CHECK'
-                case 'm':  currState = 's73'
+                case 'm':  currState = 's69'
                 case 'n':  currState = 'IN_CHECK'
                 case 'ANY': 
                     print("(dbg) any defined s74")
@@ -404,175 +385,186 @@ def transition(currState, currChar):
                     print("(dbg) undefined s74 next ")
                     currState = 'UNDEFINED'
 
-        case 's73':
+        case 's69':
             match currChar:
-                case 'p':  currState = 's74'
+                case 'p':  currState = 's70'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's74':
+        case 's70':
             match currChar:
-                case 'o':  currState = 's75'
+                case 'o':  currState = 's71'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's75':
+        case 's71':
             match currChar:
-                case 'r':  currState = 's76'
+                case 'r':  currState = 's72'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's76':
+        case 's72':
             match currChar:
                 case 't':  currState = 'IMPORT_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's79':
+        case 's75':
             match currChar:
                 case 't':  currState = 'INT_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's83':
+        case 's79':
             match currChar:
-                case 'o':  currState = 's84'
+                case 'o':  currState = 's80'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's84':
+        case 's80':
             match currChar:
-                case 'n':  currState = 's85'
+                case 'n':  currState = 's81'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
     
-        case 's85':
+        case 's81':
             match currChar:
                 case 'g':  currState = 'LONG_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's88':
+        case 's84':
             match currChar:
-                case 'r':  currState = 's89'
+                case 'r':  currState = 's85'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's89':
+        case 's85':
             match currChar:
-                case 'i':  currState = 's90'
+                case 'i':  currState = 's86'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's90':
+        case 's86':
             match currChar:
-                case 'n':  currState = 's91'
-                case 'v':  currState = 's97'
+                case 'n':  currState = 's87'
+                case 'v':  currState = 's93'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
-        case 's91':
+        case 's87':
             match currChar:
                 case 't':  currState = 'PRINT_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's92':
+        case 's88':
             match currChar:
-                case 'l':  currState = 's94'
+                case 'l':  currState = 's90'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's94':
+        case 's90':
             match currChar:
                 case 'n':  currState = 'PRINTLN_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
-        case 's97':
+        case 's93':
             match currChar:
-                case 'a':  currState = 's98'
+                case 'a':  currState = 's94'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's98':
+        case 's94':
             match currChar:
-                case 't':  currState = 's99'
+                case 't':  currState = 's95'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's99':
+        case 's95':
             match currChar:
                 case 'e':  currState = 'PRIVATE_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
+        case 's98':
+            match currChar:
+                case 'e':  currState = 's99'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's99':
+            match currChar:
+                case 'p':  currState = 's100'
+                case 't':  currState = 's105'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's100':
+            match currChar:
+                case 'e':  currState = 's101'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's101':
+            match currChar:
+                case 'a':  currState = 's102'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
         case 's102':
-            match currChar:
-                case 'e':  currState = 's103'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's103':
-            match currChar:
-                case 'p':  currState = 's104'
-                case 't':  currState = 's109'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's104':
-            match currChar:
-                case 'e':  currState = 's105'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's105':
-            match currChar:
-                case 'a':  currState = 's106'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's106':
             match currChar:
                 case 't':  currState = 'REPEAT_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's109':
+        case 's105':
             match currChar:
-                case 'u':  currState = 's110'
+                case 'u':  currState = 's106'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's110':
+        case 's106':
             match currChar:
-                case 'r':  currState = 's111'
+                case 'r':  currState = 's107'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's111':
+        case 's107':
             match currChar:
                 case 'n':  currState = 'RETURN_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
     
+        case 's110':
+            match currChar:
+                case 't':  currState = 's111'
+                case 'w':  currState = 's117'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's111':
+            match currChar:
+                case 'r':  currState = 's112'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's112':
+            match currChar:
+                case 'i':  currState = 's113'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's113':
+            match currChar:
+                case 'n':  currState = 's114'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
         case 's114':
             match currChar:
-                case 't':  currState = 's115'
-                case 'w':  currState = 's126'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's115':
-            match currChar:
-                case 'a':  currState = 's116'
-                case 'r':  currState = 's121'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's116':
-            match currChar:
-                case 't':  currState = 's117'
+                case 'g':  currState = 'STRING_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
@@ -584,59 +576,59 @@ def transition(currState, currChar):
 
         case 's118':
             match currChar:
-                case 'c':  currState = 'STATIC_CHECK'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's121':
-            match currChar:
-                case 'i':  currState = 's122'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's122':
-            match currChar:
-                case 'n':  currState = 's123'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's123':
-            match currChar:
-                case 'g':  currState = 'STRING_CHECK'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's126':
-            match currChar:
-                case 'i':  currState = 's127'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's127':
-            match currChar:
-                case 't':  currState = 's128'
+                case 't':  currState = 's119'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
-        case 's128':
+        case 's119':
             match currChar:
-                case 'c':  currState = 's129'
+                case 'c':  currState = 's120'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's129':
+        case 's120':
             match currChar:
                 case 'h':  currState = 'SWITCH_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
-        case 's132':
+        case 's123':
             match currChar:
-                case 'h':  currState = 's133'
-                case 'r':  currState = 's137'
+                case 'h':  currState = 's124'
+                case 'r':  currState = 's128'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
     
+        case 's124':
+            match currChar:
+                case 'i':  currState = 's125'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's125':
+            match currChar:
+                case 's':  currState = 'THIS_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's128':
+            match currChar:
+                case 'u':  currState = 's129'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's129':
+            match currChar:
+                case 'e':  currState = 'TRUE_CHECK'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
+        case 's132':
+            match currChar:
+                case 'o':  currState = 's133'
+                case 'ANY':  currState = 'DEFINED'
+                case _:   currState = 'UNDEFINED'
+
         case 's133':
             match currChar:
                 case 'i':  currState = 's134'
@@ -645,59 +637,29 @@ def transition(currState, currChar):
 
         case 's134':
             match currChar:
-                case 's':  currState = 'THIS_CHECK'
+                case 'd':  currState = 'VOID_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's137':
             match currChar:
-                case 'u':  currState = 's138'
+                case 'h':  currState = 's138'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
         case 's138':
             match currChar:
-                case 'e':  currState = 'TRUE_CHECK'
+                case 'i':  currState = 's139'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's141':
+        case 's139':
             match currChar:
-                case 'o':  currState = 's142'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's142':
-            match currChar:
-                case 'i':  currState = 's143'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's143':
-            match currChar:
-                case 'd':  currState = 'VOID_CHECK'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's146':
-            match currChar:
-                case 'h':  currState = 's147'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's147':
-            match currChar:
-                case 'i':  currState = 's148'
-                case 'ANY':  currState = 'DEFINED'
-                case _:   currState = 'UNDEFINED'
-
-        case 's148':
-            match currChar:
-                case 'l':  currState = 's149'
+                case 'l':  currState = 's140'
                 case 'ANY':  currState = 'DEFINED'
                 case _:  currState = 'UNDEFINED'
 
-        case 's149':
+        case 's140':
             match currChar:
                 case 'e':  currState = 'WHILE_CHECK'
                 case 'ANY':  currState = 'DEFINED'
@@ -705,119 +667,119 @@ def transition(currState, currChar):
 
         #### RESERVED SYMBOLS #######################################
 
-        case 's152':
+        case 's143':
             match currChar:
                 case '-':  currState = 'DECREMENT_CHECK'
                 case '=':  currState = 'MINUS_ASS_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's158':
+        case 's149':
             match currChar:
                 case '=':  currState = 'NOT_EQUAL_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's162':
+        case '153':
             match currChar:
                 case '=':  currState = 'MODULO_ASS_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's166':
+        case 's157':
             match currChar:
                 case '&':  currState = 'LOGICAND_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's173':
+        case '164':
             match currChar:
                 case '=':  currState = 'MULT_ASS_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's183':
+        case 's174':
             match currChar:
-                case '*':  currState = 's249'
-                case '/':  currState = 's247'
+                case '*':  currState = 's220'
+                case '/':  currState = 's218'
                 case '=':  currState = 'DIV_ASS_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's207':
+        case 's194':
             match currChar:
                 case '|':  currState = 'LOGICOR_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's210':
+        case 's197':
             match currChar:
                 case '+':  currState = 'INCREMENT_CHECK'
                 case '=':  currState = 'ADD_ASS_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
-        case 's216':
+        case 's203':
             match currChar:
                 case '=':  currState = 'LESS_OR_EQUAL_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's220':
+        case 's207':
             match currChar:
                 case '=':  currState = 'GREATER_OR_EQUAL_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
     
-        case 's224':
+        case 's211':
             match currChar:
                 case '=':  currState = 'EQUAL_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's244':
+        case 's215':
             match currChar:
-                case '_':  currState = 's244'
-                case _ if currChar in alphanum:  currState = 's244'
+                case '_':  currState = 's215'
+                case _ if currChar in alphanum:  currState = 's215'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's247':
+        case 's218':
             match currChar:
-                case _ if currChar in ascii:  currState = 's247'
+                case _ if currChar in ascii:  currState = 's218'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's249':
+        case 's220':
             match currChar:
-                case '\n':  currState = 's249'
-                case '*':  currState = 's250' #catches * before ascii check
+                case '\n':  currState = 's220'
+                case '*':  currState = 's221' #catches * before ascii check
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's250':
+        case 's221':
             match currChar:
                 case '/':  currState = 'MULTI_COMMENT_CHECK'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's253':
+        case 's224':
             match currChar:
                 case '"':  currState = 'STRING_LIT_CHECK' #catches " before ascii check
-                case _ if currChar in ascii:  currState = 's253'
+                case _ if currChar in ascii:  currState = 's224'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case 's267':
+        case '227':
             match currChar:
-                case _ if currChar in numbers:  currState = 's267'
+                case _ if currChar in numbers:  currState = '227'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
-        case 's300':
+        case 's260':
             match currChar:
-                case '.':  currState = 's267'
-                case _ if currChar in numbers: currState = 's300'
+                case '.':  currState = '227'
+                case _ if currChar in numbers: currState = 's260'
                 case 'ANY':  currState = 'DEFINED'
                 case _:  currState = 'UNDEFINED' 
     
@@ -895,8 +857,8 @@ def lexer(code):
                         add_token(currToken, 'bool', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -907,8 +869,8 @@ def lexer(code):
                         add_token(currToken, 'double', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -919,8 +881,8 @@ def lexer(code):
                         add_token(currToken, 'float', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -932,8 +894,8 @@ def lexer(code):
                         add_token(currToken, 'int', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -944,8 +906,8 @@ def lexer(code):
                         add_token(currToken, 'long', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -956,8 +918,8 @@ def lexer(code):
                         add_token(currToken, 'string', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -969,8 +931,8 @@ def lexer(code):
                         add_token(currToken, 'break', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1005,8 +967,8 @@ def lexer(code):
                     if (code[i] in negative_delim):
                         add_token(currToken, '-', currLine, currCol)
                     elif (code[i] in ['-', '=']):
-                        print('(dbg) going to s170')
-                        currState = 's152'
+                        print('(dbg) going to s143')
+                        currState = 's143'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1016,7 +978,7 @@ def lexer(code):
                     if (code[i] in exclamation_delim):
                         add_token(currToken, '!', currLine, currCol)
                     elif (code[i] == '='):
-                        currState = 's158'
+                        currState = 's149'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1026,7 +988,7 @@ def lexer(code):
                     if (code[i] in percent_delim):
                         add_token(currToken, '%', currLine, currCol)
                     elif (code[i] == '='):
-                        currState = 's162'
+                        currState = '153'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1036,7 +998,7 @@ def lexer(code):
                     if (code[i] in asterisk_delim):
                         add_token(currToken, '*', currLine, currCol)
                     elif (code[i] in ['/', '=']):
-                        currState = 's173'
+                        currState = '164'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1052,7 +1014,7 @@ def lexer(code):
                 case 'DOT_CHECK':
                     expected = ['alphabetic_chars', '/'] + whitespace
                     if (code[i] in numbers):
-                        currState = 's267'
+                        currState = '227'
                     elif (code[i] in dot_delim):
                         add_token(currToken, '.', currLine, currCol)
                     else:
@@ -1064,7 +1026,7 @@ def lexer(code):
                     if (code[i] in slash_delim):
                         add_token(currToken, '/', currLine, currCol)
                     elif (code[i] in ['*', '/', '=']):
-                        currState = 's183'
+                        currState = 's174'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1122,7 +1084,7 @@ def lexer(code):
                     if (code[i] in plus_delim):
                         add_token(currToken, '+', currLine, currCol)
                     else:
-                        currState = 's210'
+                        currState = 's197'
                 # < symbol
                 case 'OPEN_ANGLE_CHECK':
                     expected = ['alphanum', ' ', '(', '+', '-', '/'] + newline
@@ -1131,7 +1093,7 @@ def lexer(code):
                         print("(dbg) arithmetic spotted for <")
                         add_token(currToken, '<', currLine, currCol)
                     elif (code[i] == '='):
-                        currState = 's216'
+                        currState = 's203'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1141,7 +1103,7 @@ def lexer(code):
                     if (code[i] in great_delim):
                         add_token(currToken, '>', currLine, currCol)
                     elif (code[i] == '='):
-                        currState = 's220'
+                        currState = 's207'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1151,14 +1113,14 @@ def lexer(code):
                     if (code[i] in equal_delim):
                         add_token(currToken, '=', currLine, currCol)
                     else:
-                        currState = 's224'
+                        currState = 's211'
                 # in statement
                 case 'IN_CHECK':
                     expected = ['<', '/']
                     if (code[i] in in_delim):
                         add_token(currToken, 'in', currLine, currCol)
                     elif(code[i] in alphanum + ['_']):
-                        currState = 's79'
+                        currState = 's75'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1168,7 +1130,7 @@ def lexer(code):
                     if (code[i] in func_delim):
                         add_token(currToken, 'print', currLine, currCol)
                     elif(code[i] in alphanum + ['_']):
-                        currState = 's92'
+                        currState = 's88'
                     else:
                         currToken += code[i]
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1179,8 +1141,8 @@ def lexer(code):
                         add_token(currToken, 'println', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1192,8 +1154,8 @@ def lexer(code):
                         add_token(currToken, 'private', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1205,8 +1167,8 @@ def lexer(code):
                         add_token(currToken, 'repeat', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1218,8 +1180,8 @@ def lexer(code):
                         add_token(currToken, 'return', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1231,8 +1193,8 @@ def lexer(code):
                         add_token(currToken, 'static', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1244,8 +1206,8 @@ def lexer(code):
                         add_token(currToken, 'switch', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1257,8 +1219,8 @@ def lexer(code):
                         add_token(currToken, 'this', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1270,8 +1232,8 @@ def lexer(code):
                         add_token(currToken, 'bool_lit', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1283,8 +1245,8 @@ def lexer(code):
                         add_token(currToken, 'void', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1296,8 +1258,8 @@ def lexer(code):
                         add_token(currToken, 'while', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1430,8 +1392,8 @@ def lexer(code):
                         add_token(currToken, 'case', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1443,8 +1405,8 @@ def lexer(code):
                         add_token(currToken, 'class', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1456,8 +1418,8 @@ def lexer(code):
                         add_token(currToken, 'continue', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1469,8 +1431,8 @@ def lexer(code):
                         add_token(currToken, 'const', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1482,8 +1444,8 @@ def lexer(code):
                         add_token(currToken, 'default', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1494,7 +1456,7 @@ def lexer(code):
                     if (code[i] in block_delim):
                         add_token(currToken, 'do', currLine, currCol)
                     elif(code[i] in alphanum + ['_']):
-                        currState = 's44'
+                        currState = 's40'
                     else:
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                 # else statement 
@@ -1504,8 +1466,8 @@ def lexer(code):
                         add_token(currToken, 'else', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1517,8 +1479,8 @@ def lexer(code):
                         add_token(currToken, 'bool_lit', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1530,8 +1492,8 @@ def lexer(code):
                         add_token(currToken, 'for', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1543,8 +1505,8 @@ def lexer(code):
                         add_token(currToken, 'if', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1556,8 +1518,8 @@ def lexer(code):
                         add_token(currToken, 'import', currLine, currCol)
                     elif (code[i] in alphanum + ['_']):
                         currToken += code[i]
-                        currState ='s244'
-                        print('(dbg) now in state 244')
+                        currState ='s215'
+                        print('(dbg) now in state 215')
                         continue
                     else:
                         currToken += code[i]
@@ -1565,7 +1527,7 @@ def lexer(code):
         # end of delim checking if statement
 #---SPECIAL STATES---
         #identifier state
-        if (currState == 's244'):
+        if (currState == 's215'):
             print('(dbg) in identifier check state now')
             if (code[i] in iden_delim):
                 print('(dbg) correct delim')    
@@ -1576,7 +1538,7 @@ def lexer(code):
             elif (code[i] in alphanum + ['_']): #if not delim but still valid, keep looping
                     currToken += code[i]
                     print('(dbg) accepted for iden')
-                    currState ='s244'
+                    currState ='s215'
                     continue
             else:
                 currToken += code[i]
@@ -1585,7 +1547,7 @@ def lexer(code):
                 add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
         #end of identifier looping
         #single line comment
-        if (currState == 's247'):
+        if (currState == 's218'):
             if (code[i] == '\n'):
                 add_token(currToken, 'single_comment', currLine, currCol)
                 continue
@@ -1594,12 +1556,12 @@ def lexer(code):
                 continue
         #end of single line comment
         #multi-line comment
-        if (currState == 's250'):
+        if (currState == 's221'):
             if (code[i] != '/'):
-                currState = 's249'
+                currState = 's220'
         #end of multi-line comment
         #whole number
-        if (currState == 's300'):
+        if (currState == 's260'):
             if (code[i] in numbers):
                 print("(dbg) got another number")
                 currWholeCount += 1
@@ -1631,7 +1593,7 @@ def lexer(code):
                 currFracCount = 0
         #end of whole number
         #fractional part of number
-        if (currState == 's267'):
+        if (currState == '227'):
             if (code[i] in numbers):
                 currFracCount += 1
                 currToken += code[i]
@@ -1680,7 +1642,7 @@ def lexer(code):
                 add_error(unexpectedSymbol('|', currLine, currCol, lineContent, leadingSpaces))
         # end of | symbol
         #string
-        if (currState == 's253'):
+        if (currState == 's224'):
             if (code[i] == '\\' and not char_esc):
                 char_esc = True
                 currToken += code[i]
@@ -1698,7 +1660,7 @@ def lexer(code):
 
         #iterating through chars
         #check whitespaces
-        if (currState not in ['s253', 's247', 's249']):
+        if (currState not in ['s224', 's218', 's220']):
             if (code[i] == ' '):
                 if (transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):
                     if currToken not in ['&', '|']:
@@ -1731,7 +1693,7 @@ def lexer(code):
                     print("(dbg)s0 is num")
                     #go to whole num loop state
                     currWholeCount += 1
-                    currState = 's300'  
+                    currState = 's260'  
                     continue
                 elif (code[i] not in alphanum and i != len(code)-1):
                     print("(dbg) unexpected")
@@ -1741,14 +1703,14 @@ def lexer(code):
                 if (code[i] in alphabetic_chars and i != len(code)-1):
                     print(f'(dbg) index {i}')
                     print(f'(dbg) length {len(code)}')
-                    currState = 's244'
+                    currState = 's215'
                 continue
             else:
                 print('(dbg) not in s0')
-                if (currState == 's249'):
+                if (currState == 's220'):
                     currToken += code[i]
                     continue
-                if (currState == 's253'):
+                if (currState == 's224'):
                     if (code[i] == '\n'):
                         add_error(stringMissingClose(currToken, currLine, currCol, lineContent, leadingSpaces))
                         continue
@@ -1757,7 +1719,7 @@ def lexer(code):
                         continue
                 if (code[i] in alphanum + ['_']):
                     currToken += code[i]
-                    currState = 's244'
+                    currState = 's215'
                     continue
                 elif (code[i] in iden_delim): #check delim
                     if (currToken):
