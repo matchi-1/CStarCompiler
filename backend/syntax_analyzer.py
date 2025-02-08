@@ -429,6 +429,8 @@ class SyntaxAnalyzer:
             if currentTokenType in PREDICT_SETS["class_as_func_post"]:
                 if currentTokenType == "Identifier":
                     self.match("Identifier")
+                    if not self.match("Identifier"):
+                        self.ERROR_missing_initializer()
                     self.classinst_cont()
 
                 elif currentTokenType == "++":
@@ -1364,11 +1366,15 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"print_params\"")
         
         # if <print_params> are not null
-        if self.currToken and self.currToken["tokenType"] != ")":
-            if not self.value([",", ")"]):
-                self.logError("Invalid 'print' statement parameter.")
-            if self.currToken and self.currToken["tokenType"] == ",":
-                self.output_rec()
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
+            if self.currToken and self.currToken["tokenType"] != ")":
+                if not self.value([",", ")"]):
+                    self.logError("Invalid 'print' statement parameter.")
+                if self.currToken and self.currToken["tokenType"] == ",":
+                    self.output_rec()
+        else:
+            print("entered else")
+            self.ERROR_expected_valid_value()
         
         print("(parser) exited production: \"print_params\"")
 
@@ -1378,11 +1384,14 @@ class SyntaxAnalyzer:
         
         self.match(",", False)
 
-        if not self.value([",", ")"]):
-            message = f"Expected value after ',', got '{self.currToken['tokenType'] if self.currToken else 'EOF'}' instead."
-            self.logError(message)
-        if self.currToken and self.currToken["tokenType"] == ",":
-            self.output_rec()
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
+            if not self.value([",", ")"]):
+                message = f"Expected value after ',', got '{self.currToken['tokenType'] if self.currToken else 'EOF'}' instead."
+                self.logError(message)
+            if self.currToken and self.currToken["tokenType"] == ",":
+                self.output_rec()
+        else:
+            self.ERROR_expected_valid_value()
 
         print("(parser) exited production: \"output_rec\"")
     
@@ -1786,7 +1795,7 @@ class SyntaxAnalyzer:
         
         self.match("(", False)
 
-        if self.currToken["tokenType"] != ")":
+        if self.currToken and self.currToken["tokenType"] != ")":
             self.input_params()
         
         if not self.match(")"):
@@ -1799,19 +1808,10 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"input_params\"")
         """<input_params> → <int_val> | <string_value> | <string_value>,<int_val> | λ"""
         
-
-        if self.currToken and self.currToken["tokenType"] == "whole_lit": #int_val:
-            self.arith_exp()
-        
-        elif self.currToken and self.currToken["tokenType"] == "string_lit":
-            self.string_value([")"])
-            
-            if self.currToken and self.currToken["tokenType"] == ",":
-                self.match(",")
-
-                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
-                    self.arith_exp()
-                else: self.logError("Invalid value for 'in' statement character limit")
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]: 
+            self.value(")")
+        else:  # semantic check if string or syntax error
+            self.logError("Expected a valid value of type \"string\".")
         
         print("(parser) exited production: \"input_params\"")
 
