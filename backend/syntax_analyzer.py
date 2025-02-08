@@ -41,7 +41,8 @@ PREDICT_SETS = {
     "assign_func_method_mods": ["[", "(", "."],
     "assign_func_method_mods_cont": ["[", "("],
     "inc_arg_post": ["++", "--"],
-    "case_value": ["whole_lit", "string_lit", "-"]
+    "case_value": ["whole_lit", "string_lit", "-"],
+    "input_params": ["string_lit"]
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -1489,8 +1490,7 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == "Identifier":
-                self.match("Identifier")
-                self.class_as_func_post()
+                self.assign_stmt()
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 self.data_type()
@@ -1862,22 +1862,27 @@ class SyntaxAnalyzer:
             
             self.match("(", False)
 
-            if currentTokenType in PREDICT_SETS["value"]:
+            if currentTokenType in PREDICT_SETS["string_value"]:
                 self.input_params()
             
-            if not self.match(")"):
+            elif not self.match(")"):
                 self.ERROR_unclosed_parentheses()
+            
+            else: self.logError("Invalid value for 'in' statement message.")
         
         print("(parser) exited production: \"input\"")
 
 
     def input_params(self):
         print("(parser) entered production: \"input_params\"")
-        """<input_params> → <int_val> | <string_value> | <string_value>,<int_val> | λ"""
+        """<input_params> → <value> <in_param_two> | λ"""
         
-        if self.currToken:
+        if self.currToken and self.currToken in PREDICT_SETS["string_value"]:
             currentTokenType = self.currToken["tokenType"]
             
+            self.arith_exp()
+            if currentTokenType == ",":
+                self.in_param_two()
             if currentTokenType in PREDICT_SETS["value"]: 
                 self.value(")")
                 
@@ -1887,55 +1892,28 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"input_params\"")
 
 
-    def var_iden(self):
-        print("(parser) entered production: \"var_iden\"")
-        """<var_iden> → Identifier <var_id_mods>"""
-
-        if self.match("Identifier", False):
-            if self.currToken["tokenType"] in ["=", "["]:
-                self.var_id_mods()
-            elif self.currToken["tokenType"] == ",":
-                self.var_iden_rec()
-            elif self.currToken["tokenType"] == ";":
-                pass
-            else: self.logError(f"Unexpected token '{self.currToken["tokenType"]}' for variable declaration. Expected [',', '=', '[', ';'].")
-      
-        print("(parser) exited production: \"var_iden\"")
-
-
-    def var_id_mods(self):
-        print("(parser) entered production: \"var_id_mods\"")
-        """<var_id_mods> → <var_init> <var_iden_rec> | [<int_val>] <var_id_arr1D> | λ"""
-    
-        if self.currToken: 
-
-            if self.currToken["tokenType"] == "=":
-                self.var_init()
-                if self.currToken["tokenType"] == ",":
-                    self.var_iden_rec()
+    def in_param_two(self):
+        print("(parser) entered production: \"in_param_two\"")
         
-            elif self.currToken["tokenType"] == "[":
-                self.match("[", False)
-                if not self.arith_exp():
-                    self.ERROR_expected_pos_integer_value()
-                if not self.match("]", True):
-                    self.ERROR_unclosed_square_bracket()
-                self.var_id_arr1D()
-            
-            elif self.currToken["tokenType"] == ",":
-                self.var_iden_rec()
+        if self.currToken:
+            self.match(",")
+            if not self.arith_exp():
+                self.logError("Invalid value for 'in' statement character limit.")
         
-        print("(parser) exited production: \"var_id_mods\"")
+        print("(parser) exited production: \"in_param_two\"")
 
 
     def var_init(self):     #TODO: doesnt allow array_init pa ## array_init is allowed na -Alex
         """<var_init> → = <value> | λ"""
         print("(parser) entered production: \"var_init\"")
         
-        if self.currToken and self.currToken["tokenType"] == "=":
-            self.match("=", False)
-            if not self.value(PREDICT_SETS["var_init"]):
-                self.logError("Invalid value for variable declaration.")
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+
+            if currentTokenType == "=":
+                self.match("=", False)
+                if not self.value(PREDICT_SETS["var_init"]):
+                    self.logError("Invalid value for variable declaration.")
             
         print("(parser) exited production: \"var_init\"")
 
@@ -1944,14 +1922,17 @@ class SyntaxAnalyzer:
         """<var_iden_rec> → , Identifier <var_init> <var_iden_rec> | λ"""
         print("(parser) entered production: \"var_iden_rec\"")
         
-        if self.currToken and self.currToken["tokenType"] == ",":
-            self.match(",")
-            if self.match("Identifier"):
-                self.var_init()
-                if self.currToken and self.currToken["tokenType"] == ",":
-                    self.var_iden_rec()
-            else:
-                self.ERROR_expected_token("Identifier")
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+
+            if currentTokenType == ",":
+                self.match(",")
+                if self.match("Identifier"):
+                    self.var_init()
+                    if currentTokenType == ",":
+                        self.var_iden_rec()
+                else:
+                    self.ERROR_expected_token("Identifier")
         
         print("(parser) exited production: \"var_iden_rec\"")
 
@@ -1962,17 +1943,21 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"var_id_arr1D\"")
         
         if self.currToken:
-            if self.currToken["tokenType"] == ",":
+            currentTokenType = self.currToken["tokenType"]
+
+            if currentTokenType == ",":
                 self.array1D_iden_rec()
-            elif self.currToken["tokenType"] == "=":
+
+            elif currentTokenType == "=":
                 self.array1D_init()
-            elif self.currToken["tokenType"] == "[":
+
+            elif currentTokenType == "[":
                 self.match("[", False)
                 if not self.arith_exp():
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]", True):
                     self.ERROR_unclosed_square_bracket()
-                if self.currToken and self.currToken["tokenType"] == "[":
+                if currentTokenType == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
                 self.var_id_arr2D()
         
@@ -2016,9 +2001,11 @@ class SyntaxAnalyzer:
             print("(parser) entered production: \"arr_value_1D\"")
             
             if self.currToken:
-                if self.currToken["tokenType"] in PREDICT_SETS["value"]:
+                currentTokenType = self.currToken["tokenType"]
+                
+                if currentTokenType in PREDICT_SETS["value"]:
                     self.value(["}", ","])
-                    if self.currToken["tokenType"] == ",":
+                    if currentTokenType == ",":
                         self.arr_value_1D_rec()
                 else:
                     self.ERROR_expected_token("value")
@@ -2030,9 +2017,11 @@ class SyntaxAnalyzer:
             print("(parser) entered production: \"arr_value_1D_rec\"")
 
             if self.currToken:
-                if self.currToken["tokenType"] == ",":
+                currentTokenType = self.currToken["tokenType"]
+
+                if currentTokenType == ",":
                     self.match(",")
-                    if self.currToken["tokenType"] in PREDICT_SETS["value"]:
+                    if currentTokenType in PREDICT_SETS["value"]:
                         self.value(["}", ","])
                         self.arr_value_1D_rec()
                     else:
@@ -2045,9 +2034,11 @@ class SyntaxAnalyzer:
             print("(parser) entered production: \"var_id_arr2D\"")
             
             if self.currToken:
-                if self.currToken["tokenType"] == ",":
+                currentTokenType = self.currToken["tokenType"]
+
+                if currentTokenType == ",":
                     self.array2D_iden_rec()
-                elif self.currToken["tokenType"] == "=":
+                elif currentTokenType == "=":
                     self.array2D_init()
                 #else:
                 #    self.ERROR_expected_token([",", "="])
@@ -2059,6 +2050,8 @@ class SyntaxAnalyzer:
             print("(parser) entered production: \"array2D_iden_rec\"")
             
             if self.currToken:
+                currentTokenType = self.currToken["tokenType"]
+
                 self.match(",")
                 self.match("Identifier", False)
                 
@@ -2073,10 +2066,10 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
-                if self.currToken and self.currToken["tokenType"] == "[":
+                if currentTokenType == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
                 
-                if self.currToken["tokenType"] == ",":
+                if currentTokenType == ",":
                     self.array2D_iden_rec()
                 
                 #else:
@@ -2129,7 +2122,7 @@ class SyntaxAnalyzer:
 
     def assign_stmt(self):
         print("(parser) production: \"assign_stmt\" detected")
-        """<assign_stmt> → Identifier<iden_as_var_mods><assign_stmt_op> ;"""
+        """<assign_stmt> → Identifier <iden_as_var_mods> <assign_stmt_op>"""
         
         if self.match("Identifier", False):
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
@@ -2163,10 +2156,12 @@ class SyntaxAnalyzer:
 
     def iden_as_var_mods(self):
         print("(parser) production: \"iden_as_var_mods\" detected")
+        
         if self.currToken and self.currToken["tokenType"] == "[":
             print("(parser) production: INSIDE \"iden_as_var_mods\" going to as_array")
             # array element
-            self.as_array()         
+            self.as_array()
+
         elif self.currToken and self.currToken["tokenType"] == ".":
             # object attribute (can be object attribute of an array element upon recursion)
             print("(parser) production: INSIDE \"iden_as_var_mods\" now checking identifier")
@@ -2182,21 +2177,7 @@ class SyntaxAnalyzer:
             pass
 
         print("(parser) exited production: \"iden_as_var_mods\"")
-
-
-    
-    
-    def assign_stmt_or_func_method_call(self):
-        print("(parser) production: \"assign_stmt_or_func_method_call\" detected")
-
-        self.match("Identifier", False)
-        
-        if self.currToken:
-            self.assign_func_method_mods()
-
-        else:
-            self.ERROR_expected_token(["++", "--", "[", "(", "."]  + PREDICT_SETS["assign_operator"])
-            
+       
 
     def assign_func_method_mods(self):
         print("(parser) production: \"assign_func_method_mods\" detected")
