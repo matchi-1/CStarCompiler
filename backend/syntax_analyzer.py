@@ -14,7 +14,7 @@ PREDICT_SETS = {
     "switch_value" : ["whole_lit", "string_lit", "Identifier", "(", "-"], # TO ADD other exps
     "ctrl_stmt_body" : ["break", "continue"], 
     "arith_operator" : ["+", "-", "*", "/", "%"],
-    "inc_arg" : ["Identifier", "--", "++", "print", "println", "("],
+    "inc_arg" : ["Identifier", "--", "++", "print", "println"],
     "func_arg" : ["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit", ")"],
     "value":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
     "rel_operator" : ["==", "!=", "<", "<=", ">", ">="],
@@ -39,7 +39,9 @@ PREDICT_SETS = {
     "term_join_operators": ["+", "-", "*", "/", "%", "==", "!=", "<", "<=", ">", ">=", "&&", "||"],
     "class_as_func_post": ["Identifier", "++", "--", ],
     "assign_func_method_mods": ["[", "(", "."],
-    "assign_func_method_mods_cont": ["[", "("]
+    "assign_func_method_mods_cont": ["[", "("],
+    "inc_arg_post": ["++", "--"],
+    "case_value": ["whole_lit", "string_lit", "-"]
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -1416,28 +1418,27 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"conditional_stmt\"")
     
     def if_stmt(self): 
-        '''<if_stmt> → if(<condition){<ctrl_stmt_body>} <else_chain>'''
+        '''<if_stmt> → if(<condition) {<ctrl_stmt_body>} <else_chain>'''
         print("(parser) entered production: \"if_stmt\"")
 
-        self.match("if", False)
-        if self.currToken and self.currToken["tokenType"] == "{":
-            self.ERROR_missing_condition("if")
-        self.match("(", False)
-        self.condition("if",[")"])
-        print("(parser) exited production: \"condition\", back to prod if_stmt")
-        if not self.match(")"): 
-            self.ERROR_unclosed_parentheses()
-        
-        self.match("{", False)
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
+            currentTokenType = self.currToken["tokenType"]
 
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
-            self.ctrl_stmt_body()
+            self.match("if", False)
+            if not self.match("("):
+                self.ERROR_missing_condition("if")
+            self.condition("if",[")"])
+            if not self.match(")"): 
+                self.ERROR_unclosed_parentheses()
+            
+            self.match("{", False)
+            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
+                self.ctrl_stmt_body()
+            if not self.match("}"):
+                self.ERROR_unclosed_curly_braces()
 
-        if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
-
-        if self.currToken and self.currToken["tokenName"] == "else":
-            self.else_chain()
+            if currentTokenType == "else":
+                self.else_chain()
 
         print("(parser) entered production: \"if_stmt\"")
 
@@ -1450,11 +1451,9 @@ class SyntaxAnalyzer:
             self.logError("Non-Void functions must return a value.")
         
         elif not isVoid:
-            print("returned from value prod: ",{ } )
+            print("returned from value prod: ",{ })
         elif isVoid and self.currToken["tokenType"] != ";":
             self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
-
-
 
         print("(parser) exited production: \"ret_value\"")
 
@@ -1505,43 +1504,42 @@ class SyntaxAnalyzer:
 
     # to continue testing
     def inc_arg(self):
-        '''<inc_arg> → <unary_exp> | <var_iden>
-        | <output> | <func_method_call>'''
+        '''<inc_arg> → Identifier <inc_arg_post>
+                        ++Identifier
+                        --Identifier
+                        <assign_func_method_mods>
+                        ++
+                        -- '''
         print("(parser) entered production: \"inc_arg\"")
+
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
+            currentTokenType = self.currToken["tokenType"]
         
-        if self.currToken["tokenName"] in PREDICT_SETS["unary_operator"]:
-            print("(parser) entered production: \"unary_exp\"")
-            self.unary_exp()
-            print("(parser) exited production: \"unary_exp\"")
-        
-        elif self.currToken and self.currToken["tokenType"] == "Identifier":
-            print("passed id check")
-            next_token = self.peek()
+            if currentTokenType == "++":
+                self.match("++")
+                self.match("Identifier", False)
+                if not self.match(";"):
+                    self.ERROR_terminating_token(";")
 
-            if next_token and next_token["tokenType"] in PREDICT_SETS["unary_operator"]:
-                print("passed unary check")
-                print("(parser) entered production: \"unary_exp\"")
-                self.unary_exp()
-                print("(parser) exited production: \"unary_exp\"")
-                
-            elif next_token and next_token["tokenType"] in PREDICT_SETS["iden_mods"]+ PREDICT_SETS["assign_operator"]:
-                print("(parser) entered production from [inc-arg]: \"assign_stmt_or_func_method_call\"")
-                self.assign_stmt_or_func_method_call()
-                print("(parser) exited production from [inc-arg]: \"assign_stmt_or_func_method_call\"")
-            else:
-                self.nextToken()
-                self.ERROR_expected_token(PREDICT_SETS["iden_mods"] + PREDICT_SETS["unary_operator"] + PREDICT_SETS["assign_operator"])
-                #if self.currToken["tokenType"] == ",":
-                #    self.var_iden_rec()
+            elif currentTokenType == "--":
+                self.match("--")
+                self.match("Identifier", False)
+                if not self.match(";"):
+                    self.ERROR_terminating_token(";")
 
-        elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["print_stmts"]:
-            self.output()
+            elif currentTokenType == "Identifier":
+                self.match("Identifier")
+                if currentTokenType in PREDICT_SETS["inc_arg_post"]:
+                    if currentTokenType == "++": self.match("++")
+                    elif currentTokenType == "--": self.match("--")
+                    
+                elif currentTokenType in PREDICT_SETS["assign_func_method_mods"]:
+                    self.assign_func_method_mods()
 
-        elif self.currToken and self.currToken["tokenType"] == "(":
-            self.match("(", False)
-            self.inc_arg()
-            if not self.match(")"):
-                self.ERROR_unclosed_parentheses()
+                else: self.logError("Expected: unary operation, assignment statement, function call, method call.")
+
+            elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["print_stmts"]:
+                self.output()
 
         print("(parser) exited production: \"inc_arg\"")
 
@@ -1549,26 +1547,29 @@ class SyntaxAnalyzer:
     def else_chain(self):
         '''<else_stmt> → <if_stmt> | { <ctrl_stmt_body> }'''
         print("(parser) entered production: \"else_chain\"")
-
-        self.match("else", False)
-        self.else_stmt()
+        
+        if self.currToken:
+            self.match("else", False)
+            self.else_stmt()
         
         print("(parser) exited production: \"else_chain\"")
         
     def else_stmt(self):
         print("(parser) entered production: \"else_stmt\"")
 
-        if self.currToken and self.currToken["tokenType"] == "if":
-            self.if_stmt()
+        if self.currToken:
+            if self.currToken and self.currToken["tokenType"] == "if":
+                self.if_stmt()
 
-        elif self.currToken and self.currToken["tokenType"] == "{":
-            self.match("{")
-            self.ctrl_stmt_body()
-            if not self.currToken:
-                self.ERROR_unclosed_curly_braces()
-            self.match("}", False)
-        else:
-            self.ERROR_expected_token(["if", "{"])
+            elif self.currToken and self.currToken["tokenType"] == "{":
+                self.match("{")
+                self.ctrl_stmt_body()
+                if not self.currToken:
+                    self.ERROR_unclosed_curly_braces()
+                self.match("}", False)
+            
+            else:
+                self.logError("Expected: else if statement or else body")
 
         print("(parser) exited production: \"else_stmt\"")
 
@@ -1578,24 +1579,29 @@ class SyntaxAnalyzer:
         '''<switch_stmt> → switch (<value>) {<case_stmt> <default_stmt>}'''
         print("(parser) entered production: \"switch_stmt\"")
 
-        self.match("switch", False)
-        if self.currToken and self.currToken["tokenType"] == "{":
-            self.ERROR_missing_condition("switch")
-        self.match("(", False)
-        
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
-            if not self.value([")", "{"]):
-                self.ERROR_empty_condition("switch")
-        
-        if not self.match(")"): 
-            self.ERROR_unclosed_parentheses()
-        
-        self.match("{", False)
-        self.case_stmt()
-        if self.currToken and self.currToken["tokenType"] == "default":
-            self.default_stmt()
-        if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+            
+            self.match("switch", False)
+            if not self.match("("):
+                self.ERROR_missing_condition("switch")
+            
+            if currentTokenType in PREDICT_SETS["switch_value"]:
+                if not self.value([")", "{"]):
+                    self.ERROR_empty_condition("switch")
+            
+            if not self.match(")"): 
+                self.ERROR_unclosed_parentheses()
+            
+            self.match("{", False)
+            self.case_stmt()
+
+            if currentTokenType == "default":
+                self.default_stmt()
+
+            if not self.currToken:
+                self.ERROR_unclosed_curly_braces()
+            self.match("}", False)
         
         print("(parser) exited production: \"switch_stmt\"")
 
@@ -1604,13 +1610,17 @@ class SyntaxAnalyzer:
         '''<case_stmt> → case <case_value>: <ctrl_stmt_body> <case_stmt_rec>'''
         print("(parser) entered production: \"case_stmt\"")
 
-        self.match("case", False)
-        self.case_value()
-        self.match(":", False)
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-            self.ctrl_stmt_body()
-        if self.currToken and self.currToken["tokenType"] == "case":
-            self.case_stmt()
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+
+            self.match("case", False)
+            self.case_value()
+            self.match(":", False)
+            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"]:
+                self.ctrl_stmt_body()
+
+            if currentTokenType == "case":
+                self.case_stmt()
 
         print("(parser) exited production: \"case_stmt\" !!!!!!!!!!!")
     
@@ -1619,18 +1629,22 @@ class SyntaxAnalyzer:
         '''<switch_value> → string_lit | whole_lit | <negative_exp> '''
         print("(parser) entered production: \"case_value\"") 
 
-        if self.currToken and self.currToken["tokenType"] == "string_lit": 
-            self.match("string_lit", False)
-            
-        elif self.currToken and self.currToken["tokenType"] == "whole_lit": 
-            self.match("whole_lit", False)
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["case_value"]:
+            currentTokenType = self.currToken["tokenType"]
         
-        elif self.currToken and self.currToken["tokenType"] == "-":
-            self.match("-", False)
-            self.match("whole_lit", False)
-
-        elif self.currToken:
-            self.logError("Invalid value for 'case' statement.")
+            if currentTokenType == "string_lit": 
+                self.match("string_lit", False)
+                
+            elif currentTokenType == "whole_lit": 
+                self.match("whole_lit", False)
+            
+            elif currentTokenType == "-":
+                self.match("-", False)
+                if not self.match("whole_lit"):
+                    self.logError("Expected negative numerical constant.")
+            
+            else:
+                self.logError("Invalid value for 'case' statement.")
 
         else: self.logError("'case' must be preceded with a valid value (Whole Number or String).")
 
@@ -1646,15 +1660,19 @@ class SyntaxAnalyzer:
     # bare-minimum tested
     def loop_stmt(self):
         print("(parser) entered production: \"loop_stmt\"")
+        
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["case_value"]:
+            currentTokenType = self.currToken["tokenType"]
 
-        if self.currToken and self.currToken["tokenType"] == "while":
-            self.while_stmt()
-        elif self.currToken and self.currToken["tokenType"] == "do": 
-            self.do_stmt()
-        elif self.currToken and self.currToken["tokenType"] == "for":
-            self.forloop_stmt()
-        elif self.currToken and self.currToken["tokenType"] == "repeat":
-            self.repeat_stmt()
+            match currentTokenType:
+                case "while": 
+                    self.while_stmt()
+                case "do": 
+                    self.do_stmt()
+                case "for": 
+                    self.forloop_stmt()
+                case "repeat": 
+                    self.repeat_stmt() 
 
         print("(parser) exited production: \"loop_stmt\"")
     
@@ -1662,33 +1680,45 @@ class SyntaxAnalyzer:
     def forloop_stmt(self):
         print("(parser) entered production: \"forloop_stmt\"")
 
-        self.match("for", False)
-        self.match("(", False)
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
-            self.init_arg()
-        else: print("(parser) empty init_arg detected")
-        if not self.match(";"):
-            self.logError(f"Initialization argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
-        
-        self.condition("for-loop",[";"])
-        
-        if not self.match(";"):
-            self.logError(f"Condition argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
 
-        
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
-            self.inc_arg()
-        else: print("(parser) empty inc_arg detected")
+            self.match("for", False)
+            if not self.match("("):
+                self.logError("Missing forloop arguments.")
 
-        if not self.match(")"):
-            self.ERROR_unclosed_parentheses()
+            ## INIT ARG
+            if currentTokenType in PREDICT_SETS["init_arg"]:
+                self.init_arg()
+            else: 
+                print("(parser) empty init_arg detected")
+            
+            if not self.match(";"):
+                self.logError(f"Initialization argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
+            
+            ## CONDITION
+            self.condition("for-loop",[";"])
+            
+            if not self.match(";"):
+                self.logError(f"Condition argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
 
-        self.match("{", False)
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-            self.ctrl_stmt_body()
-        if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
-        
+            ## INC ARG
+            if currentTokenType in PREDICT_SETS["inc_arg"]:
+                self.inc_arg()
+            else: 
+                print("(parser) empty inc_arg detected")
+
+            if not self.match(")"):
+                self.ERROR_unclosed_parentheses()
+
+            ## CTRL STMT BODY
+            self.match("{", False)
+            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"]:
+                self.ctrl_stmt_body()
+            if not self.currToken:
+                self.ERROR_unclosed_curly_braces()
+            self.match("}", False)
+                
         print("(parser) exited production: \"forloop_stmt\"")
     
     # bare-minimum tested
