@@ -39,8 +39,7 @@ PREDICT_SETS = {
     "term_join_operators": ["+", "-", "*", "/", "%", "==", "!=", "<", "<=", ">", ">=", "&&", "||"],
     "class_as_func_post": ["Identifier", "++", "--", ],
     "assign_func_method_mods": ["[", "(", "."],
-    "assign_func_method_mods_cont": ["[", "("],
-    "var_dec": ["const", "bool", "string", "int", "long", "double", "float"]
+    "assign_func_method_mods_cont": ["[", "("]
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -392,7 +391,7 @@ class SyntaxAnalyzer:
                 if not self.match(";", True):
                     self.ERROR_terminating_token(";")
 
-            elif currentTokenType in PREDICT_SETS["var_dec"]:    
+            elif currentTokenType in ["const"] + PREDICT_SETS["data_type"]:    
                 if currentTokenType == "const":
                     self.match("const")
                 self.data_type()
