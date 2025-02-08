@@ -74,6 +74,7 @@ class SyntaxAnalyzer:
 
         self.lineContent = ''
         self.hasMainFunction = False  # Track if main function is found
+        self.hasMainReturn = False
 
     #-------------------- HELPER FUNCTIONS --------------------
     # Advancer for the next token
@@ -354,15 +355,15 @@ class SyntaxAnalyzer:
                 self.match("{")
                 print("(parser) production: \"main_body\" detected")
 
-                self.code_block()
+                self.body()
 
-                if not self.match("return"):
+                if not self.match("return") and not self.hasMainReturn:
                     self.ERROR_main_missing_return()
 
-                if not self.currToken or self.currToken["tokenType"] != ";":
+                if not self.currToken or self.currToken["tokenType"] != ";" and not self.hasMainReturn:
                     self.ERROR_main_void_return()
                 
-                if not self.match(";"):
+                if not self.match(";") and not self.hasMainReturn:
                     self.ERROR_terminating_token(";")
 
                 if not self.match("}"):
@@ -420,6 +421,7 @@ class SyntaxAnalyzer:
         
             else: self.logError("You're not supposed to see this.")
             self.code_block()
+        
 
     def class_as_func_post(self):       
         print("(parser) production: \"class_as_func_post\" detected")
@@ -490,16 +492,16 @@ class SyntaxAnalyzer:
 
     def body(self, isVoid = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
         print(f"(parser) Processing <body>: {self.currToken['tokenName'] if self.currToken else 'None'}, isVoid = {isVoid}")
-
-
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
+            
             self.code_block()
 
             if self.currToken["tokenType"] == "return": #having two returns in a non void function will give this error
-                self.return_block(isVoid)
-                isVoid = True       
-                # TODO: DEAD CODE (CODE AFTER RETURN) ERROR IMPLEMENTATION
-
+                  self.return_block(isVoid)
+                  isVoid = True     
+                  self.hasMainReturn = True
+            #     # TODO: DEAD CODE (CODE AFTER RETURN) ERROR IMPLEMENTATION\
+                
             self.body(isVoid)
         
     
@@ -2159,3 +2161,4 @@ class SyntaxAnalyzer:
 
             else: self.ERROR_expected_token(["."] + PREDICT_SETS["assign_operator"])
         else: self.ERROR_expected_token(["."] + PREDICT_SETS["assign_operator"])
+
