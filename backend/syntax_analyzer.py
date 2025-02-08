@@ -1725,18 +1725,26 @@ class SyntaxAnalyzer:
     def while_stmt(self):
         print("(parser) entered production: \"while_stmt\"")
 
-        self.match("while", False)
-        
-        self.match("(", False)
-        self.condition("while",[")"])
-        if not self.match(")"):
-            self.ERROR_unclosed_parentheses()
-        
-        self.match("{", False)
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-            self.ctrl_stmt_body()
-        if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+
+            self.match("while", False)
+
+            if not self.match("("):
+                self.ERROR_missing_condition("while")
+
+            self.condition("while",[")"])
+
+            if not self.match(")"):
+                self.ERROR_unclosed_parentheses()
+            
+            self.match("{", False)
+            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"]:
+                self.ctrl_stmt_body()
+            
+            if not self.currToken:
+                self.ERROR_unclosed_curly_braces()
+            self.match("}", False)
         
         print("(parser) exited production: \"while_stmt\"")
 
@@ -1744,25 +1752,32 @@ class SyntaxAnalyzer:
     def do_stmt(self):
         print("(parser) entered production: \"do_stmt\"")
         
-        self.match("do", False)
-        
-        self.match("{", False)
-        print()
         if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+            
+            self.match("do", False)
+            self.match("{", False)
+            
+            ## CTRL STMT BODY
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 self.ctrl_stmt_body()
-        if not self.match("}", True):
-            self.ERROR_unclosed_curly_braces()
-        
-        if not self.match("while", True):
-            self.logError("'do' statement must include 'while' condition after '}'.")
-        if not self.match("(", True):
-            self.logError("'while' statement must be preceded by parentheses-enclosed condition.")
-        self.condition("while",[")"])
-        if not self.match(")"):
-            self.ERROR_unclosed_parentheses()
-        if not self.match(";", True):
-            self.logError("'while' statements must be terminated by ';' in a do-while statement.")
+
+            if not self.match("}"):
+                self.ERROR_unclosed_curly_braces()
+            
+            ## WHILE STMT
+            if not self.match("while"):
+                self.logError("'do' statement must include 'while' condition after '}'.")
+            
+            ## CONTINUE
+            if not self.match("("):
+                self.ERROR_missing_condition("do-while")
+            self.condition("do-while",[")"])
+            if not self.match(")"):
+                self.ERROR_unclosed_parentheses()
+            
+            if not self.match(";", True):
+                self.logError("'while' statements must be terminated by ';' in a do-while statement.")
 
         print("(parser) exited production: \"do_stmt\"")
 
@@ -1770,20 +1785,26 @@ class SyntaxAnalyzer:
     def repeat_stmt(self):
         print("(parser) entered production: \"repeat_stmt\"")
 
-        self.match("repeat", False)
-        self.match("(", False)
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
 
-        if not self.arith_exp():
-            self.ERROR_expected_pos_integer_value()
+            self.match("repeat", False)
+            if not self.match("("):
+                self.logError("Expected argument for 'repeat' statement")
 
-        if not self.match(")"):
-            self.ERROR_unclosed_parentheses()
-        
-        self.match("{", False)
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-            self.ctrl_stmt_body()
-        if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
+            if not self.arith_exp():
+                self.ERROR_expected_pos_integer_value()
+
+            if not self.match(")"):
+                self.ERROR_unclosed_parentheses()
+            
+            self.match("{", False)
+
+            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"]:
+                self.ctrl_stmt_body()
+
+            if not self.match("}"):
+                self.ERROR_unclosed_curly_braces()
         
         print("(parser) exited production: \"repeat_stmt\"")
     
@@ -1805,14 +1826,16 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"ctrl_stmt_body\"")
 
         if self.currToken:
-            if self.currToken["tokenType"] == "break":
+            currentTokenType = self.currToken["tokenType"]
+
+            if currentTokenType == "break":
                 self.break_stmt()
-            elif self.currToken["tokenType"] == "continue":
+            elif currentTokenType == "continue":
                 self.continue_stmt()
-            elif self.currToken["tokenType"] in PREDICT_SETS["body"]:
+            elif currentTokenType in PREDICT_SETS["body"]:
                 self.body()
 
-            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and self.currToken["tokenType"] not in ["}", "case", "default"]:
+            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body()
 
         print("(parser) exited production: \"ctrl_stmt_body\"")
@@ -1823,27 +1846,27 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"input\"")
         '''<input> → in<data_type>(<input_params>)'''
         
-        self.match("in", False)
-        self.match("<", False)
-        
-        ## For literals, data types, operators, or any prods that ONLY contain terminals
-        ## use matchPredictSet and specify the name of the predict set to be used
-        ## ADD to predict set if it doesn't exist yet
-        if self.matchPredictSet("data_type"):
-            self.nextToken()
-        else:
-            self.ERROR_expected_token(PREDICT_SETS["data_type"])
-        
-        if not self.match(">"):
-            self.ERROR_unclosed_angled_bracket()
-        
-        self.match("(", False)
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
 
-        if self.currToken and self.currToken["tokenType"] != ")":
-            self.input_params()
-        
-        if not self.match(")"):
-            self.ERROR_unclosed_parentheses()
+            self.match("in", False)
+            self.match("<", False)
+            
+            if currentTokenType in PREDICT_SETS["data_type"]:
+                self.data_type()
+            else:
+                self.ERROR_expected_token(PREDICT_SETS["data_type"])
+            
+            if not self.match(">"):
+                self.ERROR_unclosed_angled_bracket()
+            
+            self.match("(", False)
+
+            if currentTokenType in PREDICT_SETS["value"]:
+                self.input_params()
+            
+            if not self.match(")"):
+                self.ERROR_unclosed_parentheses()
         
         print("(parser) exited production: \"input\"")
 
@@ -1852,13 +1875,16 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"input_params\"")
         """<input_params> → <int_val> | <string_value> | <string_value>,<int_val> | λ"""
         
-        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]: 
-            self.value(")")
-        else:  # semantic check if string or syntax error
-            self.logError("Expected a valid value of type \"string\".")
+        if self.currToken:
+            currentTokenType = self.currToken["tokenType"]
+            
+            if currentTokenType in PREDICT_SETS["value"]: 
+                self.value(")")
+                
+            else:  # semantic check if string or syntax error
+                self.logError("Expected a valid value of type \"string\".")
         
         print("(parser) exited production: \"input_params\"")
-
 
 
     def var_iden(self):
