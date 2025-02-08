@@ -40,6 +40,7 @@ PREDICT_SETS = {
     "class_as_func_post": ["Identifier", "++", "--", ],
     "assign_func_method_mods": ["[", "(", "."],
     "assign_func_method_mods_cont": ["[", "("],
+    "var_dec": ["const", "bool", "string", "int", "long", "double", "float"]
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -391,10 +392,14 @@ class SyntaxAnalyzer:
                 if not self.match(";", True):
                     self.ERROR_terminating_token(";")
 
-            elif currentTokenType in [["const"] + PREDICT_SETS["data_type"]]:    
+            elif currentTokenType in PREDICT_SETS["var_dec"]:    
                 if currentTokenType == "const":
                     self.match("const")
                 self.data_type()
+                self.match("Identifier")
+                self.var_dec_cont()
+                if not self.match(";"):
+                    self.ERROR_terminating_token(";")
 
             elif currentTokenType == "++":
                 self.match("++")
@@ -1102,17 +1107,17 @@ class SyntaxAnalyzer:
     def data_type(self):
         match self.currToken["tokenType"]:
             case "int":
-                self.match("int")
+                self.match("int", False)
             case "long":
-                self.match("long")
+                self.match("long", False)
             case "float":
-                self.match("float")
+                self.match("float", False)
             case "double":
-                self.match("double")
+                self.match("double", False)
             case "bool":
-                self.match("bool")
+                self.match("bool", False)
             case "string":
-                self.match("string")
+                self.match("string", False)
 
     def lit_type(self):
         print('(parser) production: "lit_type" detected')
@@ -1329,14 +1334,17 @@ class SyntaxAnalyzer:
   
   # ALEX start here
     def condition(self, condType, stopChar):  
-        '''<condition> → <bool_value>'''
+        '''<condition> → <value>'''
         print("(parser) entered production: \"condition\"")
+
+        if self.currToken:
+            if not self.value(stopChar):
+                if self.currToken["tokenType"] == stopChar:
+                    self.ERROR_missing_condition(condType)
+                else:
+                    self.ERROR_invalid_condition(condType)
         
-        if not self.bool_value(stopChar):      
-            if self.currToken and self.currToken["tokenType"] == ")":
-                self.ERROR_missing_condition(condType)
-            else: 
-                self.ERROR_invalid_condition(condType)
+        print("(parser) exited production: \"condition\"")
 
         
     def output(self):
@@ -1479,15 +1487,20 @@ class SyntaxAnalyzer:
 
         print("(parser) entered production: \"init_arg\"")
         
-        if self.currToken["tokenName"] in PREDICT_SETS["data_type"]:
-            if self.matchPredictSet("data_type", False):
-                self.nextToken()
-                self.var_iden()
-        elif self.currToken["tokenType"] == "Identifier":
-            self.assign_stmt()
-        
-        #if self.currToken["tokenType"] == ",":
-        #    self.var_iden_rec()
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
+            currentTokenType = self.currToken["tokenType"]
+
+            if currentTokenType == "Identifier":
+                self.match("Identifier")
+                self.class_as_func_post()
+
+            elif currentTokenType in PREDICT_SETS["data_type"]:
+                self.data_type()
+                self.match("Identifier")
+                self.var_dec_cont()
+                
+            if not self.match(";"):
+                self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"init_arg\"")
 
@@ -2061,7 +2074,8 @@ class SyntaxAnalyzer:
 
     def assign_stmt(self):
         print("(parser) production: \"assign_stmt\" detected")
-        """<assign_stmt> → Identifier <iden_as_var_mods> <assign_stmt_con> ;"""
+        """<assign_stmt> → Identifier<iden_as_var_mods><assign_stmt_op> ;"""
+        
         if self.match("Identifier", False):
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
                 self.iden_as_var_mods() # match iden mods if there are any
@@ -2115,6 +2129,8 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"iden_as_var_mods\"")
 
 
+    
+    
     def assign_stmt_or_func_method_call(self):
         print("(parser) production: \"assign_stmt_or_func_method_call\" detected")
 
