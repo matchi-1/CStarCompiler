@@ -915,22 +915,22 @@ class SyntaxAnalyzer:
 
     def func_arg(self, asConstructor = False):
         print("(parser) production: \"func_arg\" detected")
-        retTuple = (None, None)
+        retList = [None, None]
         hasConstructorValue = False
         isValidFuncArg = True
         # Check if there's a value to parse
         if self.currToken and self.currToken["tokenType"]in PREDICT_SETS["value"]:
             val_n = self.value([',',')'])
             if self.value([',',')']):
-                retTuple[0] = node_func_args(val_n)
+                retList[0] = node_func_args(val_n)
                 if self.currToken and self.currToken["tokenType"] == ',':
                     # Parse the recursive part of the arguments when , is detected
-                    retTuple[0] = node_func_args(val_n, self.func_arg_rec())
+                    retList[0] = node_func_args(val_n, self.func_arg_rec())
                 hasConstructorValue = True
         else:
             print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
-        retTuple[1] = hasConstructorValue
-        return retTuple if asConstructor else retTuple[0]
+        retList[1] = hasConstructorValue
+        return retList if asConstructor else retList[0]
     
 
     def func_arg_rec(self):
