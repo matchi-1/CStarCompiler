@@ -1481,7 +1481,6 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"if_stmt\"")
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
-            currentTokenType = self.currToken["tokenType"]
 
             self.match("if", False)
             if not self.match("("):
@@ -1491,12 +1490,12 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_parentheses()
             
             self.match("{", False)
-            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
                 self.ctrl_stmt_body()
             if not self.match("}"):
                 self.ERROR_unclosed_curly_braces()
 
-            if currentTokenType == "else":
+            if self.currToken["tokenType"] == "else":
                 self.else_chain()
 
         print("(parser) entered production: \"if_stmt\"")
@@ -1587,16 +1586,16 @@ class SyntaxAnalyzer:
 
             elif currentTokenType == "Identifier":
                 self.match("Identifier")
-                if currentTokenType in PREDICT_SETS["inc_arg_post"]:
-                    if currentTokenType == "++": self.match("++")
-                    elif currentTokenType == "--": self.match("--")
+                if self.currToken["tokenType"] in PREDICT_SETS["inc_arg_post"]:
+                    if self.currToken["tokenType"] == "++": self.match("++")
+                    elif self.currToken["tokenType"] == "--": self.match("--")
                     
-                elif currentTokenType in PREDICT_SETS["assign_func_method_mods"]:
+                elif self.currToken["tokenType"] in PREDICT_SETS["assign_func_method_mods"]:
                     self.assign_func_method_mods()
 
                 else: self.logError("Expected: unary operation, assignment statement, function call, method call.")
 
-            elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["print_stmts"]:
+            elif currentTokenType in PREDICT_SETS["print_stmts"]:
                 self.output()
 
         print("(parser) exited production: \"inc_arg\"")
@@ -1638,13 +1637,12 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"switch_stmt\"")
 
         if self.currToken:
-            currentTokenType = self.currToken["tokenType"]
             
             self.match("switch", False)
             if not self.match("("):
                 self.ERROR_missing_condition("switch")
             
-            if currentTokenType in PREDICT_SETS["switch_value"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
                 if not self.value([")", "{"]):
                     self.ERROR_empty_condition("switch")
             
@@ -1654,7 +1652,7 @@ class SyntaxAnalyzer:
             self.match("{", False)
             self.case_stmt()
 
-            if currentTokenType == "default":
+            if self.currToken["tokenType"] == "default":
                 self.default_stmt()
 
             if not self.currToken:
@@ -1669,15 +1667,14 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"case_stmt\"")
 
         if self.currToken:
-            currentTokenType = self.currToken["tokenType"]
 
             self.match("case", False)
             self.case_value()
             self.match(":", False)
-            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 self.ctrl_stmt_body()
 
-            if currentTokenType == "case":
+            if self.currToken["tokenType"] == "case":
                 self.case_stmt()
 
         print("(parser) exited production: \"case_stmt\" !!!!!!!!!!!")
@@ -1720,9 +1717,8 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"loop_stmt\"")
         
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["case_value"]:
-            currentTokenType = self.currToken["tokenType"]
 
-            match currentTokenType:
+            match self.currToken["tokenType"]:
                 case "while": 
                     self.while_stmt()
                 case "do": 
@@ -1739,14 +1735,13 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"forloop_stmt\"")
 
         if self.currToken:
-            currentTokenType = self.currToken["tokenType"]
 
             self.match("for", False)
             if not self.match("("):
                 self.logError("Missing forloop arguments.")
 
             ## INIT ARG
-            if currentTokenType in PREDICT_SETS["init_arg"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
                 self.init_arg()
             else: 
                 print("(parser) empty init_arg detected")
@@ -1761,7 +1756,7 @@ class SyntaxAnalyzer:
                 self.logError(f"Condition argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
 
             ## INC ARG
-            if currentTokenType in PREDICT_SETS["inc_arg"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
                 self.inc_arg()
             else: 
                 print("(parser) empty inc_arg detected")
@@ -1771,7 +1766,7 @@ class SyntaxAnalyzer:
 
             ## CTRL STMT BODY
             self.match("{", False)
-            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 self.ctrl_stmt_body()
             if not self.currToken:
                 self.ERROR_unclosed_curly_braces()
@@ -1784,7 +1779,6 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"while_stmt\"")
 
         if self.currToken:
-            currentTokenType = self.currToken["tokenType"]
 
             self.match("while", False)
 
@@ -1797,7 +1791,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_parentheses()
             
             self.match("{", False)
-            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 self.ctrl_stmt_body()
             
             if not self.currToken:
@@ -1811,7 +1805,6 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"do_stmt\"")
         
         if self.currToken:
-            currentTokenType = self.currToken["tokenType"]
             
             self.match("do", False)
             self.match("{", False)
@@ -1844,7 +1837,6 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"repeat_stmt\"")
 
         if self.currToken:
-            currentTokenType = self.currToken["tokenType"]
 
             self.match("repeat", False)
             if not self.match("("):
@@ -1858,7 +1850,7 @@ class SyntaxAnalyzer:
             
             self.match("{", False)
 
-            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 self.ctrl_stmt_body()
 
             if not self.match("}"):
@@ -1893,7 +1885,7 @@ class SyntaxAnalyzer:
             elif currentTokenType in PREDICT_SETS["body"]:
                 self.body()
 
-            if currentTokenType in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body()
 
         print("(parser) exited production: \"ctrl_stmt_body\"")
@@ -1979,13 +1971,12 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"var_iden_rec\"")
         
         if self.currToken:
-            currentTokenType = self.currToken["tokenType"]
 
-            if currentTokenType == ",":
+            if self.currToken["tokenType"] == ",":
                 self.match(",")
                 if self.match("Identifier"):
                     self.var_init()
-                    if currentTokenType == ",":
+                    if self.currToken["tokenType"] == ",":
                         self.var_iden_rec()
                 else:
                     self.ERROR_expected_token("Identifier")
@@ -2013,7 +2004,7 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]", True):
                     self.ERROR_unclosed_square_bracket()
-                if currentTokenType == "[":
+                if self.currToken["tokenType"] == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
                 self.var_id_arr2D()
         
@@ -2057,11 +2048,10 @@ class SyntaxAnalyzer:
             print("(parser) entered production: \"arr_value_1D\"")
             
             if self.currToken:
-                currentTokenType = self.currToken["tokenType"]
                 
-                if currentTokenType in PREDICT_SETS["value"]:
+                if self.currToken["tokenType"] in PREDICT_SETS["value"]:
                     self.value(["}", ","])
-                    if currentTokenType == ",":
+                    if self.currToken["tokenType"] == ",":
                         self.arr_value_1D_rec()
                 else:
                     self.ERROR_expected_token("value")
@@ -2073,11 +2063,10 @@ class SyntaxAnalyzer:
             print("(parser) entered production: \"arr_value_1D_rec\"")
 
             if self.currToken:
-                currentTokenType = self.currToken["tokenType"]
 
-                if currentTokenType == ",":
+                if self.currToken["tokenType"] == ",":
                     self.match(",")
-                    if currentTokenType in PREDICT_SETS["value"]:
+                    if self.currToken["tokenType"] in PREDICT_SETS["value"]:
                         self.value(["}", ","])
                         self.arr_value_1D_rec()
                     else:
@@ -2106,7 +2095,6 @@ class SyntaxAnalyzer:
             print("(parser) entered production: \"array2D_iden_rec\"")
             
             if self.currToken:
-                currentTokenType = self.currToken["tokenType"]
 
                 self.match(",")
                 self.match("Identifier", False)
@@ -2122,10 +2110,10 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
-                if currentTokenType == "[":
+                if self.currToken["tokenType"] == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
                 
-                if currentTokenType == ",":
+                if self.currToken["tokenType"] == ",":
                     self.array2D_iden_rec()
                 
                 #else:
