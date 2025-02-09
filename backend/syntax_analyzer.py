@@ -331,10 +331,10 @@ class SyntaxAnalyzer:
 
     def ERROR_expected_Identifier_classes(self):
         if not self.currToken:  # EOF case
-            self.logError("Expected an identifier, but reached EOF (End of File).")
+            self.logError("Expected constructor call, but reached EOF (End of File).")
         elif not self.match("Identifier"):  # Invalid token case
             current_value = self.currToken["tokenName"] if self.currToken else "EOF"
-            self.logError(f"Expected an identifier, but found '{current_value}' instead.")
+            self.logError(f"Expected constructor call, but found '{current_value}' instead.")
 
     def ERROR_missing_initializer(self):
         if self.currToken:
@@ -468,7 +468,6 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == "Identifier":
-                self.match("Identifier")
                 self.class_as_func_post()
                 if not self.match(";", True):
                     self.ERROR_terminating_token(";")
@@ -506,7 +505,7 @@ class SyntaxAnalyzer:
                 self.loop_stmt(isVoid)
         
             else: self.logError("You're not supposed to see this.")
-            self.code_block()
+            self.code_block(isVoid)
         
 
     def class_as_func_post(self):       
@@ -576,25 +575,26 @@ class SyntaxAnalyzer:
         else: self.ERROR_expected_token(["[", "("])
 
 
-    def body(self, isVoid = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
-        print(f"(parser) Processing <body>: {self.currToken['tokenName'] if self.currToken else 'None'}, isVoid = {isVoid}")
+    def body(self, isVoid = False, inControlStruct = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
+        print(f"(parser) Processing <body>: {self.currToken['tokenName'] if self.currToken else 'None'}")
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
             
             self.code_block(isVoid)
 
 
-            if self.currToken["tokenType"] == "return":
+            if self.currToken and self.currToken["tokenType"] == "return":
                   self.return_block(isVoid)
                   self.hasFunctionReturned = True     
                   if self.hasMainFunction:
                       self.hasMainReturn = True
             #     # TODO: DEAD CODE (CODE AFTER RETURN) ERROR IMPLEMENTATION\
 
-            if not self.hasFunctionReturned:
+                
+            self.body(isVoid, inControlStruct)
+
+        if not self.hasFunctionReturned and not inControlStruct and not self.hasMainFunction:
                 self.logError("A return statement outside of control structures is required in all functions.")
                 #placeholder hehehehehhehehehehheyhueh
-                
-            self.body(isVoid)
         
     
 
@@ -696,7 +696,7 @@ class SyntaxAnalyzer:
                 elif currentTokenType in PREDICT_SETS["iden_dec"]:
                     self.iden_dec()
                 else:
-                    print(f"identifier? {currentTokenType}")
+                    print(f"identifier? {self.currToken["tokenName"]}")
                     self.class_inst("program_constructs")
             if not self.hasMainFunction:
                 self.program_constructs()
@@ -723,7 +723,8 @@ class SyntaxAnalyzer:
                 self.logError(f"Expected data type or void, got {currentTokenType} instead.")
 
             elif currentTokenType == "void":
-                isVoid = self.match("void")
+                self.match("void")
+                isVoid = True
                 if self.currToken:
                     if self.currToken["tokenName"] == "main":
                         self.hasMainFunction = True
@@ -840,7 +841,10 @@ class SyntaxAnalyzer:
                 
                 self.iden_dec()
                 self.class_body()
-            inClassBody = False     #tf if i know if this does anything
+            inClassBody = False 
+
+        if self.currToken and self.currToken["tokenType"] == "class":
+            self.logError("Classes cannot be nested within classes.")
 
     def constructor_dec(self): 
         
@@ -1587,11 +1591,12 @@ class SyntaxAnalyzer:
         if self.hasFunctionReturned:
             self.logError("Function already has a return statement.")
 
-        if not isVoid and self.currToken["tokenType"] == ";" and not self.hasMainFunction:
-            self.logError("Non-Void functions must return a value.")
-        
-        elif isVoid and self.currToken["tokenType"] != ";":
-            self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
+        if self.currToken:
+            if not isVoid and self.currToken["tokenType"] == ";" and not self.hasMainFunction:
+                self.logError("Non-Void functions must return a value.")
+            
+            elif isVoid and self.currToken["tokenType"] != ";":
+                self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
         
         if not isVoid:
             self.value([";"])
@@ -1973,7 +1978,7 @@ class SyntaxAnalyzer:
             elif currentTokenType == "continue":
                 self.continue_stmt()
             elif currentTokenType in PREDICT_SETS["body"]:
-                self.body(isVoid)
+                self.body(isVoid, True)
 
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body(isVoid)
