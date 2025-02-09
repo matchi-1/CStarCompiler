@@ -77,15 +77,34 @@ class node_iden:
         self.id_t = id_t
 
 class node_func_call:
-    def __init__(self, id_n, args_n):
+    def __init__(self, id_n, args_n = None):
         self.id_n = id_n
         self.args_n = args_n
 
-class node_array_index:
-    def __init__(self, id_n, index_n):
+class node_arr_idx:
+    def __init__(self, id_n, idx_n, idx2_n = None):
         self.id_n = id_n
-        self.index_n = index_n
+        self.index_n = idx_n
+        self.index2_n = idx2_n
 
+class node_class_att:
+    def __init__(self, id_n, att_n):
+        self.id_n = id_n
+        self.att_n = att_n
+
+class node_class_func_call:
+    def __init__(self, id_n, att_n, args_n = None):
+        self.id_n = id_n
+        self.att_n = att_n
+        self.args_n = args_n
+
+class node_class_arr_idx:
+    def __init__(self, id_n, att_n, idx_n, idx2_n = None):
+        self.id_n = id_n
+        self.att_n = att_n
+        self.index_n = idx_n
+        self.index2_n = idx2_n
+        
 class node_bi_op:
     def __init__(self, left_n, op_t, right_n):
         self.left_n = left_n
@@ -96,6 +115,11 @@ class node_un_op:
     def __init__(self, left_t, right_n):
         self.left_t = left_t
         self.right_n = right_n
+
+class node_post_un_op:
+    def __init__(self, left_n, right_t):
+        self.left_n = left_n
+        self.right_t = right_t
 
 class node_input:
     def __init__(self, type_t, prompt_n = None, count_n = None):
@@ -887,6 +911,7 @@ class SyntaxAnalyzer:
 
     def func_arg(self, asConstructor = False):
         print("(parser) production: \"func_arg\" detected")
+        retTuple = (None, None)
         hasConstructorValue = False
         isValidFuncArg = True
         # Check if there's a value to parse
@@ -995,10 +1020,6 @@ class SyntaxAnalyzer:
 
     def rel_exp(self, stopChars):
         print("(parser-value-chain): Entered \"rel_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        if self.currToken and self.currToken["tokenType"] == "!":
-            self.match("!")
-            is_valid_value = self.rel_exp(stopChars) # !!!!!!!<term>
-          
         is_valid_value = self.arith_exp(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
@@ -1080,6 +1101,10 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "-":
             self.match("-")
             is_valid_value = self.factor(stopChars)
+        elif self.currToken and self.currToken["tokenType"] == "!":
+            self.match("!")
+            is_valid_value = self.factor(stopChars) # !!!!!!!<term>
+            print('(parser)(dbg) END NEGATVIE\n')
         elif self.currToken and self.currToken["tokenType"] == "(":
             self.match("(")
             is_valid_value = self.cast_val(stopChars)
@@ -1120,8 +1145,9 @@ class SyntaxAnalyzer:
         elif self.currToken and self.currToken["tokenType"] == "in":
             return self.input()
         elif self.currToken and self.currToken["tokenType"] == "--":
-            self.match("--")
-            if not self.match("Identifier"):
+            left_t = self.match("--")
+            temp_id = self.match("Identifier")
+            if not temp_id:
                 is_valid_value = False
                 if self.currToken and self.currToken["tokenType"] == "whole_lit":
                     self.ERROR_inc_dec_constant()
@@ -1129,9 +1155,12 @@ class SyntaxAnalyzer:
                     self.ERROR_inc_dec_not_int()
                 else:
                     self.ERROR_expected_token("Identifier")
+            else:
+                return node_un_op(left_t, node_iden(temp_id))
         elif self.currToken and self.currToken["tokenType"] == "++":
-            self.match("++")
-            if not self.match("Identifier"):
+            left_t = self.match("++")
+            temp_id = self.match("Identifier")
+            if not temp_id:
                 is_valid_value = False
                 if self.currToken and self.currToken["tokenType"] == "whole_lit":
                     self.ERROR_inc_dec_constant()
@@ -1139,30 +1168,33 @@ class SyntaxAnalyzer:
                     self.ERROR_inc_dec_not_int()
                 else:
                     self.ERROR_expected_token("Identifier")
+            else:
+                return node_un_op(left_t, node_iden(temp_id))
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
-            self.match("Identifier")
+            temp_id = self.match("Identifier")
+            temp_node = node_iden(temp_id)
             print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:
-                self.mods_post_op()
+                temp_node = self.mods_post_op(temp_id)
+            return temp_node
 
         return is_valid_value
 
-    def mods_post_op(self):
+    def mods_post_op(self, temp_id):
         print("(parser-value-chain): Entered \"mods_post_op\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]:
-            is_valid_value = self.iden_mods()
+            temp_node = self.iden_mods(temp_id)
         elif self.currToken and self.currToken["tokenType"] in ["++", "--"]:
-            self.mods_post_op_con()
-        return is_valid_value
+            temp_node = self.mods_post_op_con(temp_id)
+        return temp_node
     
-    def mods_post_op_con(self):
+    def mods_post_op_con(self, temp_id):
         print("(parser-value-chain): Entered \"mods_post_op_con\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "++":
-                self.match("++")
+                return node_post_un_op(temp_id, self.match("++"))
             case "--":
-                self.match("--")  
+                return node_post_un_op(temp_id, self.match("--"))
 
     def data_type(self):
         match self.currToken["tokenType"]:
@@ -1191,11 +1223,11 @@ class SyntaxAnalyzer:
             return node_bool(self.match("bool_lit"))
 
 
-    def iden_mods(self):
+    def iden_mods(self, temp_id):
         print('(parser) production: "iden_mods" detected')
         is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in ['(', '[']:
-            is_valid_value = self.is_func_method_arr()
+            return self.is_func_method_arr(temp_id)
         elif (self.currToken and self.currToken["tokenType"] == "."):
             self.match(".")
             is_valid_value = self.match("Identifier", False)
@@ -1205,7 +1237,7 @@ class SyntaxAnalyzer:
                 self.ERROR_further_class_access()
         return is_valid_value 
 
-    def is_func_method_arr(self):
+    def is_func_method_arr(self, temp_id):
         if (self.currToken and self.currToken["tokenType"] == "("):
             self.match("(")
             is_valid_value = self.func_arg()
