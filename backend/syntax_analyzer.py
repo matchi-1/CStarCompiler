@@ -1933,18 +1933,17 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"input_params\"")
         """<input_params> → <value> <in_param_two> | λ"""
         count_n = None
-        if self.currToken and self.currToken in PREDICT_SETS["string_value"]:
-            currentTokenType = self.currToken["tokenType"]
-            
-            prompt_n = node_str(self.arith_exp([")", ","]))
-            if currentTokenType == ",":
-                self.in_param_two()
+        print(f'(parser)(dbg) in input params prod, current token is {self.currToken}')
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
+            prompt_n = self.arith_exp([")", ","])
+            if self.currToken and self.currToken["tokenType"] == ",":
+                count_n = self.in_param_two()
                 
-            else:  # semantic check if string or syntax error
-                self.logError("Expected a valid value of type \"string\".")
+        else:  # semantic check if string or syntax error
+            self.logError("Expected a valid value of type \"string\".")
         
         print("(parser) exited production: \"input_params\"")
-
+        return node_input(type_t, prompt_n, count_n)
 
     def in_param_two(self):
         print("(parser) entered production: \"in_param_two\"")
