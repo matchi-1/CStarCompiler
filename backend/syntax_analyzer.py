@@ -56,6 +56,38 @@ PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDIC
 
 # note: not every prod have to use predict sets cos some of em just branch to 1 token
 
+#-----------------AST FOR VALUE------------------
+# parameters are either token objects (terminals) or other nodes (nonterminals)
+#----------------NODE OBJECTS---------------------
+class node_literal:
+    def __init__(self, val):
+        self.val = val
+
+class node_var_acc:
+    def __init__(self, iden):
+        self.iden = iden
+
+class node_func_call:
+    def __init__(self, iden, func_arg):
+        self.iden = iden
+        self.func_arg = func_arg
+
+class node_array_index:
+    def __init__(self, iden, index):
+        self.iden = iden
+        self.index = index
+
+class node_bi_op:
+    def __init__(self, left, op, right):
+        self.left = left
+        self.op = op
+        self.right = right
+
+class node_un_op:
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -103,15 +135,16 @@ class SyntaxAnalyzer:
     def match(self, expected_token, hasSpecError=True):
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
             print(f"('match' function) token {expected_token} matched")
+            retToken = self.currToken
             self.nextToken()
-            return True
+            return retToken
         elif hasSpecError:
             print("('match' function) deactivating default expected token error")
-            return False
+            return None
         else:
             print("('match' function) activating default expected token error")
             self.ERROR_expected_token(expected_token)
-            return False
+            return None
 
     def matchPredictSet(self, non_terminal, hasSpecError=True):
         if self.currToken is None:  # EOF
@@ -301,7 +334,7 @@ class SyntaxAnalyzer:
         elif self.currToken["tokenType"] != ";":
             self.logError(f"Expected ';' to terminate the return statement, but got '{self.currToken['tokenName']}' instead. Use 'return;' to exit the main function successfully.")
 
-    def ERROR_main_missing_return(self):
+    def ERROR_ (self):
         self.logError("Missing return statement in main function. Use 'return;' to exit the main function successfully.")
 
     def ERROR_array_as_param_no_val(self):
@@ -1051,7 +1084,7 @@ class SyntaxAnalyzer:
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
-            is_valid_value = self.value(stopChars)
+            is_valid_value = self.factor(stopChars)
         elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
             is_valid_value = self.value(stopChars)
             if not self.match(")"):
@@ -1073,6 +1106,16 @@ class SyntaxAnalyzer:
             self.input()
         elif self.currToken and self.currToken["tokenType"] == "--":
             self.match("--")
+            if not self.match("Identifier"):
+                is_valid_value = False
+                if self.currToken and self.currToken["tokenType"] == "whole_lit":
+                    self.ERROR_inc_dec_constant()
+                elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
+                    self.ERROR_inc_dec_not_int()
+                else:
+                    self.ERROR_expected_token("Identifier")
+        elif self.currToken and self.currToken["tokenType"] == "++":
+            self.match("++")
             if not self.match("Identifier"):
                 is_valid_value = False
                 if self.currToken and self.currToken["tokenType"] == "whole_lit":
