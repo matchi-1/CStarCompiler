@@ -468,6 +468,7 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == "Identifier":
+                self.match("Identifier")
                 self.class_as_func_post()
                 if not self.match(";", True):
                     self.ERROR_terminating_token(";")
@@ -516,8 +517,8 @@ class SyntaxAnalyzer:
             if currentTokenType in PREDICT_SETS["class_as_func_post"]:
                 if currentTokenType == "Identifier":
                     self.match("Identifier")
-                    if not self.match("Identifier"):
-                        self.ERROR_missing_initializer()
+                    # if not self.match("Identifier"):
+                    #     self.ERROR_missing_initializer()
                     self.classinst_cont()
 
                 elif currentTokenType == "++":
@@ -561,7 +562,7 @@ class SyntaxAnalyzer:
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
             if currentTokenType in PREDICT_SETS["assign_func_method_mods_cont"]:
-                if currentTokenType == "[":
+                if currentTokenType == "[" or currentTokenType in PREDICT_SETS["assign_operator"]:
                     self.as_array()
                     self.assign_stmt_op()
 
@@ -718,6 +719,7 @@ class SyntaxAnalyzer:
                     self.var_dec_cont()
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
+                else: self.ERROR_expected_token(PREDICT_SETS["data_type"])
 
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
                 self.logError(f"Expected data type or void, got {currentTokenType} instead.")
@@ -836,6 +838,8 @@ class SyntaxAnalyzer:
             if self.currToken:
                 if self.currToken["tokenType"] == "private":
                     self.match("private")
+                    if self.currToken and self.currToken["tokenType"] == "class":
+                        self.logError("Classes cannot be nested within classes.")
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["iden_dec"]:
                         self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
                 
