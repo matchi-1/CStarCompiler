@@ -57,36 +57,50 @@ PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDIC
 # note: not every prod have to use predict sets cos some of em just branch to 1 token
 
 #-----------------AST FOR VALUE------------------
-# parameters are either token objects (terminals) or other nodes (nonterminals)
+# #_t suffix = token, #_n suffix = node
 #----------------NODE OBJECTS---------------------
-class node_literal:
-    def __init__(self, val):
-        self.val = val
+class node_num:
+    def __init__(self, val_t):
+        self.val_t = val_t
 
-class node_var_acc:
-    def __init__(self, iden):
-        self.iden = iden
+class node_str:
+    def __init__(self, val_t):
+        self.val_t = val_t
+
+class node_bool:
+    def __init__(self, val_t):
+        self.val_t = val_t
+
+class node_iden:
+    def __init__(self, id_t):
+        self.id_t = id_t
 
 class node_func_call:
-    def __init__(self, iden, func_arg):
-        self.iden = iden
-        self.func_arg = func_arg
+    def __init__(self, id_n, args_n):
+        self.id_n = id_n
+        self.args_n = args_n
 
 class node_array_index:
-    def __init__(self, iden, index):
-        self.iden = iden
-        self.index = index
+    def __init__(self, id_n, index_n):
+        self.id_n = id_n
+        self.index_n = index_n
 
 class node_bi_op:
-    def __init__(self, left, op, right):
-        self.left = left
-        self.op = op
-        self.right = right
+    def __init__(self, left_n, op_t, right_n):
+        self.left_n = left_n
+        self.op = op_t
+        self.right = right_n
 
 class node_un_op:
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_t, right_n):
+        self.left_t = left_t
+        self.right_n = right_n
+
+class node_input:
+    def __init__(self, type_t, prompt_n, count_n):
+        self.type_t = type_t
+        self.prompt_n = prompt_n
+        self.count_n = count_n
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -1101,7 +1115,7 @@ class SyntaxAnalyzer:
         print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]:
-            self.lit_type()
+            return self.lit_type()
         elif self.currToken and self.currToken["tokenType"] == "in":
             self.input()
         elif self.currToken and self.currToken["tokenType"] == "--":
@@ -1167,13 +1181,13 @@ class SyntaxAnalyzer:
     def lit_type(self):
         print('(parser) production: "lit_type" detected')
         if (self.currToken and self.currToken["tokenType"] == "whole_lit"):
-            self.match("whole_lit")
+            return node_num(self.match("whole_lit"))
         elif (self.currToken and self.currToken["tokenType"] == "frac_lit"):
-            self.match("frac_lit")
+            return node_num(self.match("frac_lit"))
         elif (self.currToken and self.currToken["tokenType"] == "string_lit"):
-            self.match("string_lit")
+            return node_str(self.match("string_lit"))
         elif (self.currToken and self.currToken["tokenType"] == "bool_lit"):
-            self.match("bool_lit")
+            return node_bool(self.match("bool_lit"))
 
 
     def iden_mods(self):
