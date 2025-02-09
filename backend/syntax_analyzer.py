@@ -1117,15 +1117,12 @@ class SyntaxAnalyzer:
     def factor(self, stopChars):
         print("(parser-value-chain): Entered \"factor\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] == "-":
-            self.match("-")
-            is_valid_value = self.factor(stopChars)
+            return node_un_op(self.match("-"), self.factor(stopChars))
         elif self.currToken and self.currToken["tokenType"] == "!":
-            self.match("!")
-            is_valid_value = self.factor(stopChars) # !!!!!!!<term>
-            print('(parser)(dbg) END NEGATVIE\n')
+            return node_un_op(self.match("!"), self.factor(stopChars))
         elif self.currToken and self.currToken["tokenType"] == "(":
             self.match("(")
-            is_valid_value = self.cast_val(stopChars)
+            return self.cast_val(stopChars)
         elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["atom"]:
             return self.atom()
         else:
@@ -1138,16 +1135,17 @@ class SyntaxAnalyzer:
         print("(parser-value-chain): Entered \"cast_val\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-            self.data_type()
+            dtype = self.data_type()
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
-            is_valid_value = self.factor(stopChars)
+            return node_un_op(dtype, self.factor(stopChars))
         elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
-            is_valid_value = self.value(stopChars)
+            val_temp = self.value([")"])
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
+            return val_temp
         else:
             if self.currToken:
                 self.logError(f"Expected a data type for typecasting or a valid value, instead got '{self.currToken["tokenName"]}'.")
