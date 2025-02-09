@@ -680,7 +680,7 @@ class SyntaxAnalyzer:
         if self.currToken:
             if self.currToken["tokenType"] == "[":
                 self.match("[", False)
-                self.arith_exp()
+                self.arith_exp(["]"])
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
                 self.var_id_arr1D()
@@ -924,41 +924,41 @@ class SyntaxAnalyzer:
 
     def logic_exp(self, stopChars):
         print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        is_valid_value = self.rel_exp()
+        is_valid_value = self.rel_exp(stopChars)
         
         if self.currToken:
             if self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
-                is_valid_value = self.logic_exp_cont()
+                is_valid_value = self.logic_exp_cont(stopChars)
             self.stopCharOrOperatorCheck(stopChars)
                 
         return is_valid_value
     
-    def logic_exp_cont(self):
+    def logic_exp_cont(self, stopChars):
         print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "&&":
                 self.match("&&")
             case "||":
                 self.match("||")
-        is_valid_value = self.rel_exp()
+        is_valid_value = self.rel_exp(stopChars)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
-            is_valid_value = self.logic_exp_cont()
+            is_valid_value = self.logic_exp_cont(stopChars)
         return is_valid_value
 
-    def rel_exp(self):
+    def rel_exp(self, stopChars):
         print("(parser-value-chain): Entered \"rel_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] == "!":
             self.match("!")
-            is_valid_value = self.rel_exp() # !!!!!!!<term>
+            is_valid_value = self.rel_exp(stopChars) # !!!!!!!<term>
           
-        is_valid_value = self.arith_exp()
+        is_valid_value = self.arith_exp(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
-            is_valid_value = self.rel_exp_cont()
+            is_valid_value = self.rel_exp_cont(stopChars)
         
         return is_valid_value
     
-    def rel_exp_cont(self):
+    def rel_exp_cont(self, stopChars):
         print("(parser-value-chain): Entered \"rel_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "==":
@@ -974,45 +974,45 @@ class SyntaxAnalyzer:
             case "<=":
                 self.match("!=")
 
-        is_valid_value = self.arith_exp()
+        is_valid_value = self.arith_exp(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
-            is_valid_value = self.rel_exp_cont()
+            is_valid_value = self.rel_exp_cont(stopChars)
         
         return is_valid_value
     
-    def arith_exp(self):
+    def arith_exp(self, stopChars):
         print("(parser-value-chain): Entered \"arith_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        is_valid_value = self.term()
+        is_valid_value = self.term(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
-            is_valid_value = self.add_min_cont()
+            is_valid_value = self.add_min_cont(stopChars)
 
         return is_valid_value
 
-    def add_min_cont(self):
+    def add_min_cont(self, stopChars):
         print("(parser-value-chain): Entered \"add_min_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "+":
                 self.match("+")
             case "-":
                 self.match("-")
-        is_valid_value = self.term()
+        is_valid_value = self.term(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
-            is_valid_value = self.add_min_cont()
+            is_valid_value = self.add_min_cont(stopChars)
 
         return is_valid_value
 
-    def term(self):
+    def term(self, stopChars):
         print("(parser-value-chain): Entered \"term\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        is_valid_value = self.factor()
+        is_valid_value = self.factor(stopChars)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_modulo_cont"]:
-            is_valid_value = self.mult_div_modulo_cont()
+            is_valid_value = self.mult_div_modulo_cont(stopChars)
 
         return is_valid_value
 
-    def mult_div_modulo_cont(self):
+    def mult_div_modulo_cont(self, stopChars):
         print("(parser-value-chain): Entered \"mult_div_modulo_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "*":
@@ -1021,20 +1021,20 @@ class SyntaxAnalyzer:
                 self.match("/")
             case "%":
                 self.match("%")
-        is_valid_value = self.factor()
+        is_valid_value = self.factor(stopChars)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_modulo_cont"]:
-            is_valid_value = self.mult_div_modulo_cont()
+            is_valid_value = self.mult_div_modulo_cont(stopChars)
 
         return is_valid_value
     
-    def factor(self):
+    def factor(self, stopChars):
         print("(parser-value-chain): Entered \"factor\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] == "-":
             self.match("-")
-            is_valid_value = self.factor()
+            is_valid_value = self.factor(stopChars)
         elif self.currToken and self.currToken["tokenType"] == "(":
             self.match("(")
-            is_valid_value = self.cast_val()
+            is_valid_value = self.cast_val(stopChars)
         elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["atom"]:
             is_valid_value = self.atom()
         else:
@@ -1043,7 +1043,7 @@ class SyntaxAnalyzer:
 
         return is_valid_value
     
-    def cast_val(self):
+    def cast_val(self, stopChars):
         print("(parser-value-chain): Entered \"cast_val\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
@@ -1051,9 +1051,9 @@ class SyntaxAnalyzer:
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
-            is_valid_value = self.value()
+            is_valid_value = self.value(stopChars)
         elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
-            is_valid_value = self.value()
+            is_valid_value = self.value(stopChars)
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
@@ -1164,7 +1164,7 @@ class SyntaxAnalyzer:
         is_valid_value = True
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            if not self.arith_exp():
+            if not self.arith_exp(["]"]):
                 is_valid_value = False
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
@@ -1180,7 +1180,7 @@ class SyntaxAnalyzer:
         print('(parser) production: "is_2d_arr" detected')
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            if not self.arith_exp():
+            if not self.arith_exp(["]"]):
                 is_valid_value = False
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
@@ -1792,7 +1792,7 @@ class SyntaxAnalyzer:
             if not self.match("("):
                 self.logError("Expected argument for 'repeat' statement")
 
-            if not self.arith_exp():
+            if not self.arith_exp([")"]):
                 self.ERROR_expected_pos_integer_value()
 
             if not self.match(")"):
@@ -1880,7 +1880,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken in PREDICT_SETS["string_value"]:
             currentTokenType = self.currToken["tokenType"]
             
-            self.arith_exp()
+            self.arith_exp([")", ","])
             if currentTokenType == ",":
                 self.in_param_two()
             if currentTokenType in PREDICT_SETS["value"]: 
@@ -1897,7 +1897,7 @@ class SyntaxAnalyzer:
         
         if self.currToken:
             self.match(",")
-            if not self.arith_exp():
+            if not self.arith_exp([")"]):
                 self.logError("Invalid value for 'in' statement character limit.")
         
         print("(parser) exited production: \"in_param_two\"")
@@ -1953,7 +1953,7 @@ class SyntaxAnalyzer:
 
             elif currentTokenType == "[":
                 self.match("[", False)
-                if not self.arith_exp():
+                if not self.arith_exp(["]"]):
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]", True):
                     self.ERROR_unclosed_square_bracket()
@@ -1972,7 +1972,7 @@ class SyntaxAnalyzer:
             self.match(",")
             self.match("Identifier", False)
             self.match("[", False)
-            if not self.arith_exp():
+            if not self.arith_exp(["]"]):
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
@@ -2056,13 +2056,13 @@ class SyntaxAnalyzer:
                 self.match("Identifier", False)
                 
                 self.match("[", False)
-                if not self.arith_exp():
+                if not self.arith_exp(["]"]):
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
                 
                 self.match("[", False)
-                if not self.arith_exp():
+                if not self.arith_exp(["]"]):
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
