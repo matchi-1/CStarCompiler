@@ -582,9 +582,6 @@ class SyntaxAnalyzer:
             
             self.code_block(isVoid)
 
-            if not self.hasFunctionReturned:
-                self.logError("A return statement outside of control structures is required in all functions.")
-                #placeholder hehehehehhehehehehheyhueh
 
             if self.currToken["tokenType"] == "return":
                   self.return_block(isVoid)
@@ -592,6 +589,10 @@ class SyntaxAnalyzer:
                   if self.hasMainFunction:
                       self.hasMainReturn = True
             #     # TODO: DEAD CODE (CODE AFTER RETURN) ERROR IMPLEMENTATION\
+
+            if not self.hasFunctionReturned:
+                self.logError("A return statement outside of control structures is required in all functions.")
+                #placeholder hehehehehhehehehehheyhueh
                 
             self.body(isVoid)
         
