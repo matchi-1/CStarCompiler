@@ -98,7 +98,7 @@ class node_un_op:
         self.right_n = right_n
 
 class node_input:
-    def __init__(self, type_t, prompt_n, count_n):
+    def __init__(self, type_t, prompt_n = None, count_n = None):
         self.type_t = type_t
         self.prompt_n = prompt_n
         self.count_n = count_n
@@ -349,7 +349,7 @@ class SyntaxAnalyzer:
         elif self.currToken["tokenType"] != ";":
             self.logError(f"Expected ';' to terminate the return statement, but got '{self.currToken['tokenName']}' instead. Use 'return;' to exit the main function successfully.")
 
-    def ERROR_ (self):
+    def ERROR_main_missing_return(self):
         self.logError("Missing return statement in main function. Use 'return;' to exit the main function successfully.")
 
     def ERROR_array_as_param_no_val(self):
@@ -1118,7 +1118,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]:
             return self.lit_type()
         elif self.currToken and self.currToken["tokenType"] == "in":
-            self.input()
+            return self.input()
         elif self.currToken and self.currToken["tokenType"] == "--":
             self.match("--")
             if not self.match("Identifier"):
@@ -1167,17 +1167,17 @@ class SyntaxAnalyzer:
     def data_type(self):
         match self.currToken["tokenType"]:
             case "int":
-                self.match("int", False)
+                return self.match("int", False)
             case "long":
-                self.match("long", False)
+                return self.match("long", False)
             case "float":
-                self.match("float", False)
+                return self.match("float", False)
             case "double":
-                self.match("double", False)
+                return self.match("double", False)
             case "bool":
-                self.match("bool", False)
+                return self.match("bool", False)
             case "string":
-                self.match("string", False)
+                return self.match("string", False)
 
     def lit_type(self):
         print('(parser) production: "lit_type" detected')
@@ -1906,22 +1906,21 @@ class SyntaxAnalyzer:
         
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
-
             self.match("in", False)
             self.match("<", False)
-            
+
             if currentTokenType in PREDICT_SETS["data_type"]:
-                self.data_type()
+                type_t = self.data_type()
             else:
                 self.ERROR_expected_token(PREDICT_SETS["data_type"])
             
             if not self.match(">"):
                 self.ERROR_unclosed_angled_bracket()
-            
+            node_temp = node_input(type_t)
             self.match("(", False)
 
             if currentTokenType in PREDICT_SETS["string_value"]:
-                self.input_params()
+                node_temp = self.input_params(type_t)
             
             elif not self.match(")"):
                 self.ERROR_unclosed_parentheses()
@@ -1929,20 +1928,18 @@ class SyntaxAnalyzer:
             else: self.logError("Invalid value for 'in' statement message.")
         
         print("(parser) exited production: \"input\"")
+        return node_temp
 
-
-    def input_params(self):
+    def input_params(self, type_t):
         print("(parser) entered production: \"input_params\"")
         """<input_params> → <value> <in_param_two> | λ"""
-        
+        count_n = None
         if self.currToken and self.currToken in PREDICT_SETS["string_value"]:
             currentTokenType = self.currToken["tokenType"]
             
-            self.arith_exp([")", ","])
+            prompt_n = node_str(self.arith_exp([")", ","]))
             if currentTokenType == ",":
                 self.in_param_two()
-            if currentTokenType in PREDICT_SETS["value"]: 
-                self.value(")")
                 
             else:  # semantic check if string or syntax error
                 self.logError("Expected a valid value of type \"string\".")
@@ -1955,8 +1952,11 @@ class SyntaxAnalyzer:
         
         if self.currToken:
             self.match(",")
-            if not self.arith_exp([")"]):
+            ret = self.arith_exp([")"])
+            if not ret:
                 self.logError("Invalid value for 'in' statement character limit.")
+            else:
+                return ret
         
         print("(parser) exited production: \"in_param_two\"")
 
