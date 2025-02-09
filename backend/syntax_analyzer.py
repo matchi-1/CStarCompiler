@@ -367,7 +367,7 @@ class SyntaxAnalyzer:
     def ERROR_inc_dec_not_int(self):
         self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.")
     def ERROR_expected_operator(self):
-        self.logError(f"Expected a valid operator in between operands, instead got '{self.currToken['tokenName']}'.\nEnsure that there is a valid operator before a valid operand.")
+        self.logError(f"Expected a valid operator before '{self.currToken['tokenName']}'.\nEnsure that there is a valid operator before a valid operand.")
     def ERROR_further_class_access(self):
         self.logError("Cstar doesn't allow subclasses. An attempt to access a subclass and/or its attributes or methods is not supported.")
 
@@ -498,7 +498,7 @@ class SyntaxAnalyzer:
                 else: self.assign_func_method_mods()
 
 
-            else: self.ERROR_expected_token(PREDICT_SETS["class_as_func_post"])
+        else: self.ERROR_expected_token(PREDICT_SETS["class_as_func_post"])
 
     def assign_func_method_mods(self):
         print("(parser) production: \"assign_func_method_mods\" detected")
@@ -963,7 +963,7 @@ class SyntaxAnalyzer:
     # Uses of predict sets in value:
     #  - when checking for cont. if the next operator is any of the expressions, only enter cont prods
     def stopCharOrOperatorCheck(self, stopChars):
-        if self.currToken["tokenType"] not in PREDICT_SETS["term_join_operators"] + stopChars:  # throw an error for missing operator
+        if self.currToken["tokenType"] not in PREDICT_SETS["term_join_operators"] + stopChars and self.currToken["tokenType"] in PREDICT_SETS["value"]:  # throw an error for missing operator
                 self.ERROR_expected_operator()
     
     def value(self, stopChars):
