@@ -104,6 +104,11 @@ class node_class_arr_idx:
         self.att_n = att_n
         self.index_n = idx_n
         self.index2_n = idx2_n
+
+class node_func_args:
+    def __init__(self, args_n, args_rec_n = None):
+        self.args_n = args_n
+        self.args_rec_n = args_rec_n
         
 class node_bi_op:
     def __init__(self, left_n, op_t, right_n):
@@ -899,7 +904,7 @@ class SyntaxAnalyzer:
 
             self.match('(', False)
 
-            has_Constructor_or_Array_Init = self.func_arg(True)
+            has_Constructor_or_Array_Init = self.func_arg(True)[1]
 
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
@@ -908,7 +913,6 @@ class SyntaxAnalyzer:
             else:
                 self.ERROR_expected_token([")", ","])
 
-
     def func_arg(self, asConstructor = False):
         print("(parser) production: \"func_arg\" detected")
         retTuple = (None, None)
@@ -916,14 +920,17 @@ class SyntaxAnalyzer:
         isValidFuncArg = True
         # Check if there's a value to parse
         if self.currToken and self.currToken["tokenType"]in PREDICT_SETS["value"]:
+            val_n = self.value([',',')'])
             if self.value([',',')']):
+                retTuple[0] = node_func_args(val_n)
                 if self.currToken and self.currToken["tokenType"] == ',':
                     # Parse the recursive part of the arguments when , is detected
-                    isValidFuncArg = self.func_arg_rec()
+                    retTuple[0] = node_func_args(val_n, self.func_arg_rec())
                 hasConstructorValue = True
         else:
             print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
-        return hasConstructorValue if asConstructor else isValidFuncArg
+        retTuple[1] = hasConstructorValue
+        return retTuple if asConstructor else retTuple[0]
     
 
     def func_arg_rec(self):
@@ -946,7 +953,7 @@ class SyntaxAnalyzer:
             print("(parser) Found ',' indicating more arguments.")
 
             # Parse the next <func_arg>
-            self.func_arg()
+            return self.func_arg()
         else:
             print("(parser) λ-production for <func_arg_rec>")  # Handle λ (empty production)
 
@@ -1109,7 +1116,7 @@ class SyntaxAnalyzer:
             self.match("(")
             is_valid_value = self.cast_val(stopChars)
         elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["atom"]:
-            is_valid_value = self.atom()
+            return self.atom()
         else:
             is_valid_value = False
             self.ERROR_expected_valid_value()
@@ -1175,7 +1182,7 @@ class SyntaxAnalyzer:
             temp_node = node_iden(temp_id)
             print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:
-                temp_node = self.mods_post_op(temp_id)
+                temp_node = self.mods_post_op(node_iden(temp_id))
             return temp_node
 
         return is_valid_value
@@ -1230,56 +1237,86 @@ class SyntaxAnalyzer:
             return self.is_func_method_arr(temp_id)
         elif (self.currToken and self.currToken["tokenType"] == "."):
             self.match(".")
-            is_valid_value = self.match("Identifier", False)
+            tmp_att_id_n = node_iden(self.match("Identifier", False))
+            node_temp = node_class_att(temp_id, tmp_att_id_n)
             if self.currToken and self.currToken["tokenType"] in ['(', '[']:
-                is_valid_value = self.is_func_method_arr()
+                node_temp = self.is_func_method_arr(temp_id, tmp_att_id_n)
             elif self.currToken and self.currToken["tokenType"] == '.':
                 self.ERROR_further_class_access()
+
+            return node_temp
         return is_valid_value 
 
-    def is_func_method_arr(self, temp_id):
+    def is_func_method_arr(self, temp_id, tmp_att_id_n = None):
         if (self.currToken and self.currToken["tokenType"] == "("):
             self.match("(")
-            is_valid_value = self.func_arg()
+            if not tmp_att_id_n:
+                node_temp = node_func_call(temp_id, self.func_arg())
+            else:
+                node_temp = node_class_func_call(temp_id, tmp_att_id_n, self.func_arg())
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
+            else:
+                return node_temp
         elif (self.currToken and self.currToken["tokenType"] == "["):
-            is_valid_value = self.as_array()
+            return self.as_array(temp_id, tmp_att_id_n)
         
         return is_valid_value
 
-    def as_array(self):
+    def as_array(self, temp_id = None, tmp_att_id_n = None):
         print('(parser) production: "as_array" detected')
         is_valid_value = True
+        node_temp = None
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            if not self.arith_exp(["]"]):
+            val_temp = self.arith_exp(["]"])
+            if not val_temp:
                 is_valid_value = False
                 self.ERROR_expected_pos_integer_value()
+            else:
+                if not tmp_att_id_n:
+                    node_temp = node_arr_idx(temp_id, val_temp)
+                else:
+                    node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val_temp)
             if not self.match("]"):
                 is_valid_value = False
                 self.ERROR_unclosed_square_bracket()
             if (self.currToken and self.currToken["tokenType"] == "["):
-                is_valid_value = self.is_2d_arr()
+                if temp_id:
+                    if not tmp_att_id_n:
+                        node_temp = self.is_2d_arr(temp_id, val_temp)
+                    else:
+                        node_temp = self.is_2d_arr(temp_id, val_temp, tmp_att_id_n)
+                else:
+                    node_temp = self.is_2d_arr()
 
-        return is_valid_value 
+        return node_temp 
 
-    def is_2d_arr(self):
+    def is_2d_arr(self, temp_id = None, val1 = None, tmp_att_id_n = None):
         is_valid_value = True
         print('(parser) production: "is_2d_arr" detected')
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            if not self.arith_exp(["]"]):
+            val_temp = self.arith_exp(["]"])
+            if not val_temp:
                 is_valid_value = False
                 self.ERROR_expected_pos_integer_value()
+            else:
+                if (temp_id and val1):
+                    if not tmp_att_id_n:
+                        node_temp = node_arr_idx(temp_id, val1, val_temp)
+                    else:
+                        node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val1, val_temp)
+                else:
+                    node_temp = True
             if not self.match("]"):
                 is_valid_value = False
                 self.ERROR_unclosed_square_bracket()
             if self.currToken and self.currToken["tokenType"] == "[":
                 is_valid_value = False
                 self.logError("Only up to 2 dimensions of arrays are allowed.")
-        return is_valid_value
+        return node_temp
 
     
     def ret_type(self):
