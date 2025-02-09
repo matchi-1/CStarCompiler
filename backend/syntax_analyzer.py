@@ -1905,11 +1905,10 @@ class SyntaxAnalyzer:
         '''<input> → in<data_type>(<input_params>)'''
         
         if self.currToken:
-            currentTokenType = self.currToken["tokenType"]
             self.match("in", False)
             self.match("<", False)
 
-            if currentTokenType in PREDICT_SETS["data_type"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                 type_t = self.data_type()
             else:
                 self.ERROR_expected_token(PREDICT_SETS["data_type"])
@@ -1919,7 +1918,7 @@ class SyntaxAnalyzer:
             node_temp = node_input(type_t)
             self.match("(", False)
 
-            if currentTokenType in PREDICT_SETS["string_value"]:
+            if self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
                 node_temp = self.input_params(type_t)
             
             elif not self.match(")"):
