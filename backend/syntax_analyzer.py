@@ -38,7 +38,7 @@ PREDICT_SETS = {
     "iden_dec_cont": [ "=", ",", "[" ],
     "term_join_operators": ["+", "-", "*", "/", "%", "==", "!=", "<", "<=", ">", ">=", "&&", "||"],
     "class_as_func_post": ["Identifier", "++", "--", ],
-    "assign_func_method_mods": ["[", "(", "."],
+    "assign_func_method_mods": ["[", "(", ".",],
     "assign_func_method_mods_cont": ["[", "("],
     "inc_arg_post": ["++", "--"],
     "case_value": ["whole_lit", "string_lit", "-"],
@@ -46,7 +46,8 @@ PREDICT_SETS = {
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
-PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDICT_SETS["assign_func_method_mods"] #bruh pt.2 pt.2
+PREDICT_SETS["assign_func_method_mods"] = PREDICT_SETS["assign_func_method_mods"]+ PREDICT_SETS["assign_operator"]
+PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDICT_SETS["assign_func_method_mods"] 
 
 # reminders for predict sets:
  
