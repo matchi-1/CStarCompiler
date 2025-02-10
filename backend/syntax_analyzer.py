@@ -470,11 +470,11 @@ class SyntaxAnalyzer:
                 if not self.match("return") and not self.hasMainReturn:
                     self.ERROR_main_missing_return()
 
-                if not self.currToken or self.currToken["tokenType"] != ";" and not self.hasMainReturn:
-                    self.ERROR_main_void_return()
+                # if not self.currToken or self.currToken["tokenType"] != ";" and not self.hasMainReturn:
+                #     self.ERROR_main_void_return()
                 
                 if not self.match(";") and not self.hasMainReturn:
-                    self.ERROR_terminating_token(";")
+                    self.ERROR_main_void_return()  # prolly wont throw this error bc return is now in body
 
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
