@@ -359,10 +359,10 @@ class SyntaxAnalyzer:
 
     def ERROR_expected_Identifier_classes(self):
         if not self.currToken:  # EOF case
-            self.logError("Expected constructor call, but reached EOF (End of File).")
+            self.logError("Expected constructor call after '=', but reached EOF (End of File).")
         elif not self.match("Identifier"):  # Invalid token case
             current_value = self.currToken["tokenName"] if self.currToken else "EOF"
-            self.logError(f"Expected constructor call, but found '{current_value}' instead.")
+            self.logError(f"Expected constructor call after '=', but found '{current_value}' instead.")
 
     def ERROR_missing_initializer(self):
         if self.currToken:
@@ -554,6 +554,11 @@ class SyntaxAnalyzer:
                     # if not self.match("Identifier"):
                     #     self.ERROR_missing_initializer()
                     self.classinst_cont()
+                    if self.currToken:
+                        if self.currToken["tokenType"] == "[":
+                            self.logError("Array of objects is not supported. Expected '=' or ';'")
+                        if self.currToken["tokenType"] == "." or self.currToken["tokenType"] == "(":
+                            self.logError(f"Unexpected '{self.currToken["tokenType"]}' for object declaration. Expected '=' or ';'")
 
                 elif currentTokenType == "++":
                     self.match("++")
@@ -561,8 +566,7 @@ class SyntaxAnalyzer:
                     self.match("--")
 
                 else: self.assign_func_method_mods()
-
-
+            else: self.ERROR_expected_token(PREDICT_SETS["class_as_func_post"])
         else: self.ERROR_expected_token(PREDICT_SETS["class_as_func_post"])
 
     def assign_func_method_mods(self):
@@ -571,7 +575,7 @@ class SyntaxAnalyzer:
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
             if currentTokenType in PREDICT_SETS["assign_func_method_mods"]:
-                if currentTokenType in PREDICT_SETS["assign_operator" + ["["]]:
+                if currentTokenType in (PREDICT_SETS["assign_operator"] + ["["]):
                     self.as_array()
                     self.assign_stmt_op()
 
@@ -598,6 +602,8 @@ class SyntaxAnalyzer:
             if currentTokenType in PREDICT_SETS["assign_func_method_mods_cont"]:
                 if currentTokenType == "[" or currentTokenType in PREDICT_SETS["assign_operator"]:
                     self.as_array()
+                    if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["assign_operator"]:
+                        self.ERROR_expected_token(PREDICT_SETS["assign_operator"])
                     self.assign_stmt_op()
 
                 elif currentTokenType == "(":
@@ -605,9 +611,13 @@ class SyntaxAnalyzer:
                     self.func_arg()
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
-                
-            else: self.ERROR_expected_token(["[", "("])
-        else: self.ERROR_expected_token(["[", "("])
+
+                elif self.currToken and self.currToken["tokenType"] == ".":
+                    self.logError(f"Further accessing of object elements is not allowed. Expected '[' or '(', found '{self.currToken["tokenType"]}'.")    
+            elif self.currToken and self.currToken["tokenType"] == ".":
+                self.logError(f"Further accessing of object elements is not allowed. Expected '[' or '(', found '{self.currToken["tokenType"]}'.")  
+            else: self.ERROR_expected_token(["[", "("] + PREDICT_SETS["assign_operator"])
+        else: self.ERROR_expected_token(["[", "("] + PREDICT_SETS["assign_operator"])
 
 
     def body(self, isVoid = False, inControlStruct = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
@@ -955,9 +965,9 @@ class SyntaxAnalyzer:
             if not self.match("Identifier"):  # should be the same name as the class name [SEMANTIC]
                 self.ERROR_expected_Identifier_classes()
 
-            if not self.match('(', True):
-                self.logError("Expected '(' for constructor call.")
-
+            if not self.currToken or self.currToken["tokenType"] != '(':
+                self.logError(f"Expected '(' for constructor call after Identifier. Found '{self.currToken["tokenType"] if self.currToken else "EOF"}' instead.")
+            self.match('(')
             has_Constructor_or_Array_Init = self.func_arg(True)[1]
 
             if self.currToken and self.currToken["tokenType"] == ")":
@@ -2102,7 +2112,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"in_param_two\"")
 
 
-    def var_init(self):     #TODO: doesnt allow array_init pa ## array_init is allowed na -Alex
+    def var_init(self):
         """<var_init> → = <value> | λ"""
         print("(parser) entered production: \"var_init\"")
         
@@ -2388,24 +2398,12 @@ class SyntaxAnalyzer:
             elif self.currToken["tokenType"] == "[" or self.currToken["tokenType"] == "." or self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
                 if self.currToken["tokenType"] == "[":
                     self.as_array()
-                    
-                self.assign_func_method_rec()
+                    self.assign_stmt_op()
+                elif self.currToken["tokenType"] == ".":
+                    self.match(".")
+                    self.match("Identifier", False)
+                    self.assign_func_method_mods_cont()
 
             else: self.ERROR_expected_token(["[", "(", "."] + PREDICT_SETS["assign_operator"])
         else: self.ERROR_expected_token(["[", "(", "."] + PREDICT_SETS["assign_operator"])
-
-    def assign_func_method_rec(self):
-        print("(parser) production: \"assign_func_method_rec\" detected")
-        
-        if self.currToken:
-            if self.currToken["tokenType"] == ".":
-                self.match(".")
-                self.match("Identifier", False)
-                self.assign_func_method_mods()
-
-            elif self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                self.assign_stmt_op()
-
-            else: self.ERROR_expected_token(["."] + PREDICT_SETS["assign_operator"])
-        else: self.ERROR_expected_token(["."] + PREDICT_SETS["assign_operator"])
 
