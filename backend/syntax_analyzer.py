@@ -995,7 +995,10 @@ class SyntaxAnalyzer:
                         retList[0] = node_func_args(val_n, self.func_arg_rec())
                     hasConstructorValue = True
         else:
-            print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
+                self.logError("Function call parameters cannot accept declarations")
+            else: 
+                print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
         retList[1] = hasConstructorValue
         return retList if asConstructor else retList[0]
     
@@ -1411,7 +1414,7 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             if not self.match("Identifier"):
-                self.logError("Expected data type or Identifier (Class name).")
+                self.logError("Expected Identifier (variable declaration or class name).")
             if self.currToken:
                 if self.peek(-2)["tokenType"] == "Identifier" and self.currToken:
                     if self.currToken["tokenType"] == "=":
