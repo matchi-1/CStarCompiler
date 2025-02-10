@@ -1321,9 +1321,9 @@ class SyntaxAnalyzer:
         if (self.currToken and self.currToken["tokenType"] == "("):
             self.match("(")
             if not tmp_att_id_n:
-                node_temp = node_func_call(temp_id, self.func_arg())
+                node_temp = node_func_call(temp_id, self.params_dec())
             else:
-                node_temp = node_class_func_call(temp_id, tmp_att_id_n, self.func_arg())
+                node_temp = node_class_func_call(temp_id, tmp_att_id_n, self.params_dec())
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
@@ -1399,9 +1399,10 @@ class SyntaxAnalyzer:
         print("(parser) production: \"ret_type\" detected")
 
         if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-            self.nextToken()
+            self.data_type()
         else:
-            self.match("Identifier")
+            if not self.match("Identifier"):
+                self.logError("Expected data type or Identifier (Class name).")
 
         print("(parser) production: \"ret_type\" exited!!!!!")
 
@@ -1410,7 +1411,8 @@ class SyntaxAnalyzer:
         print("(parser) production: \"params_var\" detected")
 
         if self.currToken:
-            self.match("Identifier", False)
+            if not self.match("Identifier"):
+                self.logError("Expected data type or Identifier (Class name).")
             if self.currToken:
                 if self.peek(-2)["tokenType"] == "Identifier" and self.currToken:
                     if self.currToken["tokenType"] == "=":
