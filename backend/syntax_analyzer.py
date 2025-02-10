@@ -1690,13 +1690,13 @@ class SyntaxAnalyzer:
             self.ERROR_unclosed_parentheses()
         
         self.match("{", False)
-        if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
             self.ctrl_stmt_body(isVoid)
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
         self.hasFunctionReturned = False
 
-        if self.currToken["tokenType"] == "else":
+        if self.currToken and self.currToken["tokenType"] == "else":
             self.else_chain()
 
         print("(parser) entered production: \"if_stmt\"")
