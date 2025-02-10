@@ -25,7 +25,7 @@ PREDICT_SETS = {
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "bool_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", ",", ";"],
-    "string_value": ["string_lit", "Identifier", "("],
+    "string_value": ["string_lit", "Identifier", "(", "in"],
     "expression":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
     "output":["print", "println"],
     "code_block": [ "const", "++", "--", "Identifier", "bool", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while" ],
@@ -2141,7 +2141,7 @@ class SyntaxAnalyzer:
         count_n = None
         print(f'(parser)(dbg) in input params prod, current token is {self.currToken}')
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
-            prompt_n = self.arith_exp([")", ","])
+            prompt_n = self.value([")", ","])
             if self.currToken and self.currToken["tokenType"] == ",":
                 count_n = self.in_param_two()
         
