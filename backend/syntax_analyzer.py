@@ -63,40 +63,56 @@ PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDIC
 class node_num:
     def __init__(self, val_t):
         self.val_t = val_t
+    def __repr__(self):
+        return self.val_t["tokenName"]
 
 class node_str:
     def __init__(self, val_t):
         self.val_t = val_t
+    def __repr__(self):
+        return self.val_t["tokenName"]
 
 class node_bool:
     def __init__(self, val_t):
         self.val_t = val_t
+    def __repr__(self):
+        return self.val_t["tokenName"]
 
 class node_iden:
     def __init__(self, id_t):
         self.id_t = id_t
+    def __repr__(self):
+        return self.id_t["tokenName"]
 
 class node_func_call:
     def __init__(self, id_n, args_n = None):
         self.id_n = id_n
         self.args_n = args_n
+    def __repr__(self):
+        return f'{self.id_n}({self.args_n})'
 
 class node_arr_idx:
     def __init__(self, id_n, idx_n, idx2_n = None):
         self.id_n = id_n
         self.index_n = idx_n
         self.index2_n = idx2_n
+    def __repr__(self):
+        return f'{self.id_n}[{self.idx_n}]' + f'[{self.idx2_n}]' if self.idx2_n else '' 
 
 class node_class_att:
     def __init__(self, id_n, att_n):
         self.id_n = id_n
         self.att_n = att_n
+    def __repr__(self):
+        return f'{self.id_n}.{self.att_n}'
 
 class node_class_func_call:
     def __init__(self, id_n, att_n, args_n = None):
         self.id_n = id_n
         self.att_n = att_n
         self.args_n = args_n
+    def __repr__(self):
+        return f'{self.id_n}.{self.att_n}({self.args_n})'
 
 class node_class_arr_idx:
     def __init__(self, id_n, att_n, idx_n, idx2_n = None):
@@ -104,33 +120,45 @@ class node_class_arr_idx:
         self.att_n = att_n
         self.index_n = idx_n
         self.index2_n = idx2_n
+    def __repr__(self):
+        return f'{self.id_n}.{self.att_n}[{self.idx_n}]' + f'[{self.idx2_n}]' if self.idx2_n else '' 
 
 class node_func_args:
     def __init__(self, args_n, args_rec_n = None):
         self.args_n = args_n
         self.args_rec_n = args_rec_n
+    def __repr__(self):
+        return f'{self.args_n}' + f', {self.args_rec_n}' if self.args_rec_n else ''
         
 class node_bi_op:
     def __init__(self, left_n, op_t, right_n):
         self.left_n = left_n
-        self.op = op_t
-        self.right = right_n
+        self.op_t = op_t
+        self.right_n = right_n
+    def __repr__(self):
+        return f'({self.left_n} {self.op_t["tokenName"]} {self.right_n})'
 
 class node_un_op:
     def __init__(self, left_t, right_n):
         self.left_t = left_t
         self.right_n = right_n
+    def __repr__(self):
+        return f'({self.left_t["tokenName"]} {self.right_n})'
 
 class node_post_un_op:
     def __init__(self, left_n, right_t):
         self.left_n = left_n
         self.right_t = right_t
+    def __repr__(self):
+        return f'({self.left_n} {self.right_t["tokenName"]})'
 
 class node_input:
     def __init__(self, type_t, prompt_n = None, count_n = None):
         self.type_t = type_t
         self.prompt_n = prompt_n
         self.count_n = count_n
+    def __repr__(self):
+        return f'in<{self.type_t["tokenName"]}>({self.prompt_n}, {self.count_n})'
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -1023,104 +1051,108 @@ class SyntaxAnalyzer:
 
     def logic_exp(self, stopChars):
         print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        is_valid_value = self.rel_exp(stopChars)
+        left_n = self.rel_exp(stopChars)
         
         if self.currToken:
             if self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
-                is_valid_value = self.logic_exp_cont(stopChars)
+                left_n = self.logic_exp_cont(left_n, stopChars)
             self.stopCharOrOperatorCheck(stopChars)
                 
-        return is_valid_value
+        return left_n
     
-    def logic_exp_cont(self, stopChars):
+    def logic_exp_cont(self, left_n, stopChars):
         print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        op_t = None
         match self.currToken["tokenType"]:
             case "&&":
-                self.match("&&")
+                op_t = self.match("&&")
             case "||":
-                self.match("||")
-        is_valid_value = self.rel_exp(stopChars)
+                op_t = self.match("||")
+        new_left_n = node_bi_op(left_n, op_t, self.rel_exp(stopChars))
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
-            is_valid_value = self.logic_exp_cont(stopChars)
-        return is_valid_value
+            new_left_n = self.logic_exp_cont(new_left_n, stopChars)
+        return new_left_n
 
     def rel_exp(self, stopChars):
         print("(parser-value-chain): Entered \"rel_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        is_valid_value = self.arith_exp(stopChars)
+        left_n = self.arith_exp(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
-            is_valid_value = self.rel_exp_cont(stopChars)
+            left_n = self.rel_exp_cont(left_n, stopChars)
         
-        return is_valid_value
+        return left_n
     
-    def rel_exp_cont(self, stopChars):
+    def rel_exp_cont(self, left_n, stopChars):
         print("(parser-value-chain): Entered \"rel_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        op_t = None
         match self.currToken["tokenType"]:
             case "==":
-                self.match("==")
+                op_t = self.match("==")
             case "!=":
-                self.match("!=")
+                op_t = self.match("!=")
             case ">":
-                self.match("==")
+                op_t = self.match("==")
             case ">=":
-                self.match("!=")
+                op_t = self.match("!=")
             case "<":
-                self.match("==")
+                op_t = self.match("==")
             case "<=":
-                self.match("!=")
+                op_t = self.match("!=")
 
-        is_valid_value = self.arith_exp(stopChars)
+        new_left_n = node_bi_op(left_n, op_t, self.arith_exp(stopChars))
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
-            is_valid_value = self.rel_exp_cont(stopChars)
+            new_left_n = self.rel_exp_cont(new_left_n, stopChars)
         
-        return is_valid_value
+        return new_left_n
     
     def arith_exp(self, stopChars):
         print("(parser-value-chain): Entered \"arith_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        is_valid_value = self.term(stopChars)
+        left_n = self.term(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
-            is_valid_value = self.add_min_cont(stopChars)
+            left_n = self.add_min_cont(left_n, stopChars)
 
-        return is_valid_value
+        return left_n
 
-    def add_min_cont(self, stopChars):
+    def add_min_cont(self, left_n, stopChars):
         print("(parser-value-chain): Entered \"add_min_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        op_t = None
         match self.currToken["tokenType"]:
             case "+":
-                self.match("+")
+                op_t = self.match("+")
             case "-":
-                self.match("-")
-        is_valid_value = self.term(stopChars)
+                op_t = self.match("-")
+        new_left_n = node_bi_op(left_n, op_t, self.term(stopChars))
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
-            is_valid_value = self.add_min_cont(stopChars)
+            new_left_n = self.add_min_cont(new_left_n, stopChars)
 
-        return is_valid_value
+        return new_left_n
 
     def term(self, stopChars):
         print("(parser-value-chain): Entered \"term\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        is_valid_value = self.factor(stopChars)
+        left_n = self.factor(stopChars)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_modulo_cont"]:
-            is_valid_value = self.mult_div_modulo_cont(stopChars)
+            left_n = self.mult_div_modulo_cont(left_n, stopChars)
 
-        return is_valid_value
+        return left_n
 
-    def mult_div_modulo_cont(self, stopChars):
+    def mult_div_modulo_cont(self, left_n, stopChars):
         print("(parser-value-chain): Entered \"mult_div_modulo_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        op_t = None
         match self.currToken["tokenType"]:
             case "*":
-                self.match("*")
+                op_t = self.match("*")
             case "/":
-                self.match("/")
+                op_t = self.match("/")
             case "%":
-                self.match("%")
-        is_valid_value = self.factor(stopChars)
+                op_t = self.match("%")
+        new_left_n = node_bi_op(left_n, op_t, self.factor(stopChars))
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_modulo_cont"]:
-            is_valid_value = self.mult_div_modulo_cont(stopChars)
+            new_left_n = self.mult_div_modulo_cont(new_left_n, stopChars)
 
-        return is_valid_value
+        return new_left_n
     
     def factor(self, stopChars):
         print("(parser-value-chain): Entered \"factor\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
@@ -1524,7 +1556,12 @@ class SyntaxAnalyzer:
         # if <print_params> are not null
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
             if self.currToken and self.currToken["tokenType"] != ")":
-                if not self.value([",", ")"]):
+                ############ DEBUG PRINTING AST
+                # dbgVal = self.value([",", ")"])
+                # print(f'---------------AST:-------------\n\n{dbgVal}\n\n')
+                # if not dbgVal:
+                ##### END DEBUG 
+                if not self.value([",", ")"]): #gets commented out for dbg
                     self.logError("Invalid 'print' statement parameter.")
                 if self.currToken and self.currToken["tokenType"] == ",":
                     self.output_rec()
