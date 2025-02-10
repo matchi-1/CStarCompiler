@@ -465,10 +465,10 @@ class SyntaxAnalyzer:
             self.ERROR_no_main_func()
         else:
             while self.currToken:
-                self.match("(")
-                if not self.match(")", True):
+                #self.match("(", False)
+                if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
-                self.match("{")
+                self.match("{", False)
                 print("(parser) production: \"main_body\" detected")
 
                 self.body(["}"], True) # isVoid = True here
@@ -782,6 +782,9 @@ class SyntaxAnalyzer:
                 self.match("(", False)
                 if not self.hasMainFunction:
                     self.params_dec_start(isVoid)
+                else:
+                    if self.currToken["tokenType"] != ")":
+                        self.logError("Main function cannot contain parameters.")
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 self.data_type()
@@ -996,7 +999,7 @@ class SyntaxAnalyzer:
                     hasConstructorValue = True
         else:
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                self.logError("Function call parameters cannot accept declarations")
+                self.logError("Function call arguments cannot accept declarations.")
             else: 
                 print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
         retList[1] = hasConstructorValue
