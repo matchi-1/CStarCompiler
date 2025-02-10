@@ -429,6 +429,12 @@ class SyntaxAnalyzer:
     def ERROR_further_class_access(self):
         self.logError("Cstar doesn't allow subclasses. An attempt to access a subclass and/or its attributes or methods is not supported.")
 
+    def ERROR_expected_int_value_in_stmt(self):
+        if self.currToken:
+            self.logError(f"'in' statement character limit parameter must be of \"int\" type. Instead got '{self.currToken['tokenName']}'.")
+        else:
+            self.logError(f"'in' statement character limit parameter must be of \"int\" type. Instead reached EOF.")
+
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
@@ -2051,11 +2057,13 @@ class SyntaxAnalyzer:
 
             if self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
                 node_temp = self.input_params(type_t)
+            else:  # semantic check if string or syntax error
+                self.logError("Expected a valid value of type \"string\".")
             
-            elif not self.match(")"):
+            if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
             
-            else: self.logError("Invalid value for 'in' statement message.")
+            #else: self.logError("Invalid value for 'in' statement message.")
         
         print("(parser) exited production: \"input\"")
         return node_temp
@@ -2069,9 +2077,6 @@ class SyntaxAnalyzer:
             prompt_n = self.arith_exp([")", ","])
             if self.currToken and self.currToken["tokenType"] == ",":
                 count_n = self.in_param_two()
-                
-        else:  # semantic check if string or syntax error
-            self.logError("Expected a valid value of type \"string\".")
         
         print("(parser) exited production: \"input_params\"")
         return node_input(type_t, prompt_n, count_n)
@@ -2081,11 +2086,11 @@ class SyntaxAnalyzer:
         
         if self.currToken:
             self.match(",")
-            ret = self.arith_exp([")"])
-            if not ret:
-                self.logError("Invalid value for 'in' statement character limit.")
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
+                if not self.arith_exp([")"]):
+                    self.ERROR_expected_int_value_in_stmt()
             else:
-                return ret
+                self.ERROR_expected_int_value_in_stmt()
         
         print("(parser) exited production: \"in_param_two\"")
 
