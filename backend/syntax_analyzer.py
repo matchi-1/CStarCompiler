@@ -5,7 +5,6 @@ PREDICT_SETS = {
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_type": ["bool", "string", "int", "long", "double", "float"],
     "class_body": [ "private" , "const", "int", "long", "bool", "float", "double", "string" , "void"],
-    "literals": ["whole_lit", "frac_lit", "string_lit", "Identifier"], # need to add expressions here in the future
     "print_stmts" : ["print", "println"],
     "conditional_stmt" : ["if", "switch"],
     "loop_stmt" : ["for", "while", "do", "repeat"],
@@ -27,7 +26,7 @@ PREDICT_SETS = {
     "string_value": ["string_lit", "Identifier", "("],
     "expression":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
     "output":["print", "println"],
-    "code_block": [ "const", "++", "--", "Identifier", "bool", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", ],
+    "code_block": [ "const", "++", "--", "Identifier", "bool", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while" ],
     "iden_as_var_mods": ["[","."],
     "body": [],  # Placeholder for now
     "add_min_cont":["+", "-"],
@@ -228,7 +227,7 @@ class SyntaxAnalyzer:
 
         if self.currToken["tokenType"] not in expected_predict_set:
             if not hasSpecError:
-                self.ERROR_unexpected("", "Unexpected token", expected_predict_set)
+                self.ERROR_unexpected("", "Unexpected Token", expected_predict_set)
                 return False
             else:
                 return False
@@ -315,7 +314,7 @@ class SyntaxAnalyzer:
     def ERROR_terminating_token(self, expected_token):
         if self.currToken:
             actual_token = self.currToken["tokenName"]
-            message = f"Statement is expected to be terminated by '{expected_token}', but got '{actual_token}'."
+            message = f"Statement is expected to be terminated by '{expected_token}', but found '{actual_token}'."
         else:
             message = f"Statement is expected to be terminated by '{expected_token}', but reached EOF."
         self.logError(message)
@@ -327,7 +326,7 @@ class SyntaxAnalyzer:
             self.logError(f"Expected {expected_token}, but reached EOF.")
         else:
             self.logError(
-                f"Expected {expected_token}, but got '{self.currToken['tokenName']}'."
+                f"Expected {expected_token}, but found '{self.currToken['tokenName']}'."
             )
 
     # If no main function was found throughout the whole program
@@ -337,25 +336,25 @@ class SyntaxAnalyzer:
         raise SyntaxError(message)
 
     def ERROR_unclosed_angled_bracket(self):
-        self.logError(f"Unclosed angled bracket: Expected '>', got '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ") ## should we add line no. + col. num sa mga error d2
+        self.logError(f"Unclosed angled bracket: Expected '>', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ") ## should we add line no. + col. num sa mga error d2
 
     def ERROR_unclosed_parentheses(self):
-        self.logError(f"Unclosed parentheses: Expected ')', got '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
+        self.logError(f"Unclosed parentheses: Expected ')', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
     
     def ERROR_unclosed_curly_braces(self):
-        self.logError(f"Unclosed curly braces: Expected '}}', got '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
+        self.logError(f"Unclosed curly braces: Expected '}}', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_unclosed_square_bracket(self):
-        self.logError("Unclosed square bracket: Expected ']'.")
+        self.logError(f"Unclosed square bracket: Expected ']', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_stdlib_or_filename(self):
-        self.logError("Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr'.")
+        self.logError(f"Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_cstr_file(self):
         self.logError("Expected a filename with '.cstr' extension.")
 
     def ERROR_expected_stdlib(self):
-        self.logError("Expected a standard library (Cmath, Cstring, Carray).")
+        self.logError(f"Expected a standard library (Cmath, Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_Identifier_classes(self):
         if not self.currToken:  # EOF case
@@ -389,7 +388,7 @@ class SyntaxAnalyzer:
         self.logError(f"Condition cannot be empty for '{condType}' statement")
 
     def ERROR_expected_num_value(self):
-        self.logError(f"Expected numerical value. Got '{self.currToken["tokenType"] if self.currToken else EOF}' instead.")
+        self.logError(f"Expected numerical value. Found '{self.currToken["tokenType"] if self.currToken else EOF}' instead.")
     
     def ERROR_unmatched_closing(self):
         self.logError(f"Found unmatched {self.currToken["tokenType"]}.")
@@ -405,14 +404,14 @@ class SyntaxAnalyzer:
         if not self.currToken:
             self.logError("Expected ';' to terminate the return statement, but reached end of file. Use 'return;' to exit the main function successfully.")
         elif self.currToken["tokenType"] != ";":
-            self.logError(f"Expected ';' to terminate the return statement, but got '{self.currToken['tokenName']}' instead. Use 'return;' to exit the main function successfully.")
+            self.logError(f"Expected ';' to terminate the return statement, but found '{self.currToken['tokenName']}' instead. Use 'return;' to exit the main function successfully.")
 
     def ERROR_main_missing_return(self):
         self.logError("Missing return statement in main function. Use 'return;' to exit the main function successfully.")
 
     def ERROR_array_as_param_no_val(self):
         if self.currToken:
-            self.logError(f"Dimensions in arrays as parameters should not have any value. Expected closing bracket ']', but got '{self.currToken['tokenName']}'.")
+            self.logError(f"Dimensions in arrays as parameters should not have any value. Expected closing bracket ']', but found '{self.currToken['tokenName']}'.")
         else:
             self.logError("Expected closing bracket ']', but reached EOF.")
     def ERROR_inc_dec_constant(self):
@@ -425,7 +424,7 @@ class SyntaxAnalyzer:
     def ERROR_inc_dec_not_int(self):
         self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.")
     def ERROR_expected_operator(self):
-        self.logError(f"Expected a valid operator before '{self.currToken['tokenName']}'.\nEnsure that there is a valid operator before a valid operand.")
+        self.logError(f"Expected a valid operator before '{self.currToken['tokenName'] if self.currToken else "EOF"}'.\nEnsure that there is a valid operator before a valid operand.")
     def ERROR_further_class_access(self):
         self.logError("Cstar doesn't allow subclasses. An attempt to access a subclass and/or its attributes or methods is not supported.")
 
@@ -471,7 +470,7 @@ class SyntaxAnalyzer:
                 self.match("{")
                 print("(parser) production: \"main_body\" detected")
 
-                self.body(True) # isVoid = True here
+                self.body(["}"], True) # isVoid = True here
 
                 if not self.match("return") and not self.hasMainReturn:
                     self.ERROR_main_missing_return()
@@ -558,7 +557,7 @@ class SyntaxAnalyzer:
                         if self.currToken["tokenType"] == "[":
                             self.logError("Array of objects is not supported. Expected '=' or ';'")
                         if self.currToken["tokenType"] == "." or self.currToken["tokenType"] == "(":
-                            self.logError(f"Unexpected '{self.currToken["tokenType"]}' for object declaration. Expected '=' or ';'")
+                            self.logError(f"Unexpected Token '{self.currToken["tokenType"]}' for object declaration. Expected '=' or ';'")
 
                 elif currentTokenType == "++":
                     self.match("++")
@@ -620,7 +619,7 @@ class SyntaxAnalyzer:
         else: self.ERROR_expected_token(["[", "("] + PREDICT_SETS["assign_operator"])
 
 
-    def body(self, isVoid = False, inControlStruct = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
+    def body(self, stopChars, isVoid = False, inControlStruct = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
         print(f"(parser) Processing <body>: {self.currToken['tokenName'] if self.currToken else 'None'}")
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
             
@@ -635,7 +634,10 @@ class SyntaxAnalyzer:
             #     # TODO: DEAD CODE (CODE AFTER RETURN) ERROR IMPLEMENTATION\
 
                 
-            self.body(isVoid, inControlStruct)
+            self.body(stopChars, isVoid, inControlStruct)
+
+        if self.currToken and self.currToken["tokenType"] not in stopChars:
+            self.logError(f"Unexpected Token '{self.currToken["tokenName"]}' found. Expected {PREDICT_SETS["body"]}.")
 
         if not self.hasFunctionReturned and not inControlStruct and not self.hasMainFunction:
                 self.logError("A return statement outside of control structures is required in all functions.")
@@ -766,7 +768,7 @@ class SyntaxAnalyzer:
                 else: self.ERROR_expected_token(PREDICT_SETS["data_type"])
 
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
-                self.logError(f"Expected data type or void, got {currentTokenType} instead.")
+                self.logError(f"Expected data type or void, found '{currentTokenType}' instead.")
 
             elif currentTokenType == "void":
                 self.match("void")
@@ -777,7 +779,7 @@ class SyntaxAnalyzer:
                         print("MAIN FUNCTION FOUND!!!!")
                     self.match("Identifier", False)
                 else:
-                    self.logError("Expected identifier (function name).")
+                    self.logError("Expected Identifier for function declaration.")
                 self.match("(", False)
                 if not self.hasMainFunction:
                     self.params_dec_start(isVoid)
@@ -832,7 +834,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_parentheses()
         
             self.match("{", False)
-            self.body(isVoid)
+            self.body(["}"], isVoid)
             if not self.match("}"):
                 self.ERROR_unclosed_curly_braces()
             self.hasFunctionReturned = False
@@ -1499,7 +1501,7 @@ class SyntaxAnalyzer:
             self.match("=", True)
             if not self.value([",", ")"]):
                     self.ERROR_expected_token("value")
-            self.params_def_rec(True)
+            self.params_def_rec()
 
         print("(parser) production: \"params_def_rec_cont\" exited!!!!!")
 
@@ -1902,13 +1904,13 @@ class SyntaxAnalyzer:
                 print("(parser) empty init_arg detected")
             
             if not self.match(";"):
-                self.logError(f"Initialization argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
+                self.logError(f"Initialization argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else EOF}'.")
             
             ## CONDITION
             self.condition("for-loop",[";"])
             
             if not self.match(";"):
-                self.logError(f"Condition argument is expected to be terminated by ';', but got '{self.currToken["tokenType"] if self.currToken else EOF}'.")
+                self.logError(f"Condition argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else EOF}'.")
 
             ## INC ARG
             if self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
@@ -2024,8 +2026,6 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"return_block\"")
         
         self.match("return", False)
-        # # <ret_value> here, (literals for now)
-        # if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["literals"]:
         self.ret_value(isVoid)
         if not self.match(";"):
             self.ERROR_terminating_token(";")
@@ -2044,7 +2044,7 @@ class SyntaxAnalyzer:
             elif currentTokenType == "continue":
                 self.continue_stmt()
             elif currentTokenType in PREDICT_SETS["body"]:
-                self.body(isVoid, True)
+                self.body(["break", "continue", "case", "}"], isVoid, True)
 
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body(isVoid)
@@ -2357,7 +2357,7 @@ class SyntaxAnalyzer:
                 case "%=":
                     self.match("%=")
                 case _:
-                    self.logError(f"Expected an assignment operator, but got '{self.currToken['tokenName']}'.")
+                    self.logError(f"Expected an assignment operator, but found '{self.currToken['tokenName']}'.")
 
             if not self.value([';',')']):  # check valid value
                 self.ERROR_expected_token("value") 
@@ -2398,7 +2398,7 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_parentheses()
 
             elif self.currToken["tokenType"] == "[" or self.currToken["tokenType"] == "." or self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-                if self.currToken["tokenType"] == "[":
+                if self.currToken["tokenType"] == "[" or self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
                     self.as_array()
                     self.assign_stmt_op()
                 elif self.currToken["tokenType"] == ".":
