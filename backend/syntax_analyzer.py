@@ -1093,13 +1093,13 @@ class SyntaxAnalyzer:
             case "!=":
                 op_t = self.match("!=")
             case ">":
-                op_t = self.match("==")
+                op_t = self.match(">")
             case ">=":
-                op_t = self.match("!=")
+                op_t = self.match(">=")
             case "<":
-                op_t = self.match("==")
+                op_t = self.match("<")
             case "<=":
-                op_t = self.match("!=")
+                op_t = self.match("<=")
 
         new_left_n = node_bi_op(left_n, op_t, self.arith_exp(stopChars))
 
