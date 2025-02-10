@@ -69,9 +69,9 @@ MIN_DOUBLE = -9999999999999999000
 MAX_DOUBLE = 9999999999999999000
 
 def typeFracLit(frac_lit):
-    if len(frac_lit.split('.')[2]) < 8:
+    if len(frac_lit.split('.')[1]) < 8:
         return "float"
-    elif len(frac_lit.split('.')[2]) < 16:
+    elif len(frac_lit.split('.')[1]) < 16:
         return "double"
     else:
         return "err"

@@ -1607,7 +1607,7 @@ def lexer(code):
                 if (currFracCount > 16): 
                     if (fracError):
                         errors.pop()
-                    errors.append(fracPrecError(currToken, currLine, currCol, lineContent))
+                    errors.append(fracPrecError(currToken, currLine, currCol, lineContent, leadingSpaces))
                     fracError = True
                     continue
                 else:
