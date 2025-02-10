@@ -80,7 +80,10 @@ nbl_delim = list(set(arithmetic_operator + relational_operator_delim + logical_o
 func_delim = newline_delim + ['(']
 closing_bracket_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '|', ')', '[', ']', ':', ';']
 
+need_frac_num = False
+
 def transition(currState, currChar):
+    global need_frac_num
     match currState:
         case 's0':
             match currChar:
@@ -770,15 +773,17 @@ def transition(currState, currChar):
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
 
-        case '227':
+        case 's227':
             match currChar:
-                case _ if currChar in numbers:  currState = '227'
+                case _ if currChar in numbers:  currState = 's227'
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
         
         case 's260':
             match currChar:
-                case '.':  currState = '227'
+                case '.': 
+                    need_frac_num = True
+                    currState = 's227'
                 case _ if currChar in numbers: currState = 's260'
                 case 'ANY':  currState = 'DEFINED'
                 case _:  currState = 'UNDEFINED' 
@@ -807,6 +812,7 @@ def lexer(code):
     char_esc = False
     leadingSpaces = 0
     isLeadingSpace = True
+    global need_frac_num
     # first_char = True
 
     # Helper function inside lexer to add a token(set its properties), append to token list, and reset current token and state
@@ -1014,7 +1020,7 @@ def lexer(code):
                 case 'DOT_CHECK':
                     expected = ['alphabetic_chars', '/'] + whitespace
                     if (code[i] in numbers):
-                        currState = '227'
+                        currState = 's227'
                     elif (code[i] in dot_delim):
                         add_token(currToken, '.', currLine, currCol)
                     else:
@@ -1593,8 +1599,9 @@ def lexer(code):
                 currFracCount = 0
         #end of whole number
         #fractional part of number
-        if (currState == '227'):
+        if (currState == 's227'):
             if (code[i] in numbers):
+                need_frac_num = False
                 currFracCount += 1
                 currToken += code[i]
                 if (currFracCount > 16): 
@@ -1605,7 +1612,14 @@ def lexer(code):
                     continue
                 else:
                     continue
-            if (code[i] in nbl_delim and not (wholeError or fracError)):
+            elif need_frac_num:
+                need_frac_num = False
+                currToken += code[i]
+                expected = nbl_delim
+                add_error(missingNumError(currToken, currLine, currCol, lineContent, leadingSpaces))
+                currWholeCount = 0
+                currFracCount = 0
+            elif (code[i] in nbl_delim and not (wholeError or fracError)):
                     add_token(currToken, 'frac_lit', currLine, currCol)
                     currWholeCount = 0
                     currFracCount = 0
@@ -1776,6 +1790,10 @@ def delimError(currToken, currLine, currCol, incorrectDelim, lineContent, expect
     errorType = f"Unexpected {'newline' if incorrectDelim == '\\n' else incorrectDelim} for"
     additionalInfo = f"Expected delimiters: {expected}"
     return generateError(errorType, currToken[:-1], currLine, currCol, lineContent, leadingSpaces, additionalInfo)
+
+def missingNumError(currToken, currLine, currCol, lineContent, leadingSpaces):
+    errorType = "Fractional literal must have a fractional part consisting of digits"
+    return generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
 def idenFirstError(currToken, currLine, currCol, lineContent, leadingSpaces):
     errorType = "Identifier must start with an alpha character"
