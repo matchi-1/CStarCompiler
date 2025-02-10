@@ -2121,10 +2121,11 @@ class SyntaxAnalyzer:
             node_temp = node_input(type_t)
             self.match("(", False)
 
-            if self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
-                node_temp = self.input_params(type_t)
-            else:  # semantic check if string or syntax error
-                self.logError("Expected a valid value of type \"string\".")
+            if self.currToken and self.currToken["tokenType"] != ")":
+                if self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
+                    node_temp = self.input_params(type_t)
+                else:  # semantic check if string or syntax error
+                    self.logError("Expected a valid value of type \"string\".")
             
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
