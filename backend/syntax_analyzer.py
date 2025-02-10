@@ -365,7 +365,8 @@ class SyntaxAnalyzer:
 
     def ERROR_missing_initializer(self):
         if self.currToken:
-            error_message = f"Expected initializer before '{self.currToken['tokenName']}'"
+            prev_token = self.tokens[self.currToken_index-1]
+            error_message = f"Expected initializer before '{prev_token['tokenName']}'"
         else:
             error_message = "Expected initializer but reached EOF (End of File)"
         
