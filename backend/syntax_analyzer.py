@@ -970,6 +970,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"]in PREDICT_SETS["value"]:
             val_n = self.value([',',')'])
             if self.currToken and self.currToken["tokenType"] == ',':
+                self.match(',')
                 if self.value([',',')']):
                     retList[0] = node_func_args(val_n)
                     if self.currToken and self.currToken["tokenType"] == ',':
