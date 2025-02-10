@@ -1,3 +1,5 @@
+import semantic_analyzer
+
 #-------------------- PREDICT SETS --------------------
 PREDICT_SETS = {
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
@@ -56,30 +58,69 @@ PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDIC
 
 # note: not every prod have to use predict sets cos some of em just branch to 1 token
 
+#---------------FOR CHECKNG DTYPE------------
+MIN_INT = -2147483648
+MAX_INT = 2147483647
+MIN_LONG = -9223372036854775808
+MAX_LONG = 9223372036854775807
+MIN_FLOAT = -999999990.0
+MAX_FLOAT = 999999990
+MIN_DOUBLE = -9999999999999999000
+MAX_DOUBLE = 9999999999999999000
+
+def typeFracLit(frac_lit):
+    if len(frac_lit.split('.')[2]) < 8:
+        return "float"
+    elif len(frac_lit.split('.')[2]) < 16:
+        return "double"
+    else:
+        return "err"
+    
+#------------------SEMANTIC ANALYZER-----------
+sema = semantic_analyzer.SemanticAnalyzer()
+
 #-----------------AST FOR VALUE------------------
 # #_t suffix = token, #_n suffix = node
 #----------------NODE OBJECTS---------------------
 class node_num:
     def __init__(self, val_t):
         self.val_t = val_t
+        if (self.val_t["tokenType"] == "whole_lit"):
+            if int(self.val_t["tokenName"]) >= MIN_INT and int(self.val_t["tokenName"]) <= MAX_INT:
+                self.dtype = "int"
+            elif int(self.val_t["tokenName"]) >= MIN_LONG and int(self.val_t["tokenName"]) <= MAX_LONG:
+                self.dtype = "long"
+            else:
+                self.dtype = "err"
+        elif (self.val_t["tokenType"] == "frac_lit"):
+            if float(self.val_t["tokenName"]) >= MIN_FLOAT and float(self.val_t["tokenName"]) <= MAX_FLOAT:
+                self.dtype = typeFracLit(self.val_t["tokenName"])
+            elif float(self.val_t["tokenName"]) >= MIN_DOUBLE and float(self.val_t["tokenName"]) <= MAX_DOUBLE:
+                    self.dtype = "double" if typeFracLit(self.val_t["tokenName"]) != "err" else "err"
+            else:
+                self.dtype = "err"
+            
     def __repr__(self):
         return self.val_t["tokenName"]
 
 class node_str:
     def __init__(self, val_t):
         self.val_t = val_t
+        self.dtype = "string"
     def __repr__(self):
         return self.val_t["tokenName"]
 
 class node_bool:
     def __init__(self, val_t):
         self.val_t = val_t
+        self.dtype = "boolean"
     def __repr__(self):
         return self.val_t["tokenName"]
 
 class node_iden:
     def __init__(self, id_t):
         self.id_t = id_t
+        # self.type = sema.curr_scope.get(id_t["tokenName"])["dtype"]
     def __repr__(self):
         return self.id_t["tokenName"]
 
