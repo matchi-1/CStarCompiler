@@ -1328,26 +1328,29 @@ class SyntaxAnalyzer:
         node_temp = None
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            val_temp = self.arith_exp(["]"])
-            if not val_temp:
-                is_valid_value = False
-                self.ERROR_expected_pos_integer_value()
-            else:
-                if not tmp_att_id_n:
-                    node_temp = node_arr_idx(temp_id, val_temp)
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
+                val_temp = self.arith_exp(["]"])
+                if not val_temp:
+                    is_valid_value = False
+                    self.ERROR_expected_pos_integer_value()
                 else:
-                    node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val_temp)
-            if not self.match("]"):
-                is_valid_value = False
-                self.ERROR_unclosed_square_bracket()
-            if (self.currToken and self.currToken["tokenType"] == "["):
-                if temp_id:
                     if not tmp_att_id_n:
-                        node_temp = self.is_2d_arr(temp_id, val_temp)
+                        node_temp = node_arr_idx(temp_id, val_temp)
                     else:
-                        node_temp = self.is_2d_arr(temp_id, val_temp, tmp_att_id_n)
-                else:
-                    node_temp = self.is_2d_arr()
+                        node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val_temp)
+                if not self.match("]"):
+                    is_valid_value = False
+                    self.ERROR_unclosed_square_bracket()
+                if (self.currToken and self.currToken["tokenType"] == "["):
+                    if temp_id:
+                        if not tmp_att_id_n:
+                            node_temp = self.is_2d_arr(temp_id, val_temp)
+                        else:
+                            node_temp = self.is_2d_arr(temp_id, val_temp, tmp_att_id_n)
+                    else:
+                        node_temp = self.is_2d_arr()
+            else:
+                self.ERROR_expected_pos_integer_value()
 
         return node_temp 
 
@@ -2087,10 +2090,14 @@ class SyntaxAnalyzer:
         if self.currToken:
             self.match(",")
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
-                if not self.arith_exp([")"]):
+                ret = self.arith_exp([")"])
+                if not ret:
                     self.ERROR_expected_int_value_in_stmt()
+                else:
+                    return ret
             else:
                 self.ERROR_expected_int_value_in_stmt()
+
         
         print("(parser) exited production: \"in_param_two\"")
 
