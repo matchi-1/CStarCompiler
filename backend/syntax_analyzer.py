@@ -969,12 +969,13 @@ class SyntaxAnalyzer:
         # Check if there's a value to parse
         if self.currToken and self.currToken["tokenType"]in PREDICT_SETS["value"]:
             val_n = self.value([',',')'])
-            if self.value([',',')']):
-                retList[0] = node_func_args(val_n)
-                if self.currToken and self.currToken["tokenType"] == ',':
-                    # Parse the recursive part of the arguments when , is detected
-                    retList[0] = node_func_args(val_n, self.func_arg_rec())
-                hasConstructorValue = True
+            if self.currToken and self.currToken["tokenType"] == ',':
+                if self.value([',',')']):
+                    retList[0] = node_func_args(val_n)
+                    if self.currToken and self.currToken["tokenType"] == ',':
+                        # Parse the recursive part of the arguments when , is detected
+                        retList[0] = node_func_args(val_n, self.func_arg_rec())
+                    hasConstructorValue = True
         else:
             print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
         retList[1] = hasConstructorValue
