@@ -1320,9 +1320,9 @@ class SyntaxAnalyzer:
         if (self.currToken and self.currToken["tokenType"] == "("):
             self.match("(")
             if not tmp_att_id_n:
-                node_temp = node_func_call(temp_id, self.params_dec())
+                node_temp = node_func_call(temp_id, self.func_arg())
             else:
-                node_temp = node_class_func_call(temp_id, tmp_att_id_n, self.params_dec())
+                node_temp = node_class_func_call(temp_id, tmp_att_id_n, self.func_arg())
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
