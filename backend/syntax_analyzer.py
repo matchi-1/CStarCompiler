@@ -269,12 +269,12 @@ class SyntaxAnalyzer:
         # Construct the error message
         if self.currToken:
             message = (
-                f"\n\tSyntax Error: Unexpected Token '{currToken}' at line {currLine}, column {currCol}"
+                f"\tSyntax Error: Unexpected Token '{currToken}' at line {currLine}, column {currCol}"
                 f"\n\tExpected: {expected_message}\n"
             )
         else:
             message = (
-                f"\n\tSyntax Error: Unexpected EOF at line {currLine}, column {currCol}"
+                f"\tSyntax Error: Unexpected EOF at line {currLine}, column {currCol}"
                 f"\n\tExpected: {expected_message}\n"
             )
 
@@ -1348,7 +1348,10 @@ class SyntaxAnalyzer:
                         node_temp = node_arr_idx(temp_id, val_temp)
                     else:
                         node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val_temp)
-                if not self.match("]"):
+                
+                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
+                    self.ERROR_expected_operator()
+                elif not self.match("]"):
                     is_valid_value = False
                     self.ERROR_unclosed_square_bracket()
                 if (self.currToken and self.currToken["tokenType"] == "["):
@@ -2388,7 +2391,6 @@ class SyntaxAnalyzer:
         print("(parser) production: \"assign_func_method_mods\" detected")
 
         if self.currToken:
-
             if self.currToken["tokenType"] == "(":
                 self.match("(")
                 self.func_arg()
