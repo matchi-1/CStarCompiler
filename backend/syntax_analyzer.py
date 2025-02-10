@@ -644,8 +644,6 @@ class SyntaxAnalyzer:
                 self.logError("A return statement outside of control structures is required in all functions.")
                 #placeholder hehehehehhehehehehheyhueh
         
-    
-
         print("(parser) production: \"body\" exited!!!!!!")
 
     def imports_list(self):
@@ -1417,7 +1415,9 @@ class SyntaxAnalyzer:
             if self.currToken:
                 if self.peek(-2)["tokenType"] == "Identifier" and self.currToken:
                     if self.currToken["tokenType"] == "=":
-                        self.logError("No default values for objects.")
+                        self.logError("Default values for object parameters are not supported. Expected ')' or ','. Found '=' instead.")
+                    elif self.currToken["tokenType"] == "[":  # array
+                        self.logError("Array of objects is not supported. Expected ')' or ','. Found '[' instead.")
             self.params_var_cont()
         else:
             self.ERROR_expected_token("Identifier")
@@ -1535,7 +1535,7 @@ class SyntaxAnalyzer:
 
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
-                self.logError("Expected data type or Identifier (Class name).")
+                self.logError(f"Expected data type or class name. Found '{self.currToken["tokenType"]}' instead.")
             self.ret_type()
             self.params_var()
 
