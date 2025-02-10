@@ -731,7 +731,7 @@ class SyntaxAnalyzer:
                 self.program_constructs()
         
 
-    def iden_dec(self):
+    def iden_dec(self, inClassBody = False):
         print("(parser) production: \"iden_dec\" detected (current token: " + str(self.currToken["tokenName"]) + ")")
         
 
@@ -756,7 +756,7 @@ class SyntaxAnalyzer:
                 self.match("void")
                 isVoid = True
                 if self.currToken:
-                    if self.currToken["tokenName"] == "main":
+                    if self.currToken["tokenName"] == "main" and not inClassBody:
                         self.hasMainFunction = True
                         print("MAIN FUNCTION FOUND!!!!")
                     self.match("Identifier", False)
@@ -846,7 +846,7 @@ class SyntaxAnalyzer:
             self.logError(f"Only one constructor per class allowed. Expected: {PREDICT_SETS['class_body']}")
 
         if not self.match("}"):
-            self.ERROR_unclosed_curly_braces()
+            self.ERROR_expected_token(PREDICT_SETS['class_body'] + ['}'])
 
         if not self.match(";", True):
             self.logError("Class Declaration is expected to be terminated by ';' after '}'.")
@@ -871,7 +871,7 @@ class SyntaxAnalyzer:
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["iden_dec"]:
                         self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
                 
-                self.iden_dec()
+                self.iden_dec(inClassBody)
                 self.class_body()
             inClassBody = False 
 
@@ -904,7 +904,7 @@ class SyntaxAnalyzer:
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
 
-            print("(parser) production: \"constructor_dec\" exited!!!!!")
+                print("(parser) production: \"constructor_dec\" exited!!!!!")
 
 
     # MICH START HERE
@@ -949,7 +949,8 @@ class SyntaxAnalyzer:
             if not self.match("Identifier"):  # should be the same name as the class name [SEMANTIC]
                 self.ERROR_expected_Identifier_classes()
 
-            self.match('(', False)
+            if not self.match('(', True):
+                self.logError("Expected '(' for constructor call.")
 
             has_Constructor_or_Array_Init = self.func_arg(True)[1]
 
