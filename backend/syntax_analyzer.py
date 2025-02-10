@@ -599,7 +599,7 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
-            if currentTokenType in PREDICT_SETS["assign_func_method_mods_cont"]:
+            if currentTokenType in (PREDICT_SETS["assign_func_method_mods_cont"] + PREDICT_SETS["assign_operator"]):
                 if currentTokenType == "[" or currentTokenType in PREDICT_SETS["assign_operator"]:
                     self.as_array()
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["assign_operator"]:
