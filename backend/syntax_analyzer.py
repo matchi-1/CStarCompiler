@@ -200,6 +200,24 @@ class node_input:
     def __repr__(self):
         return f'in<{self.type_t["tokenName"]}>({self.prompt_n}, {self.count_n})'
 
+class node_vardec:
+    def __init__ (self, const_b, dtype_t, id_n, vardec_cont_n):
+        self.const_b = const_b
+        self.dtype_t = dtype_t
+        self.id_n = id_n
+        self.vardec_cont_n = vardec_cont_n
+
+class node_vardec_cont:
+    def __init__(self, value_n, idec_rec_n):
+        self.value_n = value_n
+        self.idec_rec_n = idec_rec_n
+
+class node_idec_rec:
+    def __init__(self, id_n, value_n, idec_rec_n):
+        self.id_n = id_n
+        self.value_n = value_n
+        self.idec_rec_n = idec_rec_n
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -800,11 +818,13 @@ class SyntaxAnalyzer:
                 if self.currToken["tokenType"] == "void":
                     self.logError("Void function cannot be preceded by 'const'.")
                 elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                    self.data_type()
-                    self.match("Identifier",False)
-                    self.var_dec_cont()
+                    dtype_temp_t = self.data_type()
+                    iden_temp_n = node_iden(self.match("Identifier",False))
+                    vardec_cont_temp_n = self.var_dec_cont()
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
+                    
+                    return node_vardec(True, dtype_temp_t, iden_temp_n, vardec_cont_temp_n)
                 else: self.ERROR_expected_token(PREDICT_SETS["data_type"])
 
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
@@ -828,14 +848,14 @@ class SyntaxAnalyzer:
                         self.logError("Main function cannot contain parameters.")
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
-                self.data_type()
-                self.match("Identifier", False)
-                self.iden_dec_cont()
+                dtype_temp_t = self.data_type()
+                id_temp_n = node_iden(self.match("Identifier", False))
+                return self.iden_dec_cont(dtype_temp_t, id_temp_n)
             
             else:
                 self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
 
-    def iden_dec_cont(self):
+    def iden_dec_cont(self, dtype_temp_t, id_temp_n):
         print("(parser) production: \"iden_dec_cont\" detected")
 
         if self.currToken:
@@ -843,17 +863,21 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == "(":
                 self.params_dec_start()
             elif self.currToken["tokenType"] in PREDICT_SETS["iden_dec_cont"]:
-                self.var_dec_cont()
+                node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n)
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
+                
+                return node_temp
             else: self.ERROR_expected_token(["("] + PREDICT_SETS["iden_dec_cont"])
 
         else: self.ERROR_expected_token(["("] + PREDICT_SETS["iden_dec_cont"])
 
 
-    def var_dec_cont(self):
+    def var_dec_cont(self, dtype_temp_t, id_temp_n):
         print("(parser) production: \"var_dec_cont\" detected")
-
+        value_temp_n = None
+        idec_rec_temp_n = None
+        vardec_cont_temp_n = None
         if self.currToken:
             if self.currToken["tokenType"] == "[":
                 self.match("[", False)
@@ -863,8 +887,13 @@ class SyntaxAnalyzer:
                 self.var_id_arr1D()
 
             else:
-                self.var_init()
-                self.var_iden_rec()
+                value_temp_n = self.var_init()
+                idec_rec_temp_n = self.var_iden_rec()
+        
+        # none arr var dec
+        if value_temp_n or idec_rec_temp_n:
+            vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
+        return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
 
 
     def params_dec_start(self, isVoid = False):
@@ -2175,10 +2204,12 @@ class SyntaxAnalyzer:
 
             if currentTokenType == "=":
                 self.match("=", False)
-                if not self.value(PREDICT_SETS["var_init"]):
+                value_temp_n = self.value(PREDICT_SETS["var_init"])
+                if not value_temp_n:
                     self.logError("Invalid value for variable declaration.")
-            
+                return value_temp_n
         print("(parser) exited production: \"var_init\"")
+        return None
 
     
     def var_iden_rec(self):
@@ -2189,15 +2220,19 @@ class SyntaxAnalyzer:
 
             if self.currToken["tokenType"] == ",":
                 self.match(",")
-                if self.match("Identifier"):
-                    self.var_init()
+                id_temp_t = self.match("Identifier")
+                if id_temp_t:
+                    id_temp_n = node_iden(id_temp_t)
+                    value_temp_n = self.var_init()
+                    idec_rec_temp_n = None
                     if self.currToken["tokenType"] == ",":
-                        self.var_iden_rec()
+                        idec_rec_temp_n = self.var_iden_rec()
                 else:
                     self.ERROR_expected_token("Identifier")
+                return node_idec_rec(id_temp_n, value_temp_n, idec_rec_temp_n)
         
         print("(parser) exited production: \"var_iden_rec\"")
-
+        return None
 
     def var_id_arr1D(self):
         '''<var_id_arr1D> → <array1D_iden_rec> | <array1D_init>'''
