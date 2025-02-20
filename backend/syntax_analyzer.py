@@ -844,8 +844,10 @@ class SyntaxAnalyzer:
                 if not self.hasMainFunction:
                     self.params_dec_start(isVoid)
                 else:
-                    if self.currToken["tokenType"] != ")":
-                        self.logError("Main function cannot contain parameters.")
+                    if self.currToken:
+                        if self.currToken["tokenType"] != ")":
+                            self.logError(f"Main function cannot contain parameters. Expected ')', but found '{self.currToken["tokenName"]}'.")
+                    else: self.logError("Expected ')', but reached EOF.")
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
