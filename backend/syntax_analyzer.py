@@ -245,13 +245,20 @@ class node_output_rec:
     def __repr__(self):
         return f'{"," if self.value_n else ""} {self.value_n} {self.output_rec_n if self.output_rec_n else ""}'
 
+class node_body:
+    def __init__(self,statements_n, return_stmt_n=None):
+        self.statements_n = statements_n
+        self.return_stmt_n = return_stmt_n
+    def __repr__(self):
+        return f'body(statements_n={self.statements_n}, return_stmt_n={self.return_stmt_n})'
+
 class node_if_stmt:
     def __init__(self, condition_n, body_n, else_chain_n=None):
         self.condition_n = condition_n
         self.body_n = body_n
         self.else_chain_n = else_chain_n
     def __repr__(self):
-        return f'if({self.condition}) {{ {self.body} }} {self.else_chain if self.else_chain else ""}'
+        return f'if({self.condition_n}) {{ {self.body_n} }} {self.else_chain_n if self.else_chain_n else ""}'
 
 
 #-------------------- PARSER --------------------
@@ -720,10 +727,11 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
             
             self.code_block(isVoid)
-
+            statements_n = []
+            return_stmt_n = None
 
             if self.currToken and self.currToken["tokenType"] == "return":
-                  self.return_block(isVoid)
+                  return_stmt_n = self.return_block(isVoid)
                   self.hasFunctionReturned = True     
                   if self.hasMainFunction:
                       self.hasMainReturn = True
@@ -740,6 +748,7 @@ class SyntaxAnalyzer:
                 #placeholder hehehehehhehehehehheyhueh
         
         print("(parser) production: \"body\" exited!!!!!!")
+        return node_body(statements_n, return_stmt_n)
 
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
