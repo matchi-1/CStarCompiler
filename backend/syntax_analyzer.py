@@ -245,6 +245,15 @@ class node_output_rec:
     def __repr__(self):
         return f'{"," if self.value_n else ""} {self.value_n} {self.output_rec_n if self.output_rec_n else ""}'
 
+class node_if_stmt:
+    def _init_(self, condition, body, else_chain=None):
+        self.condition = condition
+        self.body = body
+        self.else_chain = else_chain
+    def __repr__(self):
+        return f'if({self.condition}) {{ {self.body} }} {self.else_chain if self.else_chain else ""}'
+
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -1755,21 +1764,23 @@ class SyntaxAnalyzer:
         self.match("if", False)
         if not self.match("("):
             self.ERROR_missing_condition("if")
-        self.condition("if",[")"])
+        condition = self.condition("if",[")"])
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
         
         self.match("{", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
-            self.ctrl_stmt_body(isVoid)
+            body = self.ctrl_stmt_body(isVoid)
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
         self.hasFunctionReturned = False
 
+        else_chain = None
         if self.currToken and self.currToken["tokenType"] == "else":
-            self.else_chain()
+            else_chain = self.else_chain()
 
         print("(parser) entered production: \"if_stmt\"")
+        return node_if_stmt(self, condition, body, else_chain)
 
     
     def ret_value(self, isVoid = False):
