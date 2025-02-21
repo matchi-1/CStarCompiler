@@ -225,6 +225,25 @@ class node_output:
     def _repr_(self):
         return f'{self.print_stmts_n}({self.print_params_n})'
 
+class node_print_stmts:
+    def __init__(self, type_t):
+        self.type_t = type_t  
+    def __repr__(self):
+        return f'{self.type_t}'
+
+class node_print_params:
+    def __init__(self, value_n, output_rec_n=None):
+        self.value_n = value_n  
+        self.output_rec_n = output_rec_n  
+    def __repr__(self):
+        return f'{self.value_n} {self.output_rec_n if self.output_rec_n else ""}'
+
+class node_output_rec:
+    def __init__(self, value_n=None, output_rec_n=None):
+        self.value_n = value_n  
+        self.output_rec_n = output_rec_n  
+    def __repr__(self):
+        return f'{"," if self.value_n else ""} {self.value_n} {self.output_rec_n if self.output_rec_n else ""}'
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
