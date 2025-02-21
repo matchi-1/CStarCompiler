@@ -261,6 +261,8 @@ class node_return_block:
 class node_ret_value:
     def __init__(self, value_n=None):
         self.value_n = value_n
+    def __repr__(self):
+        return f'ret_value(value_n={self.value_n})'
 
 class node_if_stmt:
     def __init__(self, condition_n, body_n, else_chain_n=None):
