@@ -252,6 +252,16 @@ class node_body:
     def __repr__(self):
         return f'body(statements_n={self.statements_n}, return_stmt_n={self.return_stmt_n})'
 
+class node_return_block:
+    def __init__(self, ret_value_n=None):
+        self.ret_value_n = ret_value_n
+    def __repr__(self):
+        return f'return_block(ret_value_n={self.ret_value_n})'
+
+class node_ret_value:
+    def __init__(self, value_n=None):
+        self.value_n = value_n
+
 class node_if_stmt:
     def __init__(self, condition_n, body_n, else_chain_n=None):
         self.condition_n = condition_n
@@ -1799,6 +1809,7 @@ class SyntaxAnalyzer:
         if self.hasFunctionReturned:
             self.logError("Function already has a return statement.")
 
+        ret_value_n = None
         if self.currToken:
             if not isVoid and self.currToken["tokenType"] == ";" and not self.hasMainFunction:
                 self.logError("Non-Void functions must return a value.")
@@ -1807,9 +1818,10 @@ class SyntaxAnalyzer:
                 self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
         
         if not isVoid:
-            self.value([";"])
+            ret_value_n = self.value([";"])
 
         print("(parser) exited production: \"ret_value\"")
+        return node_ret_value(ret_value_n)
 
     # bare-minimum tested
     def break_stmt(self):
@@ -2166,11 +2178,12 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"return_block\"")
         
         self.match("return", False)
-        self.ret_value(isVoid)
+        ret_value_n = self.ret_value(isVoid)
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"return_block\"")
+        return node_return_block(ret_value_n)
     
     # bare-minimum tested
     def ctrl_stmt_body(self, isVoid = False):
