@@ -218,6 +218,14 @@ class node_idec_rec:
         self.value_n = value_n
         self.idec_rec_n = idec_rec_n
 
+class node_output:
+    def _init_(self, print_stmts_n, print_params_n):
+        self.print_stmts_n = print_stmts_n
+        self.print_params_n = print_params_n
+    def _repr_(self):
+        return f'{self.print_stmts_n}({self.print_params_n})'
+
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -1637,16 +1645,20 @@ class SyntaxAnalyzer:
         
         '''<print_stmts> → print | println'''
         # <print_stmts> are already expected to be here before it entered func
+        print_stmt = None
         if self.matchPredictSet("print_stmts", False):
             match self.currToken["tokenType"]:
                 case "print":
+                    print_stmt = "print"
                     self.match("print")
                 case "println":
+                    print_stmt = "println"
                     self.match("println")
 
         self.match("(", False)
         
         # won't enter print_params if null
+        print_params = []
         if self.currToken and self.currToken["tokenType"] != ")":
             self.print_params()
         
@@ -1654,11 +1666,13 @@ class SyntaxAnalyzer:
             self.ERROR_unclosed_parentheses()
 
         print("(parser) exited production: \"output\"")
+        return node_output(print_stmt, print_params)
 
     def print_params(self):
         '''<print_params> → <value> <output_rec> | null'''
         print("(parser) entered production: \"print_params\"")
         
+        print_params = []
         # if <print_params> are not null
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
             if self.currToken and self.currToken["tokenType"] != ")":
@@ -1667,15 +1681,18 @@ class SyntaxAnalyzer:
                 # print(f'---------------AST:-------------\n\n{dbgVal}\n\n')
                 # if not dbgVal:
                 ##### END DEBUG 
-                if not self.value([",", ")"]): #gets commented out for dbg
+                value = self.value([",", ")"])
+                if not value: #gets commented out for dbg
                     self.logError("Invalid 'print' statement parameter.")
+                    print_params.append(value)
                 if self.currToken and self.currToken["tokenType"] == ",":
-                    self.output_rec()
+                    print_params.extend(self.output_rec())
         else:
             print("entered else")
             self.ERROR_expected_valid_value()
         
         print("(parser) exited production: \"print_params\"")
+        return print_params
 
     def output_rec(self):
         '''<output_rec> → ,<value> <output_rec> | null'''
@@ -1683,16 +1700,21 @@ class SyntaxAnalyzer:
         
         self.match(",", False)
 
+        print_params = []
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
-            if not self.value([",", ")"]):
+            value = self.value([",", ")"]) 
+            if not value:
                 message = f"Expected value after ',', got '{self.currToken['tokenType'] if self.currToken else 'EOF'}' instead."
                 self.logError(message)
+                print_params.append(value)
             if self.currToken and self.currToken["tokenType"] == ",":
-                self.output_rec()
+                print_params.extend(self.output_rec())
+                
         else:
             self.ERROR_expected_valid_value()
 
         print("(parser) exited production: \"output_rec\"")
+        return print_params
     
     def conditional_stmt(self, isVoid = False):
         '''<conditional_stmt> → <if_stmt> | <swicth_stmt>'''
