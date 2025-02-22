@@ -230,6 +230,17 @@ class node_idec_rec:
         self.value_n = value_n
         self.idec_rec_n = idec_rec_n
 
+class node_funcpar_var_defrec:
+    def __init__(self, dtype_t, id_n, parvar_defrec_cont_n):
+        self.dtype_t = dtype_t
+        self.id_n = id_n
+        self.parvar_defrec_cont_n = parvar_defrec_cont_n
+
+class node_funcpar_var_defreccont:
+    def __init__(self, value_n, parvar_defrec_n):
+        self.value_n = value_n
+        self.parvar_defrec_n = parvar_defrec_n
+
 class node_output:
     def __init__(self, print_stmts_n, print_params_n):
         self.print_stmts_n = print_stmts_n
@@ -1796,7 +1807,7 @@ class SyntaxAnalyzer:
 
         print("(parser) production: \"params_var\" exited!!!!!")
 
-
+    #TODO: harley continue here
     def params_var_cont(self):
         print("(parser) production: \"params_var_cont\" detected")
 
@@ -1805,14 +1816,16 @@ class SyntaxAnalyzer:
                 self.match("=")
                 if not self.value([",", ")"]):
                     self.ERROR_expected_token("value")
-                self.params_def_rec()
+                return self.params_def_rec()
 
             elif self.currToken["tokenType"] == "[":
                 self.is_array()
-            self.params_var_rec()
+            
+            elif self.currToken["tokenType"] == ",":
+                return self.params_var_rec()
 
         print("(parser) production: \"params_var_cont\" exited!!!!!")
-
+        return None
 
     def params_var_rec(self):
         print("(parser) production: \"params_var_rec\" detected")
@@ -1822,15 +1835,15 @@ class SyntaxAnalyzer:
                 self.match(",")
                 if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
                     self.logError("Expected data type or Identifier (Class name).")
-                self.params_dec()
+                return self.params_dec()
     
         print("(parser) production: \"params_var_rec\" exited!!!!!")
-
+        return None 
 
     def params_def_rec(self):
         # def rec means that there is already a default param before current params rec
         print("(parser) production: \"params_def_rec\" detected")
-
+        ret_node_temp_n = None
         if self.currToken:
             if self.currToken["tokenType"] == ",":
                 self.match(",")
@@ -1843,10 +1856,11 @@ class SyntaxAnalyzer:
                         self.logError(f"Expected data type for non-default variable declaration.\nCannot declare arrays, objects, or non-default variables at this point due to existing default parameters.")
                 
                 # match datatype
-                if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                    self.nextToken()
+                # if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
+                #     self.nextToken()
+                dtype_temp_t = self.data_type()
                 
-                self.match("Identifier", False)
+                id_temp_n = node_iden(self.match("Identifier", False))
 
                 # if after default param the syntax is just <dtype> iden w/o initializing, throw error
                 if not self.currToken or self.currToken and self.currToken["tokenType"] != "=":
@@ -1863,10 +1877,10 @@ class SyntaxAnalyzer:
                 
                 # if = is the next token, proceed to params_def_rec_cont
                 elif self.currToken and self.currToken["tokenType"] == "=":
-                    self.params_def_rec_cont()
+                    ret_node_temp_n = node_funcpar_var_defrec(dtype_temp_t, id_temp_n, self.params_def_rec_cont())
 
         print("(parser) production: \"params_def_rec\" exited!!!!!")
-
+        return ret_node_temp_n
     def params_def_rec_cont(self,isDefault = False ):
         print("(parser) production: \"params_def_rec_cont\" detected")
 
@@ -1874,12 +1888,13 @@ class SyntaxAnalyzer:
             if not self.currToken and isDefault or self.currToken["tokenType"] != "=":
                 self.logError("No non-default parameter must follow a default parameter.")
             self.match("=", True)
-            if not self.value([",", ")"]):
+            val_temp_n = self.value([",", ")"])
+            if not val_temp_n:
                     self.ERROR_expected_token("value")
-            self.params_def_rec()
+            par_defrec_temp_n = self.params_def_rec()
 
         print("(parser) production: \"params_def_rec_cont\" exited!!!!!")
-
+        return node_funcpar_var_defreccont(val_temp_n, par_defrec_temp_n)
 
     def is_array(self):
         print("(parser) production: \"is_array\" detected")
@@ -1904,12 +1919,20 @@ class SyntaxAnalyzer:
     def params_dec(self):
         print(f"(parser) production: \"params_dec\" detected, {self.currToken["tokenType"] if self.currToken else EOF}")
 
-
         if self.currToken and self.currToken["tokenType"] != ")":
-            if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
-                self.logError(f"Expected data type or class name. Found '{self.currToken["tokenType"]}' instead.")
-            self.ret_type()
-            self.params_var()
+            if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
+                self.data_type()
+                self.match("Identifier", False)
+                self.params_var_cont()
+            elif self.currToken["tokenType"] == "Identifier":
+                self.match("Identifier", False)
+                self.match("Identifier", False)
+                self.params_var_rec()
+        # if self.currToken and self.currToken["tokenType"] != ")":
+        #     if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
+        #         self.logError(f"Expected data type or class name. Found '{self.currToken["tokenType"]}' instead.")
+        #     self.ret_type()
+        #     self.params_var()
 
   
   # ALEX start here
