@@ -143,7 +143,9 @@ const toggleFiles = () => {
           [/".*?"/, 'string'],
           [/(\/\/[^\n]*)/, 'comment'],
           [/(\/\*[\s\S]*?\*\/)/, 'comment'],
-        ]
+          [/\/\*/, 'comment', '@comment']
+        ],
+        comment: [[/\*\//, 'comment', '@pop'], [/./, 'comment.content']],
       },
     });
     monaco.languages.setLanguageConfiguration('Cstar', {
