@@ -1087,7 +1087,7 @@ class SyntaxAnalyzer:
                 self.code_block()
                 
                 if self.currToken and self.currToken["tokenType"] == "return":
-                    self.logError("Constructors cannot have return statements.")
+                    self.logError(f"Constructors cannot have return statements. Expected {PREDICT_SETS['code_block']} or }} ")
 
 
                 if not self.match("}"):
