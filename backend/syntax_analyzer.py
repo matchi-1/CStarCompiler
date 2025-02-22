@@ -286,6 +286,20 @@ class node_else_stmt:
     def __repr__(self):
         return f'{{ {self.body_n} }}'
 
+class node_ctrl_stmt_body:
+    def __init__(self, statements_n):
+        self.statements_n = statements_n
+    def __repr__(self):
+        return f'; ' .join(map(str, self.statements_n)) 
+
+class node_break_stmt:
+    def __repr__(self):
+        return 'break;'
+
+class node_continue_stmt:
+    def __repr__(self):
+        return 'continue;'
+
 class node_class_inst:
     def __init__(self, class_id_n, obj_id_n, class_instcont_n):
         self.class_id_n = class_id_n
@@ -1957,6 +1971,7 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"break_stmt\"")
+        return node_break_stmt()
 
     # bare-minimum tested
     def continue_stmt(self):
@@ -1968,6 +1983,7 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"continue_stmt\"")
+        return node_continue_stmt()
 
     # bare-minimum tested
     def init_arg(self):
@@ -2343,21 +2359,22 @@ class SyntaxAnalyzer:
     def ctrl_stmt_body(self, isVoid = False):
         print("(parser) entered production: \"ctrl_stmt_body\"")
 
+        statements_n = []
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == "break":
-                self.break_stmt()
+                statements_n.append(self.break_stmt_n())
             elif currentTokenType == "continue":
-                self.continue_stmt()
+                statements_n.append(self.continue_stmt_n())
             elif currentTokenType in PREDICT_SETS["body"]:
-                self.body(["break", "continue", "case", "}"], isVoid, True)
+                statements_n.append(self.body(["break", "continue", "case", "}"], isVoid, True))
 
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body(isVoid)
 
         print("(parser) exited production: \"ctrl_stmt_body\"")
-
+        return node_ctrl_stmt_body(statements_n)
 
 #jeh
     def input(self):
