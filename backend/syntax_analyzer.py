@@ -414,6 +414,7 @@ class node_repeat:
     def __repr__(self):
         return f"repeat ( repeat_value: {self.repeat_value_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} }}"
 
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -578,10 +579,10 @@ class SyntaxAnalyzer:
     # Handles unexpected tokens when expecting a specific type.
     def ERROR_expected_token(self, expected_token):
         if self.currToken is None:
-            self.logError(f"Expected {expected_token}, but reached EOF.")
+            self.logError(f"Unexpected token: Expected {expected_token}, but reached EOF.")
         else:
             self.logError(
-                f"Expected {expected_token}, but found '{self.currToken['tokenName']}'."
+                f"Unexpected token: Expected {expected_token}, but found '{self.currToken['tokenName']}'."
             )
 
     # If no main function was found throughout the whole program
@@ -646,9 +647,6 @@ class SyntaxAnalyzer:
     def ERROR_expected_num_value(self):
         self.logError(f"Expected numerical value. Found '{self.currToken["tokenType"] if self.currToken else EOF}' instead.")
     
-    def ERROR_unmatched_closing(self):
-        self.logError(f"Found unmatched {self.currToken["tokenType"]}.")
-
     def ERROR_expected_pos_integer_value(self, expected_tokens = [t for t in PREDICT_SETS["int_val"] if t != "-"]):
         current_value = self.currToken["tokenType"] if self.currToken else "EOF"
         self.logError(
@@ -1044,7 +1042,7 @@ class SyntaxAnalyzer:
                 else:
                     if self.currToken:
                         if self.currToken["tokenType"] != ")":
-                            self.logError(f"Main function cannot contain parameters. Expected ')', but found '{self.currToken["tokenName"]}'.")
+                            self.ERROR_unclosed_parentheses()
                     else: self.logError("Expected ')', but reached EOF.")
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
