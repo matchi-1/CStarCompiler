@@ -279,10 +279,39 @@ class node_class_inst:
         self.obj_id_n = obj_id_n
         self.class_instcont_n = class_instcont_n
 
+    def __repr__(self):
+        return (f"node_class_inst(class_id_n={self.class_id_n}, "
+                f"obj_id_n={self.obj_id_n}, "
+                f"class_instcont_n={self.class_instcont_n})")
+
 class node_classinst_cont:
     def __init__(self, class_id_n, func_arg_n):
         self.class_id_n = class_id_n
         self.func_arg_n = func_arg_n
+
+    def __repr__(self):
+        return f"node_classinst_cont(class_id_n={self.class_id_n}, func_arg_n={self.func_arg_n})"
+
+class node_class_dec:
+    def __init__(self, is_private_b, class_id_n, class_body_n, constructor_dec_n):
+        self.is_private_b = is_private_b
+        self.class_id_n = class_id_n
+        self.class_body_n = class_body_n
+        self.constructor_dec_n = constructor_dec_n
+
+class node_class_body:
+    def __init__(self, is_private_b, iden_n, iden_dec_cont_n, class_body_rec_n):
+        self.is_private_b = is_private_b
+        self.iden_n = iden_n
+        self.iden_dec_cont_n = iden_dec_cont_n
+        self.class_body_rec_n = class_body_rec_n
+
+class node_constructor_dec:
+    def __init__(self, class_id_n, params_dec_n, code_block_n):
+        self.class_id_n = class_id_n
+        self.params_dec_n = params_dec_n
+        self.code_block_n = code_block_n
+
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -771,7 +800,7 @@ class SyntaxAnalyzer:
                 #placeholder hehehehehhehehehehheyhueh
         
         print("(parser) production: \"body\" exited!!!!!!")
-        return node_body(statements_n, return_stmt_n)
+        #  return node_body(statements_n, return_stmt_n)
 
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
@@ -869,8 +898,8 @@ class SyntaxAnalyzer:
                 elif currentTokenType in PREDICT_SETS["iden_dec"]:
                     self.iden_dec()
                 else:
-                    print(f"identifier? {self.currToken["tokenName"]}")
-                    self.class_inst("program_constructs")
+                    print(f"identifier????????????????????? {self.currToken["tokenName"]}")
+                    print(self.class_inst("program_constructs"))
             if not self.hasMainFunction:
                 self.program_constructs()
         
@@ -986,7 +1015,7 @@ class SyntaxAnalyzer:
     def class_declaration(self, inClassBody = False):
         print("(parser) production: \"class_declaration\" detected")
         if self.currToken["tokenType"] == "private":
-            self.match("private")
+            is_private_b = self.match("private")
 
         self.match("class", False)
 
@@ -1738,7 +1767,7 @@ class SyntaxAnalyzer:
             self.ERROR_unclosed_parentheses()
 
         print("(parser) exited production: \"output\"")
-        return node_output(print_stmt, print_params)
+        # return node_output(print_stmt, print_params)
 
     def print_params(self):
         '''<print_params> → <value> <output_rec> | null'''
