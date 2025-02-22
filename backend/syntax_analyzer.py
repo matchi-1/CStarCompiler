@@ -406,6 +406,14 @@ class node_do:
     def __repr__(self):
         return f"do {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}} \n while ( {self.condition_n} )\n"
 
+class node_repeat:
+    def __init__(self, repeat_value_n, ctrl_stmt_body_n):
+        self.repeat_value_n = repeat_value_n
+        self.ctrl_stmt_body_n = ctrl_stmt_body_n
+
+    def __repr__(self):
+        return f"repeat ( repeat_value: {self.repeat_value_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} }}"
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -2339,7 +2347,9 @@ class SyntaxAnalyzer:
             if not self.match("("):
                 self.logError("Expected argument for 'repeat' statement")
 
-            if not self.arith_exp([")"]):
+            repeat_value_temp_n = self.arith_exp([")"])
+
+            if not repeat_value_temp_n:
                 self.ERROR_expected_pos_integer_value()
 
             if not self.match(")"):
@@ -2347,8 +2357,9 @@ class SyntaxAnalyzer:
             
             self.match("{", False)
 
+            ctrl_stmt_body_temp_n = None
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
 
             if not self.match("}"):
                 self.ERROR_unclosed_curly_braces()
@@ -2356,6 +2367,7 @@ class SyntaxAnalyzer:
             self.hasFunctionReturned = False
         
         print("(parser) exited production: \"repeat_stmt\"")
+        return node_repeat(repeat_value_temp_n, ctrl_stmt_body_temp_n)
     
     
     def return_block(self, isVoid = False):
