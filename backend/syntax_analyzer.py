@@ -791,7 +791,7 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_parentheses()
                 self.match("{", False)
                 print("(parser) production: \"main_body\" detected")
-
+                
                 print(self.body(["}"], True)) # isVoid = True here
 
                 if not self.match("return") and not self.hasMainReturn:
@@ -992,6 +992,7 @@ class SyntaxAnalyzer:
 
         
         print("(parser) production: \"body\" exited!!!!!!")
+        print(f"######################### AST FOR BODY #########################")
         return None
         
 
@@ -1091,8 +1092,7 @@ class SyntaxAnalyzer:
                 elif currentTokenType in PREDICT_SETS["iden_dec"]:
                     self.iden_dec()
                 else:
-                    print(f"identifier????????????????????? {self.currToken["tokenName"]}")
-                    print(self.class_inst("program_constructs"))
+                    print(self.class_inst("program_constructs"))    #initial prog construct ast
             if not self.hasMainFunction:
                 self.program_constructs()
         
@@ -1318,6 +1318,7 @@ class SyntaxAnalyzer:
             # Match terminating symbol
             if self.currToken and self.currToken["tokenType"] == ';':
                 self.match(";")
+                print(f"######################### AST FOR CLASS INST #########################")
                 return node_class_inst(class_id_n, obj_id_n, class_instcont_n)
             else:
                 self.ERROR_terminating_token(";")
