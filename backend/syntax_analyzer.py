@@ -218,6 +218,61 @@ class node_idec_rec:
         self.value_n = value_n
         self.idec_rec_n = idec_rec_n
 
+class node_output:
+    def _init_(self, print_stmts_n, print_params_n):
+        self.print_stmts_n = print_stmts_n
+        self.print_params_n = print_params_n
+    def _repr_(self):
+        return f'{self.print_stmts_n}({self.print_params_n})'
+
+class node_print_stmts:
+    def __init__(self, type_t):
+        self.type_t = type_t  
+    def __repr__(self):
+        return f'{self.type_t}'
+
+class node_print_params:
+    def __init__(self, value_n, output_rec_n=None):
+        self.value_n = value_n  
+        self.output_rec_n = output_rec_n  
+    def __repr__(self):
+        return f'{self.value_n} {self.output_rec_n if self.output_rec_n else ""}'
+
+class node_output_rec:
+    def __init__(self, value_n=None, output_rec_n=None):
+        self.value_n = value_n  
+        self.output_rec_n = output_rec_n  
+    def __repr__(self):
+        return f'{"," if self.value_n else ""} {self.value_n} {self.output_rec_n if self.output_rec_n else ""}'
+
+class node_body:
+    def __init__(self,statements_n, return_stmt_n=None):
+        self.statements_n = statements_n
+        self.return_stmt_n = return_stmt_n
+    def __repr__(self):
+        return f'body(statements_n={self.statements_n}, return_stmt_n={self.return_stmt_n})'
+
+class node_return_block:
+    def __init__(self, ret_value_n=None):
+        self.ret_value_n = ret_value_n
+    def __repr__(self):
+        return f'return_block(ret_value_n={self.ret_value_n})'
+
+class node_ret_value:
+    def __init__(self, value_n=None):
+        self.value_n = value_n
+    def __repr__(self):
+        return f'ret_value(value_n={self.value_n})'
+
+class node_if_stmt:
+    def __init__(self, condition_n, body_n, else_chain_n=None):
+        self.condition_n = condition_n
+        self.body_n = body_n
+        self.else_chain_n = else_chain_n
+    def __repr__(self):
+        return f'if({self.condition_n}) {{ {self.body_n} }} {self.else_chain_n if self.else_chain_n else ""}'
+
+
 class node_class_inst:
     def __init__(self, class_id_n, obj_id_n, class_instcont_n):
         self.class_id_n = class_id_n
@@ -695,10 +750,11 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
             
             self.code_block(isVoid)
-
+            statements_n = []
+            return_stmt_n = None
 
             if self.currToken and self.currToken["tokenType"] == "return":
-                  self.return_block(isVoid)
+                  return_stmt_n = self.return_block(isVoid)
                   self.hasFunctionReturned = True     
                   if self.hasMainFunction:
                       self.hasMainReturn = True
@@ -715,6 +771,7 @@ class SyntaxAnalyzer:
                 #placeholder hehehehehhehehehehheyhueh
         
         print("(parser) production: \"body\" exited!!!!!!")
+        return node_body(statements_n, return_stmt_n)
 
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
@@ -1660,16 +1717,20 @@ class SyntaxAnalyzer:
         
         '''<print_stmts> → print | println'''
         # <print_stmts> are already expected to be here before it entered func
+        print_stmt = None
         if self.matchPredictSet("print_stmts", False):
             match self.currToken["tokenType"]:
                 case "print":
+                    print_stmt = "print"
                     self.match("print")
                 case "println":
+                    print_stmt = "println"
                     self.match("println")
 
         self.match("(", False)
         
         # won't enter print_params if null
+        print_params = []
         if self.currToken and self.currToken["tokenType"] != ")":
             self.print_params()
         
@@ -1677,11 +1738,13 @@ class SyntaxAnalyzer:
             self.ERROR_unclosed_parentheses()
 
         print("(parser) exited production: \"output\"")
+        return node_output(print_stmt, print_params)
 
     def print_params(self):
         '''<print_params> → <value> <output_rec> | null'''
         print("(parser) entered production: \"print_params\"")
         
+        print_params = []
         # if <print_params> are not null
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
             if self.currToken and self.currToken["tokenType"] != ")":
@@ -1690,15 +1753,18 @@ class SyntaxAnalyzer:
                 # print(f'---------------AST:-------------\n\n{dbgVal}\n\n')
                 # if not dbgVal:
                 ##### END DEBUG 
-                if not self.value([",", ")"]): #gets commented out for dbg
+                value = self.value([",", ")"])
+                if not value: #gets commented out for dbg
                     self.logError("Invalid 'print' statement parameter.")
+                    print_params.append(value)
                 if self.currToken and self.currToken["tokenType"] == ",":
-                    self.output_rec()
+                    print_params.extend(self.output_rec())
         else:
             print("entered else")
             self.ERROR_expected_valid_value()
         
         print("(parser) exited production: \"print_params\"")
+        return print_params
 
     def output_rec(self):
         '''<output_rec> → ,<value> <output_rec> | null'''
@@ -1706,16 +1772,21 @@ class SyntaxAnalyzer:
         
         self.match(",", False)
 
+        print_params = []
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
-            if not self.value([",", ")"]):
+            value = self.value([",", ")"]) 
+            if not value:
                 message = f"Expected value after ',', got '{self.currToken['tokenType'] if self.currToken else 'EOF'}' instead."
                 self.logError(message)
+                print_params.append(value)
             if self.currToken and self.currToken["tokenType"] == ",":
-                self.output_rec()
+                print_params.extend(self.output_rec())
+                
         else:
             self.ERROR_expected_valid_value()
 
         print("(parser) exited production: \"output_rec\"")
+        return print_params
     
     def conditional_stmt(self, isVoid = False):
         '''<conditional_stmt> → <if_stmt> | <swicth_stmt>'''
@@ -1737,21 +1808,23 @@ class SyntaxAnalyzer:
         self.match("if", False)
         if not self.match("("):
             self.ERROR_missing_condition("if")
-        self.condition("if",[")"])
+        condition_n = self.condition("if",[")"])
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
         
         self.match("{", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
-            self.ctrl_stmt_body(isVoid)
+            body_n = self.ctrl_stmt_body(isVoid)
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
         self.hasFunctionReturned = False
 
+        else_chain_n = None
         if self.currToken and self.currToken["tokenType"] == "else":
-            self.else_chain()
+            else_chain_n = self.else_chain()
 
         print("(parser) entered production: \"if_stmt\"")
+        return node_if_stmt(self, condition_n, body_n, else_chain_n)
 
     
     def ret_value(self, isVoid = False):
@@ -1761,6 +1834,7 @@ class SyntaxAnalyzer:
         if self.hasFunctionReturned:
             self.logError("Function already has a return statement.")
 
+        ret_value_n = None
         if self.currToken:
             if not isVoid and self.currToken["tokenType"] == ";" and not self.hasMainFunction:
                 self.logError("Non-Void functions must return a value.")
@@ -1769,9 +1843,10 @@ class SyntaxAnalyzer:
                 self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
         
         if not isVoid:
-            self.value([";"])
+            ret_value_n = self.value([";"])
 
         print("(parser) exited production: \"ret_value\"")
+        return node_ret_value(ret_value_n)
 
     # bare-minimum tested
     def break_stmt(self):
@@ -2128,11 +2203,12 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"return_block\"")
         
         self.match("return", False)
-        self.ret_value(isVoid)
+        ret_value_n = self.ret_value(isVoid)
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"return_block\"")
+        return node_return_block(ret_value_n)
     
     # bare-minimum tested
     def ctrl_stmt_body(self, isVoid = False):
