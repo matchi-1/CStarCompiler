@@ -206,6 +206,8 @@ class node_vardec:
         self.dtype_t = dtype_t
         self.id_n = id_n
         self.vardec_cont_n = vardec_cont_n
+    def __repr__(self):
+        return f'{self.const_b} {self.dtype_t} {self.id_n} {self.vardec_cont_n}'
 
 class node_vardec_cont:
     def __init__(self, value_n, idec_rec_n):
