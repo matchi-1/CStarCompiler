@@ -315,6 +315,12 @@ class node_constructor_dec:
         self.code_block_n = code_block_n
 
 # alex here
+class node_condition:
+    def __init__(self, condition_n):
+        self.condition_n = condition_n
+    def __repr__(self):
+        return f"condition = {self.condition_n}"
+
 class node_switch_stmt:
     def __init__(self, value_n, case_n, default_n):
         self.value_n = value_n
@@ -339,7 +345,29 @@ class node_default_stmt:
 
     def __repr__(self):
         return f"default: ctrl_stmt_body = {self.ctrl_stmt_body_n}"
-    
+
+class node_loop_stmt:
+    def __init__(self, loop_stmt_n):
+        self.loop_stmt_n = loop_stmt_n
+    def __repr__(self):
+        return f"loop_stmt = {self.loop_stmt_n}"
+
+class node_forloop:
+    def __init__(self, init_arg_n, condition_n, inc_arg_n, ctrl_stmt_body_n):
+        self.init_arg_n = init_arg_n
+        self.condition_n = condition_n
+        self.inc_arg_n = inc_arg_n
+        self.ctrl_stmt_body_n = ctrl_stmt_body_n
+
+    def __repr__(self):
+        return f"for ( \n\t init_arg = {self.init_arg_n} \n\t {self.condition_n} \n\t inc_arg = {self.inc_arg_n} \n) {{ \n\t ctrl_stmt_body = {self.ctrl_stmt_body_n} \n}}"
+
+class node_init_arg:
+    def __init__(self, datatype_t, iden_n, ):
+        pass
+
+    def __repr__(self):
+        pass
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -1759,14 +1787,15 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"condition\"")
 
         if self.currToken:
-            if not self.value(stopChar):
+            condition_temp_n = self.value(stopChar)
+            if not condition_temp_n:
                 if self.currToken["tokenType"] == stopChar:
                     self.ERROR_missing_condition(condType)
                 else:
                     self.ERROR_invalid_condition(condType)
         
         print("(parser) exited production: \"condition\"")
-
+        return node_condition(condition_temp_n)
         
     def output(self):
         '''<output> → <print_stmts>(<print_params>);'''
@@ -1939,17 +1968,15 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == "Identifier":
-                self.assign_stmt()
+                init_arg_n = self.assign_stmt()
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
-                self.data_type()
-                self.match("Identifier")
-                self.var_dec_cont()
-                
-            if not self.match(";"):
-                self.ERROR_terminating_token(";")
+                dtype_temp_t = self.data_type()
+                id_temp_t = self.match("Identifier")
+                init_arg_n = self.var_dec_cont(dtype_temp_t, id_temp_t)
 
         print("(parser) exited production: \"init_arg\"")
+        return init_arg_n
 
     # to continue testing
     def inc_arg(self):
@@ -2060,7 +2087,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"switch_stmt\"")
         # uncomment to see switch tree
-        #print (node_switch_stmt(value_temp_n, case_temp_n, default_temp_n))
+        print (node_switch_stmt(value_temp_n, case_temp_n, default_temp_n))
         return node_switch_stmt(value_temp_n, case_temp_n, default_temp_n)
 
     # bare-minimum tested
@@ -2130,19 +2157,19 @@ class SyntaxAnalyzer:
     def loop_stmt(self, isVoid = False):
         print("(parser) entered production: \"loop_stmt\"")
         
-        # if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["case_value"]:
-
         match self.currToken["tokenType"]:
             case "while": 
-                self.while_stmt(isVoid)
+                loop_stmt_temp_n = self.while_stmt(isVoid)
             case "do": 
-                self.do_stmt(isVoid)
+                loop_stmt_temp_n = self.do_stmt(isVoid)
             case "for": 
-                self.forloop_stmt(isVoid)
+                loop_stmt_temp_n = self.forloop_stmt(isVoid)
             case "repeat": 
-                self.repeat_stmt(isVoid) 
+                loop_stmt_temp_n = self.repeat_stmt(isVoid) 
 
         print("(parser) exited production: \"loop_stmt\"")
+        return node_loop_stmt(loop_stmt_temp_n)
+        
     
     # bare-minimum tested
     def forloop_stmt(self, isVoid = False):
@@ -2150,13 +2177,18 @@ class SyntaxAnalyzer:
 
         if self.currToken:
 
+            init_arg_temp_n = None
+            condition_temp_n = None
+            inc_arg_temp_n = None
+            ctrl_stmt_body_temp_n = None
+
             self.match("for", False)
             if not self.match("("):
                 self.logError("Missing forloop arguments.")
 
             ## INIT ARG
             if self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
-                self.init_arg()
+                init_arg_temp_n = self.init_arg()
             else: 
                 print("(parser) empty init_arg detected")
             
@@ -2164,14 +2196,14 @@ class SyntaxAnalyzer:
                 self.logError(f"Initialization argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else EOF}'.")
             
             ## CONDITION
-            self.condition("for-loop",[";"])
+            condition_temp_n = self.condition("for-loop",[";"])
             
             if not self.match(";"):
                 self.logError(f"Condition argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else EOF}'.")
 
             ## INC ARG
             if self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
-                self.inc_arg()
+                inc_arg_temp_n = self.inc_arg()
             else: 
                 print("(parser) empty inc_arg detected")
 
@@ -2181,13 +2213,16 @@ class SyntaxAnalyzer:
             ## CTRL STMT BODY
             self.match("{", False)
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+            
             if not self.currToken:
                 self.ERROR_unclosed_curly_braces()
             self.match("}", False)
             self.hasFunctionReturned = False
                 
         print("(parser) exited production: \"forloop_stmt\"")
+        print (node_forloop(init_arg_temp_n, condition_temp_n, inc_arg_temp_n, ctrl_stmt_body_temp_n))
+        return node_forloop(init_arg_temp_n, condition_temp_n, inc_arg_temp_n, ctrl_stmt_body_temp_n)
     
     # bare-minimum tested
     def while_stmt(self, isVoid = False):
