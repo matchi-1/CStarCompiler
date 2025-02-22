@@ -347,7 +347,7 @@ class node_condition:
     def __init__(self, condition_n):
         self.condition_n = condition_n
     def __repr__(self):
-        return f"condition -> {self.condition_n}"
+        return f"condition: {self.condition_n}"
 
 class node_switch_stmt:
     def __init__(self, value_n, case_n, default_n):
@@ -356,7 +356,7 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"switch ({self.value_n}) {{ case -> {self.case_n} \n\t default -> {self.default_n} \n}}"
+        return f"switch ( switch_value: {self.value_n} ) {{ case -> {self.case_n} \n\t default -> {self.default_n} \n}}\n"
 
 class node_case_stmt:
     def __init__(self, case_value_n, ctrl_stmt_body_n, case_stmt_rec_n):
@@ -378,7 +378,7 @@ class node_loop_stmt:
     def __init__(self, loop_stmt_n):
         self.loop_stmt_n = loop_stmt_n
     def __repr__(self):
-        return f"loop_stmt -> {self.loop_stmt_n}"
+        return f"loop_stmt -> {self.loop_stmt_n}\n"
 
 class node_forloop:
     def __init__(self, init_arg_n, condition_n, inc_arg_n, ctrl_stmt_body_n):
@@ -388,8 +388,23 @@ class node_forloop:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"for ( \n\t init_arg -> {self.init_arg_n} \n\t {self.condition_n} \n\t inc_arg -> {self.inc_arg_n} \n) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}"
+        return f"for ( \n\t init_arg -> {self.init_arg_n} \n\t {self.condition_n} \n\t inc_arg -> {self.inc_arg_n} \n) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}\n"
 
+class node_while:
+    def __init__(self, condition_n, ctrl_stmt_body_n):
+        self.condition_n = condition_n
+        self.ctrl_stmt_body_n = ctrl_stmt_body_n
+
+    def __repr__(self):
+        return f"while ( {self.condition_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}\n"
+
+class node_do:
+    def __init__(self, condition_n, ctrl_stmt_body_n):
+        self.condition_n = condition_n
+        self.ctrl_stmt_body_n = ctrl_stmt_body_n
+
+    def __repr__(self):
+        return f"do {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}} \n while ( {self.condition_n} )\n"
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -2112,8 +2127,7 @@ class SyntaxAnalyzer:
             self.hasFunctionReturned = False
 
         print("(parser) exited production: \"switch_stmt\"")
-        # uncomment to see switch tree
-        print (node_switch_stmt(value_temp_n, case_temp_n, default_temp_n))
+        
         return node_switch_stmt(value_temp_n, case_temp_n, default_temp_n)
 
     # bare-minimum tested
@@ -2194,6 +2208,7 @@ class SyntaxAnalyzer:
                 loop_stmt_temp_n = self.repeat_stmt(isVoid) 
 
         print("(parser) exited production: \"loop_stmt\"")
+        print (node_loop_stmt(loop_stmt_temp_n))
         return node_loop_stmt(loop_stmt_temp_n)
         
     
@@ -2247,7 +2262,6 @@ class SyntaxAnalyzer:
             self.hasFunctionReturned = False
                 
         print("(parser) exited production: \"forloop_stmt\"")
-        print (node_forloop(init_arg_temp_n, condition_temp_n, inc_arg_temp_n, ctrl_stmt_body_temp_n))
         return node_forloop(init_arg_temp_n, condition_temp_n, inc_arg_temp_n, ctrl_stmt_body_temp_n)
     
     # bare-minimum tested
@@ -2256,19 +2270,20 @@ class SyntaxAnalyzer:
 
         if self.currToken:
 
+            ctrl_stmt_body_temp_n = None
             self.match("while", False)
-
+            
             if not self.match("("):
                 self.ERROR_missing_condition("while")
 
-            self.condition("while",[")"])
+            condition_temp_n = self.condition("while",[")"])
 
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
             
             self.match("{", False)
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
             
             if not self.currToken:
                 self.ERROR_unclosed_curly_braces()
@@ -2276,6 +2291,7 @@ class SyntaxAnalyzer:
             self.hasFunctionReturned = False
         
         print("(parser) exited production: \"while_stmt\"")
+        return node_while(condition_temp_n, ctrl_stmt_body_temp_n)
 
     # bare-minimum tested
     def do_stmt(self, isVoid = False):
@@ -2287,8 +2303,9 @@ class SyntaxAnalyzer:
             self.match("{", False)
             
             ## CTRL STMT BODY
+            ctrl_stmt_body_temp_n = None
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
 
             if not self.match("}"):
                 self.ERROR_unclosed_curly_braces()
@@ -2302,7 +2319,7 @@ class SyntaxAnalyzer:
             ## CONTINUE
             if not self.match("("):
                 self.ERROR_missing_condition("do-while")
-            self.condition("do-while",[")"])
+            condition_temp_n = self.condition("do-while",[")"])
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
             
@@ -2310,6 +2327,7 @@ class SyntaxAnalyzer:
                 self.logError("'while' statements must be terminated by ';' in a do-while statement.")
 
         print("(parser) exited production: \"do_stmt\"")
+        return node_do(condition_temp_n, ctrl_stmt_body_temp_n)
 
     # bare-minimum tested
     def repeat_stmt(self, isVoid = False):
