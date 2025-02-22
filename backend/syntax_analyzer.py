@@ -269,13 +269,13 @@ class node_output_rec:
         return f'{"," if self.value_n else ""} {self.value_n} {self.output_rec_n if self.output_rec_n else ""}'
 
 class node_body:
-    def __init__(self,statements_n, return_stmt_n, body_rec_n=None):
-        self.statements_n = statements_n
+    def __init__(self,body_statement_n, return_stmt_n, body_rec_n):
+        self.body_statement_n = body_statement_n
         self.return_stmt_n = return_stmt_n
         self.body_rec_n = body_rec_n
         
     def __repr__(self):
-        return f'node_body({self.statements_n} {self.return_stmt_n} {self.body_rec_n if self.body_rec_n else ""})'
+        return f'node_body(body_statement_n: {self.body_statement_n} body_return_stmt_n: {self.return_stmt_n} body_rec_n: {self.body_rec_n})'
 
 class node_assign_func_method_mods:
     def __init__(self, iden_n, as_array_n, assign_stmt_op_n, func_arg_n, class_elem_iden_n, assign_func_method_mods_cont_n):
@@ -306,13 +306,13 @@ class node_return_block:
     def __init__(self, ret_value_n=None):
         self.ret_value_n = ret_value_n
     def __repr__(self):
-        return f'return_block(ret_value_n={self.ret_value_n})'
+        return f'node_return_block(ret_value_n={self.ret_value_n})'
 
 class node_ret_value:
     def __init__(self, value_n=None):
         self.value_n = value_n
     def __repr__(self):
-        return f'ret_value(value_n={self.value_n})'
+        return f'node_ret_value(value_n={self.value_n})'
 
 class node_if_stmt:
     def __init__(self, condition_n, body_n, else_chain_n=None):
@@ -403,8 +403,8 @@ class node_constructor_dec:
                 f"code_block_n={self.code_block_n})")
 
 class node_code_block:
-    def __init__(self, statement_n, code_block_rec_n):
-        self.statement_n = statement_n
+    def __init__(self, code_block_statement_n, code_block_rec_n):
+        self.code_block_statement_n = code_block_statement_n
         self.code_block_rec_n = code_block_rec_n
 
     def __repr__(self):
@@ -833,7 +833,8 @@ class SyntaxAnalyzer:
             elif currentTokenType in ["const"] + PREDICT_SETS["data_type"]: 
                 const_b = False   
                 if currentTokenType == "const":
-                    const_b = self.match("const")
+                    self.match("const")
+                    const_b = True
                 dtype_t = self.data_type()
                 iden_temp_n = node_iden(self.match("Identifier",False))
                 vardec_cont_n = self.var_dec_cont(dtype_t, iden_temp_n)
@@ -970,6 +971,7 @@ class SyntaxAnalyzer:
             
             statements_n = self.code_block(isVoid)
             return_stmt_n = None
+            body_n = None
 
             if self.currToken and self.currToken["tokenType"] == "return":
                   return_stmt_n = self.return_block(isVoid)
@@ -1187,7 +1189,7 @@ class SyntaxAnalyzer:
         if value_temp_n or idec_rec_temp_n:
             vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
-        return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
+        return node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
 
     def params_dec_start(self, isVoid = False):
