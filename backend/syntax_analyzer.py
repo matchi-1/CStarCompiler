@@ -218,6 +218,17 @@ class node_idec_rec:
         self.value_n = value_n
         self.idec_rec_n = idec_rec_n
 
+class node_class_inst:
+    def __init__(self, class_id_n, obj_id_n, class_instcont_n):
+        self.class_id_n = class_id_n
+        self.obj_id_n = obj_id_n
+        self.class_instcont_n = class_instcont_n
+
+class node_classinst_cont:
+    def __init__(self, class_id_n, func_arg_n):
+        self.class_id_n = class_id_n
+        self.func_arg_n = func_arg_n
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -999,36 +1010,40 @@ class SyntaxAnalyzer:
                 print("(parser) production: \"constructor_dec\" exited!!!!!")
 
 
-    # MICH START HERE
     def class_inst(self, location):
         print("(parser) production: \"class_inst\" detected")
 
-        # Parse the first Identifier (class name or type)
-        if not self.match("Identifier"):
-            self.logError("Expected an identifier for class instantiation.")  # MICH CURRENTLY DOING
-            # This error is just a placeholder habang wala pang semantic, cos normally it should identify if existing na ung class
+        class_instcont_n = None
 
-        # Parse the second Identifier (variable name)
-        if self.currToken and self.currToken["tokenType"] == "Identifier":
-            self.match("Identifier")
-        else:
-            self.ERROR_missing_initializer()
-        
-        if self.currToken and self.currToken["tokenType"] == '=': # check if there is object instantiation
-            self.classinst_cont()
-
-        # Match terminating symbol
-        if self.currToken and self.currToken["tokenType"] == ';':
-            self.match(";")  
-        else:
-            self.ERROR_terminating_token(";")
-
-        # Continue parsing program constructs
         if self.currToken:
-            if location == "program_constructs":
-                self.program_constructs()
-            elif location == "code_block":
-                self.code_block()
+            # Parse the first Identifier (class name or type)
+            if self.currToken["tokenType"] != "Identifier":
+                self.logError("Expected an identifier for class instantiation.")
+                # This error is just a placeholder habang wala pang semantic, cos normally it should identify if existing na ung class
+            
+            class_id_n = node_iden(self.match("Identifier", False))
+            # Parse the second Identifier (variable name)
+            if self.currToken and self.currToken["tokenType"] == "Identifier":
+                obj_id_n = node_iden(self.match("Identifier", False))
+            else:
+                self.ERROR_missing_initializer()
+            
+            if self.currToken and self.currToken["tokenType"] == '=': # check if there is object instantiation
+                class_instcont_n = self.classinst_cont()
+
+            # Match terminating symbol
+            if self.currToken and self.currToken["tokenType"] == ';':
+                self.match(";")
+                return node_class_inst(class_id_n, obj_id_n, class_instcont_n)
+            else:
+                self.ERROR_terminating_token(";")
+
+            # Continue parsing program constructs
+            if self.currToken:
+                if location == "program_constructs":
+                    self.program_constructs()
+                elif location == "code_block":
+                    self.code_block()
             
     
     # Handle <classinst_cont>
@@ -1038,20 +1053,26 @@ class SyntaxAnalyzer:
         # object instantiation
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=")
-            if not self.match("Identifier"):  # should be the same name as the class name [SEMANTIC]
+            if self.currToken and self.currToken["tokenType"] != "Identifier": # should be the same name as the class name [SEMANTIC]
                 self.ERROR_expected_Identifier_classes()
+
+            class_id_n = node_iden(self.match("Identifier",False))
 
             if not self.currToken or self.currToken["tokenType"] != '(':
                 self.logError(f"Expected '(' for constructor call after Identifier. Found '{self.currToken["tokenType"] if self.currToken else "EOF"}' instead.")
             self.match('(')
-            has_Constructor_or_Array_Init = self.func_arg(True)[1]
-
+            func_arg_n = self.func_arg(True)
+            has_Constructor_or_Array_Init = func_arg_n[1]
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
             elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not has_Constructor_or_Array_Init:
                 self.ERROR_expected_constructor_param_closing()
             else:
                 self.ERROR_expected_token([")", ","])
+
+            return node_classinst_cont(class_id_n, func_arg_n)
+
+        return None
 
     def func_arg(self, asConstructor = False):
         print("(parser) production: \"func_arg\" detected")
