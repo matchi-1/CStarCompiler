@@ -274,6 +274,17 @@ class node_if_stmt:
     def __repr__(self):
         return f'if({self.condition_n}) {{ {self.body_n} }} {self.else_chain_n if self.else_chain_n else ""}'
 
+class node_else_chain:
+    def __init__(self, else_stmt_n):
+        self.else_stmt_n = else_stmt_n
+    def __repr__(self):
+        return f'else {self.else_stmt_n}'
+
+class node_else_stmt:
+    def __init__(self, body_n):
+        self.body_n = body_n
+    def __repr__(self):
+        return f'{{ {self.body_n} }}'
 
 class node_class_inst:
     def __init__(self, class_id_n, obj_id_n, class_instcont_n):
@@ -2026,10 +2037,11 @@ class SyntaxAnalyzer:
         
         if self.currToken:
             self.match("else", False)
-            self.else_stmt()
+            else_stmt_n = self.else_stmt()
         
         print("(parser) exited production: \"else_chain\"")
-        
+        return node_else_stmt(else_stmt_n)
+
     def else_stmt(self, isVoid = False):
         print(f"(parser) entered production: \"else_stmt\", isVoid = {isVoid}")
 
@@ -2039,15 +2051,17 @@ class SyntaxAnalyzer:
 
             elif self.currToken and self.currToken["tokenType"] == "{":
                 self.match("{")
-                self.ctrl_stmt_body(isVoid)
+                body_n = self.ctrl_stmt_body(isVoid)
                 if not self.currToken:
                     self.ERROR_unclosed_curly_braces()
                 self.match("}", False)
                 self.hasFunctionReturned = False
+                return node_else_stmt(body_n)
             else:
                 self.logError("Expected: else if statement or else body")
 
         print("(parser) exited production: \"else_stmt\"")
+        return None
 
 
     # bare-minimum tested
