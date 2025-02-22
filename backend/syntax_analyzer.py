@@ -207,12 +207,15 @@ class node_vardec:
         self.id_n = id_n
         self.vardec_cont_n = vardec_cont_n
     def __repr__(self):
-        return f'{self.const_b} {self.dtype_t} {self.id_n} {self.vardec_cont_n}'
+        return f'const: {self.const_b}, dtype: {self.dtype_t}, id: {self.id_n}, {self.vardec_cont_n}'
 
 class node_vardec_cont:
     def __init__(self, value_n, idec_rec_n):
         self.value_n = value_n
         self.idec_rec_n = idec_rec_n
+    
+    def __repr__(self):
+        return f"value: {self.value_n}, idec_rec_n: {self.idec_rec_n}"
 
 class node_idec_rec:
     def __init__(self, id_n, value_n, idec_rec_n):
@@ -344,7 +347,7 @@ class node_condition:
     def __init__(self, condition_n):
         self.condition_n = condition_n
     def __repr__(self):
-        return f"condition = {self.condition_n}"
+        return f"condition -> {self.condition_n}"
 
 class node_switch_stmt:
     def __init__(self, value_n, case_n, default_n):
@@ -353,7 +356,7 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"switch ({self.value_n}) {{ case = {self.case_n} \n\t default = {self.default_n} \n}}"
+        return f"switch ({self.value_n}) {{ case -> {self.case_n} \n\t default -> {self.default_n} \n}}"
 
 class node_case_stmt:
     def __init__(self, case_value_n, ctrl_stmt_body_n, case_stmt_rec_n):
@@ -362,20 +365,20 @@ class node_case_stmt:
         self.case_stmt_rec_n = case_stmt_rec_n
 
     def __repr__(self):
-        return f"\n\t case {self.case_value_n}: ctrl_stmt_body = {self.ctrl_stmt_body_n} \n\t case_stmt_rec = {self.case_stmt_rec_n}"
+        return f"\n\t case {self.case_value_n}: ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n\t case_stmt_rec -> {self.case_stmt_rec_n}"
         
 class node_default_stmt:
     def __init__(self, ctrl_stmt_body_n):
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"default: ctrl_stmt_body = {self.ctrl_stmt_body_n}"
+        return f"default: ctrl_stmt_body -> {self.ctrl_stmt_body_n}"
 
 class node_loop_stmt:
     def __init__(self, loop_stmt_n):
         self.loop_stmt_n = loop_stmt_n
     def __repr__(self):
-        return f"loop_stmt = {self.loop_stmt_n}"
+        return f"loop_stmt -> {self.loop_stmt_n}"
 
 class node_forloop:
     def __init__(self, init_arg_n, condition_n, inc_arg_n, ctrl_stmt_body_n):
@@ -385,14 +388,8 @@ class node_forloop:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"for ( \n\t init_arg = {self.init_arg_n} \n\t {self.condition_n} \n\t inc_arg = {self.inc_arg_n} \n) {{ \n\t ctrl_stmt_body = {self.ctrl_stmt_body_n} \n}}"
+        return f"for ( \n\t init_arg -> {self.init_arg_n} \n\t {self.condition_n} \n\t inc_arg -> {self.inc_arg_n} \n) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}"
 
-class node_init_arg:
-    def __init__(self, datatype_t, iden_n, ):
-        pass
-
-    def __repr__(self):
-        pass
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -998,7 +995,7 @@ class SyntaxAnalyzer:
                 elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                     dtype_temp_t = self.data_type()
                     iden_temp_n = node_iden(self.match("Identifier",False))
-                    vardec_cont_temp_n = self.var_dec_cont()
+                    vardec_cont_temp_n = self.var_dec_cont(dtype_temp_t, iden_temp_n)
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
                     
@@ -1058,6 +1055,7 @@ class SyntaxAnalyzer:
         value_temp_n = None
         idec_rec_temp_n = None
         vardec_cont_temp_n = None
+
         if self.currToken:
             if self.currToken["tokenType"] == "[":
                 self.match("[", False)
@@ -1073,6 +1071,7 @@ class SyntaxAnalyzer:
         # none arr var dec
         if value_temp_n or idec_rec_temp_n:
             vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
+
         return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
 
 
@@ -1541,17 +1540,17 @@ class SyntaxAnalyzer:
     def data_type(self):
         match self.currToken["tokenType"]:
             case "int":
-                return self.match("int", False)
+                return self.match("int", False)["tokenName"]
             case "long":
-                return self.match("long", False)
+                return self.match("long", False)["tokenName"]
             case "float":
-                return self.match("float", False)
+                return self.match("float", False)["tokenName"]
             case "double":
-                return self.match("double", False)
+                return self.match("double", False)["tokenName"]
             case "bool":
-                return self.match("bool", False)
+                return self.match("bool", False)["tokenName"]
             case "string":
-                return self.match("string", False)
+                return self.match("string", False)["tokenName"]
 
     def lit_type(self):
         print('(parser) production: "lit_type" detected')
@@ -1999,11 +1998,11 @@ class SyntaxAnalyzer:
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
-                id_temp_t = self.match("Identifier")
-                init_arg_n = self.var_dec_cont(dtype_temp_t, id_temp_t)
+                iden_temp_n = node_iden(self.match("Identifier",False))
+                init_arg_n = self.var_dec_cont(dtype_temp_t, iden_temp_n)
 
         print("(parser) exited production: \"init_arg\"")
-        return init_arg_n
+        return f"{init_arg_n}" 
 
     # to continue testing
     def inc_arg(self):
@@ -2019,32 +2018,29 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
         
             if currentTokenType == "++":
-                self.match("++")
-                self.match("Identifier", False)
-                if not self.match(";"):
-                    self.ERROR_terminating_token(";")
+                inc_arg_temp_n = node_un_op(self.match("++"), node_iden(self.match("Identifier", False)))
 
             elif currentTokenType == "--":
-                self.match("--")
-                self.match("Identifier", False)
-                if not self.match(";"):
-                    self.ERROR_terminating_token(";")
+                inc_arg_temp_n = node_un_op(self.match("--"), node_iden(self.match("Identifier", False)))
 
             elif currentTokenType == "Identifier":
-                self.match("Identifier")
+                id_temp_t = self.match("Identifier")
                 if self.currToken["tokenType"] in PREDICT_SETS["inc_arg_post"]:
-                    if self.currToken["tokenType"] == "++": self.match("++")
-                    elif self.currToken["tokenType"] == "--": self.match("--")
-                    
+                    if self.currToken["tokenType"] == "++": 
+                        inc_arg_temp_n = node_post_un_op(node_iden(id_temp_t), self.match("++"))
+                    elif self.currToken["tokenType"] == "--": 
+                        inc_arg_temp_n = node_post_un_op(node_iden(id_temp_t), self.match("--"))
+                        
                 elif self.currToken["tokenType"] in PREDICT_SETS["assign_func_method_mods"]:
-                    self.assign_func_method_mods()
+                    inc_arg_temp_n = self.assign_func_method_mods()
 
                 else: self.logError("Expected: unary operation, assignment statement, function call, method call.")
 
             elif currentTokenType in PREDICT_SETS["print_stmts"]:
-                self.output()
+                inc_arg_temp_n = self.output()
 
         print("(parser) exited production: \"inc_arg\"")
+        return f"{inc_arg_temp_n}"
 
     # bare-minimum tested
     def else_chain(self):
@@ -2462,7 +2458,6 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"var_iden_rec\"")
         
         if self.currToken:
-
             if self.currToken["tokenType"] == ",":
                 self.match(",")
                 id_temp_t = self.match("Identifier")
@@ -2475,7 +2470,7 @@ class SyntaxAnalyzer:
                 else:
                     self.ERROR_expected_token("Identifier")
                 return node_idec_rec(id_temp_n, value_temp_n, idec_rec_temp_n)
-        
+            
         print("(parser) exited production: \"var_iden_rec\"")
         return None
 
@@ -2669,6 +2664,7 @@ class SyntaxAnalyzer:
             self.assign_stmt_op() # match assign operator
 
         print("(parser) exited production: \"assign_stmt\"")
+        return "(AST-TEMP) assign_stmt PASSED"
 
     def assign_stmt_op(self):
         print('(parser) production: "assign_stmt_op" detected')
@@ -2740,3 +2736,4 @@ class SyntaxAnalyzer:
             else: self.ERROR_expected_token(["[", "(", "."] + PREDICT_SETS["assign_operator"])
         else: self.ERROR_expected_token(["[", "(", "."] + PREDICT_SETS["assign_operator"])
 
+        return f"(AST-TEMP) assign_func_method_mods PASSED"
