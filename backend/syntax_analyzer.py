@@ -312,6 +312,32 @@ class node_constructor_dec:
         self.params_dec_n = params_dec_n
         self.code_block_n = code_block_n
 
+# alex here
+class node_switch_stmt:
+    def __init__(self, value_n, case_n, default_n):
+        self.value_n = value_n
+        self.case_n = case_n
+        self.default_n = default_n
+
+    def __repr__(self):
+        return f"switch ({self.value_n}) {{ case = {self.case_n} \n\t default = {self.default_n} \n}}"
+
+class node_case_stmt:
+    def __init__(self, case_value_n, ctrl_stmt_body_n, case_stmt_rec_n):
+        self.case_value_n = case_value_n
+        self.ctrl_stmt_body_n = ctrl_stmt_body_n
+        self.case_stmt_rec_n = case_stmt_rec_n
+
+    def __repr__(self):
+        return f"\n\t case {self.case_value_n}: ctrl_stmt_body = {self.ctrl_stmt_body_n} \n\t case_stmt_rec = {self.case_stmt_rec_n}"
+        
+class node_default_stmt:
+    def __init__(self, ctrl_stmt_body_n):
+        self.ctrl_stmt_body_n = ctrl_stmt_body_n
+
+    def __repr__(self):
+        return f"default: ctrl_stmt_body = {self.ctrl_stmt_body_n}"
+    
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -1248,7 +1274,7 @@ class SyntaxAnalyzer:
     #  - when checking for cont. if the next operator is any of the expressions, only enter cont prods
     def stopCharOrOperatorCheck(self, stopChars):
         if self.currToken["tokenType"] not in PREDICT_SETS["term_join_operators"] + stopChars and self.currToken["tokenType"] in PREDICT_SETS["value"]:  # throw an error for missing operator
-                self.ERROR_expected_operator()
+            self.ERROR_expected_operator()
     
     def value(self, stopChars):
         print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
@@ -1999,30 +2025,39 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"switch_stmt\"")
 
         if self.currToken:
-            
+            default_temp_n = None
+        
             self.match("switch", False)
+
             if not self.match("("):
                 self.ERROR_missing_condition("switch")
             
+            ## TODO: FIX!!!!!
+            value_temp_n = None
             if self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
-                if not self.value([")", "{"]):
-                    self.ERROR_empty_condition("switch")
+                value_temp_n = self.value([")", "{"])
+            
+            if not value_temp_n:
+                self.ERROR_empty_condition("switch")
             
             if not self.match(")"): 
                 self.ERROR_unclosed_parentheses()
             
             self.match("{", False)
-            self.case_stmt(isVoid)
-
+            case_temp_n = self.case_stmt(isVoid)
+            
             if self.currToken["tokenType"] == "default":
-                self.default_stmt(isVoid)
+                default_temp_n = self.default_stmt(isVoid)
 
             if not self.currToken:
                 self.ERROR_unclosed_curly_braces()
             self.match("}", False)
             self.hasFunctionReturned = False
-        
+
         print("(parser) exited production: \"switch_stmt\"")
+        # uncomment to see switch tree
+        #print (node_switch_stmt(value_temp_n, case_temp_n, default_temp_n))
+        return node_switch_stmt(value_temp_n, case_temp_n, default_temp_n)
 
     # bare-minimum tested
     def case_stmt(self, isVoid = False):
@@ -2030,18 +2065,23 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"case_stmt\"")
 
         if self.currToken:
+            ctrl_stmt_body_temp_n = None
+            case_stmt_rec_temp_n = None
 
             self.match("case", False)
-            self.case_value()
+            case_value_temp_n = self.case_value()
             self.match(":", False)
+            
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                self.ctrl_stmt_body(isVoid)
-
+                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+            
             if self.currToken["tokenType"] == "case":
-                self.case_stmt()
+                case_stmt_rec_temp_n = self.case_stmt()
 
         print("(parser) exited production: \"case_stmt\" !!!!!!!!!!!")
+        return node_case_stmt(case_value_temp_n, ctrl_stmt_body_temp_n, case_stmt_rec_temp_n)
     
+
     # bare-minimum tested
     def case_value(self):
         '''<switch_value> → string_lit | whole_lit | <negative_exp> '''
@@ -2051,15 +2091,16 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
         
             if currentTokenType == "string_lit": 
-                self.match("string_lit", False)
+                case_value_temp_t = self.match("string_lit", False)
                 
             elif currentTokenType == "whole_lit": 
-                self.match("whole_lit", False)
+                case_value_temp_t = self.match("whole_lit", False)
             
             elif currentTokenType == "-":
-                self.match("-", False)
-                if not self.match("whole_lit"):
-                    self.logError("Expected negative numerical constant.")
+                case_value_temp_t = node_un_op(self.match("-", False), self.match("whole_lit"))
+                
+                #if not case_value_temp_t:
+                #    self.logError("Expected negative numerical constant.")
             
             else:
                 self.logError("Invalid value for 'case' statement.")
@@ -2067,13 +2108,19 @@ class SyntaxAnalyzer:
         else: self.logError("'case' must be preceded with a valid value (Whole Number or String).")
 
         print("(parser) exited production: \"case_value\"")
+        return case_value_temp_t
+
 
     # bare-minimum tested
     def default_stmt(self, isVoid = False):
+        ctrl_stmt_body_temp_n = None
+        
         self.match("default", False)
         self.match(":", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-            self.ctrl_stmt_body(isVoid)
+            ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+
+        return node_default_stmt(ctrl_stmt_body_temp_n)
     
     # bare-minimum tested
     def loop_stmt(self, isVoid = False):
