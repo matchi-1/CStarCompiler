@@ -138,7 +138,7 @@ class node_arr_idx:
         self.idx_n = idx_n
         self.idx2_n = idx2_n
     def __repr__(self):
-        return f'{self.id_n}[{self.idx_n}]' + f'[{self.idx2_n}]' if self.idx2_n else '' 
+        return f'{self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}]' if self.idx2_n else '') 
 
 class node_class_att:
     def __init__(self, id_n, att_n):
@@ -159,10 +159,10 @@ class node_class_arr_idx:
     def __init__(self, id_n, att_n, idx_n, idx2_n = None):
         self.id_n = id_n
         self.att_n = att_n
-        self.index_n = idx_n
-        self.index2_n = idx2_n
+        self.idx_n = idx_n
+        self.idx2_n = idx2_n
     def __repr__(self):
-        return f'{self.id_n}.{self.att_n}[{self.idx_n}]' + f'[{self.idx2_n}]' if self.idx2_n else '' 
+        return f'{self.id_n}.{self.att_n}[{self.idx_n}]' + (f'[{self.idx_n}]' if self.idx2_n else '')
 
 class node_func_args:
     def __init__(self, args_n, args_rec_n = None):
@@ -514,13 +514,13 @@ class node_repeat:
         return f"repeat ( repeat_value: {self.repeat_value_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} }}"
 
 class node_assign_stmt:
-    def __init__(self, iden_n, assign_op_n, assign_value_n):
-        self.iden_n = iden_n
+    def __init__(self, id_n, assign_op_n, assign_value_n):
+        self.id_n = id_n
         self.assign_op_n = assign_op_n
         self.assign_value_n = assign_value_n
 
     def __repr__(self):
-        return f"{self.iden_n} {self.assign_stmt_op_n} {self.value_n}"
+        return f"assign stmt: id_n:'{self.id_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -2844,55 +2844,63 @@ class SyntaxAnalyzer:
     def assign_stmt(self):
         print("(parser) production: \"assign_stmt\" detected")
         """<assign_stmt> → Identifier <iden_as_var_mods> <assign_stmt_op>"""
-        
-        id_temp_n = node_iden(self.match("Identifier", False))
+        node_temp = None
+        temp_id = node_iden(self.match("Identifier", False))
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-            self.iden_as_var_mods() # match iden mods if there are any
-            
-        assign_stmt_temp_op_n = self.assign_stmt_op()[0] # get & match assign operator
-        assign_stmt_temp_val_n = self.assign_stmt_op()[1] # get & match value
+            node_temp = self.iden_as_var_mods(temp_id) # match iden mods if there are any
+            print("NODE TEMP1!!!!" + str(node_temp))
+
+        if self.matchPredictSet("assign_operator", False):
+            assign_stmt_temp_op_n, assign_stmt_temp_val_n = self.assign_stmt_op() # get & match assign operator and value
 
         print("(parser) exited production: \"assign_stmt\"")
-        return node_assign_stmt(id_temp_n, assign_stmt_temp_op_n, assign_stmt_temp_val_n)
+        return node_assign_stmt(node_temp if node_temp else temp_id, assign_stmt_temp_op_n, assign_stmt_temp_val_n)
 
     def assign_stmt_op(self):
         print('(parser) production: "assign_stmt_op" detected')
 
-        if self.matchPredictSet("assign_operator", False):
-            assign_stmt_temp_op_n = self.currToken["tokenType"]
-            
-            self.match(self.currToken["tokenName"])
+        assign_stmt_temp_op_n = self.currToken["tokenType"]
+        
+        self.match(self.currToken["tokenName"])
 
-            assign_stmt_temp_val_n = self.value([";",")"])
+        assign_stmt_temp_val_n = self.value([";",")"])
 
-            if not assign_stmt_temp_val_n:  # check valid value
-                self.ERROR_expected_token("value")
+        if not assign_stmt_temp_val_n:  # check valid value
+            self.ERROR_expected_token("value")
+
         return (assign_stmt_temp_op_n, assign_stmt_temp_val_n)
 
-    def iden_as_var_mods(self):
+    def iden_as_var_mods(self, temp_id = None):
         print("(parser) production: \"iden_as_var_mods\" detected")
-        
+        node_temp = None
         if self.currToken and self.currToken["tokenType"] == "[":
             print("(parser) production: INSIDE \"iden_as_var_mods\" going to as_array")
             # array element
-            self.as_array()
+            print("FOUND ARRAY INASSIGN STMHMT ARR[1]")
+            node_temp = self.as_array(temp_id)  # returns node_arr_idx = arr[1] or arr[1][1]
 
         elif self.currToken and self.currToken["tokenType"] == ".":
             # object attribute (can be object attribute of an array element upon recursion)
             print("(parser) production: INSIDE \"iden_as_var_mods\" now checking identifier")
             self.match(".")
-            self.match("Identifier", False)
+            temp_att_id = self.match("Identifier", False)["tokenName"]
             if self.currToken and self.currToken["tokenType"] == "[":
+                print("FOUND ARRAY INASSIGN STMHMT IDEN.ARR[1]")
                 print("(parser) production: INSIDE \"iden_as_var_mods\" going to as_array")
-                # array element
-                self.as_array() 
-
+                # object array element
+                node_temp = self.as_array(temp_id, temp_att_id) # returns node_class_arr_idx = obj.arr[1] or obj.arr[1][1]
+                print(node_temp)
+            elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
+                # object attribute
+                print("(parser) production: INSIDE \"iden_as_var_mods\" now checking assign_stmt_op")
+                node_temp = node_class_att(temp_id, temp_att_id) # returns node_class_att = obj.att
         else:
             print("(parser-debug): assign statement variable has no var mods")
             pass
-
+        
         print("(parser) exited production: \"iden_as_var_mods\"")
+        return node_temp
        
 
     # def assign_func_method_mods(self):
