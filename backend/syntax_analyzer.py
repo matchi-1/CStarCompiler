@@ -317,8 +317,9 @@ class node_else_stmt:
 class node_ctrl_stmt_body:
     def __init__(self, statements_n):
         self.statements_n = statements_n
+        
     def __repr__(self):
-        return f'; ' .join(map(str, self.statements_n)) 
+        return "\n\t" + "\n\t".join(map(str, self.statements_n)) + ";"
 
 #class node_break_stmt:
 #    def __repr__(self):
@@ -406,7 +407,7 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"switch ( switch_value: {self.value_n} ) {{ case -> {self.case_n} \n\t default -> {self.default_n} \n}}\n"
+        return f"switch ( switch_value: {self.value_n} ) {{ \n\tcase -> {self.case_n} \n\t default -> {self.default_n} \n}}\n"
 
 class node_case_stmt:
     def __init__(self, case_value_n, ctrl_stmt_body_n, case_stmt_rec_n):
@@ -415,7 +416,7 @@ class node_case_stmt:
         self.case_stmt_rec_n = case_stmt_rec_n
 
     def __repr__(self):
-        return f"\n\t case {self.case_value_n}: ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n\t case_stmt_rec -> {self.case_stmt_rec_n}"
+        return f"\n\t case {self.case_value_n}: \n\t\tctrl_stmt_body -> {self.ctrl_stmt_body_n} \n\t case_stmt_rec -> {self.case_stmt_rec_n}"
         
 class node_default_stmt:
     def __init__(self, ctrl_stmt_body_n):
@@ -2046,7 +2047,7 @@ class SyntaxAnalyzer:
         
         self.match("{", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
-            body_n = self.ctrl_stmt_body(isVoid)
+            body_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
         if not self.match("}"):
             self.ERROR_unclosed_curly_braces()
         self.hasFunctionReturned = False
@@ -2090,7 +2091,7 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"break_stmt\"")
-        return f"break;"
+        return f"break"
 
     # bare-minimum tested
     def continue_stmt(self):
@@ -2102,7 +2103,7 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"continue_stmt\"")
-        return f"continue;"
+        return f"continue"
 
     # bare-minimum tested
     def init_arg(self):
@@ -2183,7 +2184,7 @@ class SyntaxAnalyzer:
 
             elif self.currToken and self.currToken["tokenType"] == "{":
                 self.match("{")
-                body_n = self.ctrl_stmt_body(isVoid)
+                body_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
                 if not self.currToken:
                     self.ERROR_unclosed_curly_braces()
                 self.match("}", False)
@@ -2249,7 +2250,7 @@ class SyntaxAnalyzer:
             self.match(":", False)
             
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
             if self.currToken["tokenType"] == "case":
                 case_stmt_rec_temp_n = self.case_stmt()
@@ -2267,10 +2268,10 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
         
             if currentTokenType == "string_lit": 
-                case_value_temp_t = self.match("string_lit", False)
+                case_value_temp_t = self.match("string_lit", False)["tokenName"]
                 
             elif currentTokenType == "whole_lit": 
-                case_value_temp_t = self.match("whole_lit", False)
+                case_value_temp_t = self.match("whole_lit", False)["tokenName"]
             
             elif currentTokenType == "-":
                 case_value_temp_t = node_un_op(self.match("-", False), self.match("whole_lit"))
@@ -2294,7 +2295,7 @@ class SyntaxAnalyzer:
         self.match("default", False)
         self.match(":", False)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-            ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+            ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
 
         return node_default_stmt(ctrl_stmt_body_temp_n)
     
@@ -2359,7 +2360,7 @@ class SyntaxAnalyzer:
             ## CTRL STMT BODY
             self.match("{", False)
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
             if not self.currToken:
                 self.ERROR_unclosed_curly_braces()
@@ -2388,7 +2389,7 @@ class SyntaxAnalyzer:
             
             self.match("{", False)
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
             if not self.currToken:
                 self.ERROR_unclosed_curly_braces()
@@ -2410,7 +2411,7 @@ class SyntaxAnalyzer:
             ## CTRL STMT BODY
             ctrl_stmt_body_temp_n = None
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
 
             if not self.match("}"):
                 self.ERROR_unclosed_curly_braces()
@@ -2456,7 +2457,7 @@ class SyntaxAnalyzer:
 
             ctrl_stmt_body_temp_n = None
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
-                ctrl_stmt_body_temp_n = self.ctrl_stmt_body(isVoid)
+                ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
 
             if not self.match("}"):
                 self.ERROR_unclosed_curly_braces()
@@ -2495,10 +2496,11 @@ class SyntaxAnalyzer:
                 statements_n.append(self.body(["break", "continue", "case", "}", "default"], isVoid, True))
 
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
-                self.ctrl_stmt_body(isVoid)
+                statements_n += self.ctrl_stmt_body(isVoid)
 
         print("(parser) exited production: \"ctrl_stmt_body\"")
-        return node_ctrl_stmt_body(statements_n)
+        
+        return statements_n
 
 #jeh
     def input(self):
