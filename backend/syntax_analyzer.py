@@ -320,13 +320,13 @@ class node_ctrl_stmt_body:
     def __repr__(self):
         return f'; ' .join(map(str, self.statements_n)) 
 
-class node_break_stmt:
-    def __repr__(self):
-        return 'break;'
+#class node_break_stmt:
+#    def __repr__(self):
+#        return 'break;'
 
-class node_continue_stmt:
-    def __repr__(self):
-        return 'continue;'
+#class node_continue_stmt:
+#    def __repr__(self):
+#        return 'continue;'
 
 class node_class_inst:
     def __init__(self, class_id_n, obj_id_n, class_instcont_n):
@@ -2090,7 +2090,7 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"break_stmt\"")
-        return node_break_stmt()
+        return f"break;"
 
     # bare-minimum tested
     def continue_stmt(self):
@@ -2102,7 +2102,7 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"continue_stmt\"")
-        return node_continue_stmt()
+        return f"continue;"
 
     # bare-minimum tested
     def init_arg(self):
@@ -2483,15 +2483,16 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"ctrl_stmt_body\"")
 
         statements_n = []
+        
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == "break":
-                statements_n.append(self.break_stmt_n())
+                statements_n.append(self.break_stmt())
             elif currentTokenType == "continue":
-                statements_n.append(self.continue_stmt_n())
+                statements_n.append(self.continue_stmt())
             elif currentTokenType in PREDICT_SETS["body"]:
-                statements_n.append(self.body(["break", "continue", "case", "}"], isVoid, True))
+                statements_n.append(self.body(["break", "continue", "case", "}", "default"], isVoid, True))
 
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body(isVoid)
