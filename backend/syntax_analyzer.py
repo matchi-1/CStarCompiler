@@ -135,8 +135,8 @@ class node_func_call:
 class node_arr_idx:
     def __init__(self, id_n, idx_n, idx2_n = None):
         self.id_n = id_n
-        self.index_n = idx_n
-        self.index2_n = idx2_n
+        self.idx_n = idx_n
+        self.idx2_n = idx2_n
     def __repr__(self):
         return f'{self.id_n}[{self.idx_n}]' + f'[{self.idx2_n}]' if self.idx2_n else '' 
 
