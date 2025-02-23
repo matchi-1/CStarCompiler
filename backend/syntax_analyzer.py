@@ -300,7 +300,7 @@ class node_if_stmt:
         self.body_n = body_n
         self.else_chain_n = else_chain_n
     def __repr__(self):
-        return f'if({self.condition_n}) {{ {self.body_n} }} {self.else_chain_n if self.else_chain_n else ""}'
+        return f'if({self.condition_n}) {{ \t{self.body_n} }} \n{self.else_chain_n if self.else_chain_n else ""}'
 
 class node_else_chain:
     def __init__(self, else_stmt_n):
@@ -312,14 +312,14 @@ class node_else_stmt:
     def __init__(self, body_n):
         self.body_n = body_n
     def __repr__(self):
-        return f'{{ {self.body_n} }}'
+        return f'{self.body_n}'
 
 class node_ctrl_stmt_body:
     def __init__(self, statements_n):
         self.statements_n = statements_n
         
     def __repr__(self):
-        return "\n\t" + "\n\t".join(map(str, self.statements_n)) + ";"
+        return "\n\t" + "\n\t".join(map(str, self.statements_n))
 
 #class node_break_stmt:
 #    def __repr__(self):
@@ -406,7 +406,7 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"switch ( switch_value: {self.value_n} ) {{ \n\tcase -> {self.case_n} \n\t default -> {self.default_n} \n}}\n"
+        return f"switch ( switch_value: {self.value_n} ) {{ \n\t case -> {self.case_n} \n\t default -> {self.default_n} \n}}\n"
 
 class node_case_stmt:
     def __init__(self, case_value_n, ctrl_stmt_body_n, case_stmt_rec_n):
@@ -415,7 +415,7 @@ class node_case_stmt:
         self.case_stmt_rec_n = case_stmt_rec_n
 
     def __repr__(self):
-        return f"\n\t case {self.case_value_n}: \n\t\tctrl_stmt_body -> {self.ctrl_stmt_body_n} \n\t case_stmt_rec -> {self.case_stmt_rec_n}"
+        return f"\n\t case {self.case_value_n}: \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n\t case_stmt_rec -> {self.case_stmt_rec_n}"
         
 class node_default_stmt:
     def __init__(self, ctrl_stmt_body_n):
@@ -2032,6 +2032,9 @@ class SyntaxAnalyzer:
 
         # if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
 
+        body_n = None
+        else_chain_n = None
+
         self.match("if", False)
         if not self.match("("):
             self.ERROR_missing_condition("if")
@@ -2046,13 +2049,11 @@ class SyntaxAnalyzer:
             self.ERROR_unclosed_curly_braces()
         self.hasFunctionReturned = False
 
-        else_chain_n = None
         if self.currToken and self.currToken["tokenType"] == "else":
             else_chain_n = self.else_chain()
 
         print("(parser) entered production: \"if_stmt\"")
-        return node_if_stmt(self, condition_n, body_n, else_chain_n)
-
+        return node_if_stmt(condition_n, body_n, else_chain_n)
     
     def ret_value(self, isVoid = False):
         '''<ret_value> → <value> | null'''
@@ -2085,7 +2086,7 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"break_stmt\"")
-        return f"break"
+        return f"break;"
 
     # bare-minimum tested
     def continue_stmt(self):
@@ -2097,7 +2098,7 @@ class SyntaxAnalyzer:
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"continue_stmt\"")
-        return f"continue"
+        return f"continue;"
 
     # bare-minimum tested
     def init_arg(self):
@@ -2167,14 +2168,17 @@ class SyntaxAnalyzer:
             else_stmt_n = self.else_stmt()
         
         print("(parser) exited production: \"else_chain\"")
-        return node_else_stmt(else_stmt_n)
+        return node_else_chain(else_stmt_n)
 
     def else_stmt(self, isVoid = False):
         print(f"(parser) entered production: \"else_stmt\", isVoid = {isVoid}")
 
         if self.currToken:
+
+            body_n = None
+
             if self.currToken and self.currToken["tokenType"] == "if":
-                self.if_stmt()
+                return self.if_stmt()
 
             elif self.currToken and self.currToken["tokenType"] == "{":
                 self.match("{")
@@ -2183,13 +2187,13 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_curly_braces()
                 self.match("}", False)
                 self.hasFunctionReturned = False
-                return node_else_stmt(body_n)
+                return f"{{\t{body_n} }}"
+            
             else:
                 self.logError("Expected: else if statement or else body")
 
         print("(parser) exited production: \"else_stmt\"")
         return None
-
 
     # bare-minimum tested
     def switch_stmt(self, isVoid = False):
