@@ -231,10 +231,23 @@ class node_idec_rec:
         self.value_n = value_n
         self.idec_rec_n = idec_rec_n
 
+class node_func_dec:
+    def __init__(self, dtype_t, params_n, body_n):
+        self.dtype_t = dtype_t
+        self.params_n = params_n
+        self.body_n = body_n
+
 class node_funcpar_class:
     def __init__(self, class_id_n, obj_id_n, params_n):
         self.class_id_n = class_id_n
         self.obj_id_n = obj_id_n
+        self.params_n = params_n
+
+class node_funcpar_arr:
+    def __init__(self, dtype_t, id_n, arrdim_i, params_n):
+        self.dtype_t = dtype_t
+        self.id_n = id_n
+        self.arrdim_i = arrdim_i
         self.params_n = params_n
 
 class node_funcpar_var:
@@ -291,7 +304,7 @@ class node_assign_func_method_mods:
 class node_assign_func_method_mods_cont:
     def __init__(self, as_array_n, assign_stmt_op_n, func_arg_n):
         self.as_array_n = as_array_n
-        self.assign_stmt_op_n = assign_stmt_op_n
+        self.assign_stmt_op_n = assign_stmt_op_n 
         self.func_arg_n = func_arg_n
 
     def __repr__(self):
@@ -1105,22 +1118,24 @@ class SyntaxAnalyzer:
                 self.logError(f"Expected data type or void, found '{currentTokenType}' instead.")
 
             elif currentTokenType == "void":
-                self.match("void")
+                void_t = self.match("void")
+                id_temp_n = None
                 isVoid = True
                 if self.currToken:
                     if self.currToken["tokenName"] == "main" and not inClassBody:
                         self.hasMainFunction = True
                         print("MAIN FUNCTION FOUND!!!!")
-                    self.match("Identifier", False)
+                    id_temp_n = self.match("Identifier", False)
                 else:
                     self.logError("Expected Identifier for function declaration.")
                 self.match("(", False)
                 if not self.hasMainFunction:
-                    self.params_dec_start(isVoid)
+                    return self.params_dec_start(void_t, id_temp_n, isVoid)
                 else:
                     if self.currToken:
                         if self.currToken["tokenType"] != ")":
                             self.ERROR_unclosed_parentheses()
+                        return self.params_dec_start(void_t, id_temp_n, isVoid)
                     else: self.logError("Expected ')', but reached EOF.")
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
@@ -1137,7 +1152,7 @@ class SyntaxAnalyzer:
         if self.currToken:
 
             if self.currToken["tokenType"] == "(":
-                self.params_dec_start()
+                return self.params_dec_start(dtype_temp_t, id_temp_n)
             elif self.currToken["tokenType"] in PREDICT_SETS["iden_dec_cont"]:
                 node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n)
                 if not self.match(";"):
@@ -1171,23 +1186,26 @@ class SyntaxAnalyzer:
         if value_temp_n or idec_rec_temp_n:
             vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
-        return node_vardec_cont(value_temp_n, idec_rec_temp_n)
+        return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
 
 
-    def params_dec_start(self, isVoid = False):
+
+    def params_dec_start(self, dtype_tempt_t, id_temp_n, isVoid = False):
         
         if not self.hasMainFunction:
             print(f"(parser) production: \"params_dec_start\" detected , isVoid = {isVoid}")
             self.match("(")
-            self.params_dec()
+            params_n = self.params_dec()
             if not self.match(")", True):
                 self.ERROR_unclosed_parentheses()
         
             self.match("{", False)
-            self.body(["}"], isVoid)
+            body_n = self.body(["}"], isVoid)
             if not self.match("}"):
                 self.ERROR_unclosed_curly_braces()
             self.hasFunctionReturned = False
+            
+            return node_func_dec(dtype_tempt_t, id_temp_n, params_n, body_n)
 
 
     # TODO
@@ -1809,6 +1827,7 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_token("value")
                 return node_funcpar_var(dtype_temp_t, id_temp_n, self.params_def_rec())
             elif self.currToken["tokenType"] == "[":
+                return node_funcpar_arr(dtype_temp_t, id_temp_n, self.is_array(), self.params_var_rec())
                 self.is_array()
             elif self.currToken["tokenType"] == ",":
                 return self.params_var_rec()
@@ -1888,7 +1907,7 @@ class SyntaxAnalyzer:
 
     def is_array(self):
         print("(parser) production: \"is_array\" detected")
-
+        arrdim = 1
         self.match("[")
         if not self.match("]"):
             self.ERROR_array_as_param_no_val()
@@ -1897,6 +1916,7 @@ class SyntaxAnalyzer:
             self.match("[")
             if not self.match("]"):
                 self.ERROR_array_as_param_no_val()
+            arrdim = 2
 
         if self.currToken and self.currToken["tokenType"] == "[":
             self.logError("Only up to 2-dimensions are allowed.")
@@ -1904,7 +1924,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "=":
             self.logError("No default array values are allowed.")
         print("(parser) production: \"is_array\" exited!!!!!")
-
+        return arrdim
 
     def params_dec(self):
         print(f"(parser) production: \"params_dec\" detected, {self.currToken["tokenType"] if self.currToken else EOF}")
@@ -1912,8 +1932,8 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
-                id_temp_n = self.match("Identifier", False)
-                return self.params_var_cont(dtype_temp_t, id_temp_ns)
+                id_temp_n = node_iden(self.match("Identifier", False))
+                return self.params_var_cont(dtype_temp_t, id_temp_n)
             elif self.currToken["tokenType"] == "Identifier":
                 # self.match("Identifier", False)
                 # self.match("Identifier", False)
@@ -1924,7 +1944,7 @@ class SyntaxAnalyzer:
         #         self.logError(f"Expected data type or class name. Found '{self.currToken["tokenType"]}' instead.")
         #     self.ret_type()
         #     self.params_var()
-
+        return None
   
   # ALEX start here
     def condition(self, condType, stopChar):  
