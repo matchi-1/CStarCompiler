@@ -249,13 +249,12 @@ class node_output:
         return f'node_output(print_stmts_n: {self.print_stmts_n}, print_params_n: {self.print_params_n})'
 
 class node_body:
-    def __init__(self,body_codeblock_n, return_stmt_n, body_rec_n):
+    def __init__(self,body_codeblock_n, return_stmt_n):
         self.body_codeblock_n = body_codeblock_n
         self.return_stmt_n = return_stmt_n
-        self.body_rec_n = body_rec_n
         
     def __repr__(self):
-        return f'node_body(body_codeblock_n: {self.body_codeblock_n} body_return_stmt_n: {self.return_stmt_n} body_rec_n: {self.body_rec_n})'
+        return f'node_body(body_codeblock_n: {self.body_codeblock_n}, \nbody_return_stmt_n: {self.return_stmt_n}'
 
 class node_assign_func_method_mods:
     def __init__(self, iden_n, as_array_n, assign_stmt_op_n, func_arg_n, class_elem_iden_n, assign_func_method_mods_cont_n):
@@ -286,13 +285,7 @@ class node_return_block:
     def __init__(self, ret_value_n=None):
         self.ret_value_n = ret_value_n
     def __repr__(self):
-        return f'node_return_block(ret_value_n={self.ret_value_n})'
-
-class node_ret_value:
-    def __init__(self, value_n=None):
-        self.value_n = value_n
-    def __repr__(self):
-        return f'node_ret_value(value_n={self.value_n})'
+        return f'node_return_block(ret_value_n: {self.ret_value_n})'
 
 class node_if_stmt:
     def __init__(self, condition_n, body_n, else_chain_n=None):
@@ -948,10 +941,8 @@ class SyntaxAnalyzer:
         print(f"(parser) Processing <body>: {self.currToken['tokenName'] if self.currToken else 'None'}")
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
             
-            
             statements_n = self.code_block([], isVoid)
             return_stmt_n = None
-            body_n = None
 
             if self.currToken and self.currToken["tokenType"] == "return":
                   return_stmt_n = self.return_block(isVoid)
@@ -961,8 +952,8 @@ class SyntaxAnalyzer:
             #     # TODO: DEAD CODE (CODE AFTER RETURN) ERROR IMPLEMENTATION\
 
                 
-            body_n = self.body(stopChars, isVoid, inControlStruct)
-            return node_body(statements_n, return_stmt_n, body_n)
+            self.body(stopChars, isVoid, inControlStruct)
+            return node_body(statements_n, return_stmt_n)
 
         if self.currToken and self.currToken["tokenType"] not in stopChars:
             self.logError(f"Unexpected Token '{self.currToken["tokenName"]}' found. Expected {PREDICT_SETS["body"]}.")
@@ -2075,7 +2066,7 @@ class SyntaxAnalyzer:
             ret_value_n = self.value([";"])
 
         print("(parser) exited production: \"ret_value\"")
-        return node_ret_value(ret_value_n)
+        return ret_value_n
 
     # bare-minimum tested
     def break_stmt(self):
