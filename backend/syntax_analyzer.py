@@ -522,6 +522,14 @@ class node_assign_stmt:
     def __repr__(self):
         return f"assign stmt: id_n:'{self.id_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
 
+class node_imports_list:
+    def __init__(self, stdlib_n, filename_n):
+        self.stdlib_n = stdlib_n
+        self.filename_n = filename_n
+
+    def __repr__(self):
+        return f"imports_list: stdlib_n: {self.stdlib_n}, filename_n: {self.filename_n}"
+
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -713,11 +721,11 @@ class SyntaxAnalyzer:
     def ERROR_expected_stdlib_or_filename(self):
         self.logError(f"Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
-    def ERROR_expected_cstr_file(self):
+    def ERROR_expected_cstr_file(self, filename_temp):
         if self.currToken and self.currToken["tokenType"] == ">":
-            self.logError(f"Expected .cstr extension for an imported header file, before \'>\'")
+            self.logError(f"Expected '.cstr' extension for header file '{filename_temp}', before \'>\'")
         else:
-            self.logError(f"Expected a filename with '.cstr' extension for an imported header file, instead got '{self.currToken["tokenName"]}'.")
+            self.logError(f"Expected '.cstr' extension for header file '{filename_temp}', instead got '{self.currToken["tokenName"]}'.")
 
     def ERROR_expected_stdlib(self):
         self.logError(f"Expected a standard library (Cmath, Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
@@ -814,10 +822,12 @@ class SyntaxAnalyzer:
     # for semantic stuff, instead of using "if not", just add else clause to add functionality in if match clause
 
     def program(self):
+        
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
+        
         if self.matchPredictSet("program", False):
-            self.imports_list()
+            print(">>>>>> IMPORTS LIST: " + str(self.imports_list()))
             
             """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
             # Parse constructs
@@ -856,6 +866,7 @@ class SyntaxAnalyzer:
                         print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
                         self.errors.append(f"Warning at line {currLine}: Unreachable code detected.")
                         break
+
 
     # CODE BLOCKS START HERE
     def code_block(self, code_block_statement_n = [], isVoid = False):       
@@ -1028,24 +1039,20 @@ class SyntaxAnalyzer:
                 self.logError("A return statement outside of control structures is required in all functions.")
                 #placeholder hehehehehhehehehehheyhueh
             
-
-        
         print("(parser) production: \"body\" exited!!!!!!")
         print(f"######################### AST FOR BODY #########################")
         return None
         
 
-    def imports_list(self):
+    def imports_list(self, stdlibs=[], filenames=[]):
         print("(parser) production: \"imports_list\" detected")
-
-        # only parse this if currtoken is "import" or if the program starts with "import"
+        # Only parse if the current token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.match("import", False)
-
             self.match("<", False)
 
             # Process content inside '<>'
-            self.imports_list_values()
+            self.imports_list_values(stdlibs, filenames)
 
             if not self.match(">"):
                 self.ERROR_unclosed_angled_bracket()
@@ -1053,48 +1060,60 @@ class SyntaxAnalyzer:
             if not self.match(";"):
                 self.ERROR_terminating_token(";")
 
-            # Handle potential recursive imports_rec
+            # Handle potential recursive imports
             if self.currToken and self.currToken["tokenType"] == "import":
-                self.imports_list()
+                self.imports_list(stdlibs, filenames)
 
+        return node_imports_list(stdlibs, filenames)
 
-    def imports_list_values(self):
+    def imports_list_values(self, stdlibs, filenames):
         print("(parser) production: \"imports_list_values\" detected")
-        """<imports_list_values> → standard library | standard library with .cstr | filename with .cstr"""
-
+        is_stdlib = True
         if self.currToken:
-            # Check for standard library or standard library with .cstr
-            if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:   
-                self.match("Identifier")  # Match the standard library -- put logic here per std lib for semantic
-                if self.currToken and self.currToken["tokenType"] == ".":      # potentially stdlib and header file haev the same name 
+            # Check for standard library
+            if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:
+                print("STANDARD LIBRARY FOUND: " + str(self.currToken["tokenName"]))
+                std_lib_or_file_temp = self.match("Identifier")["tokenName"]  # Match standard library
+
+                # Check if it has a `.cstr` extension
+                if self.currToken and self.currToken["tokenType"] == ".":
                     self.match(".")
                     if self.currToken and self.currToken["tokenName"] == "cstr":
                         self.match("Identifier")  # Match 'cstr'
+                        is_stdlib = False
+                        print("STDLIB WITH CSTR FOUND")
+                        if std_lib_or_file_temp not in filenames:
+                            filenames.append(std_lib_or_file_temp)  # Avoid duplicate appends of stdlib file name to filenames
                     else:
-                        self.ERROR_expected_cstr_file()
+                        self.ERROR_expected_cstr_file(std_lib_or_file_temp)
 
-            # Check for filename (non-standard-library identifier followed by .cstr)
+                if is_stdlib:
+                    if std_lib_or_file_temp not in stdlibs: 
+                            stdlibs.append(std_lib_or_file_temp) # Append standard library to stdlibs
+
+
+            # Check for filename (non-standard-library identifier with .cstr)
             elif self.currToken["tokenType"] == "Identifier":
-                self.match("Identifier")  # Match the filename
-                
+                print("FILENAME FOUND: " + str(self.currToken["tokenName"]))
+                filename_temp = self.match("Identifier")["tokenName"]  # Match filename
+
                 if self.currToken and self.currToken["tokenType"] == ">":
-                    self.logError(f"Expected .cstr extension for an imported header file, before \'>\'")
+                    self.logError(f"Expected .cstr extension for header file '{filename_temp}', before '>'")
 
                 if not self.match("."):
-                    if self.currToken:
-                        self.logError(f"Expected .cstr extension for an imported header file, instead got '{self.currToken["tokenName"]}'")
-                    else:
-                        self.logError(f"Expected .cstr extension for an imported header file, instead reached EOF.")
-                
+                    self.ERROR_expected_cstr_file(filename_temp)
+
                 if self.currToken and self.currToken["tokenName"] == "cstr":
                     self.match("Identifier")  # Match 'cstr'
+                    if filename_temp not in filenames:
+                        filenames.append(filename_temp)  # Avoid duplicate appends
                 else:
-                    self.ERROR_expected_cstr_file()
-        
+                    self.ERROR_expected_cstr_file(filename_temp)
             else:
                 self.ERROR_expected_stdlib_or_filename()
         else:
             self.ERROR_expected_stdlib_or_filename()
+
 
 
 
