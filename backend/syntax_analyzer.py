@@ -236,6 +236,8 @@ class node_func_dec:
         self.dtype_t = dtype_t
         self.params_n = params_n
         self.body_n = body_n
+    def __repr__(self):
+        return f"node_func_dec(dtype_t: {self.dtype_t}, params_n: {self.params_n}, body_n: {self.body_n} )"
 
 class node_funcpar_class:
     def __init__(self, class_id_n, obj_id_n, params_n):
@@ -373,30 +375,38 @@ class node_classinst_cont:
         return f"node_classinst_cont(class_id_n: {self.class_id_n}, func_arg_n: {self.func_arg_n})"
 
 class node_class_dec:
-    def __init__(self, is_private_b, class_id_n, class_body_n1, constructor_dec_n, class_body_n2):
+    def __init__(self, is_private_b, class_id_n, constructor_dec_n, class_body_n):
         self.is_private_b = is_private_b
         self.class_id_n = class_id_n
-        self.class_body_n1 = class_body_n1
         self.constructor_dec_n = constructor_dec_n
-        self.class_body_n2 = class_body_n2
+        self.class_body_n = class_body_n
 
     def __repr__(self):
         return (f"node_class_dec(is_private_b: {self.is_private_b}, "
                 f"class_id_n: {self.class_id_n}, "
-                f"\n\tconstructor_dec_n: {self.constructor_dec_n}),"
-                f"\n\tclass_body_n: {self.class_body_n1 + self.class_body_n2} ")
+                f"\nconstructor_dec_n: {self.constructor_dec_n},"
+                f"\nclass_body_n: {self.class_body_n}) ")
 
 class node_class_body:
-    def __init__(self, is_private_b, node_vardec, class_body_rec_n):
-        self.is_private_b = is_private_b
-        self.node_vardec = node_vardec
-        self.class_body_rec_n = class_body_rec_n
+    def __init__(self, class_body_stmt_n):
+        self.class_body_stmt_n = class_body_stmt_n
 
     def __repr__(self):
-        return (f"node_class_body(is_private_b: {self.is_private_b}, "
-                f"node_vardec: {self.node_vardec}, "
-                f"class_body_rec_n: {self.class_body_rec_n})")
+        statements = ",\n".join(map(str, self.class_body_stmt_n))
+        return f"{self.__class__.__name__}(\n{statements}\n)"
+    
+   
 
+class node_class_body_stmt:
+    def __init__(self, is_private_b, node_vardec):
+        self.is_private_b = is_private_b
+        self.node_vardec = node_vardec
+
+    def __repr__(self):
+        return (f"is_private_b: {self.is_private_b}, "
+                f"node_vardec: {self.node_vardec} "
+                )
+    
 class node_constructor_dec:
     def __init__(self, class_id_n, params_dec_n, code_block_n):
         self.class_id_n = class_id_n
@@ -406,7 +416,7 @@ class node_constructor_dec:
     def __repr__(self):
         return (f"node_constructor_dec(class_id_n: {self.class_id_n}, "
                 f"params_dec_n: {self.params_dec_n}, "
-                f"\n\tcode_block_n: {self.code_block_n})")
+                f"\ncode_block_n: {self.code_block_n})")
 
 class node_code_block:
     def __init__(self, code_block_statement_n):
@@ -1209,7 +1219,7 @@ class SyntaxAnalyzer:
 
 
     # TODO
-    def class_declaration(self):
+    def class_declaration(self, class_body_stmt_n = []):
         print("(parser) production: \"class_declaration\" detected")
 
         is_private_b = False
@@ -1227,10 +1237,9 @@ class SyntaxAnalyzer:
             self.ERROR_expected_token("Identifier")
         
         self.match("{", False)
-
-        class_body_n1 = self.class_body()
+        class_body_stmt_n = self.class_body(class_body_stmt_n)
         constructor_dec_n = self.constructor_dec()
-        class_body_n2 = self.class_body()
+        class_body_stmt_n = self.class_body(class_body_stmt_n)
 
         if self.currToken and self.currToken["tokenType"] == "Identifier":
             self.logError(f"Only one constructor per class allowed. Expected: {PREDICT_SETS['class_body']}")
@@ -1241,11 +1250,13 @@ class SyntaxAnalyzer:
         if not self.match(";", True):
             self.logError("Class Declaration is expected to be terminated by ';' after '}'.")
 
-        return node_class_dec(is_private_b, class_id_n, class_body_n1, constructor_dec_n, class_body_n2)
+        
+
+        return node_class_dec(is_private_b, class_id_n, constructor_dec_n, node_class_body(class_body_stmt_n))
         
 
     
-    def class_body(self): # all of these are just 'if's because class_body can be null
+    def class_body(self, class_body_stmt_n = []): # all of these are just 'if's because class_body can be null
         print("(parser) production: \"class_body\" detected")
         
         is_private_b = False
@@ -1262,13 +1273,14 @@ class SyntaxAnalyzer:
                         self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
                 
                 node_vardec = self.iden_dec(inClassBody)
-                class_body_rec_n = self.class_body()
-                return node_class_body(is_private_b, node_vardec, class_body_rec_n)
+                class_body_stmt_n.append(node_class_body_stmt(is_private_b, node_vardec))
+                self.class_body(class_body_stmt_n)
+                return class_body_stmt_n
             inClassBody = False 
 
         if self.currToken and self.currToken["tokenType"] == "class":
             self.logError(f"Classes cannot be nested within classes. Expected {PREDICT_SETS['class_body']} or constructor declaration.")
-        return []
+        return class_body_stmt_n
 
     def constructor_dec(self): 
         
