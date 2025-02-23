@@ -231,6 +231,21 @@ class node_idec_rec:
         self.value_n = value_n
         self.idec_rec_n = idec_rec_n
 
+class node_arr_dec:
+    def __init__(self, dtype_t, id_n, size1_n, size2_n, arr_dec_cont_n):
+        self.dtype_t = dtype_t
+        self.id_n = id_n
+        self.size1_n = size1_n
+        self.size2_n = size2_n
+        self.arr_dec_cont_n = arr_dec_cont_n
+
+class node_arr_dec_rec:
+    def __init__(self, id_n, size1_n, size2_n, arr_dec_rec_n):
+        self.id_n = id_n
+        self.size1_n = size1_n
+        self.size2_n = size2_n
+        self.arr_dec_cont_n = arr_dec_rec_n
+
 class node_func_dec:
     def __init__(self, dtype_t, params_n, body_n):
         self.dtype_t = dtype_t
@@ -1183,10 +1198,10 @@ class SyntaxAnalyzer:
         if self.currToken:
             if self.currToken["tokenType"] == "[":
                 self.match("[", False)
-                self.arith_exp(["]"])
+                size1_temp_n = self.arith_exp(["]"])
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
-                self.var_id_arr1D()
+                return self.var_id_arr1D(dtype_temp_t, id_temp_n, size1_temp_n)
 
             else:
                 value_temp_n = self.var_init()
@@ -2636,7 +2651,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"var_iden_rec\"")
         return None
 
-    def var_id_arr1D(self):
+    def var_id_arr1D(self, dtype_temp_t, id_temp_n, size1_temp_n):
         '''<var_id_arr1D> → <array1D_iden_rec> | <array1D_init>'''
         
         print("(parser) entered production: \"var_id_arr1D\"")
@@ -2645,88 +2660,93 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == ",":
-                self.array1D_iden_rec()
+                return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_iden_rec())
 
             elif currentTokenType == "=":
-                self.array1D_init()
+                return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_init())
 
             elif currentTokenType == "[":
                 self.match("[", False)
-                if not self.arith_exp(["]"]):
+                size2_temp_n = self.arith_exp(["]"])
+                if not size2_temp_n:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
                 if self.currToken["tokenType"] == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
-                self.var_id_arr2D()
+                return self.var_id_arr2D(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n)
         
         print("(parser) exited production: \"var_id_arr1D\"")
+        return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, None)
 
 
     def array1D_iden_rec(self):
         '''<array1D_iden_rec> → , Identifier [<int_val>] <array1D_iden_rec> | λ'''
         print("(parser) entered production: \"array1D_iden_rec\"")
-        
+        arr_dec_rec_temp_n = None
         if self.currToken:
             self.match(",")
-            self.match("Identifier", False)
+            id_temp_n = node_iden(self.match("Identifier", False))
             self.match("[", False)
-            if not self.arith_exp(["]"]):
+            size1_temp_n = self.arith_exp(["]"])
+            if not size1_temp_n:
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
             if self.currToken["tokenType"] == ",":
-                self.array1D_iden_rec()
+                arr_dec_rec_temp_n = self.array1D_iden_rec()
 
         print("(parser) exited production: \"array1D_iden_rec\"")
-
+        return node_arr_dec_rec(id_temp_n, size1_temp_n, None, arr_dec_rec_temp_n)
 
     def array1D_init(self):
             '''<array1D_init> → = {<arr_value_1D>}'''
             print("(parser) entered production: \"array1D_init\"")
-            
+            val_list = []
             if self.currToken:
                 self.match("=", False)
                 self.match("{", False)
-                self.arr_value_1D()
+                val_list = self.arr_value_1D()
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
             
             print("(parser) exited production: \"array1D_init\"")
-
+            return val_list
 
     def arr_value_1D(self):
             '''<arr_value_1D> → <value> <arr_value_1D_rec>'''
             print("(parser) entered production: \"arr_value_1D\"")
-            
+            val_list = []
             if self.currToken:
                 
                 if self.currToken["tokenType"] in PREDICT_SETS["value"]:
-                    self.value(["}", ","])
+                    val_list[0] = self.value(["}", ","])
                     if self.currToken["tokenType"] == ",":
-                        self.arr_value_1D_rec()
+                        val_list.extend(self.arr_value_1D_rec())
                 else:
                     self.ERROR_expected_token("value")
 
             print("(parser) exited production: \"arr_value_1D\"")
+            return val_list
 
     def arr_value_1D_rec(self):
             '''<arr_value_1D_rec> → , <value> <arr_value_1D_rec> | λ'''
             print("(parser) entered production: \"arr_value_1D_rec\"")
-
+            val_list = []
             if self.currToken:
 
                 if self.currToken["tokenType"] == ",":
                     self.match(",")
                     if self.currToken["tokenType"] in PREDICT_SETS["value"]:
-                        self.value(["}", ","])
-                        self.arr_value_1D_rec()
+                        val_list[0] = self.value(["}", ","])
+                        val_list.extend(self.arr_value_1D_rec())
                     else:
                         self.ERROR_expected_token("value")
            
             print("(parser) exited production: \"arr_value_1D_rec\"")
-
-    def var_id_arr2D(self):
+            return val_list
+    
+    def var_id_arr2D(self, dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n):
             '''<var_id_arr2D> → <array2D_iden_rec> | <array2D_init>'''
             print("(parser) entered production: \"var_id_arr2D\"")
             
@@ -2734,31 +2754,34 @@ class SyntaxAnalyzer:
                 currentTokenType = self.currToken["tokenType"]
 
                 if currentTokenType == ",":
-                    self.array2D_iden_rec()
+                    return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_iden_rec()) 
                 elif currentTokenType == "=":
-                    self.array2D_init()
+                    return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_init())
                 #else:
                 #    self.ERROR_expected_token([",", "="])
 
             print("(parser) exited production: \"var_id_arr2D\"")
+            return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, None)
 
     def array2D_iden_rec(self):
             '''<array2D_iden_rec> → , Identifier [<int_val>] [<int_val>] <array2D_iden_rec> | λ'''
             print("(parser) entered production: \"array2D_iden_rec\"")
-            
+            arr_dec_rec_temp_n = None
             if self.currToken:
 
                 self.match(",")
-                self.match("Identifier", False)
+                id_temp_n = node_iden(self.match("Identifier", False))
                 
                 self.match("[", False)
-                if not self.arith_exp(["]"]):
+                size1_temp_n = self.arith_exp(["]"])
+                if not size1_temp_n:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
                 
                 self.match("[", False)
-                if not self.arith_exp(["]"]):
+                size2_temp_n = self.arith_exp(["]"])
+                if not size2_temp_n:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
@@ -2766,54 +2789,56 @@ class SyntaxAnalyzer:
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
                 
                 if self.currToken["tokenType"] == ",":
-                    self.array2D_iden_rec()
+                    arr_dec_rec_temp_n = self.array2D_iden_rec()
                 
                 #else:
                 #    self.ERROR_unclosed_square_bracket()
 
             print("(parser) exited production: \"array2D_iden_rec\"")
+            return node_arr_dec_rec(id_temp_n, size1_temp_n, size2_temp_n, arr_dec_rec_temp_n)
 
     def array2D_init(self):
             '''<array2D_init> → = {<arr_value_2D>}'''
             print("(parser) entered production: \"array2D_init\"")
-            
+            val_list = []
             if self.currToken:
                 self.match("=", False)
                 self.match("{", False)
-                self.arr_value_2D()
+                val_list = self.arr_value_2D()
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
             
             print("(parser) exited production: \"array2D_init\"")
- 
+            return val_list
     def arr_value_2D(self):
             '''<arr_value_2D> → {<arr_value_1D>} <arr_value_2D_rec>'''
             print("(parser) entered production: \"arr_value_2D\"")
-            
+            val_list = []
             if self.currToken:
                 self.match("{", False)
-                self.arr_value_1D()
+                val_list[0] = self.arr_value_1D()
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
-                self.arr_value_2D_rec()
+                val_list.extend(self.arr_value_2D_rec())
 
             print("(parser) exited production: \"arr_value_2D\"")
- 
+            return val_list
 
     def arr_value_2D_rec(self):
             '''<arr_value_2D_rec> → , {<arr_value_1D>} <arr_value_2D_rec> | λ'''
             print("(parser) entered production: \"arr_value_2D_rec\"")
-            
+            val_list = []
             if self.currToken:
                 self.match(",")
                 self.match("{", False)
-                self.arr_value_1D()
+                val_list[0] = self.arr_value_1D()
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
                 if self.currToken["tokenType"] == ",":
-                    self.arr_value_2D_rec()    
+                    val_list.extend(self.arr_value_2D_rec())
             
             print("(parser) exited production: \"arr_value_2D_rec\"")
+            return val_list
 
 
     def assign_stmt(self):
