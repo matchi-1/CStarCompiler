@@ -81,6 +81,7 @@ func_delim = newline_delim + ['(']
 closing_bracket_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '|', ')', '[', ']', ':', ';']
 
 need_frac_num = False
+multi_line_start_found = False
 
 def transition(currState, currChar):
     global need_frac_num
@@ -759,6 +760,9 @@ def transition(currState, currChar):
                 case '*':  currState = 's221' #catches * before ascii check
                 case 'ANY':  currState = 'DEFINED'
                 case _:   currState = 'UNDEFINED'
+            global  multi_line_start_found
+            multi_line_start_found = True  # multi-line comment start found
+
 
         case 's221':
             match currChar:
@@ -813,6 +817,10 @@ def lexer(code):
     leadingSpaces = 0
     isLeadingSpace = True
     global need_frac_num
+    global multi_line_start_found
+    multi_line_start_found = False
+    multi_line_start_line = 0
+    multi_line_start_col = 0
     # first_char = True
 
     # Helper function inside lexer to add a token(set its properties), append to token list, and reset current token and state
@@ -844,6 +852,9 @@ def lexer(code):
             leadingSpaces = 0
             isLeadingSpace = True
             lineContent = ''
+        elif code[i] == '/' and i + 1 < len(code) and code[i + 1] == '*' and not multi_line_start_found:
+            multi_line_start_line = currLine
+            multi_line_start_col = currCol - 1
         else:
             if code[i] != ' ':
                 isLeadingSpace = False
@@ -1390,6 +1401,7 @@ def lexer(code):
                         add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                 # multicomments 
                 case 'MULTI_COMMENT_CHECK':
+                    multi_line_start_found = False
                     add_token(currToken, 'multi-line comment', currLine, currCol)
                 # case statement 
                 case 'CASE_CHECK':
@@ -1765,6 +1777,10 @@ def lexer(code):
                     print('(dbg) currState: ', currState)
                     add_error(delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
     
+    if multi_line_start_found:
+        multi_line_errorMsg = f'Lexical Error ({multi_line_start_line}, {multi_line_start_col}): Unterminated multi-line comment.\n/*\n^'
+        add_error(multi_line_errorMsg)
+
     lexerResults = [tokens, errors] 
     return lexerResults
 
@@ -1780,6 +1796,7 @@ def generateError(errorType, currToken, currLine, currCol, lineContent, leadingS
     print(f'(dbg) ERROR lineContent |{lineContent}')
     errorMsg += '_' * (currCol - len(currToken) - 2 - leadingSpaces) + '^\n'
     if additionalInfo:
+        errorMsg += additionalInfo
         errorMsg += additionalInfo
     print("(debug) ", errorMsg)
     if (currCol == 0):
