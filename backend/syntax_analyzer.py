@@ -489,10 +489,10 @@ class node_repeat:
         return f"repeat ( repeat_value: {self.repeat_value_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} }}"
 
 class node_assign_stmt:
-    def __init__(self, iden_n, assign_stmt_op_n, value_n):
+    def __init__(self, iden_n, assign_op_n, assign_value_n):
         self.iden_n = iden_n
-        self.assign_stmt_op_n = assign_stmt_op_n
-        self.value_n = value_n
+        self.assign_op_n = assign_op_n
+        self.assign_value_n = assign_value_n
 
     def __repr__(self):
         return f"{self.iden_n} {self.assign_stmt_op_n} {self.value_n}"
@@ -664,7 +664,7 @@ class SyntaxAnalyzer:
             self.logError(f"Unexpected EOF: Expected {expected_token}, but reached EOF.")
         else:
             self.logError(
-                f"Unexpected token: Expected {expected_token}, but found '{self.currToken['tokenName']}'."
+                f"Unexpected token '{self.currToken['tokenName']}'. Expected {expected_token}."
             )
 
     # If no main function was found throughout the whole program
@@ -2170,7 +2170,7 @@ class SyntaxAnalyzer:
                         inc_arg_temp_n = node_post_un_op(node_iden(id_temp_t), self.match("--"))
                         
                 elif self.currToken["tokenType"] in PREDICT_SETS["assign_func_method_mods"]:
-                    inc_arg_temp_n = self.assign_func_method_mods()
+                    inc_arg_temp_n = self.assign_func_method_mods(id_temp_t)
 
                 else: self.logError("Expected: unary operation, assignment statement, function call, method call.")
 
@@ -2808,36 +2808,30 @@ class SyntaxAnalyzer:
         print("(parser) production: \"assign_stmt\" detected")
         """<assign_stmt> → Identifier <iden_as_var_mods> <assign_stmt_op>"""
         
-        if self.match("Identifier", False):
-            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-                self.iden_as_var_mods() # match iden mods if there are any
-            self.assign_stmt_op() # match assign operator
+        id_temp_n = node_iden(self.match("Identifier", False))
+
+        if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
+            self.iden_as_var_mods() # match iden mods if there are any
+            
+        assign_stmt_temp_op_n = self.assign_stmt_op()[0] # get & match assign operator
+        assign_stmt_temp_val_n = self.assign_stmt_op()[1] # get & match value
 
         print("(parser) exited production: \"assign_stmt\"")
-        return "(AST-TEMP) assign_stmt PASSED"
+        return node_assign_stmt(id_temp_n, assign_stmt_temp_op_n, assign_stmt_temp_val_n)
 
     def assign_stmt_op(self):
         print('(parser) production: "assign_stmt_op" detected')
 
         if self.matchPredictSet("assign_operator", False):
-            match self.currToken["tokenName"]:
-                case "=":
-                    self.match("=") 
-                case "+=":
-                    self.match("+=") 
-                case "-=":
-                    self.match("-=") 
-                case "*=":
-                    self.match("*=")
-                case "/=":
-                    self.match("/=") 
-                case "%=":
-                    self.match("%=")
-                case _:
-                    self.logError(f"Expected an assignment operator, but found '{self.currToken['tokenName']}'.")
+            assign_stmt_temp_op_n = self.currToken["tokenType"]
+            
+            self.match(self.currToken["tokenName"])
 
-            if not self.value([';',')']):  # check valid value
-                self.ERROR_expected_token("value") 
+            assign_stmt_temp_val_n = self.value([";",")"])
+
+            if not assign_stmt_temp_val_n:  # check valid value
+                self.ERROR_expected_token("value")
+        return (assign_stmt_temp_op_n, assign_stmt_temp_val_n)
 
     def iden_as_var_mods(self):
         print("(parser) production: \"iden_as_var_mods\" detected")
