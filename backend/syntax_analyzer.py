@@ -1205,7 +1205,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_curly_braces()
             self.hasFunctionReturned = False
             
-            return node_func_dec(dtype_tempt_t, id_temp_n, params_n, body_n)
+            return node_func_dec(dtype_tempt_t, params_n, body_n)
 
 
     # TODO
