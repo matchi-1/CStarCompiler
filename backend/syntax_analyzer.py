@@ -346,9 +346,9 @@ class node_class_inst:
         self.class_instcont_n = class_instcont_n
 
     def __repr__(self):
-        return (f"node_class_inst(class_id_n={self.class_id_n}, "
-                f"obj_id_n={self.obj_id_n}, "
-                f"class_instcont_n={self.class_instcont_n})")
+        return (f"node_class_inst(class_id_n: {self.class_id_n}, "
+                f"obj_id_n: {self.obj_id_n}, "
+                f"\n\tclass_instcont_n: {self.class_instcont_n})")
 
 class node_classinst_cont:
     def __init__(self, class_id_n, func_arg_n):
@@ -356,7 +356,7 @@ class node_classinst_cont:
         self.func_arg_n = func_arg_n
 
     def __repr__(self):
-        return f"node_classinst_cont(class_id_n={self.class_id_n}, func_arg_n={self.func_arg_n})"
+        return f"node_classinst_cont(class_id_n: {self.class_id_n}, func_arg_n: {self.func_arg_n})"
 
 class node_class_dec:
     def __init__(self, is_private_b, class_id_n, class_body_n1, constructor_dec_n, class_body_n2):
@@ -367,11 +367,10 @@ class node_class_dec:
         self.class_body_n2 = class_body_n2
 
     def __repr__(self):
-        return (f"node_class_dec(is_private_b={self.is_private_b}, "
-                f"class_id_n={self.class_id_n}, "
-                f"class_body_n={self.class_body_n1}, "
-                f"constructor_dec_n={self.constructor_dec_n})"
-                f"class_body_n={self.class_body_n2}, ")
+        return (f"node_class_dec(is_private_b: {self.is_private_b}, "
+                f"class_id_n: {self.class_id_n}, "
+                f"\n\tconstructor_dec_n: {self.constructor_dec_n}),"
+                f"\n\tclass_body_n: {self.class_body_n1 + self.class_body_n2} ")
 
 class node_class_body:
     def __init__(self, is_private_b, node_vardec, class_body_rec_n):
@@ -380,9 +379,9 @@ class node_class_body:
         self.class_body_rec_n = class_body_rec_n
 
     def __repr__(self):
-        return (f"node_class_body(is_private_b={self.is_private_b}, "
-                f"node_vardec={self.node_vardec}, "
-                f"class_body_rec_n={self.class_body_rec_n})")
+        return (f"node_class_body(is_private_b: {self.is_private_b}, "
+                f"node_vardec: {self.node_vardec}, "
+                f"class_body_rec_n: {self.class_body_rec_n})")
 
 class node_constructor_dec:
     def __init__(self, class_id_n, params_dec_n, code_block_n):
@@ -391,9 +390,9 @@ class node_constructor_dec:
         self.code_block_n = code_block_n
 
     def __repr__(self):
-        return (f"node_constructor_dec(class_id_n={self.class_id_n}, "
-                f"params_dec_n={self.params_dec_n}, "
-                f"code_block_n={self.code_block_n})")
+        return (f"node_constructor_dec(class_id_n: {self.class_id_n}, "
+                f"params_dec_n: {self.params_dec_n}, "
+                f"\n\tcode_block_n: {self.code_block_n})")
 
 class node_code_block:
     def __init__(self, code_block_statement_n):
@@ -1257,7 +1256,7 @@ class SyntaxAnalyzer:
 
         if self.currToken and self.currToken["tokenType"] == "class":
             self.logError(f"Classes cannot be nested within classes. Expected {PREDICT_SETS['class_body']} or constructor declaration.")
-        return None
+        return []
 
     def constructor_dec(self): 
         
@@ -1293,7 +1292,7 @@ class SyntaxAnalyzer:
                 
 
 
-    def class_inst(self, location, code_block_statement_n = None):
+    def class_inst(self, code_block_statement_n = None):
         print("(parser) production: \"class_inst\" detected")
 
         class_instcont_n = None
