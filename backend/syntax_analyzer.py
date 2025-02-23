@@ -230,6 +230,23 @@ class node_idec_rec:
         self.value_n = value_n
         self.idec_rec_n = idec_rec_n
 
+class node_funcpar_class:
+    def __init__(self, class_id_n, obj_id_n, params_n):
+        self.class_id_n = class_id_n
+        self.obj_id_n = obj_id_n
+        self.params_n = params_n
+
+class node_funcpar_var:
+    def __init__(self, dtype_t, id_n, parvar_cont_n):
+        self.dtype_t = dtype_t
+        self.id_n = id_n
+        self.parvar_cont_n = parvar_cont_n
+
+class node_funcpar_var_def:
+    def __init__(self, value_n, parvar_defrec_n):
+        self.value_n = value_n
+        self.parvar_defrec_n = parvar_defrec_n
+
 class node_funcpar_var_defrec:
     def __init__(self, dtype_t, id_n, parvar_defrec_cont_n):
         self.dtype_t = dtype_t
@@ -1766,55 +1783,54 @@ class SyntaxAnalyzer:
         return node_temp
 
     
-    def ret_type(self):
-        print("(parser) production: \"ret_type\" detected")
+    # def ret_type(self):
+    #     print("(parser) production: \"ret_type\" detected")
 
-        if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-            self.data_type()
-        else:
-            if not self.match("Identifier"):
-                self.logError("Expected data type or Identifier (Class name).")
+    #     if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
+    #         self.data_type()
+    #     else:
+    #         if not self.match("Identifier"):
+    #             self.logError("Expected data type or Identifier (Class name).")
 
-        print("(parser) production: \"ret_type\" exited!!!!!")
+    #     print("(parser) production: \"ret_type\" exited!!!!!")
 
 
-    def params_var(self):
-        print("(parser) production: \"params_var\" detected")
+    # def params_var(self):
+    #     print("(parser) production: \"params_var\" detected")
 
-        if self.currToken:
-            if not self.match("Identifier"):
-                self.logError("Expected Identifier (variable declaration or class name).")
-            if self.currToken:
-                if self.peek(-2)["tokenType"] == "Identifier" and self.currToken:
-                    if self.currToken["tokenType"] == "=":
-                        self.logError("Default values for object parameters are not supported. Expected ')' or ','. Found '=' instead.")
-                    elif self.currToken["tokenType"] == "[":  # array
-                        self.logError("Array of objects is not supported. Expected ')' or ','. Found '[' instead.")
-            self.params_var_cont()
-        else:
-            self.ERROR_expected_token("Identifier")
+    #     if self.currToken:
+    #         if not self.match("Identifier"):
+    #             self.logError("Expected Identifier (variable declaration or class name).")
+    #         if self.currToken:
+    #             if self.peek(-2)["tokenType"] == "Identifier" and self.currToken:
+    #                 if self.currToken["tokenType"] == "=":
+    #                     self.logError("Default values for object parameters are not supported. Expected ')' or ','. Found '=' instead.")
+    #                 elif self.currToken["tokenType"] == "[":  # array
+    #                     self.logError("Array of objects is not supported. Expected ')' or ','. Found '[' instead.")
+    #         self.params_var_cont()
+    #     else:
+    #         self.ERROR_expected_token("Identifier")
 
-        print("(parser) production: \"params_var\" exited!!!!!")
+    #     print("(parser) production: \"params_var\" exited!!!!!")
 
     #TODO: harley continue here
-    def params_var_cont(self):
+    def params_var_cont(self, dtype_temp_t, id_temp_n):
         print("(parser) production: \"params_var_cont\" detected")
-
         if self.currToken:
             if self.currToken["tokenType"] == "=":
                 self.match("=")
-                if not self.value([",", ")"]):
+                val_temp_n = self.value([",", ")"])
+                if not val_temp_n:
                     self.ERROR_expected_token("value")
-                return self.params_def_rec()
-
+                return node_funcpar_var(dtype_temp_t, id_temp_n, self.params_def_rec())
             elif self.currToken["tokenType"] == "[":
                 self.is_array()
-            
             elif self.currToken["tokenType"] == ",":
                 return self.params_var_rec()
+            else:
+                return node_funcpar_var(dtype_temp_t, id_temp_n, None)
 
         print("(parser) production: \"params_var_cont\" exited!!!!!")
-        return None
 
     def params_var_rec(self):
         print("(parser) production: \"params_var_rec\" detected")
@@ -1910,13 +1926,14 @@ class SyntaxAnalyzer:
 
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                self.data_type()
-                self.match("Identifier", False)
-                self.params_var_cont()
+                dtype_temp_t = self.data_type()
+                id_temp_n = self.match("Identifier", False)
+                return self.params_var_cont(dtype_temp_t, id_temp_ns)
             elif self.currToken["tokenType"] == "Identifier":
-                self.match("Identifier", False)
-                self.match("Identifier", False)
-                self.params_var_rec()
+                # self.match("Identifier", False)
+                # self.match("Identifier", False)
+                # self.params_var_rec()
+                return node_funcpar_class(node_iden(self.match("Identifier", False)), node_iden(self.match("Identifier", False)), self.params_var_rec())
         # if self.currToken and self.currToken["tokenType"] != ")":
         #     if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
         #         self.logError(f"Expected data type or class name. Found '{self.currToken["tokenType"]}' instead.")
