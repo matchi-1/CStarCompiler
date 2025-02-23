@@ -348,17 +348,19 @@ class node_classinst_cont:
         return f"node_classinst_cont(class_id_n={self.class_id_n}, func_arg_n={self.func_arg_n})"
 
 class node_class_dec:
-    def __init__(self, is_private_b, class_id_n, class_body_n, constructor_dec_n):
+    def __init__(self, is_private_b, class_id_n, class_body_n1, constructor_dec_n, class_body_n2):
         self.is_private_b = is_private_b
         self.class_id_n = class_id_n
-        self.class_body_n = class_body_n
+        self.class_body_n1 = class_body_n1
         self.constructor_dec_n = constructor_dec_n
+        self.class_body_n2 = class_body_n2
 
     def __repr__(self):
         return (f"node_class_dec(is_private_b={self.is_private_b}, "
                 f"class_id_n={self.class_id_n}, "
-                f"class_body_n={self.class_body_n}, "
-                f"constructor_dec_n={self.constructor_dec_n})")
+                f"class_body_n={self.class_body_n1}, "
+                f"constructor_dec_n={self.constructor_dec_n})"
+                f"class_body_n={self.class_body_n2}, ")
 
 class node_class_body:
     def __init__(self, is_private_b, node_vardec, class_body_rec_n):
@@ -1070,7 +1072,8 @@ class SyntaxAnalyzer:
             if self.matchPredictSet("program_constructs", False):  # Token is a valid start for program constructs
                 currentTokenType = self.currToken["tokenType"]
                 if currentTokenType in ["private", "class"]:
-                    self.class_declaration()
+                    print(self.class_declaration())
+                    self.program_constructs()
                 elif currentTokenType in PREDICT_SETS["iden_dec"]:
                     self.iden_dec()
                 else:
@@ -1189,24 +1192,28 @@ class SyntaxAnalyzer:
 
 
     # TODO
-    def class_declaration(self, inClassBody = False):
+    def class_declaration(self):
         print("(parser) production: \"class_declaration\" detected")
+
+        is_private_b = False
+
         if self.currToken["tokenType"] == "private":
-            is_private_b = self.match("private")
+             self.match("private")
+             is_private_b = True
 
         self.match("class", False)
 
         if self.currToken and self.currToken["tokenType"] == "Identifier":
             self.classNames.append(self.currToken["tokenName"])      # handles constructor name logic of recursive classes within classes
-            self.match("Identifier")
+            class_id_n = node_iden(self.match("Identifier"))
         else:
             self.ERROR_expected_token("Identifier")
         
         self.match("{", False)
 
-        self.class_body()
-        self.constructor_dec()
-        self.class_body()
+        class_body_n1 = self.class_body()
+        constructor_dec_n = self.constructor_dec()
+        class_body_n2 = self.class_body()
 
         if self.currToken and self.currToken["tokenType"] == "Identifier":
             self.logError(f"Only one constructor per class allowed. Expected: {PREDICT_SETS['class_body']}")
@@ -1217,10 +1224,8 @@ class SyntaxAnalyzer:
         if not self.match(";", True):
             self.logError("Class Declaration is expected to be terminated by ';' after '}'.")
 
-        if inClassBody:
-            self.class_body()
-        else:
-            self.program_constructs()
+        return node_class_dec(is_private_b, class_id_n, class_body_n1, constructor_dec_n, class_body_n2)
+        
 
     
     def class_body(self): # all of these are just 'if's because class_body can be null
@@ -1232,7 +1237,8 @@ class SyntaxAnalyzer:
             
             if self.currToken:
                 if self.currToken["tokenType"] == "private":
-                    is_private_b = self.match("private")
+                    self.match("private")
+                    is_private_b = True
                     if self.currToken and self.currToken["tokenType"] == "class":
                         self.logError(f"Classes cannot be nested within classes. Expected {PREDICT_SETS['iden_dec']} or constructor declaration.")
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["iden_dec"]:
@@ -1251,6 +1257,8 @@ class SyntaxAnalyzer:
         
         if self.currToken:
             if self.currToken["tokenType"] == "Identifier":
+                params_dec_n = None
+                code_block_n = None
                 print("(parser) production: \"constructor_dec\" detected")
                 if self.currToken["tokenName"] != self.classNames[-1]: 
                     self.logError("Constructors must have the same name as its class.") 
@@ -1264,7 +1272,7 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_parentheses()
 
                 self.match("{", False)
-                self.code_block()
+                code_block_n = self.code_block()
                 
                 if self.currToken and self.currToken["tokenType"] == "return":
                     self.logError(f"Constructors cannot have return statements. Expected {PREDICT_SETS['code_block']} or }} ")
@@ -1274,6 +1282,9 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_curly_braces()
 
                 print("(parser) production: \"constructor_dec\" exited!!!!!")
+                return node_constructor_dec(class_id_n, params_dec_n, code_block_n)
+
+                
 
 
     def class_inst(self, location):
