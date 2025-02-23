@@ -249,13 +249,13 @@ class node_output:
         return f'node_output(print_stmts_n = {self.print_stmts_n}, print_params_n = {self.print_params_n})'
 
 class node_body:
-    def __init__(self,body_statement_n, return_stmt_n, body_rec_n):
-        self.body_statement_n = body_statement_n
+    def __init__(self,body_codeblock_n, return_stmt_n, body_rec_n):
+        self.body_codeblock_n = body_codeblock_n
         self.return_stmt_n = return_stmt_n
         self.body_rec_n = body_rec_n
         
     def __repr__(self):
-        return f'node_body(body_statement_n: {self.body_statement_n} body_return_stmt_n: {self.return_stmt_n} body_rec_n: {self.body_rec_n})'
+        return f'node_body(body_codeblock_n: {self.body_codeblock_n} body_return_stmt_n: {self.return_stmt_n} body_rec_n: {self.body_rec_n})'
 
 class node_assign_func_method_mods:
     def __init__(self, iden_n, as_array_n, assign_stmt_op_n, func_arg_n, class_elem_iden_n, assign_func_method_mods_cont_n):
@@ -386,9 +386,8 @@ class node_constructor_dec:
                 f"code_block_n={self.code_block_n})")
 
 class node_code_block:
-    def __init__(self, code_block_statement_n, code_block_rec_n):
+    def __init__(self, code_block_statement_n):
         self.code_block_statement_n = code_block_statement_n
-        self.code_block_rec_n = code_block_rec_n
 
     def __repr__(self):
         return f"{self.__class__.__name__}({vars(self)})"
@@ -799,17 +798,16 @@ class SyntaxAnalyzer:
                     break
 
     # CODE BLOCKS START HERE
-    def code_block(self, isVoid = False):       
+    def code_block(self, code_block_statement_n = [], isVoid = False):       
         print(f"(parser) Processing <code_block>: {self.currToken['tokenName'] if self.currToken else 'None'}")
         
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["code_block"]:
             currentTokenType = self.currToken["tokenType"]
 
-            statement_n = None
 
             if currentTokenType == "Identifier":
                 iden_temp_n = node_iden(self.match("Identifier",False))
-                statement_n = self.class_as_func_post(iden_temp_n)
+                code_block_statement_n.append(self.class_as_func_post(iden_temp_n))
                 if not self.match(";", True):
                     self.ERROR_terminating_token(";")
 
@@ -824,41 +822,39 @@ class SyntaxAnalyzer:
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
 
-                statement_n = node_vardec(const_b, dtype_t, iden_temp_n, vardec_cont_n)
+                code_block_statement_n.append(node_vardec(const_b, dtype_t, iden_temp_n, vardec_cont_n))
 
             elif currentTokenType == "++":
                 left_t = self.match("++")
                 iden_temp_n = node_iden(self.match("Identifier",False))
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
-                statement_n = node_pre_un_op(left_t, iden_temp_n)
+                code_block_statement_n.append(node_pre_un_op(left_t, iden_temp_n))
 
             elif currentTokenType == "--":
                 left_t = self.match("--")
                 iden_temp_n = node_iden(self.match("Identifier",False))
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
-                statement_n = node_pre_un_op(left_t, iden_temp_n)
+                code_block_statement_n.append(node_pre_un_op(left_t, iden_temp_n))
             
             elif currentTokenType in PREDICT_SETS["output"]:
-                statement_n = self.output()
-                print(statement_n)
+                code_block_statement_n.append(self.output())
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
 
             elif currentTokenType in PREDICT_SETS["conditional_stmt"]:
-                statement_n = self.conditional_stmt(isVoid)
-                print(statement_n)
+                code_block_statement_n.append(self.conditional_stmt(isVoid))
                 
             elif currentTokenType in PREDICT_SETS["loop_stmt"]:
-                statement_n = self.loop_stmt(isVoid)
-                print(statement_n)
+                code_block_statement_n.append(self.loop_stmt(isVoid))
         
             else: self.logError("You're not supposed to see this.")
             print("AMBATURETURNNNNNNN")
-            return node_code_block(statement_n, self.code_block(isVoid))
+            self.code_block(code_block_statement_n, isVoid)
+            
 
-        return None
+        return node_code_block(code_block_statement_n)
         
 
     def class_as_func_post(self, iden_temp_n):       
@@ -952,7 +948,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
             
             
-            statements_n = self.code_block(isVoid)
+            statements_n = self.code_block([], isVoid)
             return_stmt_n = None
             body_n = None
 
@@ -1078,7 +1074,7 @@ class SyntaxAnalyzer:
                 elif currentTokenType in PREDICT_SETS["iden_dec"]:
                     self.iden_dec()
                 else:
-                    print(self.class_inst("program_constructs"))    #initial prog construct ast
+                    print(self.class_inst())    #initial prog construct ast
             if not self.hasMainFunction:
                 self.program_constructs()
         
@@ -1288,7 +1284,7 @@ class SyntaxAnalyzer:
                 
 
 
-    def class_inst(self, location):
+    def class_inst(self, location, code_block_statement_n = None):
         print("(parser) production: \"class_inst\" detected")
 
         class_instcont_n = None
@@ -1318,11 +1314,9 @@ class SyntaxAnalyzer:
                 self.ERROR_terminating_token(";")
 
             # Continue parsing program constructs
-            if self.currToken:
-                if location == "program_constructs":
-                    self.program_constructs()
-                elif location == "code_block":
-                    self.code_block()
+           
+            self.program_constructs()
+
             
     
     # Handle <classinst_cont>
