@@ -247,18 +247,21 @@ class node_arr_dec_rec:
         self.arr_dec_cont_n = arr_dec_rec_n
 
 class node_func_dec:
-    def __init__(self, dtype_t, params_n, body_n):
+    def __init__(self, dtype_t, iden_n, params_n, body_n):
         self.dtype_t = dtype_t
+        self.iden_n = iden_n
         self.params_n = params_n
         self.body_n = body_n
     def __repr__(self):
-        return f"node_func_dec(dtype_t: {self.dtype_t}, params_n: {self.params_n}, body_n: {self.body_n} )"
+        return f"node_func_dec(dtype_t: {self.dtype_t}, iden_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n} )"
 
 class node_funcpar_class:
     def __init__(self, class_id_n, obj_id_n, params_n):
         self.class_id_n = class_id_n
         self.obj_id_n = obj_id_n
         self.params_n = params_n
+    def __repr__(self):
+        return f"node_funcpar_class(class_id_n: {self.class_id_n}, obj_id_n: {self.obj_id_n}, params_n: {self.params_n})"
 
 class node_funcpar_arr:
     def __init__(self, dtype_t, id_n, arrdim_i, params_n):
@@ -266,17 +269,24 @@ class node_funcpar_arr:
         self.id_n = id_n
         self.arrdim_i = arrdim_i
         self.params_n = params_n
+    
+    def __repr__(self):
+        return f"node_funcpar_arr(dtype_t: {self.dtype_t}, id_n: {self.id_n}, arrdim_i: {self.arrdim_i}, params_n: {self.params_n})"
 
 class node_funcpar_var:
     def __init__(self, dtype_t, id_n, parvar_cont_n):
         self.dtype_t = dtype_t
         self.id_n = id_n
         self.parvar_cont_n = parvar_cont_n
+    def __repr__(self):
+        return f"node_funcpar_var(dtype_t: {self.dtype_t}, id_n: {self.id_n}, parvar_cont_n: {self.parvar_cont_n})"
 
 class node_funcpar_var_def:
     def __init__(self, value_n, parvar_defrec_n):
         self.value_n = value_n
         self.parvar_defrec_n = parvar_defrec_n
+    def __repr__(self):
+        return f"node_funcpar_var_def(value_n: {self.value_n}, parvar_defrec_n: {self.parvar_defrec_n})"
 
 class node_funcpar_var_defrec:
     def __init__(self, dtype_t, id_n, parvar_defrec_cont_n):
@@ -315,7 +325,7 @@ class node_assign_func_method_mods:
 
     def __repr__(self):
         attrs = {key: value for key, value in vars(self).items() if value is not None}
-        attr_str = ", ".join(f"{key}={value}" for key, value in attrs.items())
+        attr_str = ", ".join(f"{key}: {value}" for key, value in attrs.items())
         return f"{self.__class__.__name__}({attr_str})"
 
 class node_assign_func_method_mods_cont:
@@ -326,7 +336,7 @@ class node_assign_func_method_mods_cont:
 
     def __repr__(self):
         attrs = {key: value for key, value in vars(self).items() if value is not None}
-        attr_str = ", ".join(f"{key}={value}" for key, value in attrs.items())
+        attr_str = ", ".join(f"{key}: {value}" for key, value in attrs.items())
         return f"{self.__class__.__name__}({attr_str})"
 
 class node_return_block:
@@ -379,7 +389,7 @@ class node_class_inst:
     def __repr__(self):
         return (f"node_class_inst(class_id_n: {self.class_id_n}, "
                 f"obj_id_n: {self.obj_id_n}, "
-                f"\n\tclass_instcont_n: {self.class_instcont_n})")
+                f"\nclass_instcont_n: {self.class_instcont_n})")
 
 class node_classinst_cont:
     def __init__(self, class_id_n, func_arg_n):
@@ -440,6 +450,17 @@ class node_code_block:
     def __repr__(self):
         statements = ",\n".join(map(str, self.code_block_statement_n))
         return f"{self.__class__.__name__}(\n{statements}\n)"
+
+class node_program_constructs:
+    def __init__(self, program_constructs_statement_n):
+        self.program_constructs_statement_n = program_constructs_statement_n
+
+    def __repr__(self):
+        # Filter out None values
+        filtered_statements = [stmt for stmt in self.program_constructs_statement_n if stmt is not None]
+        statements = ",\n\n".join(map(str, filtered_statements))
+        return f"{self.__class__.__name__}({statements}\n)"
+
 
 # alex here
 class node_condition:
@@ -577,15 +598,15 @@ class SyntaxAnalyzer:
     # Matches the current token with the expected type. Returns True if matched, False otherwise.
     def match(self, expected_token, hasSpecError=True):
         if self.currToken is not None and self.currToken["tokenType"] == expected_token:
-            print(f"('match' function) token {expected_token} matched")
+            # print(f"('match' function) token {expected_token} matched")
             retToken = self.currToken
             self.nextToken()
             return retToken
         elif hasSpecError:
-            print("('match' function) deactivating default expected token error")
+            # print("('match' function) deactivating default expected token error")
             return None
         else:
-            print("('match' function) activating default expected token error")
+            # print("('match' function) activating default expected token error")
             self.ERROR_expected_token(expected_token)
             return None
 
@@ -831,7 +852,7 @@ class SyntaxAnalyzer:
             
             """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
             # Parse constructs
-            self.program_constructs()
+            print(self.program_constructs([]))
             print(f"BACK AT MAIN PROGRAM : {self.hasMainFunction}")
             # Check for main function presence
             if not self.hasMainFunction:
@@ -843,7 +864,7 @@ class SyntaxAnalyzer:
                         self.ERROR_unclosed_parentheses()
                     self.match("{", False)
                     print("(parser) production: \"main_body\" detected")
-                    
+                    print(f"######################### AST FOR BODY #########################")
                     print(self.body(["}"], True)) # isVoid = True here
 
                     if not self.match("return") and not self.hasMainReturn:
@@ -1038,9 +1059,9 @@ class SyntaxAnalyzer:
         if not self.hasFunctionReturned and not inControlStruct and not self.hasMainFunction:
                 self.logError("A return statement outside of control structures is required in all functions.")
                 #placeholder hehehehehhehehehehheyhueh
-            
+
+        
         print("(parser) production: \"body\" exited!!!!!!")
-        print(f"######################### AST FOR BODY #########################")
         return None
         
 
@@ -1119,7 +1140,7 @@ class SyntaxAnalyzer:
 
     # ----- TODO:REVISIT!! can't complete errors here yet bc errors would be found in each prod first, then check if there are external errors left 
     # ex of unimplemented error: if there's a sole variable (it can be considered a class inst, pero if not yet defined, it should throw another type of error)
-    def program_constructs(self):
+    def program_constructs(self, program_constructs_statement_n = []):
         
         print("(parser) production: \"program_constructs\" detected: currtoken is \""
       + str(self.currToken["tokenName"])+"\"" if self.currToken else "None" + "\"")
@@ -1128,15 +1149,19 @@ class SyntaxAnalyzer:
             if self.matchPredictSet("program_constructs", False):  # Token is a valid start for program constructs
                 currentTokenType = self.currToken["tokenType"]
                 if currentTokenType in ["private", "class"]:
-                    print(self.class_declaration())
-                    self.program_constructs()
+                    program_constructs_statement_n.append(self.class_declaration())
+                    self.program_constructs(program_constructs_statement_n)
                 elif currentTokenType in PREDICT_SETS["iden_dec"]:
-                    self.iden_dec()
+                    program_constructs_statement_n.append(self.iden_dec())
+                    
                 else:
-                    print(self.class_inst())    #initial prog construct ast
+                    program_constructs_statement_n.append(self.class_inst())    #initial prog construct ast
+                    
             if not self.hasMainFunction:
-                self.program_constructs()
-        
+                self.program_constructs(program_constructs_statement_n)
+                
+            print(f"######################### AST FOR PROGRAM_CONSTRUCTS #########################")
+            return node_program_constructs(program_constructs_statement_n)
 
     def iden_dec(self, inClassBody = False):
         print("(parser) production: \"iden_dec\" detected (current token: " + str(self.currToken["tokenName"]) + ")")
@@ -1249,7 +1274,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_curly_braces()
             self.hasFunctionReturned = False
             
-            return node_func_dec(dtype_tempt_t, params_n, body_n)
+            return node_func_dec(dtype_tempt_t, id_temp_n, params_n, body_n)
 
 
     # TODO
@@ -1271,9 +1296,9 @@ class SyntaxAnalyzer:
             self.ERROR_expected_token("Identifier")
         
         self.match("{", False)
-        class_body_stmt_n = self.class_body(class_body_stmt_n)
+        self.class_body(class_body_stmt_n)
         constructor_dec_n = self.constructor_dec()
-        class_body_stmt_n = self.class_body(class_body_stmt_n)
+        self.class_body(class_body_stmt_n)
 
         if self.currToken and self.currToken["tokenType"] == "Identifier":
             self.logError(f"Only one constructor per class allowed. Expected: {PREDICT_SETS['class_body']}")
@@ -1284,9 +1309,9 @@ class SyntaxAnalyzer:
         if not self.match(";", True):
             self.logError("Class Declaration is expected to be terminated by ';' after '}'.")
 
-        
-
-        return node_class_dec(is_private_b, class_id_n, constructor_dec_n, node_class_body(class_body_stmt_n))
+        print(f"######################### AST FOR CLASS DEC #########################")
+        class_body_n = node_class_body(class_body_stmt_n)
+        return node_class_dec(is_private_b, class_id_n, constructor_dec_n, class_body_n)
         
 
     
@@ -1330,7 +1355,7 @@ class SyntaxAnalyzer:
                 class_id_n = node_iden(self.match("Identifier", False))
                 self.classNames.pop()
                 self.match("(", False)
-                self.params_dec()
+                params_dec_n = self.params_dec()
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
 
@@ -1379,16 +1404,11 @@ class SyntaxAnalyzer:
             else:
                 self.ERROR_terminating_token(";")
 
-            # Continue parsing program constructs
-           
-            self.program_constructs()
-
             
     
     # Handle <classinst_cont>
     def classinst_cont(self):
         print("(parser) production: \"classinst_cont\" detected")
-        has_Constructor_or_Array_Init = False
         # object instantiation
         if self.currToken and self.currToken["tokenType"] == "=":
             self.match("=")
@@ -1400,11 +1420,10 @@ class SyntaxAnalyzer:
             if not self.currToken or self.currToken["tokenType"] != '(':
                 self.logError(f"Expected '(' for constructor call after Identifier. Found '{self.currToken["tokenType"] if self.currToken else "EOF"}' instead.")
             self.match('(')
-            func_arg_n = self.func_arg(True)
-            has_Constructor_or_Array_Init = func_arg_n[1]
+            func_arg_n = self.func_arg()
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
-            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]) and not has_Constructor_or_Array_Init:
+            elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]):
                 self.ERROR_expected_constructor_param_closing()
             else:
                 self.ERROR_expected_token([")", ","])
@@ -1413,56 +1432,37 @@ class SyntaxAnalyzer:
 
         return None
 
-    def func_arg(self, asConstructor = False):
+    def func_arg(self, func_arg_n=[]):
         print("(parser) production: \"func_arg\" detected")
-        retList = [None, None]
-        hasConstructorValue = False
-        isValidFuncArg = True
+
         # Check if there's a value to parse
         if self.currToken and self.currToken["tokenType"]in PREDICT_SETS["value"]:
             val_n = self.value([',',')'])
+            func_arg_n.append(val_n)
             if self.currToken and self.currToken["tokenType"] == ',':
-                self.match(',')
-                if self.value([',',')']):
-                    retList[0] = node_func_args(val_n)
-                    if self.currToken and self.currToken["tokenType"] == ',':
-                        # Parse the recursive part of the arguments when , is detected
-                        retList[0] = node_func_args(val_n, self.func_arg_rec())
-                    hasConstructorValue = True
+                self.func_arg_rec(func_arg_n)
         else:
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                 self.logError("Function call arguments cannot accept declarations.")
             else: 
                 print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
-        retList[1] = hasConstructorValue
-        return retList if asConstructor else retList[0]
+        
+        return func_arg_n
+
     
 
-    def func_arg_rec(self):
+    def func_arg_rec(self, func_arg_n):
         print("(parser) production: \"func_arg_rec\" detected")
-        isValidFuncArg = True
-        # Check for a comma indicating more arguments
-        if self.currToken and self.currToken["tokenType"] == ",":
-            # Peek ahead to check the token after the comma
-            next_token = self.peek()
-            if not next_token:
-                # If there's no next token, it means EOF after the comma
-                isValidFuncArg = False
-                self.logError("Expected another value after ',' but reached EOF.")
-            elif next_token["tokenType"] not in PREDICT_SETS["value"]:
-                # If the next token is not a valid value
-                isValidFuncArg = False
-                self.logError(f"Expected another value after ',' but got '{next_token['tokenName']}'.")
 
-            self.match(",")  # Match the comma
-            print("(parser) Found ',' indicating more arguments.")
+        self.match(',')
 
-            # Parse the next <func_arg>
-            return self.func_arg()
-        else:
-            print("(parser) λ-production for <func_arg_rec>")  # Handle λ (empty production)
+        if self.currToken:
+            if self.currToken["tokenType"] not in PREDICT_SETS["value"]:
+                self.logError(f"Expected another value after ',' but got '{self.currToken['tokenName']}'.")
+            self.func_arg(func_arg_n)
+        else: self.logError("Expected another value after ',' but reached EOF.")
+        
 
-        return isValidFuncArg
 
     def func_method_call(self):    
         print("(parser) production: \"func_method_call\" detected")
@@ -1504,11 +1504,11 @@ class SyntaxAnalyzer:
             self.ERROR_expected_operator()
     
     def value(self, stopChars):
-        print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         return self.logic_exp(stopChars)
 
     def logic_exp(self, stopChars):
-        print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         left_n = self.rel_exp(stopChars)
         
         if self.currToken:
@@ -1519,7 +1519,7 @@ class SyntaxAnalyzer:
         return left_n
     
     def logic_exp_cont(self, left_n, stopChars):
-        print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         op_t = None
         match self.currToken["tokenType"]:
             case "&&":
@@ -1532,7 +1532,7 @@ class SyntaxAnalyzer:
         return new_left_n
 
     def rel_exp(self, stopChars):
-        print("(parser-value-chain): Entered \"rel_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"rel_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         left_n = self.arith_exp(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["rel_operator"]:
@@ -1541,7 +1541,7 @@ class SyntaxAnalyzer:
         return left_n
     
     def rel_exp_cont(self, left_n, stopChars):
-        print("(parser-value-chain): Entered \"rel_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"rel_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         op_t = None
         match self.currToken["tokenType"]:
             case "==":
@@ -1565,7 +1565,7 @@ class SyntaxAnalyzer:
         return new_left_n
     
     def arith_exp(self, stopChars):
-        print("(parser-value-chain): Entered \"arith_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"arith_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         left_n = self.term(stopChars)
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["add_min_cont"]:
@@ -1574,7 +1574,7 @@ class SyntaxAnalyzer:
         return left_n
 
     def add_min_cont(self, left_n, stopChars):
-        print("(parser-value-chain): Entered \"add_min_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"add_min_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         op_t = None
         match self.currToken["tokenType"]:
             case "+":
@@ -1589,7 +1589,7 @@ class SyntaxAnalyzer:
         return new_left_n
 
     def term(self, stopChars):
-        print("(parser-value-chain): Entered \"term\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"term\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         left_n = self.factor(stopChars)
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mult_div_modulo_cont"]:
             left_n = self.mult_div_modulo_cont(left_n, stopChars)
@@ -1597,7 +1597,7 @@ class SyntaxAnalyzer:
         return left_n
 
     def mult_div_modulo_cont(self, left_n, stopChars):
-        print("(parser-value-chain): Entered \"mult_div_modulo_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"mult_div_modulo_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         op_t = None
         match self.currToken["tokenType"]:
             case "*":
@@ -1613,7 +1613,7 @@ class SyntaxAnalyzer:
         return new_left_n
     
     def factor(self, stopChars):
-        print("(parser-value-chain): Entered \"factor\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"factor\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] == "-":
             return node_un_op(self.match("-"), self.factor(stopChars))
         elif self.currToken and self.currToken["tokenType"] == "!":
@@ -1630,7 +1630,7 @@ class SyntaxAnalyzer:
         return is_valid_value
     
     def cast_val(self, stopChars):
-        print("(parser-value-chain): Entered \"cast_val\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"cast_val\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
             dtype = self.data_type()
@@ -1652,7 +1652,7 @@ class SyntaxAnalyzer:
         return is_valid_value
 
     def atom(self):
-        print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         is_valid_value = True
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["lit_type"]:
             return self.lit_type()
@@ -1687,7 +1687,7 @@ class SyntaxAnalyzer:
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
             temp_id = self.match("Identifier")
             temp_node = node_iden(temp_id)
-            print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+            # print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:
                 temp_node = self.mods_post_op(node_iden(temp_id))
             return temp_node
@@ -1695,7 +1695,7 @@ class SyntaxAnalyzer:
         return is_valid_value
 
     def mods_post_op(self, temp_id):
-        print("(parser-value-chain): Entered \"mods_post_op\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"mods_post_op\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_mods"]:
             temp_node = self.iden_mods(temp_id)
         elif self.currToken and self.currToken["tokenType"] in ["++", "--"]:
@@ -1703,7 +1703,7 @@ class SyntaxAnalyzer:
         return temp_node
     
     def mods_post_op_con(self, temp_id):
-        print("(parser-value-chain): Entered \"mods_post_op_con\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        # print("(parser-value-chain): Entered \"mods_post_op_con\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         match self.currToken["tokenType"]:
             case "++":
                 return node_post_un_op(temp_id, self.match("++"))
@@ -2921,28 +2921,3 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"iden_as_var_mods\"")
         return node_temp
        
-
-    # def assign_func_method_mods(self):
-    #     print("(parser) production: \"assign_func_method_mods\" detected")
-
-    #     if self.currToken:
-    #         if self.currToken["tokenType"] == "(":
-    #             self.match("(")
-    #             self.func_arg()
-    #             if not self.match(")"):
-    #                 self.ERROR_unclosed_parentheses()
-
-    #         elif self.currToken["tokenType"] == "[" or self.currToken["tokenType"] == "." or self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-    #             if self.currToken["tokenType"] == "[" or self.currToken["tokenType"] in PREDICT_SETS["assign_operator"]:
-    #                 self.as_array()
-    #                 self.assign_stmt_op()
-    #             elif self.currToken["tokenType"] == ".":
-    #                 self.match(".")
-    #                 self.match("Identifier", False)
-    #                 self.assign_func_method_mods_cont()
-
-    #         else: self.ERROR_expected_token(["[", "(", "."] + PREDICT_SETS["assign_operator"])
-    #     else: self.ERROR_expected_token(["[", "(", "."] + PREDICT_SETS["assign_operator"])
-
-    #     return f"(AST-TEMP) assign_func_method_mods PASSED"
-

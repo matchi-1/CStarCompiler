@@ -35,17 +35,25 @@ const Header = ({ editorRef, fileData, activeTab }) => {
 
   return (
     <div className="header">
-      <div className="header-item" onClick={handleUndo}>
-        <p>Undo</p>
+      <div className='header-menu'>
+        <div className="header-item" onClick={handleUndo}>
+          <p>Undo</p>
+        </div>
+        <div className="header-item" onClick={handleRedo}>
+          <p>Redo</p>
+        </div>
+        <div className="header-item">
+          <p>Save</p>
+        </div>
+        <div className="header-item" onClick={handleDownload}>
+          <p>Download</p>
+        </div>
       </div>
-      <div className="header-item" onClick={handleRedo}>
-        <p>Redo</p>
-      </div>
-      <div className="header-item">
-        <p>Save</p>
-      </div>
-      <div className="header-item" onClick={handleDownload}>
-        <p>Download</p>
+      
+      <div className='header-btns'>
+        <div className='img-btn-wrapper'>
+          <img src="/assets/run-btn.png" alt="run-btn"/>
+        </div>
       </div>
       
     </div>
