@@ -183,21 +183,21 @@ class node_un_op:
         self.left_t = left_t
         self.right_n = right_n
     def __repr__(self):
-        return f'({self.left_t["tokenName"]} {self.right_n})'
+        return f'node_un_op(unary_op: {self.left_t["tokenName"]}, identifier: {self.right_n})'
 
 class node_post_un_op:
     def __init__(self, left_n, right_t):
         self.left_n = left_n
         self.right_t = right_t
     def __repr__(self):
-        return f'node_post_un_op({self.left_n} {self.right_t["tokenName"]})'
+        return f'node_post_un_op(identifier: {self.left_n}, unary_op: {self.right_t["tokenName"]})'
 
 class node_pre_un_op:
     def __init__(self, left_t, iden_n):
         self.left_t = left_t
         self.iden_n = iden_n
     def __repr__(self):
-        return f'node_pre_un_op({self.left_t["tokenName"]} {self.iden_n})'
+        return f'node_pre_un_op(unary_op: {self.left_t["tokenName"]}, identifier: {self.iden_n})'
 
 class node_input:
     def __init__(self, type_t, prompt_n = None, count_n = None):
@@ -205,7 +205,7 @@ class node_input:
         self.prompt_n = prompt_n
         self.count_n = count_n
     def __repr__(self):
-        return f'in<{self.type_t["tokenName"]}>({self.prompt_n}, {self.count_n})'
+        return f'in<{self.type_t}>({self.prompt_n}, {self.count_n})'
 
 class node_vardec:
     def __init__ (self, const_b, dtype_t, id_n, vardec_cont_n):
@@ -246,7 +246,7 @@ class node_output:
         self.print_stmts_n = print_stmts_n
         self.print_params_n = print_params_n
     def __repr__(self):
-        return f'node_output(print_stmts_n = {self.print_stmts_n}, print_params_n = {self.print_params_n})'
+        return f'node_output(print_stmts_n: {self.print_stmts_n}, print_params_n: {self.print_params_n})'
 
 class node_body:
     def __init__(self,body_codeblock_n, return_stmt_n, body_rec_n):
@@ -390,7 +390,8 @@ class node_code_block:
         self.code_block_statement_n = code_block_statement_n
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({vars(self)})"
+        statements = ",\n".join(map(str, self.code_block_statement_n))
+        return f"{self.__class__.__name__}(\n{statements}\n)"
 
 # alex here
 class node_condition:
