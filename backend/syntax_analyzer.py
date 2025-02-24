@@ -200,24 +200,6 @@ class node_input:
     def __repr__(self):
         return f'in<{self.type_t["tokenName"]}>({self.prompt_n}, {self.count_n})'
 
-class node_vardec:
-    def __init__ (self, const_b, dtype_t, id_n, vardec_cont_n):
-        self.const_b = const_b
-        self.dtype_t = dtype_t
-        self.id_n = id_n
-        self.vardec_cont_n = vardec_cont_n
-
-class node_vardec_cont:
-    def __init__(self, value_n, idec_rec_n):
-        self.value_n = value_n
-        self.idec_rec_n = idec_rec_n
-
-class node_idec_rec:
-    def __init__(self, id_n, value_n, idec_rec_n):
-        self.id_n = id_n
-        self.value_n = value_n
-        self.idec_rec_n = idec_rec_n
-
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
@@ -410,6 +392,7 @@ class SyntaxAnalyzer:
         self.logError(f"Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_cstr_file(self):
+        self.logError("Expected a filename with '.cstr' extension.")
 
     def ERROR_expected_stdlib(self):
         self.logError(f"Expected a standard library (Cmath, Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
@@ -511,12 +494,46 @@ class SyntaxAnalyzer:
     def program(self):
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
+        
+        self.imports_list()
+        
+        """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
+        # Parse constructs
+        self.program_constructs()
+        print(f"BACK AT MAIN PROGRAM : {self.hasMainFunction}")
+        # Check for main function presence
+        if not self.hasMainFunction:
+            self.ERROR_no_main_func()
+        else:
+            while self.currToken:
+                #self.match("(", False)
+                if not self.match(")"):
+                    self.ERROR_unclosed_parentheses()
+                self.match("{", False)
+                print("(parser) production: \"main_body\" detected")
 
+                self.body(["}"], True) # isVoid = True here
 
+                if not self.match("return") and not self.hasMainReturn:
+                    self.ERROR_main_missing_return()
 
+                # if not self.currToken or self.currToken["tokenType"] != ";" and not self.hasMainReturn:
+                #     self.ERROR_main_void_return()
+                
+                if not self.match(";") and not self.hasMainReturn:
+                    self.ERROR_main_void_return()  # prolly wont throw this error bc return is now in body
 
+                if not self.match("}"):
+                    self.ERROR_unclosed_curly_braces()
 
+                # TODO: might have to be revisited, for some reason it's off by one line
+                if self.currToken: 
+                    currLine = self.currToken["tokenLine"]
+                    currCol = self.currToken["tokenCol"]
 
+                    print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
+                    self.errors.append(f"Warning at line {currLine}: Unreachable code detected.")
+                    break
 
     # CODE BLOCKS START HERE
     def code_block(self, isVoid = False):       
@@ -672,15 +689,55 @@ class SyntaxAnalyzer:
 
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
+        """<imports_list> → import <iostar>;<imports_rec>"""
 
+        self.match("import", False)
+
+        self.match("<", False)
+
+        if not self.currToken or self.currToken["tokenName"] != "iostar":
+            self.ERROR_expected_token("iostar")
+        else:
+            self.match("Identifier")  # Match 'iostar'
+
+        if not self.match(">"):
+            self.ERROR_unclosed_angled_bracket()
+
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+
+        # No need for predict set here bc the only path for imports_rec is if the next token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
+            self.imports_rec()
+
+        # If the next token (curr token in this case) is not import, it finishes imports_list, goes back to program prod
 
 
+    def imports_rec(self):
+        print("(parser) production: \"imports_rec\" detected")
+        """<imports_rec> → import <<imports_rec_values>>;<imports_rec> | λ"""
+
+        self.match("import", False)
+
+        self.match("<", False)
+
+        # Process content inside '<>'
+        self.imports_rec_values()
+
+        if not self.match(">"):
+            self.ERROR_unclosed_angled_bracket()
+
+        if not self.match(";"):
+            self.ERROR_terminating_token(";")
+
+        # Handle potential recursive imports_rec
+        if self.currToken and self.currToken["tokenType"] == "import":
+            self.imports_rec()
 
 
-
-
-
+    def imports_rec_values(self):
+        print("(parser) production: \"imports_rec_values\" detected")
+        """<imports_rec_values> → standard library | standard library with .cstr | filename with .cstr"""
 
         if self.currToken:
             # Check for standard library or standard library with .cstr
@@ -696,8 +753,14 @@ class SyntaxAnalyzer:
             # Check for filename (non-standard-library identifier followed by .cstr)
             elif self.currToken["tokenType"] == "Identifier":
                 self.match("Identifier")  # Match the filename
+                if self.currToken and self.currToken["tokenType"] == ".":
+                    self.match(".")
+                    if self.currToken and self.currToken["tokenName"] == "cstr":
+                        self.match("Identifier")  # Match 'cstr'
                     else:
+                        self.ERROR_expected_cstr_file()
                 else:
+                    self.ERROR_expected_stdlib_or_filename()
             else:
                 self.ERROR_expected_stdlib_or_filename()
         else:
@@ -737,13 +800,11 @@ class SyntaxAnalyzer:
                 if self.currToken["tokenType"] == "void":
                     self.logError("Void function cannot be preceded by 'const'.")
                 elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                    dtype_temp_t = self.data_type()
-                    iden_temp_n = node_iden(self.match("Identifier",False))
-                    vardec_cont_temp_n = self.var_dec_cont()
+                    self.data_type()
+                    self.match("Identifier",False)
+                    self.var_dec_cont()
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
-                    
-                    return node_vardec(True, dtype_temp_t, iden_temp_n, vardec_cont_temp_n)
                 else: self.ERROR_expected_token(PREDICT_SETS["data_type"])
 
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
@@ -763,16 +824,20 @@ class SyntaxAnalyzer:
                 if not self.hasMainFunction:
                     self.params_dec_start(isVoid)
                 else:
+                    if self.currToken:
+                        if self.currToken["tokenType"] != ")":
+                            self.logError(f"Main function cannot contain parameters. Expected ')', but found '{self.currToken["tokenName"]}'.")
+                    else: self.logError("Expected ')', but reached EOF.")
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
-                dtype_temp_t = self.data_type()
-                id_temp_n = node_iden(self.match("Identifier", False))
-                return self.iden_dec_cont(dtype_temp_t, id_temp_n)
+                self.data_type()
+                self.match("Identifier", False)
+                self.iden_dec_cont()
             
             else:
                 self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
 
-    def iden_dec_cont(self, dtype_temp_t, id_temp_n):
+    def iden_dec_cont(self):
         print("(parser) production: \"iden_dec_cont\" detected")
 
         if self.currToken:
@@ -780,21 +845,17 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == "(":
                 self.params_dec_start()
             elif self.currToken["tokenType"] in PREDICT_SETS["iden_dec_cont"]:
-                node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n)
+                self.var_dec_cont()
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
-                
-                return node_temp
             else: self.ERROR_expected_token(["("] + PREDICT_SETS["iden_dec_cont"])
 
         else: self.ERROR_expected_token(["("] + PREDICT_SETS["iden_dec_cont"])
 
 
-    def var_dec_cont(self, dtype_temp_t, id_temp_n):
+    def var_dec_cont(self):
         print("(parser) production: \"var_dec_cont\" detected")
-        value_temp_n = None
-        idec_rec_temp_n = None
-        vardec_cont_temp_n = None
+
         if self.currToken:
             if self.currToken["tokenType"] == "[":
                 self.match("[", False)
@@ -804,13 +865,8 @@ class SyntaxAnalyzer:
                 self.var_id_arr1D()
 
             else:
-                value_temp_n = self.var_init()
-                idec_rec_temp_n = self.var_iden_rec()
-        
-        # none arr var dec
-        if value_temp_n or idec_rec_temp_n:
-            vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
-        return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
+                self.var_init()
+                self.var_iden_rec()
 
 
     def params_dec_start(self, isVoid = False):
@@ -2040,7 +2096,7 @@ class SyntaxAnalyzer:
             elif currentTokenType == "continue":
                 self.continue_stmt()
             elif currentTokenType in PREDICT_SETS["body"]:
-                self.body(["break", "continue", "case", "}"], isVoid, True)
+                self.body(["break", "continue", "case", "}", "default"], isVoid, True)
 
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body(isVoid)
@@ -2121,12 +2177,10 @@ class SyntaxAnalyzer:
 
             if currentTokenType == "=":
                 self.match("=", False)
-                value_temp_n = self.value(PREDICT_SETS["var_init"])
-                if not value_temp_n:
+                if not self.value(PREDICT_SETS["var_init"]):
                     self.logError("Invalid value for variable declaration.")
-                return value_temp_n
+            
         print("(parser) exited production: \"var_init\"")
-        return None
 
     
     def var_iden_rec(self):
@@ -2137,19 +2191,15 @@ class SyntaxAnalyzer:
 
             if self.currToken["tokenType"] == ",":
                 self.match(",")
-                id_temp_t = self.match("Identifier")
-                if id_temp_t:
-                    id_temp_n = node_iden(id_temp_t)
-                    value_temp_n = self.var_init()
-                    idec_rec_temp_n = None
+                if self.match("Identifier"):
+                    self.var_init()
                     if self.currToken["tokenType"] == ",":
-                        idec_rec_temp_n = self.var_iden_rec()
+                        self.var_iden_rec()
                 else:
                     self.ERROR_expected_token("Identifier")
-                return node_idec_rec(id_temp_n, value_temp_n, idec_rec_temp_n)
         
         print("(parser) exited production: \"var_iden_rec\"")
-        return None
+
 
     def var_id_arr1D(self):
         '''<var_id_arr1D> → <array1D_iden_rec> | <array1D_init>'''
