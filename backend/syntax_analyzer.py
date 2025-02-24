@@ -490,7 +490,7 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"node_switch ( switch_value_n: {self.value_n} ) {{ \n {self.case_n} \n {self.default_n} \n}}\n"
+        return f"\nnode_switch ( \n switch_value_n: {self.value_n} \n {self.case_n} \n {self.default_n if self.default_n else "node_default: ( None )"} \n)\n"
 
 class node_case:
     def __init__(self, case_stmt_n):
@@ -518,7 +518,7 @@ class node_loop_stmt:
     def __init__(self, loop_stmt_n):
         self.loop_stmt_n = loop_stmt_n
     def __repr__(self):
-        return f"loop_stmt -> {self.loop_stmt_n}\n"
+        return f"\nnode_loop_stmt -> {self.loop_stmt_n}\n"
 
 class node_forloop:
     def __init__(self, init_arg_n, condition_n, inc_arg_n, ctrl_stmt_body_n):
@@ -528,7 +528,7 @@ class node_forloop:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"for ( \n\t init_arg -> {self.init_arg_n} \n\t {self.condition_n} \n\t inc_arg -> {self.inc_arg_n} \n) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}\n"
+        return f"node_forloop ( \n init_arg_n: {self.init_arg_n} \n {self.condition_n} \n inc_arg_n: {self.inc_arg_n} \n)\n loop_body_n( {self.ctrl_stmt_body_n} )\n)\n"
 
 class node_while:
     def __init__(self, condition_n, ctrl_stmt_body_n):
@@ -536,7 +536,7 @@ class node_while:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"while ( {self.condition_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}\n"
+        return f"node_while ( \n {self.condition_n} \n loop_body_n( {self.ctrl_stmt_body_n} )\n)\n"
 
 class node_do:
     def __init__(self, condition_n, ctrl_stmt_body_n):
