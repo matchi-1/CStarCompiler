@@ -403,6 +403,21 @@ const toggleFiles = () => {
     return () => clearTimeout(fetchTimer);
   }, [code]);
 
+  const callSyntax = async () => {
+    const params = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code }),
+    };
+    const response = await fetch('http://127.0.0.1:5000/api/syntax', params);
+    const { errors } = await response.json();  // Destructuring response from backend
+    console.log("syntax errors: " + errors)
+    console.log("clicked run button")
+    setErrors([...errorLogs, ...errors]);
+  }
+
   // Cleanup ResizeObserver on unmount
   useEffect(() => {
     return () => {
@@ -448,6 +463,7 @@ const toggleFiles = () => {
             code={code} 
             setValue={setValue}
             editorRef={editorRef} 
+            clickHandler = {callSyntax}
             
             />
             <FileTabs 

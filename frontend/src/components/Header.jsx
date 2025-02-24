@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/Header.css';
 
-const Header = ({ editorRef, fileData, activeTab }) => {
+const Header = ({ editorRef, fileData, activeTab, clickHandler }) => {
   // Undo functionality
   const handleUndo = () => {
     if (editorRef.current) {
@@ -51,7 +51,7 @@ const Header = ({ editorRef, fileData, activeTab }) => {
       </div>
       
       <div className='header-btns'>
-        <div className='img-btn-wrapper'>
+        <div className='img-btn-wrapper' onClick={clickHandler}>
           <img src="/assets/run-btn.png" alt="run-btn"/>
         </div>
       </div>
