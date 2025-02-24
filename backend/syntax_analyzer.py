@@ -2,7 +2,6 @@ import semantic_analyzer
 
 #-------------------- PREDICT SETS --------------------
 PREDICT_SETS = {
-    "program":["import", "Identifier", "const", "void", "bool", "string", "int", "long", "float", "double", "private", "class"],
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "std_lib": ["Cmath", "Cstring", "Carray"],
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
@@ -411,10 +410,6 @@ class SyntaxAnalyzer:
         self.logError(f"Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_cstr_file(self):
-        if self.currToken and self.currToken["tokenType"] == ">":
-            self.logError(f"Expected .cstr extension for an imported header file, before \'>\'")
-        else:
-            self.logError(f"Expected a filename with '.cstr' extension for an imported header file, instead got '{self.currToken["tokenName"]}'.")
 
     def ERROR_expected_stdlib(self):
         self.logError(f"Expected a standard library (Cmath, Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
@@ -516,46 +511,11 @@ class SyntaxAnalyzer:
     def program(self):
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
-        if self.matchPredictSet("program", False):
-            self.imports_list()
-            
-            """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
-            # Parse constructs
-            self.program_constructs()
-            print(f"BACK AT MAIN PROGRAM : {self.hasMainFunction}")
-            # Check for main function presence
-            if not self.hasMainFunction:
-                self.ERROR_no_main_func()
-            else:
-                while self.currToken:
-                    #self.match("(", False)
-                    if not self.match(")"):
-                        self.ERROR_unclosed_parentheses()
-                    self.match("{", False)
-                    print("(parser) production: \"main_body\" detected")
-                    
-                    print(self.body(["}"], True)) # isVoid = True here
 
-                    if not self.match("return") and not self.hasMainReturn:
-                        self.ERROR_main_missing_return()
 
-                    # if not self.currToken or self.currToken["tokenType"] != ";" and not self.hasMainReturn:
-                    #     self.ERROR_main_void_return()
-                    
-                    if not self.match(";") and not self.hasMainReturn:
-                        self.ERROR_main_void_return()  # prolly wont throw this error bc return is now in body
 
-                    if not self.match("}"):
-                        self.ERROR_unclosed_curly_braces()
 
-                    # TODO: might have to be revisited, for some reason it's off by one line
-                    if self.currToken: 
-                        currLine = self.currToken["tokenLine"]
-                        currCol = self.currToken["tokenCol"]
 
-                        print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
-                        self.errors.append(f"Warning at line {currLine}: Unreachable code detected.")
-                        break
 
 
     # CODE BLOCKS START HERE
@@ -710,33 +670,17 @@ class SyntaxAnalyzer:
         
         print("(parser) production: \"body\" exited!!!!!!")
 
-
     def imports_list(self):
         print("(parser) production: \"imports_list\" detected")
 
-        # only parse this if currtoken is "import" or if the program starts with "import"
         if self.currToken and self.currToken["tokenType"] == "import":
-            self.match("import", False)
-
-            self.match("<", False)
-
-            # Process content inside '<>'
-            self.imports_list_values()
-
-            if not self.match(">"):
-                self.ERROR_unclosed_angled_bracket()
-
-            if not self.match(";"):
-                self.ERROR_terminating_token(";")
-
-            # Handle potential recursive imports_rec
-            if self.currToken and self.currToken["tokenType"] == "import":
-                self.imports_list()
 
 
-    def imports_list_values(self):
-        print("(parser) production: \"imports_list_values\" detected")
-        """<imports_list_values> → standard library | standard library with .cstr | filename with .cstr"""
+
+
+
+
+
 
         if self.currToken:
             # Check for standard library or standard library with .cstr
@@ -752,21 +696,8 @@ class SyntaxAnalyzer:
             # Check for filename (non-standard-library identifier followed by .cstr)
             elif self.currToken["tokenType"] == "Identifier":
                 self.match("Identifier")  # Match the filename
-                
-                if self.currToken and self.currToken["tokenType"] == ">":
-                    self.logError(f"Expected .cstr extension for an imported header file, before \'>\'")
-
-                if not self.match("."):
-                    if self.currToken:
-                        self.logError(f"Expected .cstr extension for an imported header file, instead got '{self.currToken["tokenName"]}'")
                     else:
-                        self.logError(f"Expected .cstr extension for an imported header file, instead reached EOF.")
-                
-                if self.currToken and self.currToken["tokenName"] == "cstr":
-                    self.match("Identifier")  # Match 'cstr'
                 else:
-                    self.ERROR_expected_cstr_file()
-        
             else:
                 self.ERROR_expected_stdlib_or_filename()
         else:
@@ -832,10 +763,6 @@ class SyntaxAnalyzer:
                 if not self.hasMainFunction:
                     self.params_dec_start(isVoid)
                 else:
-                    if self.currToken:
-                        if self.currToken["tokenType"] != ")":
-                            self.logError(f"Main function cannot contain parameters. Expected ')', but found '{self.currToken["tokenName"]}'.")
-                    else: self.logError("Expected ')', but reached EOF.")
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
@@ -2113,7 +2040,7 @@ class SyntaxAnalyzer:
             elif currentTokenType == "continue":
                 self.continue_stmt()
             elif currentTokenType in PREDICT_SETS["body"]:
-                self.body(["break", "continue", "case", "}", "default"], isVoid, True)
+                self.body(["break", "continue", "case", "}"], isVoid, True)
 
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body(isVoid)
@@ -2484,4 +2411,3 @@ class SyntaxAnalyzer:
 
             else: self.ERROR_expected_token(["[", "(", "."] + PREDICT_SETS["assign_operator"])
         else: self.ERROR_expected_token(["[", "(", "."] + PREDICT_SETS["assign_operator"])
-
