@@ -365,19 +365,19 @@ class node_if_stmt:
         self.body_n = body_n
         self.else_chain_n = else_chain_n
     def __repr__(self):
-        return f'if({self.condition_n}) {{ \t{self.body_n} }} \n{self.else_chain_n if self.else_chain_n else ""}'
+        return f'node_if_stmt( \n{self.condition_n} \n ctrl_body_n( {self.body_n} ) {self.else_chain_n if self.else_chain_n else "node_else_chain( None )"}'
 
 class node_else_chain:
     def __init__(self, else_stmt_n):
         self.else_stmt_n = else_stmt_n
     def __repr__(self):
-        return f'else {self.else_stmt_n}'
+        return f'\nnode_else_chain( {self.else_stmt_n} )'
 
 class node_else_stmt:
     def __init__(self, body_n):
         self.body_n = body_n
     def __repr__(self):
-        return f'{self.body_n}'
+        return f'node_else( \n ctrl_body_n( {self.body_n} ) \n)'
 
 class node_ctrl_stmt_body:
     def __init__(self, statements_n):
@@ -552,7 +552,7 @@ class node_repeat:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_repeat ( \n repeat_value_n: {self.repeat_value_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} )"
+        return f"node_repeat ( \n repeat_value_n: {self.repeat_value_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} ) \n)"
 
 class node_assign_stmt:
     def __init__(self, id_n, assign_op_n, assign_value_n):
@@ -2290,7 +2290,7 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_curly_braces()
                 self.match("}", False)
                 self.hasFunctionReturned = False
-                return f"{{\t{body_n} }}"
+                return node_else_stmt(body_n)
             
             else:
                 self.logError("Expected: else if statement or else body")
