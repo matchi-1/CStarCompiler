@@ -562,13 +562,13 @@ class SyntaxAnalyzer:
                if token.token_type not in {"single_comment", "multi-line comment"}]   # comments will be ignored by the parser
         # print(self.tokens) #uncomment to check tokens that the parser accepted
         
-        if not self.tokens:
-            message = "\n\tNo tokens to parse."
-            self.errors.append(message)
-            raise SyntaxError(message)
+        # if not self.tokens:
+        #     message = "\n\tNo tokens to parse."
+        #     self.errors.append(message)
+        #     raise SyntaxError(message)
 
         self.currToken_index = 0
-        self.currToken = self.tokens[self.currToken_index]
+        self.currToken = self.tokens[self.currToken_index] if self.tokens else None
 
         self.lineContent = ''
         self.hasMainFunction = False  # Track if main function is found
@@ -846,7 +846,10 @@ class SyntaxAnalyzer:
         
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
-        
+        if not self.tokens:
+            message = "\n\tNo tokens to parse."
+            self.errors.append(message)
+            raise SyntaxError(message)
         if self.matchPredictSet("program", False):
             print(">>>>>> IMPORTS LIST: " + str(self.imports_list()))
             

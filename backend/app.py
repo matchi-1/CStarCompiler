@@ -1907,13 +1907,13 @@ def syntax_analysis():
     global tokens
     errors = []
     # Calls syntax analyzer
-    print('(flask)(dbg) tokens global: ', tokens)
     try:
         analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        errors += analyzer.parse()    # comment out to just test for lexer
+        errors = analyzer.parse()    # comment out to just test for lexer
     except SyntaxError as e:
         print(e)
     # Create a JSON-serializable response
+    print('test\n\n\n\n', errors, '\n\n\n\n\n')
     response = {
         "errors": errors or []        
     }
