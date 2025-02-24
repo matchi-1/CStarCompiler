@@ -1860,6 +1860,8 @@ class Token:
             "tokenLine": self.token_line,
             "tokenCol": self.token_col
         }
+#--GLOBAL LISTS--
+tokens = []
 
 #---FLASK ROUTES---
 @app.route('/api/hello', methods=['GET'])
@@ -1868,6 +1870,9 @@ def hello():
 
 @app.route('/api/compile', methods=['POST'])
 def compile_code():
+    global tokens
+    #empty out token list every time lexer is called
+    tokens.clear()
     data = request.json
     code = data.get('code', '')
     code += '\n'
@@ -1875,12 +1880,12 @@ def compile_code():
     lexer_results = lexer(code)  # Returns [tokens, errors]
     tokens, errors = lexer_results  # Unpack the results
 
-    # Calls syntax analyzer
-    try:
-        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        errors += analyzer.parse()    # comment out to just test for lexer
-    except SyntaxError as e:
-        print(e)
+    # # Calls syntax analyzer
+    # try:
+    #     analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+    #     errors += analyzer.parse()    # comment out to just test for lexer
+    # except SyntaxError as e:
+    #     print(e)
 
 
     # Convert Token objects to dictionaries
@@ -1897,5 +1902,25 @@ def compile_code():
     # print('\n\n', json.dumps(response, indent=2))
     return jsonify(response)
 
+@app.route('/api/syntax', methods=['POST'])
+def syntax_analysis():
+    global tokens
+    errors = []
+    # Calls syntax analyzer
+    print('(flask)(dbg) tokens global: ', tokens)
+    try:
+        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+        errors += analyzer.parse()    # comment out to just test for lexer
+    except SyntaxError as e:
+        print(e)
+    # Create a JSON-serializable response
+    response = {
+        "errors": errors or []        
+    }
+    # print json output
+    # print('\n\n', json.dumps(response, indent=2))
+    return jsonify(response)
+
 if __name__ == '__main__':
     app.run(debug=True) 
+

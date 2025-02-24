@@ -2739,7 +2739,7 @@ class SyntaxAnalyzer:
             if self.currToken:
                 
                 if self.currToken["tokenType"] in PREDICT_SETS["value"]:
-                    val_list[0] = self.value(["}", ","])
+                    val_list.append(self.value(["}", ","]))
                     if self.currToken["tokenType"] == ",":
                         val_list.extend(self.arr_value_1D_rec())
                 else:
@@ -2757,7 +2757,7 @@ class SyntaxAnalyzer:
                 if self.currToken["tokenType"] == ",":
                     self.match(",")
                     if self.currToken["tokenType"] in PREDICT_SETS["value"]:
-                        val_list[0] = self.value(["}", ","])
+                        val_list.append(self.value(["}", ","]))
                         val_list.extend(self.arr_value_1D_rec())
                     else:
                         self.ERROR_expected_token("value")
@@ -2835,7 +2835,7 @@ class SyntaxAnalyzer:
             val_list = []
             if self.currToken:
                 self.match("{", False)
-                val_list[0] = self.arr_value_1D()
+                val_list.extend(self.arr_value_1D())
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
                 val_list.extend(self.arr_value_2D_rec())
@@ -2850,7 +2850,7 @@ class SyntaxAnalyzer:
             if self.currToken:
                 self.match(",")
                 self.match("{", False)
-                val_list[0] = self.arr_value_1D()
+                val_list.extend(self.arr_value_1D())
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
                 if self.currToken["tokenType"] == ",":
