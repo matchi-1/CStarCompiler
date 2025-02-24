@@ -1450,7 +1450,8 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             if not self.match("Identifier"):
-                self.logError("Expected Identifier (variable declaration or class name).")
+                prev_token = self.tokens[self.currToken_index-1]["tokenName"]
+                self.logError(f"Expected Identifier after '{prev_token}', instead got '{self.currToken["tokenName"]}'.")
             if self.currToken:
                 if self.peek(-2)["tokenType"] == "Identifier" and self.currToken:
                     if self.currToken["tokenType"] == "=":
