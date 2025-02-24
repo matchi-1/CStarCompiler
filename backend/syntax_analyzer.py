@@ -277,7 +277,7 @@ class node_func_dec:
         self.params_n = params_n
         self.body_n = body_n
     def __repr__(self):
-        return f"node_func_dec(dtype_t: {self.dtype_t}, iden_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n} )"
+        return f"node_func_dec(\n\tdtype_t: {self.dtype_t}, iden_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n})"
 
 class node_funcpar_class:
     def __init__(self, class_id_n, obj_id_n, params_n):
@@ -336,7 +336,7 @@ class node_body:
         self.return_stmt_n = return_stmt_n
         
     def __repr__(self):
-        return f'node_body(body_codeblock_n: {self.body_codeblock_n}, \nbody_return_stmt_n: {self.return_stmt_n}'
+        return f'node_body: {{ body_codeblock_n: {self.body_codeblock_n}, \nbody_return_stmt_n: {self.return_stmt_n} }}\n'
 
 class node_assign_func_method_mods:
     def __init__(self, iden_n, as_array_n, assign_stmt_op_n, func_arg_n, class_elem_iden_n, assign_func_method_mods_cont_n):
@@ -367,7 +367,7 @@ class node_return_block:
     def __init__(self, ret_value_n=None):
         self.ret_value_n = ret_value_n
     def __repr__(self):
-        return f'node_return_block(ret_value_n: {self.ret_value_n})'
+        return f'node_return_block: (ret_value_n: {self.ret_value_n})'
 
 class node_if_stmt:
     def __init__(self, condition_n, body_n, else_chain_n=None):
@@ -453,7 +453,7 @@ class node_class_body_stmt:
 
     def __repr__(self):
         return (f"is_private_b: {self.is_private_b}, "
-                f"node_vardec: {self.node_vardec} "
+                f"{self.node_vardec}"
                 )
     
 class node_constructor_dec:
