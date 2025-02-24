@@ -404,6 +404,8 @@ const toggleFiles = () => {
   }, [code]);
 
   const callSyntax = async () => {
+    setErrors([]);
+
     const params = {
       method: 'POST',
       headers: {
@@ -413,9 +415,11 @@ const toggleFiles = () => {
     };
     const response = await fetch('http://127.0.0.1:5000/api/syntax', params);
     const { errors } = await response.json();  // Destructuring response from backend
+    
     console.log("syntax errors: " + errors)
     console.log("clicked run button")
-    setErrors([...errorLogs, ...errors]);
+    //setErrors([...errorLogs, ...errors]);
+    setErrors(errors);
   }
 
   // Cleanup ResizeObserver on unmount
