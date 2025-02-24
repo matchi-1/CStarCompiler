@@ -490,7 +490,7 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"\nnode_switch ( \n switch_value_n: {self.value_n} \n {self.case_n} \n {self.default_n if self.default_n else "node_default: ( None )"} \n)\n"
+        return f"\nnode_switch ( \n switch_value_n: {self.value_n} \n {self.case_n} \n {self.default_n if self.default_n else "node_default: ( None )"} \n)"
 
 class node_case:
     def __init__(self, case_stmt_n):
@@ -528,7 +528,7 @@ class node_forloop:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_forloop ( \n init_arg_n: {self.init_arg_n} \n {self.condition_n} \n inc_arg_n: {self.inc_arg_n} \n)\n loop_body_n( {self.ctrl_stmt_body_n} )\n)\n"
+        return f"node_forloop ( \n init_arg_n: {self.init_arg_n} \n {self.condition_n} \n inc_arg_n: {self.inc_arg_n} \n)\n ctrl_body_n( {self.ctrl_stmt_body_n} )\n)"
 
 class node_while:
     def __init__(self, condition_n, ctrl_stmt_body_n):
@@ -536,7 +536,7 @@ class node_while:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_while ( \n {self.condition_n} \n loop_body_n( {self.ctrl_stmt_body_n} )\n)\n"
+        return f"node_while ( \n {self.condition_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} )\n)"
 
 class node_do:
     def __init__(self, condition_n, ctrl_stmt_body_n):
@@ -544,7 +544,7 @@ class node_do:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"do {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}} \n while ( {self.condition_n} )\n"
+        return f"node_do (\n ctrl_body_n( {self.ctrl_stmt_body_n} )\n {self.condition_n} \n)"
 
 class node_repeat:
     def __init__(self, repeat_value_n, ctrl_stmt_body_n):
@@ -552,7 +552,7 @@ class node_repeat:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"repeat ( repeat_value: {self.repeat_value_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} }}"
+        return f"node_repeat ( \n repeat_value_n: {self.repeat_value_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} )"
 
 class node_assign_stmt:
     def __init__(self, id_n, assign_op_n, assign_value_n):
