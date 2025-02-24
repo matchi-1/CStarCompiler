@@ -243,11 +243,12 @@ class node_idec_rec:
 
 class node_arr_dec:
     def __init__(self, dtype_t, id_n, size1_n, size2_n, arr_dec_cont_n):
-        self.dtype_t = dtype_t
-        self.id_n = id_n
         self.size1_n = size1_n
         self.size2_n = size2_n
         self.arr_dec_cont_n = arr_dec_cont_n
+
+    def __repr__(self):
+        return f"node_arr_dec: (size1_n: {self.size1_n}, size2_n: {self.size2_n}, arr_dec_cont_n: {self.arr_dec_cont_n})"
 
 class node_arr_dec_rec:
     def __init__(self, id_n, size1_n, size2_n, arr_dec_rec_n):
@@ -255,6 +256,9 @@ class node_arr_dec_rec:
         self.size1_n = size1_n
         self.size2_n = size2_n
         self.arr_dec_cont_n = arr_dec_rec_n
+    
+    def __repr__(self):
+        return f"node_arr_dec_rec: (id_n: {self.id_n}, size1_n: {self.size1_n}, size2_n: {self.size2_n}, arr_dec_cont_n: {self.arr_dec_cont_n})"
 
 class node_func_dec:
     def __init__(self, dtype_t, iden_n, params_n, body_n):

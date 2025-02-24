@@ -58,22 +58,23 @@ const fetchOrCreateFile = async () => {     //add TODO item 1 here
       // if (!querySnapshot.empty) {
       const fileData = querySnapshot.docs[0].data();
       setOpenTabs([{ id: querySnapshot.docs[0].id, ...fileData }]);
-//      } else {
-//        const newFileData = {
-//          content: `import<iostar>; 
+//       } else {
+//         const newFileData = {
+//           content: `import<iostar.cstr>; 
 // void main(){ 
 //   print("Hello World!"); 
 //   return; 
 // }
-//  // DO NOT DELETE THIS FILE PLEASE FR!!!!!!!!
-//          `,
+// // DO NOT DELETE THIS FILE PLEASE FR!!!!!!!!
+        
+//           `,
 //           name: 'Hello World.cstr',
 //           type: 'file',
-//         };
-      //   const docRef = await addDoc(filesCollectionRef, newFileData);
-      //   setOpenTabs([{ id: docRef.id, ...newFileData }]);
-      //   console.log('File created with ID:', docRef.id);
-      // }
+//          };
+//         const docRef = await addDoc(filesCollectionRef, newFileData);
+//         setOpenTabs([{ id: docRef.id, ...newFileData }]);
+//         console.log('File created with ID:', docRef.id);
+//       }
   } catch (error) {
     console.error('Error fetching or creating file:', error);
   }
