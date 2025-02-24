@@ -223,7 +223,7 @@ class node_vardec_cont:
         self.idec_rec_n = idec_rec_n
     
     def __repr__(self):
-        return f"node_vardec_cont: (value: {self.value_n}, \n\tidec_rec_n: {self.idec_rec_n}\n\t)\n"
+        return f"node_vardec_cont: (value: {self.value_n}, \n\tidec_rec_n: {self.idec_rec_n})\n"
 
 class node_idec_rec_stmt:
     def __init__(self, id_n, value_n):
@@ -248,17 +248,27 @@ class node_arr_dec:
         self.arr_dec_cont_n = arr_dec_cont_n
 
     def __repr__(self):
-        return f"node_arr_dec: (size1_n: {self.size1_n}, size2_n: {self.size2_n}, arr_dec_cont_n: {self.arr_dec_cont_n})"
+        if all(isinstance(elem, node_arr_dec_rec) for elem in self.arr_dec_cont_n):
+            # Case 1: List of node_arr_dec_rec objects → Format with newlines
+            arr_dec_str = ",\n\t".join(str(elem) for elem in self.arr_dec_cont_n)
+
+        elif all(isinstance(elem, list) for elem in self.arr_dec_cont_n):
+            # Case 3: 2D List (List of lists of numbers) → Format each inner list with newlines
+            arr_dec_str = "values: " + ",\n\t".join(str(sublist) for sublist in self.arr_dec_cont_n)
+
+        else:
+            # Case 2: Regular list of numbers → Format as a normal list
+            arr_dec_str = "values: " + str(self.arr_dec_cont_n)
+        return f"node_arr_dec: (size1_n: {self.size1_n}, size2_n: {self.size2_n}, arr_dec_cont_n: {arr_dec_str})"
 
 class node_arr_dec_rec:
-    def __init__(self, id_n, size1_n, size2_n, arr_dec_rec_n):
+    def __init__(self, id_n, size1_n, size2_n):
         self.id_n = id_n
         self.size1_n = size1_n
         self.size2_n = size2_n
-        self.arr_dec_cont_n = arr_dec_rec_n
     
     def __repr__(self):
-        return f"node_arr_dec_rec: (id_n: {self.id_n}, size1_n: {self.size1_n}, size2_n: {self.size2_n}, arr_dec_cont_n: {self.arr_dec_cont_n})"
+        return f"(id_n: {self.id_n}, size1_n: {self.size1_n}, size2_n: {self.size2_n})"
 
 class node_func_dec:
     def __init__(self, dtype_t, iden_n, params_n, body_n):
@@ -365,19 +375,19 @@ class node_if_stmt:
         self.body_n = body_n
         self.else_chain_n = else_chain_n
     def __repr__(self):
-        return f'node_if_stmt( \n{self.condition_n} \n ctrl_body_n( {self.body_n} ) {self.else_chain_n if self.else_chain_n else "node_else_chain( None )"}'
+        return f'if({self.condition_n}) {{ \t{self.body_n} }} \n{self.else_chain_n if self.else_chain_n else ""}'
 
 class node_else_chain:
     def __init__(self, else_stmt_n):
         self.else_stmt_n = else_stmt_n
     def __repr__(self):
-        return f'\nnode_else_chain( {self.else_stmt_n} )'
+        return f'else {self.else_stmt_n}'
 
 class node_else_stmt:
     def __init__(self, body_n):
         self.body_n = body_n
     def __repr__(self):
-        return f'node_else( \n ctrl_body_n( {self.body_n} ) \n)'
+        return f'{self.body_n}'
 
 class node_ctrl_stmt_body:
     def __init__(self, statements_n):
@@ -500,25 +510,26 @@ class node_case:
         return "\n ".join(map(str, self.case_stmt_n))
 
 class node_case_stmt:
-    def __init__(self, case_value_n, ctrl_stmt_body_n):
+    def __init__(self, case_value_n, ctrl_stmt_body_n, case_stmt_rec_n):
         self.case_value_n = case_value_n
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
+        self.case_stmt_rec_n = case_stmt_rec_n
 
     def __repr__(self):
-        return f"node_case_stmt( \n case_value_n: {self.case_value_n} \n case_body_n( {self.ctrl_stmt_body_n} ) \n)"
+        return f"\n\t case {self.case_value_n}: \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n\t case_stmt_rec -> {self.case_stmt_rec_n}"
         
 class node_default_stmt:
     def __init__(self, ctrl_stmt_body_n):
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_default( \n default_body_n( {self.ctrl_stmt_body_n} ) \n)"
+        return f"default: ctrl_stmt_body -> {self.ctrl_stmt_body_n}"
 
 class node_loop_stmt:
     def __init__(self, loop_stmt_n):
         self.loop_stmt_n = loop_stmt_n
     def __repr__(self):
-        return f"\nnode_loop_stmt -> {self.loop_stmt_n}\n"
+        return f"loop_stmt -> {self.loop_stmt_n}\n"
 
 class node_forloop:
     def __init__(self, init_arg_n, condition_n, inc_arg_n, ctrl_stmt_body_n):
@@ -528,7 +539,7 @@ class node_forloop:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_forloop ( \n init_arg_n: {self.init_arg_n} \n {self.condition_n} \n inc_arg_n: {self.inc_arg_n} \n)\n ctrl_body_n( {self.ctrl_stmt_body_n} )\n)"
+        return f"for ( \n\t init_arg -> {self.init_arg_n} \n\t {self.condition_n} \n\t inc_arg -> {self.inc_arg_n} \n) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}\n"
 
 class node_while:
     def __init__(self, condition_n, ctrl_stmt_body_n):
@@ -536,7 +547,7 @@ class node_while:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_while ( \n {self.condition_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} )\n)"
+        return f"while ( {self.condition_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}\n"
 
 class node_do:
     def __init__(self, condition_n, ctrl_stmt_body_n):
@@ -544,7 +555,7 @@ class node_do:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_do (\n ctrl_body_n( {self.ctrl_stmt_body_n} )\n {self.condition_n} \n)"
+        return f"do {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}} \n while ( {self.condition_n} )\n"
 
 class node_repeat:
     def __init__(self, repeat_value_n, ctrl_stmt_body_n):
@@ -552,7 +563,7 @@ class node_repeat:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_repeat ( \n repeat_value_n: {self.repeat_value_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} ) \n)"
+        return f"repeat ( repeat_value: {self.repeat_value_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} }}"
 
 class node_assign_stmt:
     def __init__(self, id_n, assign_op_n, assign_value_n):
@@ -580,15 +591,15 @@ class SyntaxAnalyzer:
         self.tokens = [token.to_dict() 
                for token in tokens 
                if token.token_type not in {"single_comment", "multi-line comment"}]   # comments will be ignored by the parser
-        print(self.tokens) #uncomment to check tokens that the parser accepted
+        # print(self.tokens) #uncomment to check tokens that the parser accepted
         
-        # if not self.tokens:
-        #     message = "\n\tNo tokens to parse."
-        #     self.errors.append(message)
-        #     raise SyntaxError(message)
+        if not self.tokens:
+            message = "\n\tNo tokens to parse."
+            self.errors.append(message)
+            raise SyntaxError(message)
 
         self.currToken_index = 0
-        self.currToken = self.tokens[self.currToken_index] if self.tokens else None
+        self.currToken = self.tokens[self.currToken_index]
 
         self.lineContent = ''
         self.hasMainFunction = False  # Track if main function is found
@@ -781,9 +792,9 @@ class SyntaxAnalyzer:
     def ERROR_missing_initializer(self):
         if self.currToken:
             prev_token = self.tokens[self.currToken_index-1]
-            error_message = f"Expected initializer object after '{prev_token['tokenName']}', instead got '{self.currToken['tokenName']}'."
+            error_message = f"Expected initializer before '{prev_token['tokenName']}'"
         else:
-            error_message = "Expected initializer object but reached EOF (End of File)"
+            error_message = "Expected initializer but reached EOF (End of File)"
         
         self.logError(error_message)
 
@@ -849,7 +860,6 @@ class SyntaxAnalyzer:
 
     #-------------------- PARSER START --------------------
     def parse(self):
-
         try:
             self.program()
             #self.value()
@@ -867,10 +877,6 @@ class SyntaxAnalyzer:
         
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
-        if not self.tokens:
-            message = "\n\tNo tokens to parse."
-            self.errors.append(message)
-            raise SyntaxError(message)
         
         if self.matchPredictSet("program", False):
             print(">>>>>> IMPORTS LIST: " + str(self.imports_list()))
@@ -986,7 +992,7 @@ class SyntaxAnalyzer:
                     class_instcont_n = self.classinst_cont()
                     if self.currToken:
                         if self.currToken["tokenType"] == "[":
-                            self.logError(f"Array of objects is not supported. Expected '=' or ';', instead got '{self.currToken["tokenType"]}'.")
+                            self.logError("Array of objects is not supported. Expected '=' or ';'")
                         if self.currToken["tokenType"] == "." or self.currToken["tokenType"] == "(":
                             self.logError(f"Unexpected Token '{self.currToken["tokenType"]}' for object declaration. Expected '=' or ';'")
                     
@@ -1194,10 +1200,8 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
-            const_b = False
             if currentTokenType == "const":
                 self.match("const")
-                const_b = True
                 if self.currToken["tokenType"] == "void":
                     self.logError("Void function cannot be preceded by 'const'.")
                 elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
@@ -1207,7 +1211,7 @@ class SyntaxAnalyzer:
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
                     
-                    return node_vardec(const_b, dtype_temp_t, iden_temp_n, vardec_cont_temp_n)
+                    return node_vardec(True, dtype_temp_t, iden_temp_n, vardec_cont_temp_n)
                 else: self.ERROR_expected_token(PREDICT_SETS["data_type"])
 
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
@@ -1237,8 +1241,7 @@ class SyntaxAnalyzer:
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
                 id_temp_n = node_iden(self.match("Identifier", False))
-                return node_vardec(const_b, dtype_temp_t, id_temp_n, self.iden_dec_cont(dtype_temp_t, id_temp_n)) 
-                
+                return self.iden_dec_cont(dtype_temp_t, id_temp_n)
             
             else:
                 self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
@@ -1266,7 +1269,6 @@ class SyntaxAnalyzer:
         value_temp_n = None
         idec_rec_temp_n = None
         vardec_cont_temp_n = None
-        node_idec_rec_stmt = []
 
         if self.currToken:
             if self.currToken["tokenType"] == "[":
@@ -1278,13 +1280,13 @@ class SyntaxAnalyzer:
 
             else:
                 value_temp_n = self.var_init()
-                idec_rec_temp_n = self.var_iden_rec(node_idec_rec_stmt)
+                idec_rec_temp_n = self.var_iden_rec()
         
         # none arr var dec
         if value_temp_n or idec_rec_temp_n:
             vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
-        return node_vardec_cont(value_temp_n, idec_rec_temp_n)
+        return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
 
 
 
@@ -1311,7 +1313,6 @@ class SyntaxAnalyzer:
         print("(parser) production: \"class_declaration\" detected")
 
         is_private_b = False
-        class_body_stmt_n = []
 
         if self.currToken["tokenType"] == "private":
              self.match("private")
@@ -1350,7 +1351,6 @@ class SyntaxAnalyzer:
         
         is_private_b = False
         inClassBody = True
-
         if self.matchPredictSet("class_body", True):   #throws no error if currToken not in here
             
             if self.currToken:
@@ -1365,17 +1365,13 @@ class SyntaxAnalyzer:
                 node_vardec = self.iden_dec(inClassBody)
                 class_body_stmt_n.append(node_class_body_stmt(is_private_b, node_vardec))
                 self.class_body(class_body_stmt_n)
-                
                 return class_body_stmt_n
-            
             inClassBody = False 
 
         if self.currToken and self.currToken["tokenType"] == "class":
             self.logError(f"Classes cannot be nested within classes. Expected {PREDICT_SETS['class_body']} or constructor declaration.")
-        
-        return class_body_stmt_n 
-    
-    
+        return class_body_stmt_n
+
     def constructor_dec(self): 
         
         if self.currToken:
@@ -2290,7 +2286,7 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_curly_braces()
                 self.match("}", False)
                 self.hasFunctionReturned = False
-                return node_else_stmt(body_n)
+                return f"{{\t{body_n} }}"
             
             else:
                 self.logError("Expected: else if statement or else body")
@@ -2323,7 +2319,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_parentheses()
             
             self.match("{", False)
-            case_temp_n = node_case(self.case_stmt(isVoid))
+            case_temp_n = self.case_stmt(isVoid)
             
             if self.currToken["tokenType"] == "default":
                 default_temp_n = self.default_stmt(isVoid)
@@ -2344,7 +2340,7 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             ctrl_stmt_body_temp_n = None
-            case_stmt_n = []
+            case_stmt_rec_temp_n = None
 
             self.match("case", False)
             case_value_temp_n = self.case_value()
@@ -2353,13 +2349,11 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
-            case_stmt_n.append(node_case_stmt(case_value_temp_n, ctrl_stmt_body_temp_n))
-
             if self.currToken["tokenType"] == "case":
-                case_stmt_n += self.case_stmt()
-            
+                case_stmt_rec_temp_n = self.case_stmt()
+
         print("(parser) exited production: \"case_stmt\" !!!!!!!!!!!")
-        return case_stmt_n
+        return node_case_stmt(case_value_temp_n, ctrl_stmt_body_temp_n, case_stmt_rec_temp_n)
     
 
     # bare-minimum tested
@@ -2428,6 +2422,7 @@ class SyntaxAnalyzer:
         if self.currToken:
 
             init_arg_temp_n = None
+            condition_temp_n = None
             inc_arg_temp_n = None
             ctrl_stmt_body_temp_n = None
 
@@ -2446,8 +2441,6 @@ class SyntaxAnalyzer:
             
             ## CONDITION
             condition_temp_n = self.condition("for-loop",[";"])
-            if not condition_temp_n:
-                self.ERROR_empty_condition("for-loop")
             
             if not self.match(";"):
                 self.logError(f"Condition argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else EOF}'.")
@@ -2629,7 +2622,7 @@ class SyntaxAnalyzer:
                 if self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
                     node_temp = self.input_params(type_t)
                 else:  # semantic check if string or syntax error
-                    self.logError("Expected a valid value of type \"string\" for an input function's first parameter.")
+                    self.logError("Expected a valid value of type \"string\".")
             
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
@@ -2687,7 +2680,7 @@ class SyntaxAnalyzer:
         return None
 
     
-    def var_iden_rec(self, idec_rec_stmt_n = []):
+    def var_iden_rec(self):
         """<var_iden_rec> → , Identifier <var_init> <var_iden_rec> | λ"""
         print("(parser) entered production: \"var_iden_rec\"")
         
@@ -2698,15 +2691,15 @@ class SyntaxAnalyzer:
                 if id_temp_t:
                     id_temp_n = node_iden(id_temp_t)
                     value_temp_n = self.var_init()
-                    idec_rec_stmt_n.append(node_idec_rec_stmt(id_temp_n, value_temp_n))
+                    idec_rec_temp_n = None
                     if self.currToken["tokenType"] == ",":
-                        self.var_iden_rec(idec_rec_stmt_n)
+                        idec_rec_temp_n = self.var_iden_rec()
                 else:
                     self.ERROR_expected_token("Identifier")
-                return idec_rec_stmt_n
+                return node_idec_rec(id_temp_n, value_temp_n, idec_rec_temp_n)
             
         print("(parser) exited production: \"var_iden_rec\"")
-        return idec_rec_stmt_n
+        return None
 
     def var_id_arr1D(self, dtype_temp_t, id_temp_n, size1_temp_n):
         '''<var_id_arr1D> → <array1D_iden_rec> | <array1D_init>'''
@@ -2717,10 +2710,10 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == ",":
-                return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_iden_rec())
+                return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_iden_rec([]))
 
             elif currentTokenType == "=":
-                return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_init())
+                return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_init([]))
 
             elif currentTokenType == "[":
                 self.match("[", False)
@@ -2737,71 +2730,68 @@ class SyntaxAnalyzer:
         return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, None)
 
 
-    def array1D_iden_rec(self):
+    def array1D_iden_rec(self, arr_dec_rec_temp_n = []):
         '''<array1D_iden_rec> → , Identifier [<int_val>] <array1D_iden_rec> | λ'''
         print("(parser) entered production: \"array1D_iden_rec\"")
-        arr_dec_rec_temp_n = None
         if self.currToken:
             self.match(",")
             id_temp_n = node_iden(self.match("Identifier", False))
             self.match("[", False)
             size1_temp_n = self.arith_exp(["]"])
+            arr_dec_rec_temp_n.append(node_arr_dec_rec(id_temp_n, size1_temp_n, None))
             if not size1_temp_n:
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
             if self.currToken["tokenType"] == ",":
-                arr_dec_rec_temp_n = self.array1D_iden_rec()
+                self.array1D_iden_rec(arr_dec_rec_temp_n)
 
         print("(parser) exited production: \"array1D_iden_rec\"")
-        return node_arr_dec_rec(id_temp_n, size1_temp_n, None, arr_dec_rec_temp_n)
+        return arr_dec_rec_temp_n
 
-    def array1D_init(self):
+    def array1D_init(self, val_list = []):
             '''<array1D_init> → = {<arr_value_1D>}'''
             print("(parser) entered production: \"array1D_init\"")
-            val_list = []
             if self.currToken:
                 self.match("=", False)
                 self.match("{", False)
-                val_list = self.arr_value_1D()
+                self.arr_value_1D(val_list)
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
             
             print("(parser) exited production: \"array1D_init\"")
             return val_list
 
-    def arr_value_1D(self):
+    def arr_value_1D(self, val_list):
             '''<arr_value_1D> → <value> <arr_value_1D_rec>'''
             print("(parser) entered production: \"arr_value_1D\"")
-            val_list = []
             if self.currToken:
                 
                 if self.currToken["tokenType"] in PREDICT_SETS["value"]:
                     val_list.append(self.value(["}", ","]))
                     if self.currToken["tokenType"] == ",":
-                        val_list.extend(self.arr_value_1D_rec())
+                        self.arr_value_1D_rec(val_list)
                 else:
                     self.ERROR_expected_token("value")
 
             print("(parser) exited production: \"arr_value_1D\"")
             return val_list
 
-    def arr_value_1D_rec(self):
+    def arr_value_1D_rec(self, val_list):
             '''<arr_value_1D_rec> → , <value> <arr_value_1D_rec> | λ'''
             print("(parser) entered production: \"arr_value_1D_rec\"")
-            val_list = []
             if self.currToken:
 
                 if self.currToken["tokenType"] == ",":
                     self.match(",")
                     if self.currToken["tokenType"] in PREDICT_SETS["value"]:
                         val_list.append(self.value(["}", ","]))
-                        val_list.extend(self.arr_value_1D_rec())
+                        self.arr_value_1D_rec(val_list)
                     else:
                         self.ERROR_expected_token("value")
-           
+            
             print("(parser) exited production: \"arr_value_1D_rec\"")
-            return val_list
+            
     
     def var_id_arr2D(self, dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n):
             '''<var_id_arr2D> → <array2D_iden_rec> | <array2D_init>'''
@@ -2811,7 +2801,7 @@ class SyntaxAnalyzer:
                 currentTokenType = self.currToken["tokenType"]
 
                 if currentTokenType == ",":
-                    return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_iden_rec()) 
+                    return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_iden_rec([])) 
                 elif currentTokenType == "=":
                     return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_init())
                 #else:
@@ -2820,10 +2810,9 @@ class SyntaxAnalyzer:
             print("(parser) exited production: \"var_id_arr2D\"")
             return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, None)
 
-    def array2D_iden_rec(self):
+    def array2D_iden_rec(self, arr_dec_rec_temp_n = []):
             '''<array2D_iden_rec> → , Identifier [<int_val>] [<int_val>] <array2D_iden_rec> | λ'''
             print("(parser) entered production: \"array2D_iden_rec\"")
-            arr_dec_rec_temp_n = None
             if self.currToken:
 
                 self.match(",")
@@ -2844,58 +2833,54 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_square_bracket()
                 if self.currToken["tokenType"] == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
-                
+                arr_dec_rec_temp_n.append(node_arr_dec_rec(id_temp_n, size1_temp_n, size2_temp_n))
                 if self.currToken["tokenType"] == ",":
-                    arr_dec_rec_temp_n = self.array2D_iden_rec()
+                    self.array2D_iden_rec(arr_dec_rec_temp_n)
                 
                 #else:
                 #    self.ERROR_unclosed_square_bracket()
 
             print("(parser) exited production: \"array2D_iden_rec\"")
-            return node_arr_dec_rec(id_temp_n, size1_temp_n, size2_temp_n, arr_dec_rec_temp_n)
+            return arr_dec_rec_temp_n
 
-    def array2D_init(self):
+    def array2D_init(self, val_2dlist = []):
             '''<array2D_init> → = {<arr_value_2D>}'''
             print("(parser) entered production: \"array2D_init\"")
-            val_list = []
             if self.currToken:
                 self.match("=", False)
                 self.match("{", False)
-                val_list = self.arr_value_2D()
+                self.arr_value_2D(val_2dlist)
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
             
             print("(parser) exited production: \"array2D_init\"")
-            return val_list
-    def arr_value_2D(self):
+            return val_2dlist
+    
+    def arr_value_2D(self, val_2dlist):
             '''<arr_value_2D> → {<arr_value_1D>} <arr_value_2D_rec>'''
             print("(parser) entered production: \"arr_value_2D\"")
-            val_list = []
             if self.currToken:
                 self.match("{", False)
-                val_list.extend(self.arr_value_1D())
+                val_2dlist.append(self.arr_value_1D([]))
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
-                val_list.extend(self.arr_value_2D_rec())
+                self.arr_value_2D_rec(val_2dlist)
 
             print("(parser) exited production: \"arr_value_2D\"")
-            return val_list
 
-    def arr_value_2D_rec(self):
+    def arr_value_2D_rec(self, val_2dlist):
             '''<arr_value_2D_rec> → , {<arr_value_1D>} <arr_value_2D_rec> | λ'''
             print("(parser) entered production: \"arr_value_2D_rec\"")
-            val_list = []
             if self.currToken:
                 self.match(",")
                 self.match("{", False)
-                val_list.extend(self.arr_value_1D())
+                val_2dlist.append(self.arr_value_1D([]))
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
                 if self.currToken["tokenType"] == ",":
-                    val_list.extend(self.arr_value_2D_rec())
-            
+                    self.arr_value_2D_rec(val_2dlist)
+        
             print("(parser) exited production: \"arr_value_2D_rec\"")
-            return val_list
 
 
     def assign_stmt(self):
