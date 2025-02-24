@@ -469,7 +469,7 @@ class node_program_constructs:
         # Filter out None values
         filtered_statements = [stmt for stmt in self.program_constructs_statement_n if stmt is not None]
         statements = ",\n\n".join(map(str, filtered_statements))
-        return f"{self.__class__.__name__}({statements}\n)"
+        return f"{self.__class__.__name__}: ({statements}\n)"
 
 
 # alex here
@@ -1182,8 +1182,10 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
+            const_b = False
             if currentTokenType == "const":
                 self.match("const")
+                const_b = True
                 if self.currToken["tokenType"] == "void":
                     self.logError("Void function cannot be preceded by 'const'.")
                 elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
@@ -1193,7 +1195,7 @@ class SyntaxAnalyzer:
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
                     
-                    return node_vardec(True, dtype_temp_t, iden_temp_n, vardec_cont_temp_n)
+                    return node_vardec(const_b, dtype_temp_t, iden_temp_n, vardec_cont_temp_n)
                 else: self.ERROR_expected_token(PREDICT_SETS["data_type"])
 
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
@@ -1223,7 +1225,8 @@ class SyntaxAnalyzer:
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
                 id_temp_n = node_iden(self.match("Identifier", False))
-                return self.iden_dec_cont(dtype_temp_t, id_temp_n)
+                return node_vardec(const_b, dtype_temp_t, id_temp_n, self.iden_dec_cont(dtype_temp_t, id_temp_n)) 
+                
             
             else:
                 self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
@@ -2680,8 +2683,8 @@ class SyntaxAnalyzer:
                 if id_temp_t:
                     id_temp_n = node_iden(id_temp_t)
                     value_temp_n = self.var_init()
+                    idec_rec_stmt_n.append(node_idec_rec_stmt(id_temp_n, value_temp_n))
                     if self.currToken["tokenType"] == ",":
-                        idec_rec_stmt_n.append(node_idec_rec_stmt(id_temp_n, value_temp_n))
                         self.var_iden_rec(idec_rec_stmt_n)
                 else:
                     self.ERROR_expected_token("Identifier")
