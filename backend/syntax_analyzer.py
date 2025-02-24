@@ -365,10 +365,10 @@ class SyntaxAnalyzer:
     # Handles unexpected tokens when expecting a specific type.
     def ERROR_expected_token(self, expected_token):
         if self.currToken is None:
-            self.logError(f"Expected {expected_token}, but reached EOF.")
+            self.logError(f"Unexpected EOF: Expected {expected_token}, but reached EOF.")
         else:
             self.logError(
-                f"Expected {expected_token}, but found '{self.currToken['tokenName']}'."
+                f"Unexpected token '{self.currToken['tokenName']}'. Expected {expected_token}."
             )
 
     # If no main function was found throughout the whole program
