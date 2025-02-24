@@ -1285,6 +1285,7 @@ class SyntaxAnalyzer:
         print("(parser) production: \"class_declaration\" detected")
 
         is_private_b = False
+        class_body_stmt_n = []
 
         if self.currToken["tokenType"] == "private":
              self.match("private")
@@ -1323,6 +1324,7 @@ class SyntaxAnalyzer:
         
         is_private_b = False
         inClassBody = True
+
         if self.matchPredictSet("class_body", True):   #throws no error if currToken not in here
             
             if self.currToken:
@@ -1337,13 +1339,17 @@ class SyntaxAnalyzer:
                 node_vardec = self.iden_dec(inClassBody)
                 class_body_stmt_n.append(node_class_body_stmt(is_private_b, node_vardec))
                 self.class_body(class_body_stmt_n)
+                
                 return class_body_stmt_n
+            
             inClassBody = False 
 
         if self.currToken and self.currToken["tokenType"] == "class":
             self.logError(f"Classes cannot be nested within classes. Expected {PREDICT_SETS['class_body']} or constructor declaration.")
-        return class_body_stmt_n
-
+        
+        return class_body_stmt_n 
+    
+    
     def constructor_dec(self): 
         
         if self.currToken:
