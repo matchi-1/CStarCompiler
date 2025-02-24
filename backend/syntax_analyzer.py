@@ -180,25 +180,25 @@ class node_bi_op:
         return f'({self.left_n} {self.op_t["tokenName"]} {self.right_n})'
 
 class node_un_op:
-    def __init__(self, left_t, right_n):
+    def __init__(self, left_t, id_right_n):
         self.left_t = left_t
-        self.right_n = right_n
+        self.id_right_n = id_right_n
     def __repr__(self):
-        return f'node_un_op(unary_op: {self.left_t["tokenName"]}, identifier: {self.right_n})'
+        return f'node_un_op: (unary_op: {self.left_t["tokenName"]}, id_n: {self.id_right_n})'
 
 class node_post_un_op:
-    def __init__(self, left_n, right_t):
-        self.left_n = left_n
+    def __init__(self, id_left_n, right_t):
+        self.id_left_n = id_left_n
         self.right_t = right_t
     def __repr__(self):
-        return f'node_post_un_op(identifier: {self.left_n}, unary_op: {self.right_t["tokenName"]})'
+        return f'node_post_un_op: (id_n: {self.id_left_n}, unary_op: {self.right_t["tokenName"]})'
 
 class node_pre_un_op:
     def __init__(self, left_t, iden_n):
         self.left_t = left_t
         self.iden_n = iden_n
     def __repr__(self):
-        return f'node_pre_un_op(unary_op: {self.left_t["tokenName"]}, identifier: {self.iden_n})'
+        return f'node_pre_un_op: (unary_op: {self.left_t["tokenName"]}, id_n: {self.iden_n})'
 
 class node_input:
     def __init__(self, type_t, prompt_n = None, count_n = None):
@@ -215,7 +215,7 @@ class node_vardec:
         self.id_n = id_n
         self.vardec_cont_n = vardec_cont_n
     def __repr__(self):
-        return f'node_vardec: \n\t(const: {self.const_b}, dtype: {self.dtype_t}, id: {self.id_n}, {self.vardec_cont_n})'
+        return f'node_vardec: \n\t(const_b: {self.const_b}, dtype_t: {self.dtype_t}, id_n: {self.id_n}, {self.vardec_cont_n})'
 
 class node_vardec_cont:
     def __init__(self, value_n, idec_rec_n):
@@ -223,7 +223,7 @@ class node_vardec_cont:
         self.idec_rec_n = idec_rec_n
     
     def __repr__(self):
-        return f"node_vardec_cont: (value: {self.value_n}, \n\tidec_rec_n: {self.idec_rec_n})\n"
+        return f"node_vardec_cont: (value_t: {self.value_n}, \n\tidec_rec_n: {self.idec_rec_n})\n"
 
 class node_idec_rec_stmt:
     def __init__(self, id_n, value_n):
@@ -231,7 +231,7 @@ class node_idec_rec_stmt:
         self.value_n = value_n
 
     def __repr__(self):
-        return f"\n\t(id: {self.id_n}, value_n: {self.value_n})"
+        return f"\n\t(id_n: {self.id_n}, value_n: {self.value_n})"
 
 class node_idec_rec:
     def __init__(self, node_idec_rec_stmt_n):
@@ -277,7 +277,7 @@ class node_func_dec:
         self.params_n = params_n
         self.body_n = body_n
     def __repr__(self):
-        return f"node_func_dec(\n\tdtype_t: {self.dtype_t}, iden_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n})"
+        return f"node_func_dec: (\n\tdtype_t: {self.dtype_t}, id_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n})"
 
 class node_funcpar_class:
     def __init__(self, class_id_n, obj_id_n, params_n):
@@ -285,7 +285,7 @@ class node_funcpar_class:
         self.obj_id_n = obj_id_n
         self.params_n = params_n
     def __repr__(self):
-        return f"node_funcpar_class(class_id_n: {self.class_id_n}, obj_id_n: {self.obj_id_n}, params_n: {self.params_n})"
+        return f"node_funcpar_class: (class_id_n: {self.class_id_n}, obj_id_n: {self.obj_id_n}, params_n: {self.params_n})"
 
 class node_funcpar_arr:
     def __init__(self, dtype_t, id_n, arrdim_i, params_n):
@@ -295,7 +295,7 @@ class node_funcpar_arr:
         self.params_n = params_n
     
     def __repr__(self):
-        return f"node_funcpar_arr(dtype_t: {self.dtype_t}, id_n: {self.id_n}, arrdim_i: {self.arrdim_i}, params_n: {self.params_n})"
+        return f"node_funcpar_arr: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, arr_dim_i: {self.arrdim_i}, params_n: {self.params_n})"
 
 class node_funcpar_var:
     def __init__(self, dtype_t, id_n, parvar_cont_n):
@@ -303,14 +303,14 @@ class node_funcpar_var:
         self.id_n = id_n
         self.parvar_cont_n = parvar_cont_n
     def __repr__(self):
-        return f"node_funcpar_var(dtype_t: {self.dtype_t}, id_n: {self.id_n}, parvar_cont_n: {self.parvar_cont_n})"
+        return f"node_funcpar_var: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, parvar_cont_n: {self.parvar_cont_n})"
 
 class node_funcpar_var_def:
     def __init__(self, value_n, parvar_defrec_n):
         self.value_n = value_n
         self.parvar_defrec_n = parvar_defrec_n
     def __repr__(self):
-        return f"node_funcpar_var_def(value_n: {self.value_n}, parvar_defrec_n: {self.parvar_defrec_n})"
+        return f"node_funcpar_var_def: (value_n: {self.value_n}, parvar_defrec_n: {self.parvar_defrec_n})"
 
 class node_funcpar_var_defrec:
     def __init__(self, dtype_t, id_n, parvar_defrec_cont_n):
@@ -328,7 +328,7 @@ class node_output:
         self.print_stmts_n = print_stmts_n
         self.print_params_n = print_params_n
     def __repr__(self):
-        return f'node_output(print_stmts_n: {self.print_stmts_n}, print_params_n: {self.print_params_n})'
+        return f'node_output: (print_stmts_n: {self.print_stmts_n}, print_params_n: {self.print_params_n})'
 
 class node_body:
     def __init__(self,body_codeblock_n, return_stmt_n):
@@ -411,7 +411,7 @@ class node_class_inst:
         self.class_instcont_n = class_instcont_n
 
     def __repr__(self):
-        return (f"node_class_inst(class_id_n: {self.class_id_n}, "
+        return (f"node_class_inst: (class_id_n: {self.class_id_n}, "
                 f"obj_id_n: {self.obj_id_n}, "
                 f"\nclass_instcont_n: {self.class_instcont_n})")
 
@@ -421,7 +421,7 @@ class node_classinst_cont:
         self.func_arg_n = func_arg_n
 
     def __repr__(self):
-        return f"node_classinst_cont(class_id_n: {self.class_id_n}, func_arg_n: {self.func_arg_n})"
+        return f"node_classinst_cont: (class_id_n: {self.class_id_n}, func_arg_n: {self.func_arg_n})"
 
 class node_class_dec:
     def __init__(self, is_private_b, class_id_n, constructor_dec_n, class_body_n):
@@ -431,7 +431,7 @@ class node_class_dec:
         self.class_body_n = class_body_n
 
     def __repr__(self):
-        return (f"node_class_dec(is_private_b: {self.is_private_b}, "
+        return (f"node_class_dec: (private_b: {self.is_private_b}, "
                 f"class_id_n: {self.class_id_n}, "
                 f"\n\tconstructor_dec_n: {self.constructor_dec_n},"
                 f"\n\tclass_body_n: {self.class_body_n}) ")
@@ -452,7 +452,7 @@ class node_class_body_stmt:
         self.node_vardec = node_vardec
 
     def __repr__(self):
-        return (f"is_private_b: {self.is_private_b}, "
+        return (f"private_b: {self.is_private_b}, "
                 f"{self.node_vardec}"
                 )
     
@@ -463,7 +463,7 @@ class node_constructor_dec:
         self.code_block_n = code_block_n
 
     def __repr__(self):
-        return (f"node_constructor_dec(class_id_n: {self.class_id_n}, "
+        return (f"node_constructor_dec: (class_id_n: {self.class_id_n}, "
                 f"params_dec_n: {self.params_dec_n}, "
                 f"\n\t\tcode_block_n: {self.code_block_n})")
 
@@ -507,7 +507,7 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"\nnode_switch ( \n switch_value_n: {self.value_n} \n {self.case_n} \n {self.default_n if self.default_n else "node_default: ( None )"} \n)"
+        return f"\nnode_switch: ( \n switch_value_n: {self.value_n} \n {self.case_n} \n {self.default_n if self.default_n else "node_default: ( None )"} \n)"
 
 class node_case:
     def __init__(self, case_stmt_n):
