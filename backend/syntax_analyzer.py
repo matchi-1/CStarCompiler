@@ -215,7 +215,7 @@ class node_vardec:
         self.id_n = id_n
         self.vardec_cont_n = vardec_cont_n
     def __repr__(self):
-        return f'node_vardec(const: {self.const_b}, dtype: {self.dtype_t}, id: {self.id_n}, {self.vardec_cont_n})'
+        return f'node_vardec: \n\t(const: {self.const_b}, dtype: {self.dtype_t}, id: {self.id_n}, {self.vardec_cont_n})'
 
 class node_vardec_cont:
     def __init__(self, value_n, idec_rec_n):
@@ -223,13 +223,23 @@ class node_vardec_cont:
         self.idec_rec_n = idec_rec_n
     
     def __repr__(self):
-        return f"value: {self.value_n}, idec_rec_n: {self.idec_rec_n}"
+        return f"node_vardec_cont: (value: {self.value_n}, \n\tidec_rec_n: {self.idec_rec_n}\n\t)\n"
 
-class node_idec_rec:
-    def __init__(self, id_n, value_n, idec_rec_n):
+class node_idec_rec_stmt:
+    def __init__(self, id_n, value_n):
         self.id_n = id_n
         self.value_n = value_n
-        self.idec_rec_n = idec_rec_n
+
+    def __repr__(self):
+        return f"\n\t(id: {self.id_n}, value_n: {self.value_n})"
+
+class node_idec_rec:
+    def __init__(self, node_idec_rec_stmt_n):
+        self.node_idec_rec_stmt_n = node_idec_rec_stmt_n
+
+    def __repr__(self):
+        statements = ",\n".join(map(str, self.node_idec_rec_stmt_n))    
+        return f"{self.__class__.__name__}(\n{statements}\n\n)"
 
 class node_arr_dec:
     def __init__(self, dtype_t, id_n, size1_n, size2_n, arr_dec_cont_n):
@@ -449,7 +459,7 @@ class node_code_block:
 
     def __repr__(self):
         statements = ",\n".join(map(str, self.code_block_statement_n))
-        return f"{self.__class__.__name__}(\n{statements}\n)"
+        return f"{self.__class__.__name__}({statements}\n)"
 
 class node_program_constructs:
     def __init__(self, program_constructs_statement_n):
@@ -1241,6 +1251,7 @@ class SyntaxAnalyzer:
         value_temp_n = None
         idec_rec_temp_n = None
         vardec_cont_temp_n = None
+        node_idec_rec_stmt = []
 
         if self.currToken:
             if self.currToken["tokenType"] == "[":
@@ -1252,13 +1263,13 @@ class SyntaxAnalyzer:
 
             else:
                 value_temp_n = self.var_init()
-                idec_rec_temp_n = self.var_iden_rec()
+                idec_rec_temp_n = self.var_iden_rec(node_idec_rec_stmt)
         
         # none arr var dec
         if value_temp_n or idec_rec_temp_n:
             vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
-        return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
+        return node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
 
 
@@ -2658,7 +2669,7 @@ class SyntaxAnalyzer:
         return None
 
     
-    def var_iden_rec(self):
+    def var_iden_rec(self, idec_rec_stmt_n = []):
         """<var_iden_rec> → , Identifier <var_init> <var_iden_rec> | λ"""
         print("(parser) entered production: \"var_iden_rec\"")
         
@@ -2669,15 +2680,15 @@ class SyntaxAnalyzer:
                 if id_temp_t:
                     id_temp_n = node_iden(id_temp_t)
                     value_temp_n = self.var_init()
-                    idec_rec_temp_n = None
                     if self.currToken["tokenType"] == ",":
-                        idec_rec_temp_n = self.var_iden_rec()
+                        idec_rec_stmt_n.append(node_idec_rec_stmt(id_temp_n, value_temp_n))
+                        self.var_iden_rec(idec_rec_stmt_n)
                 else:
                     self.ERROR_expected_token("Identifier")
-                return node_idec_rec(id_temp_n, value_temp_n, idec_rec_temp_n)
+                return idec_rec_stmt_n
             
         print("(parser) exited production: \"var_iden_rec\"")
-        return None
+        return idec_rec_stmt_n
 
     def var_id_arr1D(self, dtype_temp_t, id_temp_n, size1_temp_n):
         '''<var_id_arr1D> → <array1D_iden_rec> | <array1D_init>'''
