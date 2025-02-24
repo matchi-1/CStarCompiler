@@ -2118,7 +2118,7 @@ class SyntaxAnalyzer:
                 if self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
                     node_temp = self.input_params(type_t)
                 else:  # semantic check if string or syntax error
-                    self.logError("Expected a valid value of type \"string\".")
+                    self.logError("Expected a valid value of type \"string\" for an input function's first parameter.")
             
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
