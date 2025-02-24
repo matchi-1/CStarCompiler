@@ -408,9 +408,9 @@ class SyntaxAnalyzer:
     def ERROR_missing_initializer(self):
         if self.currToken:
             prev_token = self.tokens[self.currToken_index-1]
-            error_message = f"Expected initializer before '{prev_token['tokenName']}'"
+            error_message = f"Expected initializer object after '{prev_token['tokenName']}', instead got '{self.currToken['tokenName']}'."
         else:
-            error_message = "Expected initializer but reached EOF (End of File)"
+            error_message = "Expected initializer object but reached EOF (End of File)"
         
         self.logError(error_message)
 
@@ -603,7 +603,7 @@ class SyntaxAnalyzer:
                     self.classinst_cont()
                     if self.currToken:
                         if self.currToken["tokenType"] == "[":
-                            self.logError("Array of objects is not supported. Expected '=' or ';'")
+                            self.logError(f"Array of objects is not supported. Expected '=' or ';', instead got '{self.currToken["tokenType"]}'.")
                         if self.currToken["tokenType"] == "." or self.currToken["tokenType"] == "(":
                             self.logError(f"Unexpected Token '{self.currToken["tokenType"]}' for object declaration. Expected '=' or ';'")
 
