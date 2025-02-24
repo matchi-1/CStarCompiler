@@ -1909,7 +1909,7 @@ def syntax_analysis():
     # Calls syntax analyzer
     try:
         analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        errors = analyzer.parse()    # comment out to just test for lexer
+        errors += analyzer.parse()    # comment out to just test for lexer
     except SyntaxError as e:
         print(e)
     # Create a JSON-serializable response
