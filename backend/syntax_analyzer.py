@@ -2113,7 +2113,7 @@ class SyntaxAnalyzer:
             elif currentTokenType == "continue":
                 self.continue_stmt()
             elif currentTokenType in PREDICT_SETS["body"]:
-                self.body(["break", "continue", "case", "}"], isVoid, True)
+                self.body(["break", "continue", "case", "}", "default"], isVoid, True)
 
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 self.ctrl_stmt_body(isVoid)
