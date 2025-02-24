@@ -481,7 +481,7 @@ class node_condition:
     def __init__(self, condition_n):
         self.condition_n = condition_n
     def __repr__(self):
-        return f"condition: {self.condition_n}"
+        return f"condition_n: {self.condition_n}"
 
 class node_switch_stmt:
     def __init__(self, value_n, case_n, default_n):
@@ -490,23 +490,29 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"switch ( switch_value: {self.value_n} ) {{ \n\t case -> {self.case_n} \n\t default -> {self.default_n} \n}}\n"
+        return f"node_switch ( switch_value_n: {self.value_n} ) {{ \n {self.case_n} \n {self.default_n} \n}}\n"
+
+class node_case:
+    def __init__(self, case_stmt_n):
+        self.case_stmt_n = case_stmt_n
+        
+    def __repr__(self):
+        return "\n ".join(map(str, self.case_stmt_n))
 
 class node_case_stmt:
-    def __init__(self, case_value_n, ctrl_stmt_body_n, case_stmt_rec_n):
+    def __init__(self, case_value_n, ctrl_stmt_body_n):
         self.case_value_n = case_value_n
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
-        self.case_stmt_rec_n = case_stmt_rec_n
 
     def __repr__(self):
-        return f"\n\t case {self.case_value_n}: \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n\t case_stmt_rec -> {self.case_stmt_rec_n}"
+        return f"node_case_stmt( \n case_value_n: {self.case_value_n} \n case_body_n( {self.ctrl_stmt_body_n} ) \n)"
         
 class node_default_stmt:
     def __init__(self, ctrl_stmt_body_n):
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"default: ctrl_stmt_body -> {self.ctrl_stmt_body_n}"
+        return f"node_default( \n default_body_n( {self.ctrl_stmt_body_n} ) \n)"
 
 class node_loop_stmt:
     def __init__(self, loop_stmt_n):
@@ -574,7 +580,7 @@ class SyntaxAnalyzer:
         self.tokens = [token.to_dict() 
                for token in tokens 
                if token.token_type not in {"single_comment", "multi-line comment"}]   # comments will be ignored by the parser
-        # print(self.tokens) #uncomment to check tokens that the parser accepted
+        print(self.tokens) #uncomment to check tokens that the parser accepted
         
         # if not self.tokens:
         #     message = "\n\tNo tokens to parse."
@@ -843,6 +849,7 @@ class SyntaxAnalyzer:
 
     #-------------------- PARSER START --------------------
     def parse(self):
+
         try:
             self.program()
             #self.value()
@@ -864,6 +871,7 @@ class SyntaxAnalyzer:
             message = "\n\tNo tokens to parse."
             self.errors.append(message)
             raise SyntaxError(message)
+        
         if self.matchPredictSet("program", False):
             print(">>>>>> IMPORTS LIST: " + str(self.imports_list()))
             
@@ -2315,7 +2323,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_parentheses()
             
             self.match("{", False)
-            case_temp_n = self.case_stmt(isVoid)
+            case_temp_n = node_case(self.case_stmt(isVoid))
             
             if self.currToken["tokenType"] == "default":
                 default_temp_n = self.default_stmt(isVoid)
@@ -2336,7 +2344,7 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             ctrl_stmt_body_temp_n = None
-            case_stmt_rec_temp_n = None
+            case_stmt_n = []
 
             self.match("case", False)
             case_value_temp_n = self.case_value()
@@ -2345,11 +2353,13 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
-            if self.currToken["tokenType"] == "case":
-                case_stmt_rec_temp_n = self.case_stmt()
+            case_stmt_n.append(node_case_stmt(case_value_temp_n, ctrl_stmt_body_temp_n))
 
+            if self.currToken["tokenType"] == "case":
+                case_stmt_n += self.case_stmt()
+            
         print("(parser) exited production: \"case_stmt\" !!!!!!!!!!!")
-        return node_case_stmt(case_value_temp_n, ctrl_stmt_body_temp_n, case_stmt_rec_temp_n)
+        return case_stmt_n
     
 
     # bare-minimum tested
@@ -2418,7 +2428,6 @@ class SyntaxAnalyzer:
         if self.currToken:
 
             init_arg_temp_n = None
-            condition_temp_n = None
             inc_arg_temp_n = None
             ctrl_stmt_body_temp_n = None
 
@@ -2437,6 +2446,8 @@ class SyntaxAnalyzer:
             
             ## CONDITION
             condition_temp_n = self.condition("for-loop",[";"])
+            if not condition_temp_n:
+                self.ERROR_empty_condition("for-loop")
             
             if not self.match(";"):
                 self.logError(f"Condition argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else EOF}'.")
