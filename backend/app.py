@@ -1913,7 +1913,6 @@ def syntax_analysis():
     except SyntaxError as e:
         print(e)
     # Create a JSON-serializable response
-    print('test\n\n\n\n', errors, '\n\n\n\n\n')
     response = {
         "errors": errors or []        
     }
