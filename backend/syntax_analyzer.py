@@ -654,7 +654,7 @@ class SyntaxAnalyzer:
                     self.assign_stmt_op()
 
                 elif currentTokenType == "(":
-                    self.match("(")
+                    self.match("(", False)
                     self.func_arg()
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
@@ -1032,7 +1032,9 @@ class SyntaxAnalyzer:
                     hasConstructorValue = True
         else:
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                self.logError("Function call arguments cannot accept declarations.")
+                self.logError(f"Unexpected token: '{self.currToken["tokenName"]}'. Function call arguments cannot accept declarations.")
+            elif self.currToken and self.currToken["tokenType"] != ")":
+                self.ERROR_expected_token(PREDICT_SETS["value"]+[")"])
             else: 
                 print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
         retList[1] = hasConstructorValue
@@ -1565,7 +1567,7 @@ class SyntaxAnalyzer:
             self.logError("Only up to 2-dimensional arrays are supported.")
 
         if self.currToken and self.currToken["tokenType"] == "=":
-            self.logError("No default array values are allowed.")
+            self.logError("Default array values are not supported.")
         print("(parser) production: \"is_array\" exited!!!!!")
 
 
