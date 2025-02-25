@@ -688,7 +688,7 @@ class SyntaxAnalyzer:
             self.logError(f"Unexpected Token '{self.currToken["tokenName"]}' found. Expected {PREDICT_SETS["body"]}.")
 
         if not self.hasFunctionReturned and not inControlStruct and not self.hasMainFunction:
-                self.logError("A return statement outside of control structures is required in all functions.")
+                self.logError(f"Expected 'return' for all functions, instead got '{self.currToken["tokenName"]}'")
                 #placeholder hehehehehhehehehehheyhueh
         
         print("(parser) production: \"body\" exited!!!!!!")
@@ -1708,7 +1708,6 @@ class SyntaxAnalyzer:
             
             elif isVoid and self.currToken["tokenType"] != ";":
                 self.logError(f"Void functions cannot return a value and must be terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else EOF}'.")
-            
                     
         if not isVoid:
             self.value([";"])
