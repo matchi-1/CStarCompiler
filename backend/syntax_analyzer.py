@@ -1524,10 +1524,10 @@ class SyntaxAnalyzer:
                         self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead reached EOF.")
                     # closed the func params with )
                     elif self.currToken["tokenType"] == ')':
-                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value.")
+                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got '{self.currToken["tokenType"]}'.")
                     # Random token
                     elif self.currToken and self.currToken["tokenType"] != "=":
-                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got {self.currToken["tokenType"]}.")
+                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got '{self.currToken["tokenType"]}'.")
                 
                 # if = is the next token, proceed to params_def_rec_cont
                 elif self.currToken and self.currToken["tokenType"] == "=":
