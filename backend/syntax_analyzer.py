@@ -1562,7 +1562,7 @@ class SyntaxAnalyzer:
                 self.ERROR_array_as_param_no_val()
 
         if self.currToken and self.currToken["tokenType"] == "[":
-            self.logError("Only up to 2-dimensions are allowed.")
+            self.logError("Only up to 2-dimensional arrays are supported.")
 
         if self.currToken and self.currToken["tokenType"] == "=":
             self.logError("No default array values are allowed.")
