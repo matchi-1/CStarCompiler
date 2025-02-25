@@ -1440,7 +1440,7 @@ class SyntaxAnalyzer:
             self.data_type()
         else:
             if not self.match("Identifier"):
-                self.logError("Expected data type or Identifier (Class name).")
+                self.logError(f"Expected data type or Identifier (Class name), instead got '{self.currToken["tokenName"]}'.")
 
         print("(parser) production: \"ret_type\" exited!!!!!")
 
@@ -1489,7 +1489,7 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == ",":
                 self.match(",")
                 if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
-                    self.logError("Expected data type or Identifier (Class name).")
+                    self.logError(f"Expected data type or Identifier (Class name), instead got '{self.currToken["tokenName"]}'.")
                 self.params_dec()
     
         print("(parser) production: \"params_var_rec\" exited!!!!!")
