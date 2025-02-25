@@ -1707,8 +1707,9 @@ class SyntaxAnalyzer:
                 self.logError("Non-Void functions must return a value.")
             
             elif isVoid and self.currToken["tokenType"] != ";":
-                self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
-        
+                self.logError(f"Void functions cannot return a value and must be terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else EOF}'.")
+            
+                    
         if not isVoid:
             self.value([";"])
 
