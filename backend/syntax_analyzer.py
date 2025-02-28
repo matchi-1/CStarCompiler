@@ -305,24 +305,6 @@ class node_funcpar_var:
     def __repr__(self):
         return f"node_funcpar_var: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, parvar_cont_n: {self.parvar_cont_n})"
 
-class node_funcpar_var_def:
-    def __init__(self, value_n, parvar_defrec_n):
-        self.value_n = value_n
-        self.parvar_defrec_n = parvar_defrec_n
-    def __repr__(self):
-        return f"node_funcpar_var_def: (value_n: {self.value_n}, parvar_defrec_n: {self.parvar_defrec_n})"
-
-class node_funcpar_var_defrec:
-    def __init__(self, dtype_t, id_n, parvar_defrec_cont_n):
-        self.dtype_t = dtype_t
-        self.id_n = id_n
-        self.parvar_defrec_cont_n = parvar_defrec_cont_n
-
-class node_funcpar_var_defreccont:
-    def __init__(self, value_n, parvar_defrec_n):
-        self.value_n = value_n
-        self.parvar_defrec_n = parvar_defrec_n
-
 class node_output:
     def __init__(self, print_stmts_n, print_params_n):
         self.print_stmts_n = print_stmts_n
@@ -1864,13 +1846,7 @@ class SyntaxAnalyzer:
     def params_var_cont(self, dtype_temp_t, id_temp_n):
         print("(parser) production: \"params_var_cont\" detected")
         if self.currToken:
-            if self.currToken["tokenType"] == "=":
-                self.match("=")
-                val_temp_n = self.value([",", ")"])
-                if not val_temp_n:
-                    self.ERROR_expected_token("value")
-                return node_funcpar_var(dtype_temp_t, id_temp_n, self.params_def_rec())
-            elif self.currToken["tokenType"] == "[":
+            if self.currToken["tokenType"] == "[":
                 return node_funcpar_arr(dtype_temp_t, id_temp_n, self.is_array(), self.params_var_rec())
                 self.is_array()
             elif self.currToken["tokenType"] == ",":
@@ -1892,62 +1868,6 @@ class SyntaxAnalyzer:
     
         print("(parser) production: \"params_var_rec\" exited!!!!!")
         return None 
-
-    def params_def_rec(self):
-        # def rec means that there is already a default param before current params rec
-        print("(parser) production: \"params_def_rec\" detected")
-        ret_node_temp_n = None
-        if self.currToken:
-            if self.currToken["tokenType"] == ",":
-                self.match(",")
-
-                # def rec should be followed by only a data_type since objs dont have default params
-                if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"]:
-                    if self.currToken:
-                        self.logError(f"Expected data type for non-default variable declaration, instead got {self.currToken["tokenType"]}.\nCannot declare arrays, objects, or non-default variables at this point due to existing default parameters.")
-                    else:
-                        self.logError(f"Expected data type for non-default variable declaration.\nCannot declare arrays, objects, or non-default variables at this point due to existing default parameters.")
-                
-                # match datatype
-                # if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                #     self.nextToken()
-                dtype_temp_t = self.data_type()
-                
-                id_temp_n = node_iden(self.match("Identifier", False))
-
-                # if after default param the syntax is just <dtype> iden w/o initializing, throw error
-                if not self.currToken or self.currToken and self.currToken["tokenType"] != "=":
-                    # always look for '=' since default param before already exists
-                    # EOF
-                    if not self.currToken:
-                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead reached EOF.")
-                    # closed the func params with )
-                    elif self.currToken["tokenType"] == ')':
-                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got '{self.currToken["tokenType"]}'.")
-                    # Random token
-                    elif self.currToken and self.currToken["tokenType"] != "=":
-                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got '{self.currToken["tokenType"]}'.")
-                
-                # if = is the next token, proceed to params_def_rec_cont
-                elif self.currToken and self.currToken["tokenType"] == "=":
-                    ret_node_temp_n = node_funcpar_var_defrec(dtype_temp_t, id_temp_n, self.params_def_rec_cont())
-
-        print("(parser) production: \"params_def_rec\" exited!!!!!")
-        return ret_node_temp_n
-    def params_def_rec_cont(self,isDefault = False ):
-        print("(parser) production: \"params_def_rec_cont\" detected")
-
-        if self.currToken:
-            if not self.currToken and isDefault or self.currToken["tokenType"] != "=":
-                self.logError("No non-default parameter must follow a default parameter.")
-            self.match("=", True)
-            val_temp_n = self.value([",", ")"])
-            if not val_temp_n:
-                    self.ERROR_expected_token("value")
-            par_defrec_temp_n = self.params_def_rec()
-
-        print("(parser) production: \"params_def_rec_cont\" exited!!!!!")
-        return node_funcpar_var_defreccont(val_temp_n, par_defrec_temp_n)
 
     def is_array(self):
         print("(parser) production: \"is_array\" detected")
