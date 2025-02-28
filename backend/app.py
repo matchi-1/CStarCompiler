@@ -66,6 +66,7 @@ def syntax_analysis():
     }
     # print json output
     # print('\n\n', json.dumps(response, indent=2))
+    
     return jsonify(response)
 
 if __name__ == '__main__':

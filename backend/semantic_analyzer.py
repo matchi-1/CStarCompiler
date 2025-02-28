@@ -26,3 +26,33 @@ class SemanticAnalyzer:
     
     def exit_scope(self):
         self.curr_scope = self.curr_scope.parent
+
+    def visit_node(self, node ):
+        visit_func = getattr(self, f'visit_{type(node).__name__}') #get the appropriate visit func
+        return visit_func(node)
+    
+    # ---NODE VISITATION FUNCS---
+    # FORMAT: visit_{node_name}
+    # VALUE nodes always return tuple of dtype and value
+    def visit_node_num(self, node):
+        return (node.dtype, node.val_t["tokenName"]) 
+    def visit_node_str(self, node):
+        return (node.dtype, node.val_t["tokenName"])
+    def visit_node_bool(self, node):
+        return (node.dtype, node.val_t["tokenName"])
+    #cont...
+
+    #binary and unary operations
+    # def visit_node_bi_op(self, node):
+    #     match node.op_t["tokenName"]:
+    #         case '+':
+                
+    #         case '-':
+                
+    #         case '/':
+                
+    #         case '*':
+
+    #         case '%':
+
+    #         #cont... (logic n rel)
