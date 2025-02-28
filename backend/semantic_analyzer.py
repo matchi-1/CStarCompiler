@@ -41,7 +41,7 @@ class SemanticAnalyzer:
     def visit_node_bool(self, node):
         return (node.dtype, node.val_t["tokenName"])
     #cont...
-
+ 
     #binary and unary operations
     # def visit_node_bi_op(self, node):
     #     match node.op_t["tokenName"]:
