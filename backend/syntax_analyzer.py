@@ -220,7 +220,7 @@ class node_vardec_cont:
         self.idec_rec_n = idec_rec_n
     
     def __repr__(self):
-        return f"node_vardec_cont: (value_t: {self.value_n}, \n\tidec_rec_n: {self.idec_rec_n})\n"
+        return f"node_vardec_cont: (value_n: {self.value_n}, \n\tidec_rec_n: {self.idec_rec_n})\n"
 
 class node_idec_rec_stmt:
     def __init__(self, id_n, value_n):
@@ -1181,7 +1181,8 @@ class SyntaxAnalyzer:
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
                 id_temp_n = node_iden(self.match("Identifier", False))
-                return node_vardec(const_b, dtype_temp_t, id_temp_n, self.iden_dec_cont(dtype_temp_t, id_temp_n)) 
+                # return node_vardec(const_b, dtype_temp_t, id_temp_n, self.iden_dec_cont(dtype_temp_t, id_temp_n)) 
+                return self.iden_dec_cont(dtype_temp_t, id_temp_n)
                 
             
             else:
@@ -1229,7 +1230,8 @@ class SyntaxAnalyzer:
         if value_temp_n or idec_rec_temp_n:
             vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
-        return node_vardec_cont(value_temp_n, idec_rec_temp_n)
+        return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
+        # return node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
 
 
