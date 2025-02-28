@@ -1,4 +1,3 @@
-import semantic_analyzer
 
 #-------------------- PREDICT SETS --------------------
 PREDICT_SETS = {
@@ -77,8 +76,6 @@ def typeFracLit(frac_lit):
     else:
         return "err"
     
-#------------------SEMANTIC ANALYZER-----------
-sema = semantic_analyzer.SemanticAnalyzer()
 
 #-----------------AST FOR VALUE------------------
 # #_t suffix = token, #_n suffix = node
@@ -1693,17 +1690,17 @@ class SyntaxAnalyzer:
     def data_type(self):
         match self.currToken["tokenType"]:
             case "int":
-                return self.match("int", False)["tokenName"]
+                return self.match("int", False)
             case "long":
-                return self.match("long", False)["tokenName"]
+                return self.match("long", False)
             case "float":
-                return self.match("float", False)["tokenName"]
+                return self.match("float", False)
             case "double":
-                return self.match("double", False)["tokenName"]
+                return self.match("double", False)
             case "bool":
-                return self.match("bool", False)["tokenName"]
+                return self.match("bool", False)
             case "string":
-                return self.match("string", False)["tokenName"]
+                return self.match("string", False)
 
     def lit_type(self):
         print('(parser) production: "lit_type" detected')

@@ -1,6 +1,6 @@
 from flask import Flask, json, jsonify, request
 from flask_cors import CORS
-import lexical_analyzer, syntax_analyzer
+import lexical_analyzer, syntax_analyzer, semantic_analyzer
 
 app = Flask(__name__)
 CORS(app)  # cross-origin requests
@@ -67,6 +67,10 @@ def syntax_analysis():
     # print json output
     # print('\n\n', json.dumps(response, indent=2))
     
+    #---SEMANTIC ANALYSIS---
+    seman = semantic_analyzer.SemanticAnalyzer()
+    seman.interpret(parseTree)
+
     return jsonify(response)
 
 if __name__ == '__main__':
