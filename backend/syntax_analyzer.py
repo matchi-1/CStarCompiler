@@ -595,6 +595,7 @@ class SyntaxAnalyzer:
     def __init__(self, tokens):
         self.classNames = []            #for checking if constructor name matches class name
         self.errors = []
+        self.parse_tree = None
         self.tokens = [token.to_dict() 
                for token in tokens 
                if token.token_type not in {"single_comment", "multi-line comment"}]   # comments will be ignored by the parser
@@ -868,15 +869,15 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            program_tree = self.program()
-            print(program_tree)
+            self.parse_tree = self.program()
+            print(self.parse_tree)
             #self.value()
             self.errors.append("Parsing completed successfully. No Syntax Errors found.")
             print("Parsing completed successfully. No Syntax Errors found.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
             print (e)
-        return (self.errors, program_tree)
+        return (self.errors, self.parse_tree)
 
     #-------------------- CFG START --------------------
     # for semantic stuff, instead of using "if not", just add else clause to add functionality in if match clause
