@@ -1023,7 +1023,7 @@ class SyntaxAnalyzer:
                     return node_assign_func_method_mods(iden_temp_n, as_array_n, assign_stmt_op_n, None, None, None)
 
                 elif currentTokenType == "(":
-                    self.match("(")
+                    self.match("(", False)
                     func_arg_n = self.func_arg()
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
@@ -1089,7 +1089,7 @@ class SyntaxAnalyzer:
             self.logError(f"Unexpected Token '{self.currToken["tokenName"]}' found. Expected {PREDICT_SETS["body"]}.")
 
         if not self.hasFunctionReturned and not inControlStruct and not self.hasMainFunction:
-                self.logError("A return statement outside of control structures is required in all functions.")
+                self.logError(f"Expected 'return' for all functions, instead got '{self.currToken["tokenName"]}'")
                 #placeholder hehehehehhehehehehheyhueh
 
         
@@ -1439,7 +1439,9 @@ class SyntaxAnalyzer:
                 self.func_arg_rec(func_arg_n)
         else:
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                self.logError("Function call arguments cannot accept declarations.")
+                self.logError(f"Unexpected token: '{self.currToken["tokenName"]}'. Function call arguments cannot accept declarations.")
+            elif self.currToken and self.currToken["tokenType"] != ")":
+                self.ERROR_expected_token(PREDICT_SETS["value"]+[")"])
             else: 
                 print("(parser) λ-production for <func_arg>")  # Handle λ (empty production)
         
@@ -1885,7 +1887,7 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == ",":
                 self.match(",")
                 if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
-                    self.logError("Expected data type or Identifier (Class name).")
+                    self.logError(f"Expected data type or Identifier (Class name), instead got '{self.currToken["tokenName"]}'.")
                 return self.params_dec()
     
         print("(parser) production: \"params_var_rec\" exited!!!!!")
@@ -1921,10 +1923,10 @@ class SyntaxAnalyzer:
                         self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead reached EOF.")
                     # closed the func params with )
                     elif self.currToken["tokenType"] == ')':
-                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value.")
+                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got '{self.currToken["tokenType"]}'.")
                     # Random token
                     elif self.currToken and self.currToken["tokenType"] != "=":
-                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got {self.currToken["tokenType"]}.")
+                        self.logError(f"Uninitialized variable. Expected '=' for initializing the variable parameter to a default value, instead got '{self.currToken["tokenType"]}'.")
                 
                 # if = is the next token, proceed to params_def_rec_cont
                 elif self.currToken and self.currToken["tokenType"] == "=":
@@ -1961,10 +1963,10 @@ class SyntaxAnalyzer:
             arrdim = 2
 
         if self.currToken and self.currToken["tokenType"] == "[":
-            self.logError("Only up to 2-dimensions are allowed.")
+            self.logError("Only up to 2-dimensional arrays are supported.")
 
         if self.currToken and self.currToken["tokenType"] == "=":
-            self.logError("No default array values are allowed.")
+            self.logError("Default array values are not supported.")
         print("(parser) production: \"is_array\" exited!!!!!")
         return arrdim
 
@@ -2132,7 +2134,7 @@ class SyntaxAnalyzer:
                 self.logError("Non-Void functions must return a value.")
             
             elif isVoid and self.currToken["tokenType"] != ";":
-                self.logError("Void functions cannot return a value and must be terminated by a ';' immediately.")
+                self.logError(f"Void functions cannot return a value and must be terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else EOF}'.")
         
         if not isVoid:
             ret_value_n = self.value([";"])
