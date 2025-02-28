@@ -582,12 +582,11 @@ class node_assign_stmt:
         return f"assign stmt: id_n:'{self.id_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
 
 class node_imports_list:
-    def __init__(self, stdlib_n, filename_n):
+    def __init__(self, stdlib_n):
         self.stdlib_n = stdlib_n
-        self.filename_n = filename_n
 
     def __repr__(self):
-        return f"imports_list: (stdlib_n: {self.stdlib_n}, \n\tfilename_n: {self.filename_n})"
+        return f"imports_list: (stdlib_n: {self.stdlib_n})"
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -777,18 +776,6 @@ class SyntaxAnalyzer:
 
     def ERROR_unclosed_square_bracket(self):
         self.logError(f"Unclosed square bracket: Expected ']', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
-
-    def ERROR_expected_stdlib_or_filename(self):
-        self.logError(f"Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
-
-    def ERROR_expected_cstr_file(self, filename_temp):
-        if self.currToken and self.currToken["tokenType"] == ">":
-            self.logError(f"Expected '.cstr' extension for header file '{filename_temp}', before \'>\'")
-        else:
-            self.logError(f"Expected '.cstr' extension for header file '{filename_temp}', instead got '{self.currToken["tokenName"]}'.")
-
-    def ERROR_expected_stdlib(self):
-        self.logError(f"Expected a standard library (Cmath, Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_Identifier_classes(self):
         if not self.currToken:  # EOF case
@@ -1106,15 +1093,23 @@ class SyntaxAnalyzer:
         return None
         
 
-    def imports_list(self, stdlibs=[], filenames=[]):
+    def imports_list(self, stdlibs=[]):
         print("(parser) production: \"imports_list\" detected")
         # Only parse if the current token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.match("import", False)
             self.match("<", False)
 
-            # Process content inside '<>'
-            self.imports_list_values(stdlibs, filenames)
+            # Process content inside '<>'  -- no more header files import
+            if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:
+                print("STANDARD LIBRARY FOUND: " + str(self.currToken["tokenName"]))
+                std_lib_header = self.match("Identifier")["tokenName"]   
+                if std_lib_header not in stdlibs:
+                    stdlibs.append(std_lib_header)  # Avoid duplicate appends of stdlib stdlibs
+            else:
+                 self.logError(
+                    f"Expected a standard library (Cstring or Carray), found '{self.currToken['tokenName']}'"
+                    if self.currToken else "Expected a standard library (Cstring or Carray), but reached EOF instead.")
 
             if not self.match(">"):
                 self.ERROR_unclosed_angled_bracket()
@@ -1124,59 +1119,9 @@ class SyntaxAnalyzer:
 
             # Handle potential recursive imports
             if self.currToken and self.currToken["tokenType"] == "import":
-                self.imports_list(stdlibs, filenames)
+                self.imports_list(stdlibs)
 
-        return node_imports_list(stdlibs, filenames)
-
-    def imports_list_values(self, stdlibs, filenames):
-        print("(parser) production: \"imports_list_values\" detected")
-        is_stdlib = True
-        if self.currToken:
-            # Check for standard library
-            if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:
-                print("STANDARD LIBRARY FOUND: " + str(self.currToken["tokenName"]))
-                std_lib_or_file_temp = self.match("Identifier")["tokenName"]  # Match standard library
-
-                # Check if it has a `.cstr` extension
-                if self.currToken and self.currToken["tokenType"] == ".":
-                    self.match(".")
-                    if self.currToken and self.currToken["tokenName"] == "cstr":
-                        self.match("Identifier")  # Match 'cstr'
-                        is_stdlib = False
-                        print("STDLIB WITH CSTR FOUND")
-                        if std_lib_or_file_temp not in filenames:
-                            filenames.append(std_lib_or_file_temp)  # Avoid duplicate appends of stdlib file name to filenames
-                    else:
-                        self.ERROR_expected_cstr_file(std_lib_or_file_temp)
-
-                if is_stdlib:
-                    if std_lib_or_file_temp not in stdlibs: 
-                            stdlibs.append(std_lib_or_file_temp) # Append standard library to stdlibs
-
-
-            # Check for filename (non-standard-library identifier with .cstr)
-            elif self.currToken["tokenType"] == "Identifier":
-                print("FILENAME FOUND: " + str(self.currToken["tokenName"]))
-                filename_temp = self.match("Identifier")["tokenName"]  # Match filename
-
-                if self.currToken and self.currToken["tokenType"] == ">":
-                    self.logError(f"Expected .cstr extension for header file '{filename_temp}', before '>'")
-
-                if not self.match("."):
-                    self.ERROR_expected_cstr_file(filename_temp)
-
-                if self.currToken and self.currToken["tokenName"] == "cstr":
-                    self.match("Identifier")  # Match 'cstr'
-                    if filename_temp not in filenames:
-                        filenames.append(filename_temp)  # Avoid duplicate appends
-                else:
-                    self.ERROR_expected_cstr_file(filename_temp)
-            else:
-                self.ERROR_expected_stdlib_or_filename()
-        else:
-            self.ERROR_expected_stdlib_or_filename()
-
-
+        return node_imports_list(stdlibs)
 
 
     # ----- TODO:REVISIT!! can't complete errors here yet bc errors would be found in each prod first, then check if there are external errors left 
@@ -2452,7 +2397,7 @@ class SyntaxAnalyzer:
                 print("(parser) empty init_arg detected")
             
             if not self.match(";"):
-                self.logError(f"Initialization argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else EOF}'.")
+                self.logError(f"Initialization argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else "EOF"}'.")
             
             ## CONDITION
             condition_temp_n = self.condition("for-loop",[";"])
@@ -2460,7 +2405,7 @@ class SyntaxAnalyzer:
                 self.ERROR_empty_condition("for-loop")
             
             if not self.match(";"):
-                self.logError(f"Condition argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else EOF}'.")
+                self.logError(f"Condition argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else "EOF"}'.")
 
             ## INC ARG
             if self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
