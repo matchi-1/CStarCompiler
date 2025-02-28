@@ -1779,7 +1779,7 @@ class LexicalAnalyzer:
         return lexerResults
 
     #---LEXER ERRORS---
-    def generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces, additionalInfo=None):
+    def generateError(self, errorType, currToken, currLine, currCol, lineContent, leadingSpaces, additionalInfo=None):
         """
         Generates a lexical error message.
         """
@@ -1797,7 +1797,7 @@ class LexicalAnalyzer:
             return ''
         return errorMsg
 
-    def selfdelimError(self, currToken, currLine, currCol, incorrectDelim, lineContent, expected, leadingSpaces):
+    def delimError(self, currToken, currLine, currCol, incorrectDelim, lineContent, expected, leadingSpaces):
         errorType = f"Unexpected {'newline' if incorrectDelim == '\\n' else incorrectDelim} for"
         additionalInfo = f"Expected delimiters: {expected}"
         return self.generateError(errorType, currToken[:-1], currLine, currCol, lineContent, leadingSpaces, additionalInfo)
