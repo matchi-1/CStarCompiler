@@ -295,12 +295,12 @@ class node_funcpar_arr:
         return f"node_funcpar_arr: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, arr_dim_i: {self.arrdim_i}, params_n: {self.params_n})"
 
 class node_funcpar_var:
-    def __init__(self, dtype_t, id_n, parvar_cont_n):
+    def __init__(self, dtype_t, id_n, parvar_rec_n):
         self.dtype_t = dtype_t
         self.id_n = id_n
-        self.parvar_cont_n = parvar_cont_n
+        self.parvar_rec_n = parvar_rec_n
     def __repr__(self):
-        return f"node_funcpar_var: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, parvar_cont_n: {self.parvar_cont_n})"
+        return f"node_funcpar_var: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, parvar_rec_n: {self.parvar_rec_n})"
 
 class node_output:
     def __init__(self, print_stmts_n, print_params_n):
@@ -1845,9 +1845,9 @@ class SyntaxAnalyzer:
         if self.currToken:
             if self.currToken["tokenType"] == "[":
                 return node_funcpar_arr(dtype_temp_t, id_temp_n, self.is_array(), self.params_var_rec())
-                self.is_array()
+                # self.is_array()
             elif self.currToken["tokenType"] == ",":
-                return self.params_var_rec()
+                return node_funcpar_var(dtype_temp_t, id_temp_n, self.params_var_rec())
             else:
                 return node_funcpar_var(dtype_temp_t, id_temp_n, None)
 

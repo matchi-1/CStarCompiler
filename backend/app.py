@@ -69,7 +69,7 @@ def syntax_analysis():
     
     #---SEMANTIC ANALYSIS---
     seman = semantic_analyzer.SemanticAnalyzer()
-    seman.interpret(parseTree)
+    # seman.interpret(parseTree)
 
     return jsonify(response)
 
