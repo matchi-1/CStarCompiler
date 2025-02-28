@@ -868,14 +868,15 @@ class SyntaxAnalyzer:
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
-            print(self.program())
+            program_tree = self.program()
+            print(program_tree)
             #self.value()
             self.errors.append("Parsing completed successfully. No Syntax Errors found.")
             print("Parsing completed successfully. No Syntax Errors found.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
             print (e)
-        return self.errors
+        return (self.errors, program_tree)
 
     #-------------------- CFG START --------------------
     # for semantic stuff, instead of using "if not", just add else clause to add functionality in if match clause
