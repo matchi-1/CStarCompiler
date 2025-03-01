@@ -1,3 +1,4 @@
+from lexical_analyzer import Token
 
 #-------------------- PREDICT SETS --------------------
 PREDICT_SETS = {
@@ -268,11 +269,12 @@ class node_arr_dec_rec:
         return f"(id_n: {self.id_n}, size1_n: {self.size1_n}, size2_n: {self.size2_n})"
 
 class node_func_dec:
-    def __init__(self, dtype_t, iden_n, params_n, body_n):
+    def __init__(self, dtype_t, iden_n, params_n, body_n, is_std_lib = False):
         self.dtype_t = dtype_t
         self.iden_n = iden_n
         self.params_n = params_n
         self.body_n = body_n
+        self.is_std_lib = is_std_lib
     def __repr__(self):
         return f"node_func_dec: (\n\tdtype_t: {self.dtype_t}, id_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n})"
 
@@ -859,12 +861,15 @@ class SyntaxAnalyzer:
             raise SyntaxError(message)
         
         if self.matchPredictSet("program", False):
-            program_stmts.append(self.imports_list(stdlibs=[]))
+            imports_list_node, std_lib_func_dec_nodes = self.imports_list([])
+            program_stmts.append(imports_list_node)
             
             """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
             # Parse constructs
-            program_stmts.append(self.program_constructs([]))
+            program_stmts.append(self.program_constructs(std_lib_func_dec_nodes))
+           
             print(f"BACK AT MAIN PROGRAM : {self.hasMainFunction}")
+
             # Check for main function presence
             if not self.hasMainFunction:
                 self.ERROR_no_main_func()
@@ -1076,8 +1081,11 @@ class SyntaxAnalyzer:
         return None
         
 
-    def imports_list(self, stdlibs=[]):
+    def imports_list(self, stdlibs=[], std_lib_func_dec_nodes = []):
         print("(parser) production: \"imports_list\" detected")
+
+        # should return tuple, stdlibs node and array of stdlibs func dec nodes to be passed to program constructs' statements
+
         # Only parse if the current token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.match("import", False)
@@ -1086,9 +1094,19 @@ class SyntaxAnalyzer:
             # Process content inside '<>'  -- no more header files import
             if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:
                 print("STANDARD LIBRARY FOUND: " + str(self.currToken["tokenName"]))
-                std_lib_header = self.match("Identifier")["tokenName"]   
+                std_lib_header = self.match("Identifier")["tokenName"]  
+                std_lib_header_line = self.currToken["tokenLine"]
+                std_lib_header_col = self.currToken["tokenCol"]
+
                 if std_lib_header not in stdlibs:
                     stdlibs.append(std_lib_header)  # Avoid duplicate appends of stdlib stdlibs
+                    if std_lib_header == "Cstring":
+                        # str_isEmpty built-in stdlib function
+                        str_isEmpty_iden_t = Token("str_isEmpty", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
+                        str_isEmpty_iden_n = node_iden(str_isEmpty_iden_t) 
+                        string_type_t = Token("string", "string", std_lib_header_line, std_lib_header_col).to_dict() 
+                        std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_isEmpty_iden_n, None, None, True))
+
                 else:
                     error_msg = f"Duplicate library import: Standard library '{std_lib_header}' has already been imported."
                     self.errors.append(error_msg)
@@ -1109,7 +1127,7 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] == "import":
                 self.imports_list(stdlibs)
 
-        return node_imports_list(stdlibs)
+        return (node_imports_list(stdlibs), std_lib_func_dec_nodes)
 
 
     # ----- TODO:REVISIT!! can't complete errors here yet bc errors would be found in each prod first, then check if there are external errors left 
