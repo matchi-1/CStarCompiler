@@ -279,30 +279,27 @@ class node_func_dec:
         return f"node_func_dec: (\n\tdtype_t: {self.dtype_t}, id_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n})"
 
 class node_funcpar_class:
-    def __init__(self, class_id_n, obj_id_n, params_n):
+    def __init__(self, class_id_n, obj_id_n):
         self.class_id_n = class_id_n
         self.obj_id_n = obj_id_n
-        self.params_n = params_n
     def __repr__(self):
-        return f"node_funcpar_class: (class_id_n: {self.class_id_n}, obj_id_n: {self.obj_id_n}, params_n: {self.params_n})"
+        return f"node_funcpar_class: (class_id_n: {self.class_id_n}, obj_id_n: {self.obj_id_n}"
 
 class node_funcpar_arr:
-    def __init__(self, dtype_t, id_n, arrdim_i, params_n):
+    def __init__(self, dtype_t, id_n, arrdim_i):
         self.dtype_t = dtype_t
         self.id_n = id_n
         self.arrdim_i = arrdim_i
-        self.params_n = params_n
     
     def __repr__(self):
-        return f"node_funcpar_arr: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, arr_dim_i: {self.arrdim_i}, params_n: {self.params_n})"
+        return f"node_funcpar_arr: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, arr_dim_i: {self.arrdim_i})"
 
 class node_funcpar_var:
-    def __init__(self, dtype_t, id_n, parvar_rec_n):
+    def __init__(self, dtype_t, id_n):
         self.dtype_t = dtype_t
         self.id_n = id_n
-        self.parvar_rec_n = parvar_rec_n
     def __repr__(self):
-        return f"node_funcpar_var: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, parvar_rec_n: {self.parvar_rec_n})"
+        return f"node_funcpar_var: (dtype_t: {self.dtype_t}, id_n: {self.id_n})"
 
 class node_output:
     def __init__(self, print_stmts_n, print_params_n):
@@ -1094,17 +1091,23 @@ class SyntaxAnalyzer:
             # Process content inside '<>'  -- no more header files import
             if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:
                 print("STANDARD LIBRARY FOUND: " + str(self.currToken["tokenName"]))
-                std_lib_header = self.match("Identifier")["tokenName"]  
                 std_lib_header_line = self.currToken["tokenLine"]
                 std_lib_header_col = self.currToken["tokenCol"]
+                std_lib_header = self.match("Identifier")["tokenName"]  
+                
 
                 if std_lib_header not in stdlibs:
                     stdlibs.append(std_lib_header)  # Avoid duplicate appends of stdlib stdlibs
+                    
+                    # data type tokens
+                    string_type_t = Token("string", "string", std_lib_header_line, std_lib_header_col).to_dict()
+
                     if std_lib_header == "Cstring":
                         # str_isEmpty built-in stdlib function
                         str_isEmpty_iden_t = Token("str_isEmpty", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
                         str_isEmpty_iden_n = node_iden(str_isEmpty_iden_t) 
-                        string_type_t = Token("string", "string", std_lib_header_line, std_lib_header_col).to_dict() 
+                        str_isEmpty_params_n = []
+                         
                         std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_isEmpty_iden_n, None, None, True))
 
                 else:
@@ -1263,7 +1266,7 @@ class SyntaxAnalyzer:
         if not self.hasMainFunction:
             print(f"(parser) production: \"params_dec_start\" detected , isVoid = {isVoid}")
             self.match("(")
-            params_n = self.params_dec()
+            params_n = self.params_dec([])
             if not self.match(")", True):
                 self.ERROR_unclosed_parentheses()
         
@@ -1865,20 +1868,24 @@ class SyntaxAnalyzer:
     #     print("(parser) production: \"params_var\" exited!!!!!")
 
     #TODO: harley continue here
-    def params_var_cont(self, dtype_temp_t, id_temp_n):
+    def params_var_cont(self, dtype_temp_t, id_temp_n, params_n):
         print("(parser) production: \"params_var_cont\" detected")
         if self.currToken:
             if self.currToken["tokenType"] == "[":
-                return node_funcpar_arr(dtype_temp_t, id_temp_n, self.is_array(), self.params_var_rec())
+                node_funcpar_arr_temp_n = node_funcpar_arr(dtype_temp_t, id_temp_n, self.is_array())
+                self.params_var_rec(params_n)
+                return node_funcpar_arr_temp_n
                 # self.is_array()
             elif self.currToken["tokenType"] == ",":
-                return node_funcpar_var(dtype_temp_t, id_temp_n, self.params_var_rec())
+                funcpar_var_temp_n = node_funcpar_var(dtype_temp_t, id_temp_n)
+                self.params_var_rec(params_n)
+                return funcpar_var_temp_n
             else:
-                return node_funcpar_var(dtype_temp_t, id_temp_n, None)
+                return node_funcpar_var(dtype_temp_t, id_temp_n)
 
         print("(parser) production: \"params_var_cont\" exited!!!!!")
 
-    def params_var_rec(self):
+    def params_var_rec(self, params_n):
         print("(parser) production: \"params_var_rec\" detected")
 
         if self.currToken:
@@ -1886,10 +1893,10 @@ class SyntaxAnalyzer:
                 self.match(",")
                 if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
                     self.logError(f"Expected data type or Identifier (Class name), instead got '{self.currToken["tokenName"]}'.")
-                return self.params_dec()
+                return self.params_dec(params_n)
     
         print("(parser) production: \"params_var_rec\" exited!!!!!")
-        return None 
+
 
     def is_array(self):
         print("(parser) production: \"is_array\" detected")
@@ -1912,25 +1919,31 @@ class SyntaxAnalyzer:
         print("(parser) production: \"is_array\" exited!!!!!")
         return arrdim
 
-    def params_dec(self):
+    def params_dec(self, params_n = []):
         print(f"(parser) production: \"params_dec\" detected, {self.currToken["tokenType"] if self.currToken else "EOF"}")
-
+        
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
                 id_temp_n = node_iden(self.match("Identifier", False))
-                return self.params_var_cont(dtype_temp_t, id_temp_n)
+                params_n.append(self.params_var_cont(dtype_temp_t, id_temp_n, params_n))
+                print("Entering params_var_rec after data type iden") 
+                self.params_var_rec(params_n)
             elif self.currToken["tokenType"] == "Identifier":
                 # self.match("Identifier", False)
                 # self.match("Identifier", False)
                 # self.params_var_rec()
-                return node_funcpar_class(node_iden(self.match("Identifier", False)), node_iden(self.match("Identifier", False)), self.params_var_rec())
+                param_class_temp_n =  node_funcpar_class(node_iden(self.match("Identifier", False)), node_iden(self.match("Identifier", False)))
+                params_n.append(param_class_temp_n)
+                print("Entering params_var_rec after iden iden") 
+                self.params_var_rec(params_n)
+            
         # if self.currToken and self.currToken["tokenType"] != ")":
         #     if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
         #         self.logError(f"Expected data type or class name. Found '{self.currToken["tokenType"]}' instead.")
         #     self.ret_type()
         #     self.params_var()
-        return None
+        return params_n
   
   # ALEX start here
     def condition(self, condType, stopChar):  
