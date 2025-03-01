@@ -276,7 +276,7 @@ class node_func_dec:
         self.body_n = body_n
         self.is_std_lib = is_std_lib
     def __repr__(self):
-        return f"node_func_dec: (\n\tdtype_t: {self.dtype_t["tokenName"]}, id_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n})"
+        return f"node_func_dec: (\n\tdtype_t: {self.dtype_t["tokenName"]}, id_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n}, is_std_lib: {self.is_std_lib})"
 
 class node_funcpar_class:
     def __init__(self, class_id_n, obj_id_n):
@@ -858,7 +858,7 @@ class SyntaxAnalyzer:
             raise SyntaxError(message)
         
         if self.matchPredictSet("program", False):
-            imports_list_node, std_lib_func_dec_nodes = self.imports_list([])
+            imports_list_node, std_lib_func_dec_nodes = self.imports_list([], [])
             program_stmts.append(imports_list_node)
             
             """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
@@ -1101,14 +1101,22 @@ class SyntaxAnalyzer:
                     
                     # data type tokens
                     string_type_t = Token("string", "string", std_lib_header_line, std_lib_header_col).to_dict()
+                    int_type_t = Token("int", "int", std_lib_header_line, std_lib_header_col).to_dict()
+                    bool_type_t = Token("bool", "bool", std_lib_header_line, std_lib_header_col).to_dict()
+
+                    # default parameter identifier tokens
+                    str_str_iden = Token("str_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
+                    str_str_iden_n = node_iden(str_str_iden)
+                    str_int_iden = Token("int_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
+                    str_str_iden_n = node_iden(str_str_iden)
 
                     if std_lib_header == "Cstring":
                         # str_isEmpty built-in stdlib function
                         str_isEmpty_iden_t = Token("str_isEmpty", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
                         str_isEmpty_iden_n = node_iden(str_isEmpty_iden_t) 
-                        str_isEmpty_params_n = []
+                        str_isEmpty_params_n = [node_funcpar_var(string_type_t, str_str_iden_n)]
                          
-                        std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_isEmpty_iden_n, None, None, True))
+                        std_lib_func_dec_nodes.append(node_func_dec(bool_type_t, str_isEmpty_iden_n, str_isEmpty_params_n, None, True))
 
                 else:
                     error_msg = f"Duplicate library import: Standard library '{std_lib_header}' has already been imported."
