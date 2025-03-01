@@ -213,7 +213,7 @@ class node_vardec:
         self.id_n = id_n
         self.vardec_cont_n = vardec_cont_n
     def __repr__(self):
-        return f'node_vardec: \n\t(const_b: {self.const_b}, dtype_t: {self.dtype_t}, id_n: {self.id_n}, {self.vardec_cont_n})'
+        return f'node_vardec: \n\t(const_b: {self.const_b}, dtype_t: {self.dtype_t["tokenName"]}, id_n: {self.id_n}, {self.vardec_cont_n})'
 
 class node_vardec_cont:
     def __init__(self, value_n, idec_rec_n):
@@ -276,7 +276,7 @@ class node_func_dec:
         self.body_n = body_n
         self.is_std_lib = is_std_lib
     def __repr__(self):
-        return f"node_func_dec: (\n\tdtype_t: {self.dtype_t}, id_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n})"
+        return f"node_func_dec: (\n\tdtype_t: {self.dtype_t["tokenName"]}, id_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n})"
 
 class node_funcpar_class:
     def __init__(self, class_id_n, obj_id_n):
@@ -292,14 +292,14 @@ class node_funcpar_arr:
         self.arrdim_i = arrdim_i
     
     def __repr__(self):
-        return f"node_funcpar_arr: (dtype_t: {self.dtype_t}, id_n: {self.id_n}, arr_dim_i: {self.arrdim_i})"
+        return f"node_funcpar_arr: (dtype_t: {self.dtype_t["tokenName"]}, id_n: {self.id_n}, arr_dim_i: {self.arrdim_i})"
 
 class node_funcpar_var:
     def __init__(self, dtype_t, id_n):
         self.dtype_t = dtype_t
         self.id_n = id_n
     def __repr__(self):
-        return f"node_funcpar_var: (dtype_t: {self.dtype_t}, id_n: {self.id_n})"
+        return f"node_funcpar_var: (dtype_t: {self.dtype_t["tokenName"]}, id_n: {self.id_n})"
 
 class node_output:
     def __init__(self, print_stmts_n, print_params_n):

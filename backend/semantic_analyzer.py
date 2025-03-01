@@ -214,3 +214,6 @@ class SemanticAnalyzer:
 
                 return ('boolean', left_val or right_val)
 
+    #unary ops
+    def visit_node_un_op(self, node):
+        
