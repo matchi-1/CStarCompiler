@@ -340,3 +340,29 @@ class SemanticAnalyzer:
     #         print(output_text, end='')
  
     #     return None
+
+    
+    #code block
+    # def visit_code_block(self, node, isVoid=False):
+    #     statements_n = node.code_block_statement_n  
+    #     self.enter_scope()
+
+    #     for stmt in statements_n:
+    #         if isinstance(stmt, str):  
+    #             self.visit_ctrl_stmt(stmt)
+    #         elif isinstance(stmt, node_iden): 
+    #             self.visit_var_decl(stmt)
+    #         elif isinstance(stmt, node_pre_un_op):  
+    #             self.visit_pre_un_op(stmt)
+    #         elif isinstance(stmt, node_output):  
+    #             self.visit_output(stmt)
+    #         elif isinstance(stmt, node_conditional_stmt):  
+    #             self.visit_conditional_stmt(stmt)
+    #         elif isinstance(stmt, node_loop_stmt): 
+    #             self.visit_loop_stmt(stmt)
+    #         elif isinstance(stmt, node_code_block):  
+    #             self.visit_code_block(stmt, isVoid)
+    #         else:
+    #             print("(semantic)(dbg) ERROR: Unrecognized statement type inside code block.")
+        
+    #     self.exit_scope()
