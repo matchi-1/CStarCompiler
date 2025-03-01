@@ -921,11 +921,11 @@ class SyntaxAnalyzer:
                     const_b = True
                 dtype_t = self.data_type()
                 iden_temp_n = node_iden(self.match("Identifier",False))
-                vardec_cont_n = self.var_dec_cont(dtype_t, iden_temp_n)
+                vardec_cont_n = self.var_dec_cont(dtype_t, iden_temp_n, const_b)
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
 
-                code_block_statement_n.append(node_vardec(const_b, dtype_t, iden_temp_n, vardec_cont_n))
+                code_block_statement_n.append(vardec_cont_n)
 
             elif currentTokenType == "++":
                 left_t = self.match("++")
@@ -1212,7 +1212,7 @@ class SyntaxAnalyzer:
         else: self.ERROR_expected_token(["("] + PREDICT_SETS["iden_dec_cont"])
 
 
-    def var_dec_cont(self, dtype_temp_t, id_temp_n):
+    def var_dec_cont(self, dtype_temp_t, id_temp_n, const_b = False):
         print("(parser) production: \"var_dec_cont\" detected")
         value_temp_n = None
         idec_rec_temp_n = None
@@ -1235,7 +1235,7 @@ class SyntaxAnalyzer:
         if value_temp_n or idec_rec_temp_n:
             vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
-        return node_vardec(False, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
+        return node_vardec(const_b, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
         # return node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
 
