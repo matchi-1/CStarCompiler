@@ -1872,16 +1872,14 @@ class SyntaxAnalyzer:
         print("(parser) production: \"params_var_cont\" detected")
         if self.currToken:
             if self.currToken["tokenType"] == "[":
-                node_funcpar_arr_temp_n = node_funcpar_arr(dtype_temp_t, id_temp_n, self.is_array())
+                params_n.append(node_funcpar_arr(dtype_temp_t, id_temp_n, self.is_array()))
                 self.params_var_rec(params_n)
-                return node_funcpar_arr_temp_n
                 # self.is_array()
             elif self.currToken["tokenType"] == ",":
-                funcpar_var_temp_n = node_funcpar_var(dtype_temp_t, id_temp_n)
+                params_n.append(node_funcpar_var(dtype_temp_t, id_temp_n))
                 self.params_var_rec(params_n)
-                return funcpar_var_temp_n
             else:
-                return node_funcpar_var(dtype_temp_t, id_temp_n)
+                params_n.append(node_funcpar_var(dtype_temp_t, id_temp_n))
 
         print("(parser) production: \"params_var_cont\" exited!!!!!")
 
@@ -1926,9 +1924,12 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
                 id_temp_n = node_iden(self.match("Identifier", False))
-                params_n.append(self.params_var_cont(dtype_temp_t, id_temp_n, params_n))
-                print("Entering params_var_rec after data type iden") 
+                # traverse data type iden or iden[][] and append inside that
+                self.params_var_cont(dtype_temp_t, id_temp_n, params_n)
+                
+                # check if there is another parameter
                 self.params_var_rec(params_n)
+
             elif self.currToken["tokenType"] == "Identifier":
                 # self.match("Identifier", False)
                 # self.match("Identifier", False)
@@ -1936,14 +1937,17 @@ class SyntaxAnalyzer:
                 param_class_temp_n =  node_funcpar_class(node_iden(self.match("Identifier", False)), node_iden(self.match("Identifier", False)))
                 params_n.append(param_class_temp_n)
                 print("Entering params_var_rec after iden iden") 
+
+                # check if there is another parameter
                 self.params_var_rec(params_n)
-            
+
+        return params_n  
         # if self.currToken and self.currToken["tokenType"] != ")":
         #     if self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
         #         self.logError(f"Expected data type or class name. Found '{self.currToken["tokenType"]}' instead.")
         #     self.ret_type()
         #     self.params_var()
-        return params_n
+        
   
   # ALEX start here
     def condition(self, condType, stopChar):  
