@@ -2274,8 +2274,9 @@ class SyntaxAnalyzer:
                 return self.if_stmt()
 
             elif self.currToken and self.currToken["tokenType"] == "{":
-                self.match("{")
-                body_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
+                self.match("{", False)
+                if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
+                    body_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
                 if not self.currToken:
                     self.ERROR_unclosed_curly_braces()
                 self.match("}", False)
@@ -2576,9 +2577,8 @@ class SyntaxAnalyzer:
     # bare-minimum tested
     def ctrl_stmt_body(self, isVoid = False):
         print("(parser) entered production: \"ctrl_stmt_body\"")
-
-        statements_n = []
         
+        statements_n = []
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
 
