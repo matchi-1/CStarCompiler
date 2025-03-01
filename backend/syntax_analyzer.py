@@ -1159,6 +1159,8 @@ class SyntaxAnalyzer:
                         str_toUpper_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
                         std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_toUpper_iden_n, str_toUpper_params_n, None, True))
 
+                    #if std_lib_header == "Carray":
+
 
                 else:
                     error_msg = f"Duplicate library import: Standard library '{std_lib_header}' has already been imported."
