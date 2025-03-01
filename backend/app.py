@@ -66,6 +66,11 @@ def compile_code():
         analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
         parseErrs, parseTree = analyzer.parse()
         errors += parseErrs    # comment out to just test for lexer
+        if "Parsing completed successfully. No Syntax Errors found." in parseErrs:
+            seman = semantic_analyzer.SemanticAnalyzer()
+            seman.interpret(parseTree) #comment/uncomment for testing
+        else: print("DID NOT RUN SEMANTIC ANALYSIS, FIX SYNTAX ERRORS BIATCH.")
+
     except SyntaxError as e:
         print(e)
 
@@ -82,8 +87,11 @@ def compile_code():
     # print('\n\n', json.dumps(response, indent=2))
     
     #---SEMANTIC ANALYSIS---
-    seman = semantic_analyzer.SemanticAnalyzer()
-    seman.interpret(parseTree) #comment/uncomment for testing
+    # try:
+    #     seman = semantic_analyzer.SemanticAnalyzer()
+    #     seman.interpret(parseTree) #comment/uncomment for testing
+    # except SyntaxError as e:
+    #     print(e)
 
     return jsonify(response)
 

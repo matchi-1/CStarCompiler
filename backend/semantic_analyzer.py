@@ -3,6 +3,7 @@ class SymbolTable:
         self.syms = {} #key: string val: dict
         self.parent = parent
 
+
     def get(self, sym_name):
         sym = self.syms.get(sym_name, None)
         if not sym and self.parent:
@@ -23,26 +24,59 @@ class SemanticAnalyzer:
     numtypes = ['int', 'long', 'float', 'double']
     def __init__(self):
         self.curr_scope = SymbolTable()
+        self.errors = []
 
-    def enter_scope(self):
+    def enter_scope(self, nodeName):
+        print(F'(semantic)(dbg) ENTERING scope {nodeName}')
         self.curr_scope = SymbolTable(self.curr_scope)
     
-    def exit_scope(self):
-        print('(semantic)(dbg) exiting scope, table: ', self.curr_scope.syms)
+    def exit_scope(self, nodeName):
+        print(F'(semantic)(dbg) EXITING scope {nodeName}, table: {self.curr_scope.syms}')
         self.curr_scope = self.curr_scope.parent
 
-    def visit_node(self, node ):
-        visit_func = getattr(self, f'visit_{type(node).__name__}') #get the appropriate visit func
-        return visit_func(node)
+    def visit_node(self, node):
+        nodeName = type(node).__name__
+        visit_func = getattr(self, f'visit_{nodeName}', None)  # Get the appropriate visit function, or None if it doesn't exist
+
+        if visit_func is None:
+            print(f"(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
+        else:
+            print(f'(semantic)(dbg) VISITING {nodeName}!!')
+            return visit_func(node)
+    
     def interpret(self, node):
         self.visit_node(node)
-        print('(semantic)(dbg) global table: ', self.curr_scope.syms)
+        #print('(semantic)(dbg) global table: ', self.curr_scope.syms)
+        print('(semantic)(dbg) SEMANTIC ANALYSIS DONE, NO ERRORS FOUND.')
 
 
 
-    # ---NODE VISITATION FUNCS---
+    # ------------------------------------ NODE VISITATION FUNCS----------------------------------
     # FORMAT: visit_{node_name}
     # VALUE nodes always return tuple of dtype and value
+    
+    #program PLACEHODLER
+    def visit_program_node(self, node):
+        #PLACEHOLDER! the real thing would iterate through      
+        #self.visit_node(node.program_structure_stmts[2])
+
+        for statement in node.program_structure_stmts:
+            self.visit_node(statement)
+    
+    #body PLACEHOLDER
+    def visit_node_body(self, node):
+        self.enter_scope(type(node).__name__)
+        # PLACEHOLDER! idk if it's correct
+        self.visit_node(node.body_codeblock_n)
+        self.exit_scope(type(node).__name__)
+
+    #code_block PLACEHODLER
+    def visit_node_code_block(self, node):
+        # PLACEHODLER!! idk if correct
+        for statement in node.code_block_statement_n:
+            self.visit_node(statement)
+
+
     def visit_node_num(self, node):
         val = 0
         if node.dtype in ['int', 'long']:
@@ -50,40 +84,26 @@ class SemanticAnalyzer:
         elif node.dtype in ['float', 'double']:
             val = float(node.val_t["tokenName"])
         return (node.dtype, val) 
+    
     def visit_node_str(self, node):
         return (node.dtype, node.val_t["tokenName"][1:-1])
+    
     def visit_node_bool(self, node):
         return (node.dtype, node.val_t["tokenName"]=="true")
+    
     def visit_node_iden(self, node):
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
         if not iden_symbol:
-            print('(semantic)(dbg) ERROR: symbol doesnt exist')
-        dtype = iden_symbol["dtype"]
-        val = 0
-        if dtype in ['int', 'long']:
-            val = int(iden_symbol["value"])
-        elif dtype in ['float', 'double']:
-            val = float(iden_symbol["value"])
-        return (dtype, val)
+            raise SyntaxError(f"SEMANTIC ERROR: Symbol '{node.id_t["tokenName"]}' hasnt been declared yet.")
+        else:
+            dtype = iden_symbol["dtype"]
+            val = 0
+            if dtype in ['int', 'long']:
+                val = int(iden_symbol["value"])
+            elif dtype in ['float', 'double']:
+                val = float(iden_symbol["value"])
+            return (dtype, val)
     #cont...
-
-    #program PLACEHODLER
-    def visit_program_node(self, node):
-        #PLACEHOLDER! the real thing would iterate through 
-        self.visit_node(node.program_structure_stmts[2])
-    
-    #body PLACEHOLDER
-    def visit_node_body(self, node):
-        self.enter_scope()
-        # PLACEHOLDER! idk if it's correct
-        self.visit_node(node.body_codeblock_n)
-        self.exit_scope()
-
-    #code_block PLACEHODLER
-    def visit_node_code_block(self, node):
-        # PLACEHODLER!! idk if correct
-        for statement in node.code_block_statement_n:
-            self.visit_node(statement)
 
     #var_dec
     def visit_node_vardec(self, node):
@@ -108,7 +128,6 @@ class SemanticAnalyzer:
 
     # binary and unary operations
     def visit_node_bi_op(self, node):
-        print('(semantic)(dbg) visiting bi_op!!')
         left_type, left_val = self.visit_node(node.left_n)
         right_type, right_val = self.visit_node(node.right_n)
         dtype = 'int'
@@ -238,6 +257,31 @@ class SemanticAnalyzer:
                 return (right_type, right_val - 1 )
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
             print('(semantic)(dbg) casting')
+
+    def visit_node_loop_stmt(self, node):
+        node_loop = node.loop_stmt_n
+        loop_name = type(node_loop).__name__
+
+        self.enter_scope(loop_name)
+        if loop_name == 'node_forloop':
+            
+            self.visit_node_vardec(node_loop.init_arg_n)
+            print(f"FOUND CONDITION: {self.visit_node(node_loop.condition_n.condition_n)}")
+            self.visit_node(node_loop.inc_arg_n) 
+            self.visit_node(node_loop.ctrl_stmt_body_n)
+
+        elif loop_name == 'node_while' or loop_name == 'node_do':
+            print(f"FOUND CONDITION: {self.visit_node(node_loop.condition_n.condition_n)}")
+            self.visit_node(node_loop.ctrl_stmt_body_n)
+
+        elif loop_name == 'node_repeat':
+            print(f"FOUND REPEAT VALUE: {self.visit_node(node_loop.repeat_value_n)}")
+            self.visit_node(node_loop.ctrl_stmt_body_n)
+            
+
+
+
+        self.exit_scope(loop_name)
 
     #input
     # def visit_node_input(self, node):

@@ -175,7 +175,7 @@ class node_bi_op:
         self.op_t = op_t
         self.right_n = right_n
     def __repr__(self):
-        return f'({self.left_n} {self.op_t["tokenName"]} {self.right_n})'
+        return f'node_bi_op: ({self.left_n} {self.op_t["tokenName"]} {self.right_n})'
 
 class node_un_op:
     def __init__(self, left_t, id_right_n):
@@ -425,13 +425,13 @@ class node_class_body:
    
 
 class node_class_body_stmt:
-    def __init__(self, is_private_b, node_vardec):
+    def __init__(self, is_private_b, vardec_n):
         self.is_private_b = is_private_b
-        self.node_vardec = node_vardec
+        self.vardec_n = vardec_n
 
     def __repr__(self):
         return (f"private_b: {self.is_private_b}, "
-                f"{self.node_vardec}"
+                f"{self.vardec_n}"
                 )
     
 class node_constructor_dec:
@@ -476,7 +476,7 @@ class node_condition:
     def __init__(self, condition_n):
         self.condition_n = condition_n
     def __repr__(self):
-        return f"condition_n: {self.condition_n}"
+        return f"condition_n -> {self.condition_n}, Type: {type(self.condition_n).__name__}"
 
 class node_switch_stmt:
     def __init__(self, value_n, case_n, default_n):
@@ -523,7 +523,7 @@ class node_forloop:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_forloop ( \n init_arg_n: {self.init_arg_n} \n {self.condition_n} \n inc_arg_n: {self.inc_arg_n} \n)\n ctrl_body_n( {self.ctrl_stmt_body_n} )\n)"
+        return f"node_forloop: ( \n init_arg_n: {self.init_arg_n} \n {self.condition_n} \n inc_arg_n: {self.inc_arg_n} \n)\n ctrl_body_n( {self.ctrl_stmt_body_n} )\n)"
 
 class node_while:
     def __init__(self, condition_n, ctrl_stmt_body_n):
