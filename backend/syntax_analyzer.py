@@ -1109,6 +1109,8 @@ class SyntaxAnalyzer:
                     str_iden_n = node_iden(str_iden)
                     int_iden = Token("int_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
                     int_iden_n = node_iden(int_iden)
+                    array_iden = Token("array_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                    array_iden_n = node_iden(array_iden)
 
                     if std_lib_header == "Cstring":
                         # str_isEmpty built-in Cstring stdlib function
@@ -1159,7 +1161,18 @@ class SyntaxAnalyzer:
                         str_toUpper_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
                         std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_toUpper_iden_n, str_toUpper_params_n, None, True))
 
-                    #if std_lib_header == "Carray":
+                    if std_lib_header == "Carray":
+                        # array_isEmpty built-in Carray stdlib function
+                        array_isEmpty_iden_t = Token("array_isEmpty", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        array_isEmpty_iden_n = node_iden(array_isEmpty_iden_t)
+                        array_isEmpty_params_n = [node_funcpar_arr(None, array_iden_n, None)]
+                        std_lib_func_dec_nodes.append(node_func_dec(bool_type_t, array_isEmpty_iden_n, array_isEmpty_params_n, None, True))
+
+                        # array_length built-in Carray stdlib function
+                        array_length_iden_t = Token("array_length", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        array_length_iden_n = node_iden(array_length_iden_t)
+                        array_length_params_n = [node_funcpar_arr(None, array_iden_n, None)]
+                        std_lib_func_dec_nodes.append(node_func_dec(int_type_t, array_length_iden_n, array_length_params_n, None, True))
 
 
                 else:
