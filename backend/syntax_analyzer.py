@@ -789,7 +789,7 @@ class SyntaxAnalyzer:
         self.logError(f"Condition cannot be empty for '{condType}' statement")
 
     def ERROR_expected_num_value(self):
-        self.logError(f"Expected numerical value. Found '{self.currToken["tokenType"] if self.currToken else EOF}' instead.")
+        self.logError(f"Expected numerical value. Found '{self.currToken["tokenType"] if self.currToken else "EOF"}' instead.")
     
     def ERROR_expected_pos_integer_value(self, expected_tokens = [t for t in PREDICT_SETS["int_val"] if t != "-"]):
         current_value = self.currToken["tokenType"] if self.currToken else "EOF"
@@ -1895,7 +1895,7 @@ class SyntaxAnalyzer:
         return arrdim
 
     def params_dec(self):
-        print(f"(parser) production: \"params_dec\" detected, {self.currToken["tokenType"] if self.currToken else EOF}")
+        print(f"(parser) production: \"params_dec\" detected, {self.currToken["tokenType"] if self.currToken else "EOF"}")
 
         if self.currToken and self.currToken["tokenType"] != ")":
             if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
@@ -2058,7 +2058,7 @@ class SyntaxAnalyzer:
                 self.logError("Non-Void functions must return a value.")
             
             elif isVoid and self.currToken["tokenType"] != ";":
-                self.logError(f"Void functions cannot return a value and must be terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else EOF}'.")
+                self.logError(f"Void functions cannot return a value and must be terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else "EOF"}'.")
         
         if not isVoid:
             ret_value_n = self.value([";"])
