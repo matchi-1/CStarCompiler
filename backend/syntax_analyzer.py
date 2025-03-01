@@ -1105,23 +1105,47 @@ class SyntaxAnalyzer:
                     bool_type_t = Token("bool", "bool", std_lib_header_line, std_lib_header_col).to_dict()
 
                     # default parameter identifier tokens
-                    str_str_iden = Token("str_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
-                    str_str_iden_n = node_iden(str_str_iden)
-                    str_int_iden = Token("int_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
-                    str_str_iden_n = node_iden(str_str_iden)
+                    str_iden = Token("str_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
+                    str_iden_n = node_iden(str_iden)
+                    int_iden = Token("int_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
+                    int_iden_n = node_iden(int_iden)
 
                     if std_lib_header == "Cstring":
-                        # str_isEmpty built-in stdlib function
+                        # str_isEmpty built-in Cstring stdlib function
                         str_isEmpty_iden_t = Token("str_isEmpty", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
                         str_isEmpty_iden_n = node_iden(str_isEmpty_iden_t) 
-                        str_isEmpty_params_n = [node_funcpar_var(string_type_t, str_str_iden_n)]
+                        str_isEmpty_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
                         std_lib_func_dec_nodes.append(node_func_dec(bool_type_t, str_isEmpty_iden_n, str_isEmpty_params_n, None, True))
 
-                        # str_length built-in stdlib function
+                        # str_length built-in Cstring stdlib function
                         str_length_iden_t = Token("str_length", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
                         str_length_iden_n = node_iden(str_length_iden_t)
-                        str_length_params_n = [node_funcpar_var(string_type_t, str_str_iden_n)]
+                        str_length_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
                         std_lib_func_dec_nodes.append(node_func_dec(int_type_t, str_length_iden_n, str_length_params_n, None, True))
+
+                        # str_popAlpha built-in Cstring stdlib function
+                        str_popAlpha_iden_t = Token("str_popAlpha", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        str_popAlpha_iden_n = node_iden(str_popAlpha_iden_t)
+                        str_popAlpha_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_popAlpha_iden_n, str_popAlpha_params_n, None, True))
+
+                        # str_popDigits built-in Cstring stdlib function
+                        str_popDigits_iden_t = Token("str_popDigits", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        str_popDigits_iden_n = node_iden(str_popDigits_iden_t)
+                        str_popDigits_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_popDigits_iden_n, str_popDigits_params_n, None, True))
+
+                        # str_popSpecial built-in Cstring stdlib function
+                        str_popSpecial_iden_t = Token("str_popSpecial", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        str_popSpecial_iden_n = node_iden(str_popSpecial_iden_t)
+                        str_popSpecial_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_popSpecial_iden_n, str_popSpecial_params_n, None, True))
+
+                        # str_slice built-in Cstring stdlib function
+                        str_slice_iden_t = Token("str_slice", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        str_slice_iden_n = node_iden(str_slice_iden_t)
+                        str_slice_params_n = [node_funcpar_var(string_type_t, str_iden_n), node_funcpar_var(int_type_t, int_iden_n), node_funcpar_var(int_type_t, int_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_slice_iden_n, str_slice_params_n, None, True))
 
                 else:
                     error_msg = f"Duplicate library import: Standard library '{std_lib_header}' has already been imported."
