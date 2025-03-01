@@ -292,7 +292,7 @@ class node_funcpar_arr:
         self.arrdim_i = arrdim_i
     
     def __repr__(self):
-        return f"node_funcpar_arr: (dtype_t: {self.dtype_t["tokenName"]}, id_n: {self.id_n}, arr_dim_i: {self.arrdim_i})"
+        return f"node_funcpar_arr: (dtype_t: {self.dtype_t["tokenName"] if self.dtype_t else 'None'}, id_n: {self.id_n}, arr_dim_i: {self.arrdim_i if self.arrdim_i else 'None'})"
 
 class node_funcpar_var:
     def __init__(self, dtype_t, id_n):
