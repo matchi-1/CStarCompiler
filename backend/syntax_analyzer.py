@@ -859,7 +859,7 @@ class SyntaxAnalyzer:
             raise SyntaxError(message)
         
         if self.matchPredictSet("program", False):
-            program_stmts.append(self.imports_list())
+            program_stmts.append(self.imports_list(stdlibs=[]))
             
             """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
             # Parse constructs
