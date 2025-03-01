@@ -1147,6 +1147,19 @@ class SyntaxAnalyzer:
                         str_slice_params_n = [node_funcpar_var(string_type_t, str_iden_n), node_funcpar_var(int_type_t, int_iden_n), node_funcpar_var(int_type_t, int_iden_n)]
                         std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_slice_iden_n, str_slice_params_n, None, True))
 
+                        # str_toLower built-in Cstring stdlib function
+                        str_toLower_iden_t = Token("str_toLower", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        str_toLower_iden_n = node_iden(str_toLower_iden_t)
+                        str_toLower_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_toLower_iden_n, str_toLower_params_n, None, True))
+
+                        # str_toUpper built-in Cstring stdlib function
+                        str_toUpper_iden_t = Token("str_toUpper", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        str_toUpper_iden_n = node_iden(str_toUpper_iden_t)
+                        str_toUpper_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_toUpper_iden_n, str_toUpper_params_n, None, True))
+
+
                 else:
                     error_msg = f"Duplicate library import: Standard library '{std_lib_header}' has already been imported."
                     self.errors.append(error_msg)
