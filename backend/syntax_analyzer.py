@@ -500,7 +500,7 @@ class node_case_stmt:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_case_stmt( \n case_value_n: {self.case_value_n} \n case_body_n( {self.ctrl_stmt_body_n} ) \n)"
+        return f"node_case_stmt( \n case_value_n: {self.case_value_n["tokenName"]} \n case_body_n( {self.ctrl_stmt_body_n} ) \n)"
         
 class node_default_stmt:
     def __init__(self, ctrl_stmt_body_n):
@@ -2362,10 +2362,10 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
         
             if currentTokenType == "string_lit": 
-                case_value_temp_t = self.match("string_lit", False)["tokenName"]
+                case_value_temp_t = self.match("string_lit", False)
                 
             elif currentTokenType == "whole_lit": 
-                case_value_temp_t = self.match("whole_lit", False)["tokenName"]
+                case_value_temp_t = self.match("whole_lit", False)
             
             elif currentTokenType == "-":
                 case_value_temp_t = node_un_op(self.match("-", False), self.match("whole_lit"))
