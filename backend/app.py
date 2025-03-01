@@ -83,7 +83,7 @@ def compile_code():
     
     #---SEMANTIC ANALYSIS---
     seman = semantic_analyzer.SemanticAnalyzer()
-    seman.interpret(parseTree)
+    seman.interpret(parseTree) #comment/uncomment for testing
 
     return jsonify(response)
 

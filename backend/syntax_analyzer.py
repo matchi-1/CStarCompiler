@@ -2581,9 +2581,11 @@ class SyntaxAnalyzer:
                 statements_n.append(self.break_stmt())
             elif currentTokenType == "continue":
                 statements_n.append(self.continue_stmt())
-            elif currentTokenType in PREDICT_SETS["body"]:
-                statements_n.append(self.body(["break", "continue", "case", "}", "default"], isVoid, True))
-
+            elif currentTokenType in PREDICT_SETS["code_block"]:
+                # statements_n.append(self.body(["break", "continue", "case", "}", "default"], isVoid, True))
+                statements_n.extend(self.code_block([], isVoid).code_block_statement_n)
+            elif currentTokenType == "return":
+                statements_n.append(self.return_block(isVoid))
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] and currentTokenType not in ["}", "case", "default"]:
                 statements_n += self.ctrl_stmt_body(isVoid)
 
