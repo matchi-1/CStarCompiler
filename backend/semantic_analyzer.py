@@ -50,7 +50,7 @@ class SemanticAnalyzer:
             val = float(node.val_t["tokenName"])
         return (node.dtype, val) 
     def visit_node_str(self, node):
-        return (node.dtype, node.val_t["tokenName"])
+        return (node.dtype, node.val_t["tokenName"][1:-1])
     def visit_node_bool(self, node):
         return (node.dtype, node.val_t["tokenName"]=="true")
     def visit_node_iden(self, node):
@@ -106,8 +106,8 @@ class SemanticAnalyzer:
             self.curr_scope.set(dec_node.id_n.id_t["tokenName"], self.visit_node(dec_node.value_n) if dec_node.value_n else None, dtype=dtype, const=const)
 
     # binary and unary operations
-    # NOTE: NUBMERS ONLY FOR NOW, NO STRING ETC YET
     def visit_node_bi_op(self, node):
+        print('(semantic)(dbg) visiting bi_op!!')
         numtypes = ['int', 'long', 'float', 'double']
         left_type, left_val = self.visit_node(node.left_n)
         right_type, right_val = self.visit_node(node.right_n)
@@ -213,3 +213,4 @@ class SemanticAnalyzer:
                     print('(semantic)(dbg) ERROR: booleans only!!')
 
                 return ('boolean', left_val or right_val)
+
