@@ -90,17 +90,17 @@ class SemanticAnalyzer:
         id = node.id_n.id_t["tokenName"]
         val_type = None
         value = None
-        idec_rec = None # unused for now 
+        idec_rec = None
         if (node.vardec_cont_n):
             val_type, value = self.visit_node(node.vardec_cont_n.value_n)
-            #IDEC REC LOGIC
-
-        if dtype != val_type:
+            idec_rec = node.vardec_cont_n.idec_rec_n
+                    
+        if value and dtype != val_type:
             print('semantic)(dbg) ERROR: type mismatch')
         
         self.curr_scope.set(id, value, dtype=dtype, const=const)
-
-        #  MISSING REC NODES, JUST BASIC VAR DECi
+        for dec_node in idec_rec or []:
+            self.curr_scope.set(dec_node.id_n.id_t["tokenName"], self.visit_node(dec_node.value_n) if dec_node.value_n else None, dtype=dtype, const=const)
 
     # binary and unary operations
     # NOTE: NUBMERS ONLY FOR NOW, NO STRING ETC YET
