@@ -1115,8 +1115,13 @@ class SyntaxAnalyzer:
                         str_isEmpty_iden_t = Token("str_isEmpty", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
                         str_isEmpty_iden_n = node_iden(str_isEmpty_iden_t) 
                         str_isEmpty_params_n = [node_funcpar_var(string_type_t, str_str_iden_n)]
-                         
                         std_lib_func_dec_nodes.append(node_func_dec(bool_type_t, str_isEmpty_iden_n, str_isEmpty_params_n, None, True))
+
+                        # str_length built-in stdlib function
+                        str_length_iden_t = Token("str_length", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        str_length_iden_n = node_iden(str_length_iden_t)
+                        str_length_params_n = [node_funcpar_var(string_type_t, str_str_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(int_type_t, str_length_iden_n, str_length_params_n, None, True))
 
                 else:
                     error_msg = f"Duplicate library import: Standard library '{std_lib_header}' has already been imported."
