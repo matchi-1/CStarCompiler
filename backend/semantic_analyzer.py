@@ -20,6 +20,7 @@ class SymbolTable:
         self.syms[sym_name] = sym_content
 
 class SemanticAnalyzer:
+    numtypes = ['int', 'long', 'float', 'double']
     def __init__(self):
         self.curr_scope = SymbolTable()
 
@@ -108,7 +109,6 @@ class SemanticAnalyzer:
     # binary and unary operations
     def visit_node_bi_op(self, node):
         print('(semantic)(dbg) visiting bi_op!!')
-        numtypes = ['int', 'long', 'float', 'double']
         left_type, left_val = self.visit_node(node.left_n)
         right_type, right_val = self.visit_node(node.right_n)
         dtype = 'int'
@@ -125,25 +125,25 @@ class SemanticAnalyzer:
                         print('(semantic)(dbg) ERROR: string exp only strings')
                     else:
                         return ('string', left_val + right_val)
-                elif left_type in numtypes and right_type in numtypes:
+                elif left_type in self.numtypes and right_type in self.numtypes:
                     return (dtype, left_val + right_val)
                 else:
                      print('(semantic)(dbg) ERROR: only numerics')
 
             case '-':
-                if left_type in numtypes and right_type in numtypes:
+                if left_type in self.numtypes and right_type in self.numtypes:
                     return (dtype, left_val - right_val)
                 else:
                     print('(semantic)(dbg) ERROR: only numerics')
             case '/':
                 if right_val == 0:
                     print("(semantic)(dbg) ERROR: DIVIDE BY 0")
-                if left_type in numtypes and right_type in numtypes:
+                if left_type in self.numtypes and right_type in self.numtypes:
                     return (dtype, left_val / right_val)
                 else:
                     print('(semantic)(dbg) ERROR: only numerics')
             case '*':
-                if left_type in numtypes and right_type in numtypes:
+                if left_type in self.numtypes and right_type in self.numtypes:
                     return (dtype, left_val * right_val)
                 else:
                     print('(semantic)(dbg) ERROR: only numerics')
@@ -151,15 +151,15 @@ class SemanticAnalyzer:
                 if dtype in ['float', 'double']:
                     print('(semantic)(dbg) ERROR : MODULO FLOATING POINT')
                 else:
-                    if left_type in numtypes and right_type in numtypes:
+                    if left_type in self.numtypes and right_type in self.numtypes:
                         return (dtype, left_val % right_val)
                     else:
                         print('(semantic)(dbg) ERROR: only numerics')
 
             #relational
             case '==':
-                if left_type in numtypes:
-                    if right_type not in numtypes:
+                if left_type in self.numtypes:
+                    if right_type not in self.numtypes:
                         print('(semantic)(dbg) ERROR: comparison with numeric can only be with another numeric')
                 elif left_type == 'string':
                     if right_type != 'string':
@@ -170,8 +170,8 @@ class SemanticAnalyzer:
                 return ('boolean', left_val == right_val)
             
             case '!=':
-                if left_type in numtypes:
-                    if right_type not in numtypes:
+                if left_type in self.numtypes:
+                    if right_type not in self.numtypes:
                         print('(semantic)(dbg) ERROR: comparison with numeric can only be with another numeric')
                 elif left_type == 'string':
                     if right_type != 'string':
@@ -182,22 +182,22 @@ class SemanticAnalyzer:
                 return ('boolean', left_val != right_val)
             
             case '<':
-                if left_type not in numtypes or right_type not in numtypes:
+                if left_type not in self.numtypes or right_type not in self.numtypes:
                     print('(semantic)(dbg) ERROR: only numerics allowed')
 
                 return ('boolean', left_val < right_val)  
             case '<=':
-                if left_type not in numtypes or right_type not in numtypes:
+                if left_type not in self.numtypes or right_type not in self.numtypes:
                     print('(semantic)(dbg) ERROR: only numerics allowed')
 
                 return ('boolean', left_val <= right_val)  
             case '>':
-                if left_type not in numtypes or right_type not in numtypes:
+                if left_type not in self.numtypes or right_type not in self.numtypes:
                     print('(semantic)(dbg) ERROR: only numerics allowed')
 
                 return ('boolean', left_val > right_val)  
             case '>=':
-                if left_type not in numtypes or right_type not in numtypes:
+                if left_type not in self.numtypes or right_type not in self.numtypes:
                     print('(semantic)(dbg) ERROR: only numerics allowed')
 
                 return ('boolean', left_val >= right_val)  
@@ -215,5 +215,26 @@ class SemanticAnalyzer:
                 return ('boolean', left_val or right_val)
 
     #unary ops
-    # def visit_node_un_op(self, node):
-        
+    def visit_node_un_op(self, node):
+        right_type, right_val = self.visit_node(node.id_right_n)
+        match node.left_t["tokenName"]:
+            case '!':
+                if right_type != 'boolean':
+                    print('(semantic)(dbg) ERROR: only boolean')
+                return ('boolean', not right_val)
+            case '-':
+                if right_type not in self.numtypes:
+                    print('(semantic)(dbg) ERROR: invalid data type')
+                return (right_type, -right_val)
+            case '++':
+                if right_type not in self.numtypes:
+                    print('(semantic)(dbg) ERROR: invalid data type')
+                self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] += 1
+                return (right_type, right_val + 1)
+            case '--':
+                if right_type not in self.numtypes:
+                    print('(semantic)(dbg) ERROR: invalid data type')
+                self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] -= 1
+                return (right_type, right_val - 1 )
+        if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
+            print('(semantic)(dbg) casting')
