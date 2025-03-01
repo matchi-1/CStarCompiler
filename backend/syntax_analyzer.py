@@ -1089,6 +1089,11 @@ class SyntaxAnalyzer:
                 std_lib_header = self.match("Identifier")["tokenName"]   
                 if std_lib_header not in stdlibs:
                     stdlibs.append(std_lib_header)  # Avoid duplicate appends of stdlib stdlibs
+                else:
+                    error_msg = f"Duplicate library import: Standard library '{std_lib_header}' has already been imported."
+                    self.errors.append(error_msg)
+                    raise SyntaxError(error_msg)
+                    
             else:
                  self.logError(
                     f"Expected a standard library (Cstring or Carray), found '{self.currToken['tokenName']}'"
