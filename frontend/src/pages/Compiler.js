@@ -385,26 +385,26 @@ const toggleFiles = () => {
     })
   };
 
-  useEffect(() => {
-    const fetchTokens = async () => {
-      const params = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code }),
-      };
-      const response = await fetch('http://127.0.0.1:5000/api/compile', params);
-      const { tokens, errors } = await response.json();  // Destructuring response from backend
-      setTokens(tokens);
-      setErrors(errors);
-    };
+  // useEffect(() => {
+  //   const fetchTokens = async () => {
+  //     const params = {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ code }),
+  //     };
+  //     const response = await fetch('http://127.0.0.1:5000/api/compile', params);
+  //     const { tokens, errors } = await response.json();  // Destructuring response from backend
+  //     setTokens(tokens);
+  //     setErrors(errors);
+  //   };
 
-    const fetchTimer = setTimeout(fetchTokens, 50);
-    return () => clearTimeout(fetchTimer);
-  }, [code]);
+  //   const fetchTimer = setTimeout(fetchTokens, 50);
+  //   return () => clearTimeout(fetchTimer);
+  // }, [code]);
 
-  const callSyntax = async () => {
+  const callCompiler = async () => {
     setErrors([]);
 
     const params = {
@@ -414,13 +414,14 @@ const toggleFiles = () => {
       },
       body: JSON.stringify({ code }),
     };
-    const response = await fetch('http://127.0.0.1:5000/api/syntax', params);
-    const { errors } = await response.json();  // Destructuring response from backend
+    const response = await fetch('http://127.0.0.1:5000/api/compile', params);
+    const { tokens, errors } = await response.json();  // Destructuring response from backend
     
     console.log("syntax errors: " + errors)
     console.log("clicked run button")
     //setErrors([...errorLogs, ...errors]);
     setErrors(errors);
+    setTokens(tokens);
   }
 
   // Cleanup ResizeObserver on unmount
@@ -468,7 +469,7 @@ const toggleFiles = () => {
             code={code} 
             setValue={setValue}
             editorRef={editorRef} 
-            clickHandler = {callSyntax}
+            clickHandler = {callCompiler}
             
             />
             <FileTabs 

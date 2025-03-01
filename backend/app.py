@@ -15,6 +15,40 @@ tokens = []
 def hello():
     return jsonify({'message': 'Hello from Flask!'})
 
+# @app.route('/api/compile', methods=['POST'])
+# def compile_code():
+#     global tokens
+#     #empty out token list every time lexer is called
+#     tokens.clear()
+#     data = request.json
+#     code = data.get('code', '')
+#     code += '\n'
+    
+#     lexer_results = lexer.scan(code)  # Returns [tokens, errors]
+#     tokens, errors = lexer_results  # Unpack the results
+
+#     # # Calls syntax analyzer
+#     # try:
+#     #     analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+#     #     errors += analyzer.parse()    # comment out to just test for lexer
+#     # except SyntaxError as e:
+#     #     print(e)
+
+
+#     # Convert Token objects to dictionaries
+#     tokens_dict = [token.to_dict() for token in tokens]
+#     #print(tokens_dict) #for testing
+
+#     # Create a JSON-serializable response
+#     response = {
+#         "tokens": tokens_dict or [],  # should not send out None/null 
+#         "errors": errors or []        
+#     }
+
+#     # print json output
+#     # print('\n\n', json.dumps(response, indent=2))
+#     return jsonify(response)
+
 @app.route('/api/compile', methods=['POST'])
 def compile_code():
     global tokens
@@ -27,17 +61,16 @@ def compile_code():
     lexer_results = lexer.scan(code)  # Returns [tokens, errors]
     tokens, errors = lexer_results  # Unpack the results
 
-    # # Calls syntax analyzer
-    # try:
-    #     analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-    #     errors += analyzer.parse()    # comment out to just test for lexer
-    # except SyntaxError as e:
-    #     print(e)
-
+    # Calls syntax analyzer
+    try:
+        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
+        parseErrs, parseTree = analyzer.parse()
+        errors += parseErrs    # comment out to just test for lexer
+    except SyntaxError as e:
+        print(e)
 
     # Convert Token objects to dictionaries
     tokens_dict = [token.to_dict() for token in tokens]
-    #print(tokens_dict) #for testing
 
     # Create a JSON-serializable response
     response = {
@@ -45,25 +78,6 @@ def compile_code():
         "errors": errors or []        
     }
 
-    # print json output
-    # print('\n\n', json.dumps(response, indent=2))
-    return jsonify(response)
-
-@app.route('/api/syntax', methods=['POST'])
-def syntax_analysis():
-    global tokens
-    errors = []
-    # Calls syntax analyzer
-    try:
-        analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-        parseErrs, parseTree = analyzer.parse()
-        errors = parseErrs    # comment out to just test for lexer
-    except SyntaxError as e:
-        print(e)
-    # Create a JSON-serializable response
-    response = {
-        "errors": errors or []        
-    }
     # print json output
     # print('\n\n', json.dumps(response, indent=2))
     
