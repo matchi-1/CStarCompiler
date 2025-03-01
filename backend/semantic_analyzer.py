@@ -238,3 +238,61 @@ class SemanticAnalyzer:
                 return (right_type, right_val - 1 )
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
             print('(semantic)(dbg) casting')
+
+    #input
+    # def visit_node_input(self, node):
+    #     expected_dtype = node.type.t["tokenName"]
+    #     prompt_n = node.prompt_n
+    #     count_n = node.count_n
+
+    #     promp_text = ""
+    #     if prompt_n:
+    #         _, promp_text = self.visit_node(prompt_n)
+
+    #     user_input = input(promp_text)
+
+    #     try:
+    #         if expected_dtype == 'int':
+    #             value = int(user_input) 
+    #         elif expected_dtype == 'long':
+    #             value = int(user_input)
+    #         elif expected_dtype == 'float':
+    #             value = float(user_input)
+    #         elif expected_dtype == 'double':
+    #             value = float(user_input)
+    #         elif expected_dtype == 'string':
+    #             value = user_input
+    #         elif expected_dtype == 'bool':
+    #             value = user_input.lower() == 'true'
+    #         else:
+    #             print("(semantic)(dbg) ERROR: Unsupported data type for input")
+    #             return None
+    #     except ValueError:
+    #         print("(semantic)(dbg) ERROR: Input does not match expected data type")
+    #         return None
+        
+    #     if count_n:
+    #        _, count = self.visit_node(count_n) 
+    #        if not isinstance(count, int) or count <= 0:
+    #            print("(semantic)(dbg) ERROR: Invalid count for input")
+    #            return None
+           
+    #     return (expected_dtype, value)
+    
+    # def visit_node_output(self, node):
+    #     print_stmts_n = node.print_stmts_n
+    #     print_params_n = node.print_params_n
+
+    #     output_values = []
+    #     for param in print_params_n:
+    #         _, value = self.visit_node(param)
+    #         output_values.append(str(value))
+
+    #     output_text = " ".join(output_values)
+
+    #     if print_stmts_n == "println":
+    #         print(output_text)
+    #     else:
+    #         print(output_text, end='')
+ 
+    #     return None
