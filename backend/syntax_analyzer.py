@@ -353,19 +353,19 @@ class node_if_stmt:
         self.body_n = body_n
         self.else_chain_n = else_chain_n
     def __repr__(self):
-        return f'if({self.condition_n}) {{ \t{self.body_n} }} \n{self.else_chain_n if self.else_chain_n else ""}'
+        return f'node_if_stmt( \n{self.condition_n} \n ctrl_body_n( {self.body_n} ) {self.else_chain_n if self.else_chain_n else "node_else_chain( None )"}'
 
 class node_else_chain:
     def __init__(self, else_stmt_n):
         self.else_stmt_n = else_stmt_n
     def __repr__(self):
-        return f'else {self.else_stmt_n}'
+        return f'\nnode_else_chain( {self.else_stmt_n} )'
 
 class node_else_stmt:
     def __init__(self, body_n):
         self.body_n = body_n
     def __repr__(self):
-        return f'{self.body_n}'
+        return f'node_else( \n ctrl_body_n( {self.body_n} ) \n)'
 
 class node_ctrl_stmt_body:
     def __init__(self, statements_n):
@@ -485,7 +485,7 @@ class node_switch_stmt:
         self.default_n = default_n
 
     def __repr__(self):
-        return f"\nnode_switch: ( \n switch_value_n: {self.value_n} \n {self.case_n} \n {self.default_n if self.default_n else "node_default: ( None )"} \n)"
+        return f"\nnode_switch ( \n switch_value_n: {self.value_n} \n {self.case_n} \n {self.default_n if self.default_n else "node_default: ( None )"} \n)"
 
 class node_case:
     def __init__(self, case_stmt_n):
@@ -495,26 +495,25 @@ class node_case:
         return "\n ".join(map(str, self.case_stmt_n))
 
 class node_case_stmt:
-    def __init__(self, case_value_n, ctrl_stmt_body_n, case_stmt_rec_n):
+    def __init__(self, case_value_n, ctrl_stmt_body_n):
         self.case_value_n = case_value_n
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
-        self.case_stmt_rec_n = case_stmt_rec_n
 
     def __repr__(self):
-        return f"\n\t case {self.case_value_n}: \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n\t case_stmt_rec -> {self.case_stmt_rec_n}"
+        return f"node_case_stmt( \n case_value_n: {self.case_value_n} \n case_body_n( {self.ctrl_stmt_body_n} ) \n)"
         
 class node_default_stmt:
     def __init__(self, ctrl_stmt_body_n):
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"default: ctrl_stmt_body -> {self.ctrl_stmt_body_n}"
+        return f"node_default( \n default_body_n( {self.ctrl_stmt_body_n} ) \n)"
 
 class node_loop_stmt:
     def __init__(self, loop_stmt_n):
         self.loop_stmt_n = loop_stmt_n
     def __repr__(self):
-        return f"loop_stmt -> {self.loop_stmt_n}\n"
+        return f"\nnode_loop_stmt -> {self.loop_stmt_n}\n"
 
 class node_forloop:
     def __init__(self, init_arg_n, condition_n, inc_arg_n, ctrl_stmt_body_n):
@@ -524,7 +523,7 @@ class node_forloop:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"for ( \n\t init_arg -> {self.init_arg_n} \n\t {self.condition_n} \n\t inc_arg -> {self.inc_arg_n} \n) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}\n"
+        return f"node_forloop ( \n init_arg_n: {self.init_arg_n} \n {self.condition_n} \n inc_arg_n: {self.inc_arg_n} \n)\n ctrl_body_n( {self.ctrl_stmt_body_n} )\n)"
 
 class node_while:
     def __init__(self, condition_n, ctrl_stmt_body_n):
@@ -532,7 +531,7 @@ class node_while:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"while ( {self.condition_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}}\n"
+        return f"node_while ( \n {self.condition_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} )\n)"
 
 class node_do:
     def __init__(self, condition_n, ctrl_stmt_body_n):
@@ -540,7 +539,7 @@ class node_do:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"do {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} \n}} \n while ( {self.condition_n} )\n"
+        return f"node_do (\n ctrl_body_n( {self.ctrl_stmt_body_n} )\n {self.condition_n} \n)"
 
 class node_repeat:
     def __init__(self, repeat_value_n, ctrl_stmt_body_n):
@@ -548,7 +547,7 @@ class node_repeat:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"repeat ( repeat_value: {self.repeat_value_n} ) {{ \n\t ctrl_stmt_body -> {self.ctrl_stmt_body_n} }}"
+        return f"node_repeat ( \n repeat_value_n: {self.repeat_value_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} ) \n)"
 
 class node_assign_stmt:
     def __init__(self, id_n, assign_op_n, assign_value_n):
@@ -2207,8 +2206,9 @@ class SyntaxAnalyzer:
                 iden_temp_n = node_iden(self.match("Identifier",False))
                 init_arg_n = self.var_dec_cont(dtype_temp_t, iden_temp_n)
 
+            return init_arg_n 
         print("(parser) exited production: \"init_arg\"")
-        return f"{init_arg_n}" 
+        return None
 
     # to continue testing
     def inc_arg(self):
@@ -2244,9 +2244,11 @@ class SyntaxAnalyzer:
 
             elif currentTokenType in PREDICT_SETS["print_stmts"]:
                 inc_arg_temp_n = self.output()
+            
+            return inc_arg_temp_n
 
         print("(parser) exited production: \"inc_arg\"")
-        return f"{inc_arg_temp_n}"
+        return None
 
     # bare-minimum tested
     def else_chain(self):
@@ -2256,9 +2258,10 @@ class SyntaxAnalyzer:
         if self.currToken:
             self.match("else", False)
             else_stmt_n = self.else_stmt()
+            return node_else_chain(else_stmt_n)
         
         print("(parser) exited production: \"else_chain\"")
-        return node_else_chain(else_stmt_n)
+        return None
 
     def else_stmt(self, isVoid = False):
         print(f"(parser) entered production: \"else_stmt\", isVoid = {isVoid}")
@@ -2340,9 +2343,11 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
+            case_stmt_n.append(node_case_stmt(case_value_temp_n, ctrl_stmt_body_temp_n))
+
             if self.currToken["tokenType"] == "case":
                 case_stmt_n += self.case_stmt()
-
+            
         print("(parser) exited production: \"case_stmt\" !!!!!!!!!!!")
         return case_stmt_n
     
