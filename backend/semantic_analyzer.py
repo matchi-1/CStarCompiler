@@ -36,6 +36,9 @@ class SemanticAnalyzer:
     def interpret(self, node):
         self.visit_node(node)
         print('(semantic)(dbg) global table: ', self.curr_scope.syms)
+
+
+        
     # ---NODE VISITATION FUNCS---
     # FORMAT: visit_{node_name}
     # VALUE nodes always return tuple of dtype and value
