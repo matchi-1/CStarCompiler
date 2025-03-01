@@ -38,7 +38,7 @@ class SemanticAnalyzer:
         print('(semantic)(dbg) global table: ', self.curr_scope.syms)
 
 
-        
+
     # ---NODE VISITATION FUNCS---
     # FORMAT: visit_{node_name}
     # VALUE nodes always return tuple of dtype and value
@@ -108,6 +108,7 @@ class SemanticAnalyzer:
     # binary and unary operations
     # NOTE: NUBMERS ONLY FOR NOW, NO STRING ETC YET
     def visit_node_bi_op(self, node):
+        numtypes = ['int', 'long', 'float', 'double']
         left_type, left_val = self.visit_node(node.left_n)
         right_type, right_val = self.visit_node(node.right_n)
         dtype = 'int'
@@ -119,18 +120,96 @@ class SemanticAnalyzer:
             dtype = 'double'
         match node.op_t["tokenName"]:
             case '+': 
-                return (dtype, left_val + right_val)
+                if left_type == 'string':
+                    if right_type != 'string':
+                        print('(semantic)(dbg) ERROR: string exp only strings')
+                    else:
+                        return ('string', left_val + right_val)
+                elif left_type in numtypes and right_type in numtypes:
+                    return (dtype, left_val + right_val)
+                else:
+                     print('(semantic)(dbg) ERROR: only numerics')
+
             case '-':
-                return (dtype, left_val - right_val) 
+                if left_type in numtypes and right_type in numtypes:
+                    return (dtype, left_val - right_val)
+                else:
+                    print('(semantic)(dbg) ERROR: only numerics')
             case '/':
                 if right_val == 0:
                     print("(semantic)(dbg) ERROR: DIVIDE BY 0")
-                return (dtype, left_val / right_val) 
+                if left_type in numtypes and right_type in numtypes:
+                    return (dtype, left_val / right_val)
+                else:
+                    print('(semantic)(dbg) ERROR: only numerics')
             case '*':
-                return (dtype, left_val * right_val) 
+                if left_type in numtypes and right_type in numtypes:
+                    return (dtype, left_val * right_val)
+                else:
+                    print('(semantic)(dbg) ERROR: only numerics')
             case '%':
                 if dtype in ['float', 'double']:
                     print('(semantic)(dbg) ERROR : MODULO FLOATING POINT')
-                return (dtype, left_val % right_val) 
+                else:
+                    if left_type in numtypes and right_type in numtypes:
+                        return (dtype, left_val % right_val)
+                    else:
+                        print('(semantic)(dbg) ERROR: only numerics')
 
-            #cont... (logic n rel)
+            #relational
+            case '==':
+                if left_type in numtypes:
+                    if right_type not in numtypes:
+                        print('(semantic)(dbg) ERROR: comparison with numeric can only be with another numeric')
+                elif left_type == 'string':
+                    if right_type != 'string':
+                        print('(semantic)(dbg) ERROR: comparisong with string can only be with another string')
+                elif left_type == 'boolean':
+                    if right_type != 'boolean':
+                        print('(semantic)(dbg) ERROR: comparisong with boolean can only be with another boolean')
+                return ('boolean', left_val == right_val)
+            
+            case '!=':
+                if left_type in numtypes:
+                    if right_type not in numtypes:
+                        print('(semantic)(dbg) ERROR: comparison with numeric can only be with another numeric')
+                elif left_type == 'string':
+                    if right_type != 'string':
+                        print('(semantic)(dbg) ERROR: comparisong with string can only be with another string')
+                elif left_type == 'boolean':
+                    if right_type != 'boolean':
+                        print('(semantic)(dbg) ERROR: comparisong with boolean can only be with another boolean')
+                return ('boolean', left_val != right_val)
+            
+            case '<':
+                if left_type not in numtypes or right_type not in numtypes:
+                    print('(semantic)(dbg) ERROR: only numerics allowed')
+
+                return ('boolean', left_val < right_val)  
+            case '<=':
+                if left_type not in numtypes or right_type not in numtypes:
+                    print('(semantic)(dbg) ERROR: only numerics allowed')
+
+                return ('boolean', left_val <= right_val)  
+            case '>':
+                if left_type not in numtypes or right_type not in numtypes:
+                    print('(semantic)(dbg) ERROR: only numerics allowed')
+
+                return ('boolean', left_val > right_val)  
+            case '>=':
+                if left_type not in numtypes or right_type not in numtypes:
+                    print('(semantic)(dbg) ERROR: only numerics allowed')
+
+                return ('boolean', left_val >= right_val)  
+            
+            #logical
+            case '&&':
+                if left_type != 'boolean' or right_type != 'boolean':
+                    print('(semantic)(dbg) ERROR: booleans only!!')
+
+                return ('boolean', left_val and right_val)
+            case '||':
+                if left_type != 'boolean' or right_type != 'boolean':
+                    print('(semantic)(dbg) ERROR: booleans only!!')
+
+                return ('boolean', left_val or right_val)
