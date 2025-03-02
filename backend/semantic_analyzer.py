@@ -294,8 +294,20 @@ class SemanticAnalyzer:
             self.curr_scope.set(dec_node.id_n.id_t["tokenName"], self.visit_node(dec_node.value_n) if dec_node.value_n else None, dtype=dtype, const=const)
 
     #array declaration
-    # def visit_node_arr_dec(self, node):
-
+    def visit_node_arr_dec(self, node):
+        id = node.id_n.id_t["tokenName"]
+        dtype = f'arr_{node.dtype_t["tokenName"]}'
+        dim = 2 if node.size2_n else 1
+        size_1 = self.visit_node(node.size1_n)
+        size_2 = self.visit_node(node.size2_n) if node.size2_n else None
+        values_list = None
+        arr_rec = None
+        if node.arr_dec_cont_n:
+            if type(node.arr_dec_cont_n[0]).__name__ == "node_arr_dec_rec":
+                arr_rec = node.arr_dec_cont_n
+            else:
+                values_list = node.arr_dec_cont_n
+        
 
     # binary and unary operations
     def visit_node_bi_op(self, node):

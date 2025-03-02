@@ -241,6 +241,8 @@ class node_idec_rec:
 
 class node_arr_dec:
     def __init__(self, dtype_t, id_n, size1_n, size2_n, arr_dec_cont_n):
+        self.dtype_t = dtype_t
+        self.id_n = id_n
         self.size1_n = size1_n
         self.size2_n = size2_n
         self.arr_dec_cont_n = arr_dec_cont_n
@@ -2855,6 +2857,7 @@ class SyntaxAnalyzer:
     def array2D_init(self, val_2dlist = []):
             '''<array2D_init> → = {<arr_value_2D>}'''
             print("(parser) entered production: \"array2D_init\"")
+            val_2dlist = []
             if self.currToken:
                 self.match("=", False)
                 self.match("{", False)
@@ -2873,7 +2876,8 @@ class SyntaxAnalyzer:
                 val_2dlist.append(self.arr_value_1D([]))
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
-                self.arr_value_2D_rec(val_2dlist)
+                if self.currToken and self.currToken["tokenType"] == ",":
+                    self.arr_value_2D_rec(val_2dlist)
 
             print("(parser) exited production: \"arr_value_2D\"")
 
