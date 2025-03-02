@@ -2953,20 +2953,24 @@ class SyntaxAnalyzer:
     def assign_stmt(self):
         print("(parser) production: \"assign_stmt\" detected")
         """<assign_stmt> → Identifier <iden_as_var_mods> <assign_stmt_op>"""
-        node_temp = None
+
         temp_id = node_iden(self.match("Identifier", False))
+        node_temp = temp_id  # node_iden
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
-            node_temp = self.iden_as_var_mods(temp_id) # match iden mods if there are any
+            node_temp = self.iden_as_var_mods(temp_id) # match iden mods if there are any 
+            # for AST: iden as var mods will return any of the ff: node_class_att, node_class_arr_idx, node_arr_idx
+
             print("NODE TEMP1!!!!" + str(node_temp))
 
         if self.matchPredictSet("assign_operator", False):
-            assign_stmt_temp_op_n, assign_stmt_temp_val_n = self.assign_stmt_op() # get & match assign operator and value
+            assign_stmt_n = self.assign_stmt_op(node_temp) # get & match assign operator and value 
+            # for AST: it sends the right node type to be differentiated inside and return a diff node
 
         print("(parser) exited production: \"assign_stmt\"")
-        return node_assign_stmt(node_temp if node_temp else temp_id, assign_stmt_temp_op_n, assign_stmt_temp_val_n)
+        return assign_stmt_n
 
-    def assign_stmt_op(self, id_or_class_id_n = None, att_id_n = None, class_arr_n = None, arr_idx_n = None):
+    def assign_stmt_op(self, id_or_class_id_n = None, att_id_n = None, class_arr_n = None, arr_idx_n = None, class_att_n = None):
         print('(parser) production: "assign_stmt_op" detected')
 
         assign_stmt_temp_op_n = self.currToken
@@ -2981,16 +2985,22 @@ class SyntaxAnalyzer:
         # Built ast node for deep-end assign stmts
         temp_n = None
         if id_or_class_id_n:
-            if att_id_n: # iden.iden = value
+            if att_id_n and not class_att_n: # iden.iden = value
                 temp_id_att_n = node_class_att(id_or_class_id_n, att_id_n)
                 temp_n = node_assign_stmt_object_att(temp_id_att_n,
                                                      assign_stmt_temp_op_n,
                                                      assign_stmt_temp_val_n)
+            
             else: # iden = value
                 temp_n = node_assign_stmt_var(id_or_class_id_n,
                                               assign_stmt_temp_op_n,
                                               assign_stmt_temp_val_n)
                 
+        elif class_att_n: # iden.iden = value -- this one comes from assign stmt where iden is from iden_as_var_mods
+                temp_n = node_assign_stmt_object_att(class_att_n,
+                                                     assign_stmt_temp_op_n,
+                                                     assign_stmt_temp_val_n)
+            
         elif class_arr_n:  # iden.iden[1][1] = value
             temp_n = node_assign_stmt_object_att_arr(class_arr_n,
                                                     assign_stmt_temp_op_n,
