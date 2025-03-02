@@ -142,8 +142,8 @@ class SemanticAnalyzer:
     #cont...
 
     #var_dec
-    def visit_node_vardec(self, node, checkParentNode = True):
-        if self.curr_scope.get(node.id_n.id_t["tokenName"], checkParentNode):
+    def visit_node_vardec(self, node):
+        if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
             self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
         const = node.const_b
         dtype = node.dtype_t["tokenName"]
@@ -313,7 +313,7 @@ class SemanticAnalyzer:
 
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
-            self.visit_node_vardec(node_loop.init_arg_n, False)
+            self.visit_node_vardec(node_loop.init_arg_n)
             loop_condition = self.visit_node(node_loop.condition_n.condition_n)
             if loop_condition[0] != 'boolean':
                 self.logError(f"Invalid data type for loop condition. Expected 'boolean', but found '{loop_condition[0]}' instead.")
