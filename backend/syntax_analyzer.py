@@ -570,13 +570,39 @@ class node_assign_stmt:
     def __repr__(self):
         return f"node_assign_stmt: id_n:'{self.id_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
 
-class node_assign_stmt_object_att_arr:
-    def __init__(self, class_arr_n, assign_op_n, assign_value_n):
-        self.class_arr_n = class_arr_n   # iden.iden[1][]
-        self.assign_op_n = assign_op_n
+class node_assign_stmt_var:
+    def __init__(self, id_n, assign_op_t, assign_value_n):
+        self.id_n = id_n
+        self.assign_op_t = assign_op_t
+        self.assign_value_n = assign_value_n
+
+    def __repr__(self):
+        return f"node_assign_stmt_var: id_n:'{self.id_n}', op:'{self.assign_op_t["tokenName"]}', val:'{self.assign_value_n}'"
+
+class node_assign_stmt_array_elem:
+    def __init__(self, id_arr_n, assign_op_t, assign_value_n):
+        self.id_arr_n = id_arr_n # id[1]
+        self.assign_op_t = assign_op_t
+        self.assign_value_n = assign_value_n
+
+    def __repr__(self):
+        return f"node_assign_stmt_array_elem: id_arr_n:'{self.id_arr_n}', op:'{self.assign_op_t["tokenName"]}', val:'{self.assign_value_n}'"
+
+class node_assign_stmt_object_att:
+    def __init__(self, class_att_n, assign_op_t, assign_value_n):
+        self.class_att_n = class_att_n   # iden.iden
+        self.assign_op_t = assign_op_t
         self.assign_value_n = assign_value_n
     def __repr__(self):
-        return f"node_assign_stmt_object_att_arr: class_arr_n:'{self.class_arr_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
+        return f"node_assign_stmt_object_att: class_att_n:'{self.class_att_n}', op:'{self.assign_op_t["tokenName"]}', val:'{self.assign_value_n}'"
+
+class node_assign_stmt_object_att_arr:
+    def __init__(self, class_arr_n, assign_op_t, assign_value_n):
+        self.class_arr_n = class_arr_n   # iden.iden[1][]
+        self.assign_op_t = assign_op_t
+        self.assign_value_n = assign_value_n
+    def __repr__(self):
+        return f"node_assign_stmt_object_att_arr: class_arr_n:'{self.class_arr_n}', op:'{self.assign_op_t["tokenName"]}', val:'{self.assign_value_n}'"
 
 class node_imports_list:
     def __init__(self, stdlib_n):
@@ -1926,9 +1952,9 @@ class SyntaxAnalyzer:
             if not self.match("]"):
                 is_valid_value = False
                 self.ERROR_unclosed_square_bracket()
-            if self.currToken and self.currToken["tokenType"] == "[":
-                is_valid_value = False
-                self.logError("Only up to 2 dimensions of arrays are allowed.")
+            # if self.currToken and self.currToken["tokenType"] == "[":
+            #     is_valid_value = False
+            #     self.logError("Only up to 2 dimensions of arrays are allowed.")
         return node_temp
 
     
