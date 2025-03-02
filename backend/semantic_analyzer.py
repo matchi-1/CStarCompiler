@@ -792,7 +792,12 @@ class SemanticAnalyzer:
     def visit_node_if_stmt(self, node):
         self.enter_scope(type(node).__name__)
 
+        if_condition = self.visit_node(node.condition_n.condition_value_n)
         
-
+        if if_condition[0] != 'bool':
+            self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{if_condition[0]}' instead.")
+        print(f"(semantic)(dbg) FOUND CONDITION for {type(node).__name__} -> {node.condition_n.condition_value_n} = {self.visit_node(node.condition_n.condition_value_n)}")
+        
+        self.visit_node(node.body_n)
         self.exit_scope(type(node).__name__)
         return
