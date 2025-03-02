@@ -858,5 +858,23 @@ class SemanticAnalyzer:
         print(f"(semantic)(dbg) FOUND CONDITION for {type(node).__name__} -> {node.condition_n.condition_value_n} = {self.visit_node(node.condition_n.condition_value_n)}")
         
         self.visit_node(node.body_n)
+
+        if node.else_chain_n:
+            self.visit_node(node.else_chain_n)
+
+        self.exit_scope(type(node).__name__)
+        return
+    
+    def visit_node_else_chain(self, node):
+        self.enter_scope(type(node).__name__)
+
+        else_chain_n = node.else_chain_n
+
+        for chain_stmt in else_chain_n:
+            chain_type = type(chain_stmt).__name__
+
+            print(f"CHAAAAAAAAINNNNNNNN TYPE: {chain_type}")
+            self.visit_node(chain_stmt)
+
         self.exit_scope(type(node).__name__)
         return
