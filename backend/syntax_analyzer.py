@@ -374,13 +374,19 @@ class node_ctrl_stmt_body:
     def __repr__(self):
         return "\n\t" + "\n\t".join(map(str, self.statements_n))
 
-#class node_break_stmt:
-#    def __repr__(self):
-#        return 'break;'
+class node_break_stmt:
+    def __init__(self, break_t):
+        self.break_t = break_t
 
-#class node_continue_stmt:
-#    def __repr__(self):
-#        return 'continue;'
+    def __repr__(self):
+        return f'{self.break_t["tokenName"]};'
+
+class node_continue_stmt:
+    def __init__(self, continue_t):
+        self.continue_t = continue_t
+    
+    def __repr__(self):
+        return f'{self.continue_t["tokenName"]};'
 
 class node_class_inst:
     def __init__(self, class_id_n, obj_id_n, class_instcont_n):
@@ -2171,24 +2177,24 @@ class SyntaxAnalyzer:
         '''<break_stmt> → break;'''
         print("(parser) entered production: \"break_stmt\"")
 
-        self.match("break", False)
+        break_t = self.match("break", False)
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"break_stmt\"")
-        return f"break;"
+        return node_break_stmt(break_t)
 
     # bare-minimum tested
     def continue_stmt(self):
         '''<continue_stmt> → continue;'''
         print("(parser) entered production: \"continue_stmt\"")
 
-        self.match("continue", False)
+        continue_t = self.match("continue", False)
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"continue_stmt\"")
-        return f"continue;"
+        return node_continue_stmt(continue_t)
 
     # bare-minimum tested
     def init_arg(self):
