@@ -193,7 +193,7 @@ class SemanticAnalyzer:
                 param_types.append({
                     "type": "arr",
                     "dtype": param.dtype_t["tokenName"],  # Include the data type
-                    "size": param.arrdim_i
+                    "dimension": param.arrdim_i
                 })  
 
             elif type(param).__name__ == "node_funcpar_var":
@@ -206,7 +206,7 @@ class SemanticAnalyzer:
         # [
         #     {"type": "var", "dtype": "int"},
         #     {"type": "class", "name": "MyClass"},
-        #     {"type": "arr", "size": 10}
+        #     {"type": "arr", "dimension": 10}
         # ]
 
         # Store function in symbol table
@@ -230,8 +230,8 @@ class SemanticAnalyzer:
 
             elif type(param).__name__ == "node_funcpar_arr":
                 arr_dtype = param.dtype_t["tokenName"]
-                arr_size = param.arrdim_i
-                self.curr_scope.set_array(param_name, value=None, dtype=arr_dtype, arr_info={"size": arr_size}, const=False)
+                arr_dim = param.arrdim_i
+                self.curr_scope.set_array(param_name, value=None, dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
 
             elif type(param).__name__ == "node_funcpar_var":
                 var_dtype = param.dtype_t["tokenName"]
