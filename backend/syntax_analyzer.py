@@ -358,13 +358,14 @@ class node_if_stmt:
         self.body_n = body_n
         self.else_chain_n = else_chain_n
     def __repr__(self):
-        return f'node_if_stmt( \n{self.condition_n} \n ctrl_body_n( {self.body_n} ) {self.else_chain_n if self.else_chain_n else "node_else_chain( None )"}'
+        return f'node_if_stmt( \n{self.condition_n} \n ctrl_body_n( {self.body_n} ) {self.else_chain_n if self.else_chain_n else ""}'
 
 class node_else_chain:
     def __init__(self, else_stmt_n):
-        self.else_stmt_n = else_stmt_n
+        self.else_chain_n = else_stmt_n
+
     def __repr__(self):
-        return f'\nnode_else_chain( {self.else_stmt_n} )'
+        return "\nnode_else_chain -> "+"\nnode_else_chain -> ".join(map(str, self.else_chain_n))
 
 class node_else_stmt:
     def __init__(self, body_n):
@@ -375,7 +376,7 @@ class node_else_stmt:
 class node_ctrl_stmt_body:
     def __init__(self, statements_n):
         self.statements_n = statements_n
-        
+
     def __repr__(self):
         return "\n\t" + "\n\t".join(map(str, self.statements_n))
 
@@ -487,7 +488,7 @@ class node_condition_value:
     def __init__(self, condition_value_n):
         self.condition_value_n = condition_value_n
     def __repr__(self):
-        return f"condition_value_n -> {self.condition_value_n}, Type: {type(self.condition_value_n).__name__}"
+        return f" condition_value_n -> {self.condition_value_n}, Type: {type(self.condition_value_n).__name__}"
 
 class node_switch_stmt:
     def __init__(self, value_n, case_n, default_n):
@@ -2145,7 +2146,7 @@ class SyntaxAnalyzer:
 
         print("(parser) exited production: \"conditional_stmt\"")
     
-    def if_stmt(self, isVoid = False): 
+    def if_stmt(self, isVoid = False, isChain = False): 
         '''<if_stmt> → if(<condition) {<ctrl_stmt_body>} <else_chain>'''
         print(f"(parser) entered production: \"if_stmt\" , isVoid = {isVoid}")
 
@@ -2168,8 +2169,8 @@ class SyntaxAnalyzer:
             self.ERROR_unclosed_curly_braces()
         self.hasFunctionReturned = False
 
-        if self.currToken and self.currToken["tokenType"] == "else":
-            else_chain_n = self.else_chain()
+        if self.currToken and self.currToken["tokenType"] == "else" and not isChain:
+            else_chain_n = node_else_chain(self.else_chain())
 
         print("(parser) entered production: \"if_stmt\"")
         return node_if_stmt(condition_n, body_n, else_chain_n)
@@ -2286,11 +2287,22 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"else_chain\"")
         
         if self.currToken:
+            else_chain_n = []
+            
             self.match("else", False)
-            else_stmt_n = self.else_stmt()
-            return node_else_chain(else_stmt_n)
-        
-        print("(parser) exited production: \"else_chain\"")
+
+            if self.currToken and self.currToken["tokenType"] == "if":
+                else_chain_n.append(self.if_stmt(False,True))
+
+                if self.currToken and self.currToken["tokenType"] == "else":
+                    else_chain_n += self.else_chain()
+
+            elif self.currToken and self.currToken["tokenType"] == "{":
+                else_chain_n.append(self.else_stmt())
+            
+            print("(parser) exited production: \"else_chain\"")
+            return else_chain_n
+            
         return None
 
     def else_stmt(self, isVoid = False):
@@ -2300,10 +2312,7 @@ class SyntaxAnalyzer:
 
             body_n = None
 
-            if self.currToken and self.currToken["tokenType"] == "if":
-                return self.if_stmt()
-
-            elif self.currToken and self.currToken["tokenType"] == "{":
+            if self.currToken and self.currToken["tokenType"] == "{":
                 self.match("{", False)
                 if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"]:
                     body_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))

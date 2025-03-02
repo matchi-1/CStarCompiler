@@ -766,7 +766,15 @@ class SemanticAnalyzer:
             else:
                 self.visit_node(statement)
 
-        print("(semantic)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ", self.curr_scope.syms)
-        self.curr_scope = self.curr_scope.parent
+        print("(semantic)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
+        self.exit_scope(type(node).__name__)
+
         return
 
+    def visit_node_if_stmt(self, node):
+        self.enter_scope(type(node).__name__)
+
+        
+
+        self.exit_scope(type(node).__name__)
+        return
