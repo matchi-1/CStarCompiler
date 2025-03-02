@@ -660,62 +660,62 @@ class SemanticAnalyzer:
            
         return (expected_dtype, value)
     
-    def visit_node_output(self, node):
-        print_stmts_n = node.print_stmts_n 
-        print_params_n = node.print_params_n  
+    # def visit_node_output(self, node):
+    #     print_stmts_n = node.print_stmts_n 
+    #     print_params_n = node.print_params_n  
 
-        if not print_params_n:
-            self.logError("Output statement requires at least one parameter (format string).")
-            return None
-        format_string_node = print_params_n[0]
-        format_string_type, format_string_value = self.visit_node(format_string_node)
+    #     if not print_params_n:
+    #         self.logError("Output statement requires at least one parameter (format string).")
+    #         return None
+    #     format_string_node = print_params_n[0]
+    #     format_string_type, format_string_value = self.visit_node(format_string_node)
 
 
-        if format_string_type != "string":
-            self.logError("First parameter in output statement must be a string (format string).", format_string_node)
-            return None
+    #     if format_string_type != "string":
+    #         self.logError("First parameter in output statement must be a string (format string).", format_string_node)
+    #         return None
 
-        format_specifiers = self._extract_format_specifiers(format_string_value)
+    #     format_specifiers = self._extract_format_specifiers(format_string_value)
 
-        if len(format_specifiers) != len(print_params_n) - 1:
-            self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", format_string_node)
-            return None
+    #     if len(format_specifiers) != len(print_params_n) - 1:
+    #         self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", format_string_node)
+    #         return None
 
-        formatted_output = format_string_value
-        for i, specifier in enumerate(format_specifiers):
-            param_node = print_params_n[i + 1] 
-            param_type, param_value = self.visit_node(param_node)
+    #     formatted_output = format_string_value
+    #     for i, specifier in enumerate(format_specifiers):
+    #         param_node = print_params_n[i + 1] 
+    #         param_type, param_value = self.visit_node(param_node)
 
         
-            if not self._validate_format_specifier(specifier, param_type):
-                self.logError(f"Format specifier '{specifier}' does not match parameter type '{param_type}'.", param_node)
-                return None
-            formatted_output = formatted_output.replace(specifier, str(param_value), 1)
+    #         if not self._validate_format_specifier(specifier, param_type):
+    #             self.logError(f"Format specifier '{specifier}' does not match parameter type '{param_type}'.", param_node)
+    #             return None
+    #         formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
-        if print_stmts_n == "println":
-            print(formatted_output)
-        else:
-            print(formatted_output, end='')
+    #     if print_stmts_n == "println":
+    #         print(formatted_output)
+    #     else:
+    #         print(formatted_output, end='')
 
-        return None
+    #     return None
 
-    def _extract_format_specifiers(self, format_string):
-        import re
-        return re.findall(r'%[sdf]|%l[df]', format_string)  # matches %s, %d, %f, %ld, %lf
+    # def _extract_format_specifiers(self, format_string):
+    #     import re
+    #     return re.findall(r'%[sdf]|%l[df]', format_string)  # matches %s, %d, %f, %ld, %lf
 
-    def _validate_format_specifier(self, specifier, param_type):
-        if specifier == "%s":
-            return param_type == "string"
-        elif specifier == "%d":
-            return param_type == "int"
-        elif specifier == "%ld":
-            return param_type == "long"
-        elif specifier == "%f":
-            return param_type == "float"
-        elif specifier == "%lf":
-            return param_type == "double"
-        else:
-            return False
+    # def _validate_format_specifier(self, specifier, param_type):
+    #     if specifier == "%s":
+    #         return param_type == "string"
+    #     elif specifier == "%d":
+    #         return param_type == "int"
+    #     elif specifier == "%ld":
+    #         return param_type == "long"
+    #     elif specifier == "%f":
+    #         return param_type == "float"
+    #     elif specifier == "%lf":
+    #         return param_type == "double"
+    #     else:
+    #         return False
 
     
     #code block
