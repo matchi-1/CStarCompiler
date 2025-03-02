@@ -170,6 +170,8 @@ class SemanticAnalyzer:
             return (dtype, val)
     #cont...
     def visit_node_func_dec(self, node):
+        
+
         func_name = node.id_n.id_t["tokenName"]
         return_type = node.dtype_t["tokenName"]
 
@@ -216,16 +218,27 @@ class SemanticAnalyzer:
         self.enter_scope(type(node).__name__)
 
         # Add parameters to new function scope
-        # for param in node.params_n:
-        #     param_name = param.id_n.id_t["tokenName"]
-        #     param_dtype = param.dtype_t["tokenName"]
+        for param in node.params_n:
+            param_name = param.id_n.id_t["tokenName"]
 
-        #     # Check if parameter name is duplicated
-        #     if self.curr_scope.get(param_name, checkParent=False):
-        #         self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
-            
-        #     # Store parameter in the function's scope
-        #     self.curr_scope.set(param_name, value=None, dtype=param_dtype, const=False)
+            # Check if parameter name is duplicated
+            if self.curr_scope.get(param_name, checkParent=False):
+                self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
+
+            # Handle different parameter types properly
+            if type(param).__name__ == "node_funcpar_class":
+                class_name = param.class_id_n.id_t["tokenName"]
+                self.curr_scope.set_class(param_name, value=None, dtype="class", class_info={"classname": class_name}, const=False)
+
+            elif type(param).__name__ == "node_funcpar_arr":
+                arr_dtype = param.dtype_t["tokenName"]
+                arr_size = param.arrdim_i
+                self.curr_scope.set_array(param_name, value=None, dtype=arr_dtype, arr_info={"size": arr_size}, const=False)
+
+            elif type(param).__name__ == "node_funcpar_var":
+                var_dtype = param.dtype_t["tokenName"]
+                self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
+
 
         # Visit function body
         # has_return = any(self.visit_node(stmt) for stmt in node.body_n)
@@ -235,8 +248,8 @@ class SemanticAnalyzer:
         #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.id_n)
 
         # Exit function scope, back to program constructs
-        # print(f"(semantic)(dbg) EXITING scope 'Function {func_name}', SYMBOL TABLE: ", self.curr_scope.syms)
-        # self.curr_scope = self.curr_scope.parent
+        print(f"(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ", self.curr_scope.syms)
+        self.curr_scope = self.curr_scope.parent
 
 
     #var_dec

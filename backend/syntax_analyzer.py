@@ -279,11 +279,11 @@ class node_func_dec:
         return f"node_func_dec: (\n\tdtype_t: {self.dtype_t["tokenName"]}, id_n: {self.id_n}, params_n: {self.params_n}, body_n: {self.body_n}, is_std_lib: {self.is_std_lib})"
 
 class node_funcpar_class:
-    def __init__(self, class_id_n, obj_id_n):
+    def __init__(self, class_id_n, id_n):
         self.class_id_n = class_id_n
-        self.obj_id_n = obj_id_n
+        self.id_n = id_n
     def __repr__(self):
-        return f"node_funcpar_class: (class_id_n: {self.class_id_n}, obj_id_n: {self.obj_id_n}"
+        return f"node_funcpar_class: (class_id_n: {self.class_id_n}, id_n: {self.id_n}"
 
 class node_funcpar_arr:
     def __init__(self, dtype_t, id_n, arrdim_i):
