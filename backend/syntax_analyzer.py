@@ -1016,14 +1016,14 @@ class SyntaxAnalyzer:
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
             if currentTokenType in PREDICT_SETS["assign_func_method_mods"]:
-                if currentTokenType == "[":
-                    arr_idx_n = self.as_array(iden_temp_n)  #iden[1]
-                    assign_stmt_array_elem_n = self.assign_stmt_op(arr_idx_n)
-                    return assign_stmt_array_elem_n
-                
-                elif currentTokenType in PREDICT_SETS["assign_operator"]:
-                    assign_stmt_var_n = self.assign_stmt_op(iden_temp_n)
+                if currentTokenType in PREDICT_SETS["assign_operator"]:
+                    assign_stmt_var_n = self.assign_stmt_op(id_or_class_id_n = iden_temp_n) #iden = 
                     return assign_stmt_var_n
+                
+                elif currentTokenType == "[":
+                    arr_idx_temp_n = self.as_array(iden_temp_n)  #iden[1] = 
+                    assign_stmt_array_elem_n = self.assign_stmt_op(arr_idx_n = arr_idx_temp_n)
+                    return assign_stmt_array_elem_n
                 
                 elif currentTokenType == "(":
                     self.match("(", False)
@@ -1047,12 +1047,12 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
-            if currentTokenType in (PREDICT_SETS["assign_func_method_mods_cont"] + PREDICT_SETS["assign_operator"]): # iden.iden[1]
+            if currentTokenType in (PREDICT_SETS["assign_func_method_mods_cont"] + PREDICT_SETS["assign_operator"]): 
                 if currentTokenType == "[" or currentTokenType in PREDICT_SETS["assign_operator"]:
-                    class_arr_n = self.as_array()
+                    class_arr_temp_n = self.as_array(classname_temp_n, att_method_iden_n) # iden.iden[1] 
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["assign_operator"]:
-                        self.ERROR_expected_token(PREDICT_SETS["assign_operator"])
-                    assign_stmt_object_att_arr_temp_n = self.assign_stmt_op(class_arr_n, classname_temp_n, att_method_iden_n)
+                        self.ERROR_expected_token(PREDICT_SETS["assign_operator"]) 
+                    assign_stmt_object_att_arr_temp_n = self.assign_stmt_op(class_arr_n = class_arr_temp_n) # iden.iden[1]  =
                     return assign_stmt_object_att_arr_temp_n
 
                 elif currentTokenType == "(":  # iden.iden()
@@ -1062,7 +1062,7 @@ class SyntaxAnalyzer:
                         self.ERROR_unclosed_parentheses()
                     return node_class_method_call(classname_temp_n, att_method_iden_n, func_arg_n)
 
-                elif currentTokenType in PREDICT_SETS["assign_operator"]:  # iden.iden
+                elif currentTokenType in PREDICT_SETS["assign_operator"]:  # iden.iden =
                     assign_stmt_object_att_n = self.assign_stmt_op(classname_temp_n, att_method_iden_n)
                     return assign_stmt_object_att_n
 
@@ -2931,7 +2931,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"assign_stmt\"")
         return node_assign_stmt(node_temp if node_temp else temp_id, assign_stmt_temp_op_n, assign_stmt_temp_val_n)
 
-    def assign_stmt_op(self):
+    def assign_stmt_op(self, id_or_class_id_n = None, att_id_n = None, class_arr_n = None, arr_idx_n = None):
         print('(parser) production: "assign_stmt_op" detected')
 
         assign_stmt_temp_op_n = self.currToken["tokenType"]
