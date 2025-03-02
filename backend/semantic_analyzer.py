@@ -878,3 +878,21 @@ class SemanticAnalyzer:
 
         self.exit_scope(type(node).__name__)
         return
+
+    def visit_node_else_stmt(self, node):
+        self.enter_scope(type(node).__name__)
+
+        self.visit_node(node.body_n)
+
+        self.exit_scope(type(node).__name__)
+        return
+    
+    def visit_node_switch_stmt(self, node):
+        self.enter_scope(type(node).__name__)
+
+        value_n = node.value_n
+        case_n = node.case_n
+        default_n = node.default_n
+
+        self.exit_scope(type(node).__name__)
+        return
