@@ -269,14 +269,14 @@ class node_arr_dec_rec:
         return f"(id_n: {self.id_n}, size1_n: {self.size1_n}, size2_n: {self.size2_n})"
 
 class node_func_dec:
-    def __init__(self, dtype_t, iden_n, params_n, body_n, is_std_lib = False):
+    def __init__(self, dtype_t, id_n, params_n, body_n, is_std_lib = False):
         self.dtype_t = dtype_t
-        self.iden_n = iden_n
+        self.id_n = id_n
         self.params_n = params_n
         self.body_n = body_n
         self.is_std_lib = is_std_lib
     def __repr__(self):
-        return f"node_func_dec: (\n\tdtype_t: {self.dtype_t["tokenName"]}, id_n: {self.iden_n}, params_n: {self.params_n}, body_n: {self.body_n}, is_std_lib: {self.is_std_lib})"
+        return f"node_func_dec: (\n\tdtype_t: {self.dtype_t["tokenName"]}, id_n: {self.id_n}, params_n: {self.params_n}, body_n: {self.body_n}, is_std_lib: {self.is_std_lib})"
 
 class node_funcpar_class:
     def __init__(self, class_id_n, obj_id_n):

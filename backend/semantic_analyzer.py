@@ -144,39 +144,61 @@ class SemanticAnalyzer:
             return (dtype, val)
     #cont...
     def visit_node_func_dec(self, node):
-        func_name = node.iden_n.id_t["tokenName"]
+        func_name = node.id_n.id_t["tokenName"]
         return_type = node.dtype_t["tokenName"]
 
         # Check if function already exists in current scope
         if self.curr_scope.get(func_name, checkParent=False):
-            self.logError(f"Function '{func_name}' is already declared.", node.iden_n)
+            self.logError(f"Function '{func_name}' is already declared.", node.id_n)
             return
 
-        # Store function signature in symbol table with params
-        param_types = [param.dtype_t["tokenName"] for param in node.params_n]
+        # Store func params into function signature in symbol table
+        param_types = []
+
+        for param in node.params_n:
+            if type(param).__name__ == "node_funcpar_class":
+                param_types.append({"type": "class", "name": param.class_id_n.id_t["tokenName"]})  
+
+            elif type(param).__name__ == "node_funcpar_arr":
+                param_types.append({"type": "arr", "size": param.arrdim_i})  
+
+            elif type(param).__name__ == "node_funcpar_var":
+                param_types.append({"type": "var", "dtype": param.dtype_t["tokenName"]})  
+                
+        
+        
+        # sample parameter format
+        # [
+        #     {"type": "var", "dtype": "int"},
+        #     {"type": "class", "name": "MyClass"},
+        #     {"type": "arr", "size": 10}
+        # ]
+
+
+
         self.curr_scope.set(func_name, value=None, dtype=return_type, const=True, params=param_types)  # const bc functions are not reassignable
 
         # Enter function scope
         self.enter_scope(type(node).__name__)
 
         # Add parameters to new function scope
-        for param in node.params_n:
-            param_name = param.iden_n.id_t["tokenName"]
-            param_dtype = param.dtype_t["tokenName"]
+        # for param in node.params_n:
+        #     param_name = param.id_n.id_t["tokenName"]
+        #     param_dtype = param.dtype_t["tokenName"]
 
-            # Check if parameter name is duplicated
-            if self.curr_scope.get(param_name, checkParent=False):
-                self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.iden_n)
+        #     # Check if parameter name is duplicated
+        #     if self.curr_scope.get(param_name, checkParent=False):
+        #         self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
             
-            # Store parameter in the function's scope
-            self.curr_scope.set(param_name, value=None, dtype=param_dtype, const=False)
+        #     # Store parameter in the function's scope
+        #     self.curr_scope.set(param_name, value=None, dtype=param_dtype, const=False)
 
         # Visit function body
         # has_return = any(self.visit_node(stmt) for stmt in node.body_n)
 
         # # If function is non-void, ensure at least one return exists
         # if return_type != "void" and not has_return:
-        #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.iden_n)
+        #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.id_n)
 
         # Exit function scope, back to program constructs
         # print(f"(semantic)(dbg) EXITING scope 'Function {func_name}', SYMBOL TABLE: ", self.curr_scope.syms)
