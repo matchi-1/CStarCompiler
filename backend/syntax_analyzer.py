@@ -129,7 +129,7 @@ class node_func_call:
         self.args_n = args_n
     def __repr__(self):
         return f'{self.id_n}({self.args_n})'
-
+    
 class node_arr_idx:
     def __init__(self, id_n, idx_n, idx2_n = None):
         self.id_n = id_n
@@ -139,19 +139,19 @@ class node_arr_idx:
         return f'{self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}]' if self.idx2_n else '') 
 
 class node_class_att:
-    def __init__(self, id_n, att_n):
-        self.id_n = id_n
-        self.att_n = att_n
+    def __init__(self, class_id_n, att_id_n):
+        self.class_id_n = class_id_n
+        self.att_id_n = att_id_n
     def __repr__(self):
-        return f'{self.id_n}.{self.att_n}'
+        return f'{self.class_id_n}.{self.att_id_n}'
 
-class node_class_func_call:
-    def __init__(self, id_n, att_n, args_n = None):
-        self.id_n = id_n
-        self.att_n = att_n
+class node_class_method_call:
+    def __init__(self, class_id_n, method_id_n, args_n = None):
+        self.class_id_n = class_id_n
+        self.method_id_n = method_id_n
         self.args_n = args_n
     def __repr__(self):
-        return f'{self.id_n}.{self.att_n}({self.args_n})'
+        return f'{self.class_id_n}.{self.method_id_n}({self.args_n})'
 
 class node_class_arr_idx:
     def __init__(self, id_n, att_n, idx_n, idx2_n = None):
@@ -1019,15 +1019,15 @@ class SyntaxAnalyzer:
 
                 elif currentTokenType == ".":
                     self.match(".")
-                    attribute_iden_n = node_iden(self.match("Identifier", False))
-                    assign_func_method_mods_cont_n = self.assign_func_method_mods_cont()
-                    return node_assign_func_method_mods(iden_temp_n, None, None, None, attribute_iden_n, assign_func_method_mods_cont_n)
+                    att_method_iden_n = node_iden(self.match("Identifier", False))
+                    assign_func_method_mods_cont_n = self.assign_func_method_mods_cont(iden_temp_n, att_method_iden_n)
+                    return assign_func_method_mods_cont_n
                 
             else: self.ERROR_expected_token(PREDICT_SETS["assign_func_method_mods"])
         else: self.ERROR_expected_token(PREDICT_SETS["assign_func_method_mods"])
 
 
-    def assign_func_method_mods_cont(self):
+    def assign_func_method_mods_cont(self, classname_temp_n, att_method_iden_n):
         print("(parser) production: \"assign_func_method_mods_cont\" detected")
 
         if self.currToken:
@@ -1042,10 +1042,10 @@ class SyntaxAnalyzer:
 
                 elif currentTokenType == "(":
                     self.match("(")
-                    func_arg_n = self.func_arg()
+                    func_arg_n = self.func_arg([])
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
-                    return node_assign_func_method_mods_cont(None, None, func_arg_n)
+                    return node_class_method_call(classname_temp_n, att_method_iden_n, func_arg_n)
 
                 elif self.currToken and self.currToken["tokenType"] == ".":
                     self.logError(f"Further accessing of object elements is not allowed. Expected '[' or '(', found '{self.currToken["tokenType"]}'.")    
@@ -1498,7 +1498,7 @@ class SyntaxAnalyzer:
             if not self.currToken or self.currToken["tokenType"] != '(':
                 self.logError(f"Expected '(' for constructor call after Identifier. Found '{self.currToken["tokenType"] if self.currToken else "EOF"}' instead.")
             self.match('(')
-            func_arg_n = self.func_arg()
+            func_arg_n = self.func_arg([])
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
             elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]):
@@ -1554,7 +1554,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] == "(":
             # Handle (<func_arg>) -- direct func call
             self.match("(")
-            self.func_arg()
+            self.func_arg([])
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
         elif self.currToken and self.currToken["tokenType"] == ".":
@@ -1562,7 +1562,7 @@ class SyntaxAnalyzer:
             self.match(".")
             self.match("Identifier", False)
             self.match("(", False)
-            self.func_arg()
+            self.func_arg([])
             if not self.match(")", False):
                 self.ERROR_unclosed_parentheses()
         elif self.currToken and self.currToken["tokenType"] == "[":
@@ -1838,9 +1838,9 @@ class SyntaxAnalyzer:
         if (self.currToken and self.currToken["tokenType"] == "("):
             self.match("(")
             if not tmp_att_id_n:
-                node_temp = node_func_call(temp_id, self.func_arg())
+                node_temp = node_func_call(temp_id, self.func_arg([]))
             else:
-                node_temp = node_class_func_call(temp_id, tmp_att_id_n, self.func_arg())
+                node_temp = node_class_method_call(temp_id, tmp_att_id_n, self.func_arg([]))
             if not self.match(")"):
                 is_valid_value = False
                 self.ERROR_unclosed_parentheses()
