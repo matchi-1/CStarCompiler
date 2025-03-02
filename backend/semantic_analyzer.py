@@ -320,8 +320,12 @@ class SemanticAnalyzer:
         id = node.id_n.id_t["tokenName"]
         dtype = f'arr_{node.dtype_t["tokenName"]}'
         dim = 2 if node.size2_n else 1
-        size_1 = self.visit_node(node.size1_n)
-        size_2 = self.visit_node(node.size2_n) if node.size2_n else None
+        size_1_type, size_1 = self.visit_node(node.size1_n)
+        if size_1_type not in ['int', 'long']:
+            self.logError('Expected whole number.')
+        size_2_type, size_2 = self.visit_node(node.size2_n) if node.size2_n else (None, None)
+        if size_2_type and size_2_type not in ['int', 'long']:
+            self.logError('Expected whole number.')
         values_list = None
         arr_rec = None
         if node.arr_dec_cont_n:
@@ -329,6 +333,15 @@ class SemanticAnalyzer:
                 arr_rec = node.arr_dec_cont_n
             else:
                 values_list = node.arr_dec_cont_n
+        self.curr_scope.set_array(id, None, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
+        for arrdec_node in arr_rec or []:
+            size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
+            if size_1_type not in ['int', 'long']:
+                self.logError('Expected whole number.')
+            size_2_type, size_2 = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None)
+            if size_2_type and size_2_type not in ['int', 'long']:
+                self.logError('Expected whole number.')
+            self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], None, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
         
 
     # binary and unary operations
