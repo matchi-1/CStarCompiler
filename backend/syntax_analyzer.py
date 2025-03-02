@@ -154,13 +154,13 @@ class node_class_method_call:
         return f'{self.class_id_n}.{self.method_id_n}({self.args_n})'
 
 class node_class_arr_idx:
-    def __init__(self, id_n, att_n, idx_n, idx2_n = None):
-        self.id_n = id_n
-        self.att_n = att_n
+    def __init__(self, class_id_n, att_id_n, idx_n, idx2_n = None):
+        self.class_id_n = class_id_n
+        self.att_id_n = att_id_n
         self.idx_n = idx_n
         self.idx2_n = idx2_n
     def __repr__(self):
-        return f'{self.id_n}.{self.att_n}[{self.idx_n}]' + (f'[{self.idx_n}]' if self.idx2_n else '')
+        return f'{self.class_id_n}.{self.att_id_n}[{self.idx_n}]' + (f'[{self.idx_n}]' if self.idx2_n else '')
 
 class node_func_args:
     def __init__(self, args_n, args_rec_n = None):
@@ -168,7 +168,10 @@ class node_func_args:
         self.args_rec_n = args_rec_n
     def __repr__(self):
         return f'{self.args_n}' + f', {self.args_rec_n}' if self.args_rec_n else ''
-        
+
+
+
+
 class node_bi_op:
     def __init__(self, left_n, op_t, right_n):
         self.left_n = left_n
@@ -564,14 +567,22 @@ class node_assign_stmt:
         self.assign_value_n = assign_value_n
 
     def __repr__(self):
-        return f"assign stmt: id_n:'{self.id_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
+        return f"node_assign_stmt: id_n:'{self.id_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
+
+class node_assign_stmt_object_att_arr:
+    def __init__(self, class_arr_n, assign_op_n, assign_value_n):
+        self.class_arr_n = class_arr_n   # iden.iden[1][]
+        self.assign_op_n = assign_op_n
+        self.assign_value_n = assign_value_n
+    def __repr__(self):
+        return f"node_assign_stmt_object_att_arr: class_arr_n:'{self.class_arr_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
 
 class node_imports_list:
     def __init__(self, stdlib_n):
         self.stdlib_n = stdlib_n
 
     def __repr__(self):
-        return f"imports_list: (stdlib_n: {self.stdlib_n})"
+        return f"node_imports_list: (stdlib_n: {self.stdlib_n})"
 
 #-------------------- PARSER --------------------
 class SyntaxAnalyzer:
@@ -1005,11 +1016,15 @@ class SyntaxAnalyzer:
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
             if currentTokenType in PREDICT_SETS["assign_func_method_mods"]:
-                if currentTokenType in (PREDICT_SETS["assign_operator"] + ["["]):
-                    as_array_n = self.as_array()
-                    assign_stmt_op_n = self.assign_stmt_op()
-                    return node_assign_func_method_mods(iden_temp_n, as_array_n, assign_stmt_op_n, None, None, None)
-
+                if currentTokenType == "[":
+                    arr_idx_n = self.as_array(iden_temp_n)  #iden[1]
+                    assign_stmt_array_elem_n = self.assign_stmt_op(arr_idx_n)
+                    return assign_stmt_array_elem_n
+                
+                elif currentTokenType in PREDICT_SETS["assign_operator"]:
+                    assign_stmt_var_n = self.assign_stmt_op(iden_temp_n)
+                    return assign_stmt_var_n
+                
                 elif currentTokenType == "(":
                     self.match("(", False)
                     func_arg_n = self.func_arg([])
@@ -1032,20 +1047,24 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
-            if currentTokenType in (PREDICT_SETS["assign_func_method_mods_cont"] + PREDICT_SETS["assign_operator"]):
+            if currentTokenType in (PREDICT_SETS["assign_func_method_mods_cont"] + PREDICT_SETS["assign_operator"]): # iden.iden[1]
                 if currentTokenType == "[" or currentTokenType in PREDICT_SETS["assign_operator"]:
-                    as_array_n = self.as_array()
+                    class_arr_n = self.as_array()
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["assign_operator"]:
                         self.ERROR_expected_token(PREDICT_SETS["assign_operator"])
-                    assign_stmt_op_n = self.assign_stmt_op()
-                    return node_assign_func_method_mods_cont(as_array_n, assign_stmt_op_n, None)
+                    assign_stmt_object_att_arr_temp_n = self.assign_stmt_op(class_arr_n, classname_temp_n, att_method_iden_n)
+                    return assign_stmt_object_att_arr_temp_n
 
-                elif currentTokenType == "(":
+                elif currentTokenType == "(":  # iden.iden()
                     self.match("(")
                     func_arg_n = self.func_arg([])
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
                     return node_class_method_call(classname_temp_n, att_method_iden_n, func_arg_n)
+
+                elif currentTokenType in PREDICT_SETS["assign_operator"]:  # iden.iden
+                    assign_stmt_object_att_n = self.assign_stmt_op(classname_temp_n, att_method_iden_n)
+                    return assign_stmt_object_att_n
 
                 elif self.currToken and self.currToken["tokenType"] == ".":
                     self.logError(f"Further accessing of object elements is not allowed. Expected '[' or '(', found '{self.currToken["tokenType"]}'.")    
