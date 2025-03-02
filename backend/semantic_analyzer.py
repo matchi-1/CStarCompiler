@@ -12,18 +12,35 @@ class SymbolTable:
     
         
     # ALWAYS NAME ARGS FOR DTYPE PRIV AND CONST WHEN CALLING SET
-    def set(self, sym_name, value, dtype=None, priv=False, const=False, params = False):
-        sym_content = {
+    def _create_symbol_entry(self, value, dtype, priv, const):
+        return {
             "value": value,
-            'dtype': dtype,
-            'priv': priv,
-            'const': const,
-            'params' : params
+            "dtype": dtype,
+            "priv": priv,
+            "const": const,
         }
+
+    def set(self, sym_name, value, dtype=None, priv=False, const=False):
+        sym_content = self._create_symbol_entry(value, dtype, priv, const)
+        self.syms[sym_name] = sym_content
+
+    def set_array(self, sym_name, value, dtype, arr_info, priv=False, const=False):
+        sym_content = self._create_symbol_entry(value, dtype, priv, const)
+        sym_content["arr_info"] = arr_info  
+        self.syms[sym_name] = sym_content
+
+    def set_class(self, sym_name, value, dtype, class_info, priv=False, const=False):
+        sym_content = self._create_symbol_entry(value, dtype, priv, const)
+        sym_content["class_info"] = class_info 
+        self.syms[sym_name] = sym_content
+
+    def set_function(self, sym_name, return_type, param_types, priv=False, const=False):
+        sym_content = self._create_symbol_entry(value=None, dtype=return_type, priv=priv, const=const)
+        sym_content["params"] = param_types 
         self.syms[sym_name] = sym_content
 
 class SemanticAnalyzer:
-    
+
     numtypes = ['int', 'long', 'float', 'double']
 
     def interpret(self, node):
@@ -157,15 +174,24 @@ class SemanticAnalyzer:
 
         for param in node.params_n:
             if type(param).__name__ == "node_funcpar_class":
-                param_types.append({"type": "class", "name": param.class_id_n.id_t["tokenName"]})  
+                param_types.append({
+                    "type": "class",
+                    "classname": param.class_id_n.id_t["tokenName"]
+                })  
 
             elif type(param).__name__ == "node_funcpar_arr":
-                param_types.append({"type": "arr", "size": param.arrdim_i})  
+                param_types.append({
+                    "type": "arr",
+                    "dtype": param.dtype_t["tokenName"],  # Include the data type
+                    "size": param.arrdim_i
+                })  
 
             elif type(param).__name__ == "node_funcpar_var":
-                param_types.append({"type": "var", "dtype": param.dtype_t["tokenName"]})  
-                
-        
+                param_types.append({
+                    "type": "var",
+                    "dtype": param.dtype_t["tokenName"]
+                })  
+
         
         # sample parameter format
         # [
@@ -174,9 +200,8 @@ class SemanticAnalyzer:
         #     {"type": "arr", "size": 10}
         # ]
 
-
-
-        self.curr_scope.set(func_name, value=None, dtype=return_type, const=True, params=param_types)  # const bc functions are not reassignable
+        # Store function in symbol table
+        self.curr_scope.set_function(func_name, return_type, param_types)  # const bc functions are not reassignable
 
         # Enter function scope
         self.enter_scope(type(node).__name__)
