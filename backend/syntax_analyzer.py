@@ -246,9 +246,9 @@ class node_arr_dec:
         self.arr_dec_cont_n = arr_dec_cont_n
 
     def __repr__(self):
-        if all(isinstance(elem, node_arr_dec_rec) for elem in self.arr_dec_cont_n):
+        if all(isinstance(elem, node_arr_dec_rec) for elem in self.arr_dec_cont_n or []):
             # Case 1: List of node_arr_dec_rec objects → Format with newlines
-            arr_dec_str = ",\n\t".join(str(elem) for elem in self.arr_dec_cont_n)
+            arr_dec_str = ",\n\t".join(str(elem) for elem in self.arr_dec_cont_n or [])
 
         elif all(isinstance(elem, list) for elem in self.arr_dec_cont_n):
             # Case 3: 2D List (List of lists of numbers) → Format each inner list with newlines
