@@ -176,6 +176,10 @@ class SemanticAnalyzer:
             #     val = float(iden_symbol["value"])
             # return (dtype, val)
             return (iden_symbol["dtype"], None)
+        
+    def visit_node_arr_idx(self, node):
+        dtype = self.curr_scope.get(node.id_n.id_t["tokenName"])["dtype"][4:]
+        return (dtype, None)
     #cont...
     def visit_node_func_dec(self, node):
         func_name = node.id_n.id_t["tokenName"]
@@ -293,9 +297,10 @@ class SemanticAnalyzer:
         idec_rec = None
         if (node.vardec_cont_n):
             val_type, value = self.visit_node(node.vardec_cont_n.value_n)
+            print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
-        if value and dtype != val_type:
+        if val_type and dtype != val_type:
             self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", node.id_n)
         # if not value:
         #     match dtype:
