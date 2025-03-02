@@ -34,9 +34,10 @@ class SymbolTable:
         sym_content["class_info"] = class_info 
         self.syms[sym_name] = sym_content
 
-    def set_function(self, sym_name, return_type, param_types, priv=False, const=False):
+    def set_function(self, sym_name, return_type, param_types, priv=False, const=False, isStd_lib=True):
         sym_content = self._create_symbol_entry(value=None, dtype=return_type, priv=priv, const=const)
         sym_content["params"] = param_types 
+        sym_content["isStd_lib"] = isStd_lib 
         self.syms[sym_name] = sym_content
 
 class SemanticAnalyzer:
@@ -170,8 +171,6 @@ class SemanticAnalyzer:
             return (dtype, val)
     #cont...
     def visit_node_func_dec(self, node):
-        
-
         func_name = node.id_n.id_t["tokenName"]
         return_type = node.dtype_t["tokenName"]
 
@@ -202,7 +201,6 @@ class SemanticAnalyzer:
                     "type": "var",
                     "dtype": param.dtype_t["tokenName"]
                 })  
-
         
         # sample parameter format
         # [
@@ -212,7 +210,7 @@ class SemanticAnalyzer:
         # ]
 
         # Store function in symbol table
-        self.curr_scope.set_function(func_name, return_type, param_types)  # const bc functions are not reassignable
+        self.curr_scope.set_function(func_name, return_type, param_types, isStd_lib = False)  # const bc functions are not reassignable
 
         # Enter function scope
         self.enter_scope(type(node).__name__)
