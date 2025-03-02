@@ -12,12 +12,13 @@ class SymbolTable:
     
         
     # ALWAYS NAME ARGS FOR DTYPE PRIV AND CONST WHEN CALLING SET
-    def set(self, sym_name, value, dtype=None, priv=False, const=False):
+    def set(self, sym_name, value, dtype=None, priv=False, const=False, params = False):
         sym_content = {
             "value": value,
             'dtype': dtype,
             'priv': priv,
-            'const': const
+            'const': const,
+            'params' : params
         }
         self.syms[sym_name] = sym_content
 
@@ -28,7 +29,7 @@ class SemanticAnalyzer:
     def interpret(self, node):
         try:
             self.visit_node(node)
-            self.errors.append("Semantic checking completed successfully. No Semantic Errors found.")
+            self.errors.append("Semantic analysis completed successfully. No Semantic Errors found.")
             print("Semantic checking completed successfully. No Semantic Errors found.")
             print('(semantic)(dbg) global table: ')
             #print global dbg #wont be seen until prog construts is implemented
@@ -109,6 +110,8 @@ class SemanticAnalyzer:
     def visit_node_program_constructs(self, node):
         self.enter_scope(type(node).__name__)
         
+        for global_declarations in node.program_constructs_statement_n:
+            self.visit_node(global_declarations)
         
         print("(semantic)(dbg) EXITING scope 'Program Constructs', GLOBAL TABLE: ", self.curr_scope.syms)
         self.curr_scope = self.curr_scope.parent
@@ -140,6 +143,45 @@ class SemanticAnalyzer:
                 val = float(iden_symbol["value"])
             return (dtype, val)
     #cont...
+    def visit_node_func_dec(self, node):
+        func_name = node.iden_n.id_t["tokenName"]
+        return_type = node.dtype_t["tokenName"]
+
+        # Check if function already exists in current scope
+        if self.curr_scope.get(func_name, checkParent=False):
+            self.logError(f"Function '{func_name}' is already declared.", node.iden_n)
+            return
+
+        # Store function signature in symbol table with params
+        param_types = [param.dtype_t["tokenName"] for param in node.params_n]
+        self.curr_scope.set(func_name, value=None, dtype=return_type, const=True, params=param_types)  # const bc functions are not reassignable
+
+        # Enter function scope
+        self.enter_scope(type(node).__name__)
+
+        # Add parameters to new function scope
+        for param in node.params_n:
+            param_name = param.iden_n.id_t["tokenName"]
+            param_dtype = param.dtype_t["tokenName"]
+
+            # Check if parameter name is duplicated
+            if self.curr_scope.get(param_name, checkParent=False):
+                self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.iden_n)
+            
+            # Store parameter in the function's scope
+            self.curr_scope.set(param_name, value=None, dtype=param_dtype, const=False)
+
+        # Visit function body
+        # has_return = any(self.visit_node(stmt) for stmt in node.body_n)
+
+        # # If function is non-void, ensure at least one return exists
+        # if return_type != "void" and not has_return:
+        #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.iden_n)
+
+        # Exit function scope, back to program constructs
+        # print(f"(semantic)(dbg) EXITING scope 'Function {func_name}', SYMBOL TABLE: ", self.curr_scope.syms)
+        # self.curr_scope = self.curr_scope.parent
+
 
     #var_dec
     def visit_node_vardec(self, node):

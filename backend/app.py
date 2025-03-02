@@ -66,7 +66,7 @@ def compile_code():
         analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
         parseErrs, parseTree = analyzer.parse()
         errors += parseErrs    # comment out to just test for lexer
-        if "Parsing completed successfully. No Syntax Errors found." in parseErrs:  
+        if "Parsing completed successfully. No Syntax Errors found." in parseErrs:  # change this once semantic and syntax are combined
             seman = semantic_analyzer.SemanticAnalyzer()
             errors += seman.interpret(parseTree) #comment/uncomment for testing
         else: print("DID NOT RUN SEMANTIC ANALYSIS, FIX SYNTAX ERRORS BIATCH.")
