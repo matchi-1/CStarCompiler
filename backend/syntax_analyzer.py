@@ -112,7 +112,7 @@ class node_str:
 class node_bool:
     def __init__(self, val_t):
         self.val_t = val_t
-        self.dtype = "boolean"
+        self.dtype = "bool"
     def __repr__(self):
         return self.val_t["tokenName"]
 
