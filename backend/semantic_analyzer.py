@@ -4,11 +4,12 @@ class SymbolTable:
         self.parent = parent
 
 
-    def get(self, sym_name):
+    def get(self, sym_name, checkParent = True):
         sym = self.syms.get(sym_name, None)
-        if not sym and self.parent:
+        if not sym and self.parent and checkParent:
             return self.parent.get(sym_name)
         return sym
+    
         
     # ALWAYS NAME ARGS FOR DTYPE PRIV AND CONST WHEN CALLING SET
     def set(self, sym_name, value, dtype=None, priv=False, const=False):
@@ -21,7 +22,20 @@ class SymbolTable:
         self.syms[sym_name] = sym_content
 
 class SemanticAnalyzer:
+    
     numtypes = ['int', 'long', 'float', 'double']
+
+    def interpret(self, node):
+        try:
+            self.visit_node(node)
+            self.errors.append("Semantic checking completed successfully. No Semantic Errors found.")
+            print("Semantic checking completed successfully. No Semantic Errors found.")
+
+        except SyntaxError as e:
+            print (e)
+
+        return self.errors
+
     def __init__(self):
         self.curr_scope = SymbolTable()
         self.errors = []
@@ -43,11 +57,16 @@ class SemanticAnalyzer:
         else:
             print(f'(semantic)(dbg) VISITING {nodeName}!!')
             return visit_func(node)
-    
-    def interpret(self, node):
-        self.visit_node(node)
-        #print('(semantic)(dbg) global table: ', self.curr_scope.syms)
-        print('(semantic)(dbg) SEMANTIC ANALYSIS DONE, NO ERRORS FOUND.')
+        
+    def logError(self, idenNode, msg): #only works on node_iden
+        currLine = idenNode.id_t["tokenLine"]
+        currCol = idenNode.id_t["tokenCol"]
+        full_message = (
+            f"Semantic Error ({currLine}, {currCol}): {msg}"
+        )
+        self.errors.append(full_message)
+        print(full_message)
+        raise SyntaxError(full_message)
 
 
 
@@ -76,6 +95,12 @@ class SemanticAnalyzer:
         for statement in node.code_block_statement_n:
             self.visit_node(statement)
 
+    def visit_node_program_constructs(self, node):
+        self.enter_scope(type(node).__name__)
+        
+        
+        print("(semantic)(dbg) EXITING scope 'Program Constructs', GLOBAL TABLE: ", self.curr_scope.syms)
+        self.curr_scope = self.curr_scope.parent
 
     def visit_node_num(self, node):
         val = 0
@@ -94,7 +119,7 @@ class SemanticAnalyzer:
     def visit_node_iden(self, node):
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
         if not iden_symbol:
-            raise SyntaxError(f"SEMANTIC ERROR: Symbol '{node.id_t["tokenName"]}' hasnt been declared yet.")
+            self.logError(node, f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.")
         else:
             dtype = iden_symbol["dtype"]
             val = 0
@@ -106,9 +131,9 @@ class SemanticAnalyzer:
     #cont...
 
     #var_dec
-    def visit_node_vardec(self, node):
-        if self.curr_scope.get(node.id_n.id_t["tokenName"]):
-            print('(semantic)(dbg) ERROR: Duplciate Symboll')
+    def visit_node_vardec(self, node, checkParentNode = True):
+        if self.curr_scope.get(node.id_n.id_t["tokenName"], checkParentNode):
+            self.logError(node.id_n, f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.")
         const = node.const_b
         dtype = node.dtype_t["tokenName"]
         id = node.id_n.id_t["tokenName"]
@@ -120,7 +145,7 @@ class SemanticAnalyzer:
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
         if value and dtype != val_type:
-            print('semantic)(dbg) ERROR: type mismatch')
+            self.logError(node.id_n, f"Type mismatch: expected '{dtype}' but found '{val_type}'")
         
         self.curr_scope.set(id, value, dtype=dtype, const=const)
         for dec_node in idec_rec or []:
@@ -155,7 +180,7 @@ class SemanticAnalyzer:
                 else:
                     print('(semantic)(dbg) ERROR: only numerics')
             case '/':
-                if right_val == 0:
+                if right_val == 0: #todo
                     print("(semantic)(dbg) ERROR: DIVIDE BY 0")
                 if left_type in self.numtypes and right_type in self.numtypes:
                     return (dtype, left_val / right_val)
@@ -263,9 +288,8 @@ class SemanticAnalyzer:
         loop_name = type(node_loop).__name__
 
         self.enter_scope(loop_name)
-        if loop_name == 'node_forloop':
-            
-            self.visit_node_vardec(node_loop.init_arg_n)
+        if loop_name == 'node_forloop':    
+            self.visit_node_vardec(node_loop.init_arg_n, False)
             print(f"FOUND CONDITION: {self.visit_node(node_loop.condition_n.condition_n)}")
             self.visit_node(node_loop.inc_arg_n) 
             self.visit_node(node_loop.ctrl_stmt_body_n)
@@ -277,9 +301,6 @@ class SemanticAnalyzer:
         elif loop_name == 'node_repeat':
             print(f"FOUND REPEAT VALUE: {self.visit_node(node_loop.repeat_value_n)}")
             self.visit_node(node_loop.ctrl_stmt_body_n)
-            
-
-
 
         self.exit_scope(loop_name)
 
