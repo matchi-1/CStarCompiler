@@ -64,12 +64,17 @@ class SemanticAnalyzer:
             print(f'(semantic)(dbg) VISITING {nodeName}!!')
             return visit_func(node)
         
-    def logError(self, idenNode, msg): #only works on node_iden
-        currLine = idenNode.id_t["tokenLine"]
-        currCol = idenNode.id_t["tokenCol"]
-        full_message = (
-            f"Semantic Error ({currLine}, {currCol}): {msg}"
-        )
+    def logError(self, msg, idenNode = None): #only works on node_iden
+        if idenNode:
+            currLine = idenNode.id_t["tokenLine"]
+            currCol = idenNode.id_t["tokenCol"]
+            full_message = (
+                f"Semantic Error ({currLine}, {currCol}): {msg}"
+            )
+        else:
+            full_message = (
+                f"Semantic Error(#todo line nums): {msg}"
+            )
         self.errors.append(full_message)
         print(full_message)
         raise SyntaxError(full_message)
@@ -125,7 +130,7 @@ class SemanticAnalyzer:
     def visit_node_iden(self, node):
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
         if not iden_symbol:
-            self.logError(node, f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.")
+            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node)
         else:
             dtype = iden_symbol["dtype"]
             val = 0
@@ -139,7 +144,7 @@ class SemanticAnalyzer:
     #var_dec
     def visit_node_vardec(self, node, checkParentNode = True):
         if self.curr_scope.get(node.id_n.id_t["tokenName"], checkParentNode):
-            self.logError(node.id_n, f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.")
+            self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
         const = node.const_b
         dtype = node.dtype_t["tokenName"]
         id = node.id_n.id_t["tokenName"]
@@ -309,16 +314,26 @@ class SemanticAnalyzer:
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
             self.visit_node_vardec(node_loop.init_arg_n, False)
-            print(f"FOUND CONDITION: {self.visit_node(node_loop.condition_n.condition_n)}")
+            loop_condition = self.visit_node(node_loop.condition_n.condition_n)
+            if loop_condition[0] != 'boolean':
+                self.logError(f"Invalid data type for loop condition. Expected 'boolean', but found '{loop_condition[0]}' instead.")
+            print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_n} = {self.visit_node(node_loop.condition_n.condition_n)}")
             self.visit_node(node_loop.inc_arg_n) 
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         elif loop_name == 'node_while' or loop_name == 'node_do':
-            print(f"FOUND CONDITION: {self.visit_node(node_loop.condition_n.condition_n)}")
+            loop_condition = self.visit_node(node_loop.condition_n.condition_n)
+            if loop_condition[0] != 'boolean':
+                self.logError(f"Invalid data type for loop condition. Expected 'boolean', but found '{loop_condition[0]}' instead.")
+
+            print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_n} = {self.visit_node(node_loop.condition_n.condition_n)}")
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         elif loop_name == 'node_repeat':
-            print(f"FOUND REPEAT VALUE: {self.visit_node(node_loop.repeat_value_n)}")
+            repeat_val_result = self.visit_node(node_loop.repeat_value_n)
+            if repeat_val_result[0] not in ['int', 'long']:
+                self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_val_result[0]}' instead.")
+            print(f"(semantic)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_val_result}")
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         self.exit_scope(loop_name)
