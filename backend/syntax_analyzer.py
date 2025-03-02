@@ -5,7 +5,7 @@ PREDICT_SETS = {
     "program":["import", "Identifier", "const", "void", "bool", "string", "int", "long", "float", "double", "private", "class"],
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "std_lib": ["Cmath", "Cstring", "Carray"],
-    "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
+    "program_constructs": ["class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_type": ["bool", "string", "int", "long", "double", "float"],
     "class_body": [ "private" , "const", "int", "long", "bool", "float", "double", "string" , "void"],
     "print_stmts" : ["print", "println"],
@@ -414,15 +414,13 @@ class node_classinst_cont:
         return f"node_classinst_cont: (class_id_n: {self.class_id_n}, func_arg_n: {self.func_arg_n})"
 
 class node_class_dec:
-    def __init__(self, is_private_b, class_id_n, constructor_dec_n, class_body_n):
-        self.is_private_b = is_private_b
+    def __init__(self, class_id_n, constructor_dec_n, class_body_n):
         self.class_id_n = class_id_n
         self.constructor_dec_n = constructor_dec_n
         self.class_body_n = class_body_n
 
     def __repr__(self):
-        return (f"node_class_dec: (private_b: {self.is_private_b}, "
-                f"class_id_n: {self.class_id_n}, "
+        return (f"node_class_dec: (class_id_n: {self.class_id_n}, "
                 f"\n\tconstructor_dec_n: {self.constructor_dec_n},"
                 f"\n\tclass_body_n: {self.class_body_n}) ")
 
@@ -431,7 +429,10 @@ class node_class_body:
         self.class_body_stmt_n = class_body_stmt_n
 
     def __repr__(self):
-        statements = ",\n\t".join(map(str, self.class_body_stmt_n))
+        filtered_statements = [stmt for stmt in self.class_body_stmt_n if stmt is not None]
+        if not filtered_statements:  # If all elements were None or list is empty
+            return "None"
+        statements = ",\n\t".join(map(str, filtered_statements))
         return f"{self.__class__.__name__}(\n\t\t{statements}\n)"
     
    
@@ -1255,7 +1256,7 @@ class SyntaxAnalyzer:
         if self.currToken:
             if self.matchPredictSet("program_constructs", False):  # Token is a valid start for program constructs
                 currentTokenType = self.currToken["tokenType"]
-                if currentTokenType in ["private", "class"]:
+                if currentTokenType == "class":
                     program_constructs_statement_n.append(self.class_declaration([]))
                     self.program_constructs(program_constructs_statement_n)
                 elif currentTokenType in PREDICT_SETS["iden_dec"]:
@@ -1266,8 +1267,7 @@ class SyntaxAnalyzer:
                     
             if not self.hasMainFunction:
                 self.program_constructs(program_constructs_statement_n)
-                
-            print(f"######################### AST FOR PROGRAM_CONSTRUCTS #########################")
+
             return node_program_constructs(program_constructs_statement_n)
 
     def iden_dec(self, inClassBody = False):
@@ -1285,11 +1285,11 @@ class SyntaxAnalyzer:
                 elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                     dtype_temp_t = self.data_type()
                     iden_temp_n = node_iden(self.match("Identifier",False))
-                    vardec_cont_temp_n = self.var_dec_cont(dtype_temp_t, iden_temp_n)
+                    vardec_cont_temp_n = self.var_dec_cont(dtype_temp_t, iden_temp_n, const_b)
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
                     
-                    return node_vardec(const_b, dtype_temp_t, iden_temp_n, vardec_cont_temp_n)
+                    return vardec_cont_temp_n
                 else: self.ERROR_expected_token(PREDICT_SETS["data_type"])
 
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
@@ -1303,7 +1303,7 @@ class SyntaxAnalyzer:
                     if self.currToken["tokenName"] == "main" and not inClassBody:
                         self.hasMainFunction = True
                         print("MAIN FUNCTION FOUND!!!!")
-                    id_temp_n = self.match("Identifier", False)
+                    id_temp_n = node_iden(self.match("Identifier", False))
                 else:
                     self.logError("Expected Identifier for function declaration.")
                 self.match("(", False)
@@ -1395,12 +1395,7 @@ class SyntaxAnalyzer:
     def class_declaration(self, class_body_stmt_n = []):
         print("(parser) production: \"class_declaration\" detected")
 
-        is_private_b = False
         class_body_stmt_n = []
-
-        if self.currToken["tokenType"] == "private":
-             self.match("private")
-             is_private_b = True
 
         self.match("class", False)
 
@@ -1424,9 +1419,10 @@ class SyntaxAnalyzer:
         if not self.match(";", True):
             self.logError("Class Declaration is expected to be terminated by ';' after '}'.")
 
-        print(f"######################### AST FOR CLASS DEC #########################")
         class_body_n = node_class_body(class_body_stmt_n)
-        return node_class_dec(is_private_b, class_id_n, constructor_dec_n, class_body_n)
+        print(f"##################################### {class_body_n if class_body_n else 'None'}")
+        if class_body_n: return node_class_dec(class_id_n, constructor_dec_n, class_body_n)
+        return node_class_dec(class_id_n, constructor_dec_n, None)
         
 
     
@@ -1454,7 +1450,7 @@ class SyntaxAnalyzer:
 
         if self.currToken and self.currToken["tokenType"] == "class":
             self.logError(f"Classes cannot be nested within classes. Expected {PREDICT_SETS['class_body']} or constructor declaration.")
-        return class_body_stmt_n
+        return None
 
     def constructor_dec(self): 
         

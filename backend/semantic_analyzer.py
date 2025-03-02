@@ -29,8 +29,9 @@ class SymbolTable:
         sym_content["arr_info"] = arr_info  
         self.syms[sym_name] = sym_content
 
-    def set_class(self, sym_name, value, dtype, class_info, priv=False, const=False):
-        sym_content = self._create_symbol_entry(value, dtype, priv, const)
+    def set_class(self, sym_name, dtype, class_info):
+        sym_content = {}
+        sym_content["dtype"] = dtype
         sym_content["class_info"] = class_info 
         self.syms[sym_name] = sym_content
 
@@ -44,21 +45,21 @@ class SemanticAnalyzer:
 
     numtypes = ['int', 'long', 'float', 'double']
    
-    MIN_INT = -2147483648
-    MAX_INT = 2147483647
-    MIN_LONG = -9223372036854775808
-    MAX_LONG = 9223372036854775807
-    MIN_FLOAT = -999999990.0
-    MAX_FLOAT = 999999990
-    MIN_DOUBLE = -9999999999999999000
-    MAX_DOUBLE = 9999999999999999000
+    MIN_INT =       -   2147483648
+    MAX_INT =           2147483647
+    MIN_LONG =      -   9223372036854775808
+    MAX_LONG =          9223372036854775807
+    MIN_FLOAT =     -   999999990.0
+    MAX_FLOAT =         999999990
+    MIN_DOUBLE =    -   9999999999999999000
+    MAX_DOUBLE =        9999999999999999000
 
     def interpret(self, node):
         try:
             self.visit_node(node)
             self.errors.append("Semantic analysis completed successfully. No Semantic Errors found.")
             print("Semantic checking completed successfully. No Semantic Errors found.")
-            print('(semantic)(dbg) global table: ')
+            #print('(semantic)(dbg) global table: ')
             #print global dbg #wont be seen until prog construts is implemented
             for s in self.curr_scope.syms:
                 print(f'(semantic)(dbg)\t\t{s} : {self.curr_scope.syms[s]}')
@@ -74,14 +75,13 @@ class SemanticAnalyzer:
         self.switch_depth = 0
 
     def enter_scope(self, nodeName):
-        print(F'(semantic)(dbg) ENTERING scope {nodeName}')
+        print(F'\n(semantic)(dbg) ENTERING scope {nodeName}')
         self.curr_scope = SymbolTable(self.curr_scope)
     
     def exit_scope(self, nodeName):
-        print(F'(semantic)(dbg) EXITING scope {nodeName}, table: ')
+        print(F'\n(semantic)(dbg) EXITING scope {nodeName}, table: ')
         #print table dbg
-        for s in self.curr_scope.syms:
-            print(f'(semantic)(dbg)\t\t{s} : {self.curr_scope.syms[s]}')
+        self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
 
     def visit_node(self, node):
@@ -89,11 +89,31 @@ class SemanticAnalyzer:
         visit_func = getattr(self, f'visit_{nodeName}', None)  # Get the appropriate visit function, or None if it doesn't exist
 
         if visit_func is None:
-            print(f"(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
+            print(f"\n(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
-            print(f'(semantic)(dbg) VISITING {nodeName}!!')
+            print(f'\n(semantic)(dbg) VISITING {nodeName}!!')
             return visit_func(node)
         
+    def print_symbols(self, d, indent=2):
+        """Recursively prints dictionary with proper indentation and {} for dictionaries."""
+        if not d: print("\t" * indent + "{ }")  # Print {} for empty dictionary
+
+        for key, value in d.items():
+
+            print("\t" * indent + f"{key} :", end=" ")
+
+            if isinstance(value, dict):  
+                if not value or not key:  # If the dictionary is empty, print {}
+                    print("{}")
+                else:
+                    print("{")  # Open brace for non-empty dictionary
+                    self.print_symbols(value, indent + 1)  # Recursively print contents
+                    print("\t" * indent + "}")  # Closing brace
+            else:
+                print(value)  # Print normal values
+
+
+
     def logError(self, msg, idenNode = None): #only works on node_iden
         if idenNode:
             currLine = idenNode.id_t["tokenLine"]
@@ -134,17 +154,54 @@ class SemanticAnalyzer:
     def visit_node_code_block(self, node):
         # PLACEHODLER!! idk if correct
         for statement in node.code_block_statement_n:
-            print("++++ CODE BLOCK STATEMENT: " + str(statement))
+            #print("++++ CODE BLOCK STATEMENT: " + str(statement))
             self.visit_node(statement)
 
     def visit_node_program_constructs(self, node):
         self.enter_scope(type(node).__name__)
         
         for global_declarations in node.program_constructs_statement_n:
-            self.visit_node(global_declarations)
-        
-        print("(semantic)(dbg) EXITING scope 'Program Constructs', GLOBAL TABLE: ", self.curr_scope.syms)
+            if global_declarations:
+                self.visit_node(global_declarations)
+
+        print("\n(semantic)(dbg) EXITING scope 'node_program_constructs', GLOBAL TABLE: ")
+        self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
+
+    def visit_node_class_dec(self, node):
+        className = node.class_id_n.id_t["tokenName"]
+
+        if self.curr_scope.get(className, checkParent=False):
+            self.logError(f"Class '{className}' is already declared.", node.class_id_n)
+            return
+        
+        self.enter_scope(type(node).__name__)
+        if node.constructor_dec_n: self.visit_node(node.constructor_dec_n) 
+        if node.class_body_n.class_body_stmt_n : self.visit_node(node.class_body_n)
+        self.exit_scope(type(node).__name__)
+
+    def visit_node_constructor_dec(self, node): #TODO: be wary of return statements
+        self.enter_scope(type(node).__name__)
+
+        self.exit_scope(type(node).__name__)
+
+    def visit_node_class_body(self, node):
+        class_body_stmt = node.class_body_stmt_n
+        class_content = {}
+
+        self.enter_scope(type(node).__name__)
+        for class_body_stmt_n in class_body_stmt:
+            priv = class_body_stmt_n.is_private_b
+            vardec_n = class_body_stmt_n.vardec_n
+            
+            if type(vardec_n).__name__ == "node_vardec":
+                self.visit_node_vardec(vardec_n, priv)
+            elif type(vardec_n).__name__ == "node_func_dec":
+                self.visit_node_func_dec(vardec_n, priv) 
+
+        
+        self.exit_scope(type(node).__name__)
+
 
     def visit_node_num(self, node):
         val = 0
@@ -181,7 +238,8 @@ class SemanticAnalyzer:
         dtype = self.curr_scope.get(node.id_n.id_t["tokenName"])["dtype"][4:]
         return (dtype, None)
     #cont...
-    def visit_node_func_dec(self, node):
+
+    def visit_node_func_dec(self, node, priv = False):
         func_name = node.id_n.id_t["tokenName"]
         return_type = node.dtype_t["tokenName"]
 
@@ -228,7 +286,7 @@ class SemanticAnalyzer:
         print(f">>>>>>>>>>> {func_name} IS FUNC STD LIB? " + str(node.is_std_lib))
 
         # Store function in symbol table
-        self.curr_scope.set_function(func_name, return_type, param_types, isStd_lib = node.is_std_lib)
+        self.curr_scope.set_function(func_name, return_type, param_types, priv, isStd_lib = node.is_std_lib)
 
         # Enter function scope
         self.enter_scope(type(node).__name__)
@@ -245,7 +303,7 @@ class SemanticAnalyzer:
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
                     class_name = param.class_id_n.id_t["tokenName"]
-                    self.curr_scope.set_class(param_name, value=None, dtype="class", class_info={"classname": class_name}, const=False)
+                    self.curr_scope.set_class(param_name, dtype="class", class_info={"classname": class_name})
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types -- std lib Carray
@@ -266,7 +324,8 @@ class SemanticAnalyzer:
         #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.id_n)
 
         # Exit function scope, back to program constructs
-        print(f"(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ", self.curr_scope.syms)
+        print(f"\n(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
+        self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
 
     # assign_stmt  -- need to refactor nodes in ast bc stephen :skull:
@@ -286,7 +345,7 @@ class SemanticAnalyzer:
     #     self.curr_scope.set(iden_name, val, dtype=dtype)
 
     #var_dec
-    def visit_node_vardec(self, node):
+    def visit_node_vardec(self, node, priv = False):
         if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
             self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
         const = node.const_b
