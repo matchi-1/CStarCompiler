@@ -1062,7 +1062,7 @@ class SyntaxAnalyzer:
                 elif currentTokenType == ".":
                     self.match(".")
                     att_method_iden_n = node_iden(self.match("Identifier", False))
-                    assign_func_method_mods_cont_n = self.assign_func_method_mods_cont(iden_temp_n, att_method_iden_n)
+                    assign_func_method_mods_cont_n = self.assign_stmt_op(iden_temp_n, att_method_iden_n)
                     return assign_func_method_mods_cont_n
                 
             else: self.ERROR_expected_token(PREDICT_SETS["assign_func_method_mods"])
@@ -2969,7 +2969,7 @@ class SyntaxAnalyzer:
     def assign_stmt_op(self, id_or_class_id_n = None, att_id_n = None, class_arr_n = None, arr_idx_n = None):
         print('(parser) production: "assign_stmt_op" detected')
 
-        assign_stmt_temp_op_n = self.currToken["tokenType"]
+        assign_stmt_temp_op_n = self.currToken
         
         self.match(self.currToken["tokenName"])
 
@@ -2978,7 +2978,29 @@ class SyntaxAnalyzer:
         if not assign_stmt_temp_val_n:  # check valid value
             self.ERROR_expected_token("value")
 
-        return (assign_stmt_temp_op_n, assign_stmt_temp_val_n)
+        # Built ast node for deep-end assign stmts
+        temp_n = None
+        if id_or_class_id_n:
+            if att_id_n: # iden.iden = value
+                temp_id_att_n = node_class_att(id_or_class_id_n, att_id_n)
+                temp_n = node_assign_stmt_object_att(temp_id_att_n,
+                                                     assign_stmt_temp_op_n,
+                                                     assign_stmt_temp_val_n)
+            else: # iden = value
+                temp_n = node_assign_stmt_var(id_or_class_id_n,
+                                              assign_stmt_temp_op_n,
+                                              assign_stmt_temp_val_n)
+                
+        elif class_arr_n:  # iden.iden[1][1] = value
+            temp_n = node_assign_stmt_object_att_arr(class_arr_n,
+                                                    assign_stmt_temp_op_n,
+                                                    assign_stmt_temp_val_n)
+        elif arr_idx_n: # iden[1][1] = value
+            temp_n = node_assign_stmt_array_elem(arr_idx_n,
+                                              assign_stmt_temp_op_n,
+                                              assign_stmt_temp_val_n)
+
+        return temp_n
 
     def iden_as_var_mods(self, temp_id = None):
         print("(parser) production: \"iden_as_var_mods\" detected")
