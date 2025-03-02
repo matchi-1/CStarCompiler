@@ -214,9 +214,10 @@ class SemanticAnalyzer:
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
 
-        # Store function in symbol table
-        self.curr_scope.set_function(func_name, return_type, param_types, node.is_std_lib)
+        print(f">>>>>>>>>>> {func_name} IS FUNC STD LIB? " + str(node.is_std_lib))
 
+        # Store function in symbol table
+        self.curr_scope.set_function(func_name, return_type, param_types, isStd_lib = node.is_std_lib)
 
         # Enter function scope
         self.enter_scope(type(node).__name__)

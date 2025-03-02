@@ -1088,7 +1088,7 @@ class SyntaxAnalyzer:
         print("(parser) production: \"imports_list\" detected")
 
         # should return tuple, stdlibs node and array of stdlibs func dec nodes to be passed to program constructs' statements
-
+        
         # Only parse if the current token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.match("import", False)
@@ -1115,6 +1115,8 @@ class SyntaxAnalyzer:
                     str_iden_n = node_iden(str_iden)
                     int_iden = Token("int_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
                     int_iden_n = node_iden(int_iden)
+                    int_iden2 = Token("int_param2", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
+                    int_iden_n2= node_iden(int_iden2)
                     array_iden = Token("array_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
                     array_iden_n = node_iden(array_iden)
 
@@ -1152,7 +1154,7 @@ class SyntaxAnalyzer:
                         # str_slice built-in Cstring stdlib function
                         str_slice_iden_t = Token("str_slice", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
                         str_slice_iden_n = node_iden(str_slice_iden_t)
-                        str_slice_params_n = [node_funcpar_var(string_type_t, str_iden_n), node_funcpar_var(int_type_t, int_iden_n), node_funcpar_var(int_type_t, int_iden_n)]
+                        str_slice_params_n = [node_funcpar_var(string_type_t, str_iden_n), node_funcpar_var(int_type_t, int_iden_n), node_funcpar_var(int_type_t, int_iden_n2)]
                         std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_slice_iden_n, str_slice_params_n, None, True))
 
                         # str_toLower built-in Cstring stdlib function
