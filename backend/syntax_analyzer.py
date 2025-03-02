@@ -561,48 +561,39 @@ class node_repeat:
     def __repr__(self):
         return f"node_repeat ( \n repeat_value_n: {self.repeat_value_n} \n ctrl_body_n( {self.ctrl_stmt_body_n} ) \n)"
 
-class node_assign_stmt:
-    def __init__(self, id_n, assign_op_n, assign_value_n):
-        self.id_n = id_n
-        self.assign_op_n = assign_op_n
-        self.assign_value_n = assign_value_n
-
-    def __repr__(self):
-        return f"node_assign_stmt: id_n:'{self.id_n}', op:'{self.assign_op_n}', val:'{self.assign_value_n}'"
-
 class node_assign_stmt_var:
-    def __init__(self, id_n, assign_op_t, assign_value_n):
+    def __init__(self, id_n, op_t, value_n):
         self.id_n = id_n
-        self.assign_op_t = assign_op_t
-        self.assign_value_n = assign_value_n
+        self.op_t = op_t
+        self.value_n = value_n
 
     def __repr__(self):
-        return f"node_assign_stmt_var: id_n:'{self.id_n}', op:'{self.assign_op_t["tokenName"]}', val:'{self.assign_value_n}'"
+        return f"node_assign_stmt_var: id_n:'{self.id_n}', op:'{self.op_t["tokenName"]}', val:'{self.value_n}'"
 
 class node_assign_stmt_array_elem:
-    def __init__(self, id_arr_n, assign_op_t, assign_value_n):
+    def __init__(self, id_arr_n, op_t, value_n):
         self.id_arr_n = id_arr_n # id[1]
-        self.assign_op_t = assign_op_t
-        self.assign_value_n = assign_value_n
+        self.op_t = op_t
+        self.value_n = value_n
 
     def __repr__(self):
-        return f"node_assign_stmt_array_elem: id_arr_n:'{self.id_arr_n}', op:'{self.assign_op_t["tokenName"]}', val:'{self.assign_value_n}'"
+        return f"node_assign_stmt_array_elem: id_arr_n:'{self.id_arr_n}', op:'{self.op_t["tokenName"]}', val:'{self.value_n}'"
 
 class node_assign_stmt_object_att:
-    def __init__(self, class_att_n, assign_op_t, assign_value_n):
+    def __init__(self, class_att_n, op_t, value_n):
         self.class_att_n = class_att_n   # iden.iden
-        self.assign_op_t = assign_op_t
-        self.assign_value_n = assign_value_n
+        self.op_t = op_t
+        self.assign_value_n = value_n
     def __repr__(self):
-        return f"node_assign_stmt_object_att: class_att_n:'{self.class_att_n}', op:'{self.assign_op_t["tokenName"]}', val:'{self.assign_value_n}'"
+        return f"node_assign_stmt_object_att: class_att_n:'{self.class_att_n}', op:'{self.op_t["tokenName"]}', val:'{self.value_n}'"
 
 class node_assign_stmt_object_att_arr:
-    def __init__(self, class_arr_n, assign_op_t, assign_value_n):
+    def __init__(self, class_arr_n, op_t, value_n):
         self.class_arr_n = class_arr_n   # iden.iden[1][]
-        self.assign_op_t = assign_op_t
-        self.assign_value_n = assign_value_n
+        self.op_t = op_t
+        self.value_n = value_n
     def __repr__(self):
-        return f"node_assign_stmt_object_att_arr: class_arr_n:'{self.class_arr_n}', op:'{self.assign_op_t["tokenName"]}', val:'{self.assign_value_n}'"
+        return f"node_assign_stmt_object_att_arr: class_arr_n:'{self.class_arr_n}', op:'{self.op_t["tokenName"]}', val:'{self.value_n}'"
 
 class node_imports_list:
     def __init__(self, stdlib_n):
@@ -2287,12 +2278,12 @@ class SyntaxAnalyzer:
                 inc_arg_temp_n = node_un_op(self.match("--"), node_iden(self.match("Identifier", False)))
 
             elif currentTokenType == "Identifier":
-                id_temp_t = self.match("Identifier")
+                id_temp_t = node_iden(self.match("Identifier"))
                 if self.currToken["tokenType"] in PREDICT_SETS["inc_arg_post"]:
                     if self.currToken["tokenType"] == "++": 
-                        inc_arg_temp_n = node_post_un_op(node_iden(id_temp_t), self.match("++"))
+                        inc_arg_temp_n = node_post_un_op(id_temp_t, self.match("++"))
                     elif self.currToken["tokenType"] == "--": 
-                        inc_arg_temp_n = node_post_un_op(node_iden(id_temp_t), self.match("--"))
+                        inc_arg_temp_n = node_post_un_op(id_temp_t, self.match("--"))
                         
                 elif self.currToken["tokenType"] in PREDICT_SETS["assign_func_method_mods"]:
                     inc_arg_temp_n = self.assign_func_method_mods(id_temp_t)
@@ -2956,6 +2947,8 @@ class SyntaxAnalyzer:
 
         temp_id = node_iden(self.match("Identifier", False))
         node_temp = temp_id  # node_iden
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> temp_id: " + str(temp_id))
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> node_temp: " + str(node_temp))
 
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["iden_as_var_mods"]:
             node_temp = self.iden_as_var_mods(temp_id) # match iden mods if there are any 
