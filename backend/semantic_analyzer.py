@@ -30,7 +30,10 @@ class SemanticAnalyzer:
             self.visit_node(node)
             self.errors.append("Semantic checking completed successfully. No Semantic Errors found.")
             print("Semantic checking completed successfully. No Semantic Errors found.")
-
+            print('(semantic)(dbg) global table: ')
+            #print global dbg #wont be seen until prog construts is implemented
+            for s in self.curr_scope.syms:
+                print(f'(semantic)(dbg)\t\t{s} : {self.curr_scope.syms[s]}')
         except SyntaxError as e:
             print (e)
 
@@ -45,7 +48,10 @@ class SemanticAnalyzer:
         self.curr_scope = SymbolTable(self.curr_scope)
     
     def exit_scope(self, nodeName):
-        print(F'(semantic)(dbg) EXITING scope {nodeName}, table: {self.curr_scope.syms}')
+        print(F'(semantic)(dbg) EXITING scope {nodeName}, table: ')
+        #print table dbg
+        for s in self.curr_scope.syms:
+            print(f'(semantic)(dbg)\t\t{s} : {self.curr_scope.syms[s]}')
         self.curr_scope = self.curr_scope.parent
 
     def visit_node(self, node):
@@ -146,7 +152,20 @@ class SemanticAnalyzer:
                     
         if value and dtype != val_type:
             self.logError(node.id_n, f"Type mismatch: expected '{dtype}' but found '{val_type}'")
-        
+        if not value:
+            match dtype:
+                case 'boolean':
+                    value = False
+                case 'int':
+                    value = 0
+                case 'long':
+                    value = 0
+                case 'float':
+                    value = 0.0
+                case 'double':
+                    value = 0.0
+                case 'string':
+                    value = ''
         self.curr_scope.set(id, value, dtype=dtype, const=const)
         for dec_node in idec_rec or []:
             self.curr_scope.set(dec_node.id_n.id_t["tokenName"], self.visit_node(dec_node.value_n) if dec_node.value_n else None, dtype=dtype, const=const)
