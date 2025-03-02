@@ -1068,9 +1068,10 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] not in stopChars:
             self.logError(f"Unexpected Token '{self.currToken["tokenName"]}' found. Expected {PREDICT_SETS["body"]}.")
 
-        if not self.hasFunctionReturned and not inControlStruct and not self.hasMainFunction:
-                self.logError(f"Expected 'return' for all functions, instead got '{self.currToken["tokenName"]}'")
-                #placeholder hehehehehhehehehehheyhueh
+        # commented this out first bc return checking should be in semantic analyzer
+        # if not self.hasFunctionReturned and not inControlStruct and not self.hasMainFunction:
+        #         self.logError(f"Expected 'return' for all functions, instead got '{self.currToken["tokenName"]}'")
+        #         #placeholder hehehehehhehehehehheyhueh
 
         
         print("(parser) production: \"body\" exited!!!!!!")
