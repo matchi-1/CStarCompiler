@@ -381,14 +381,14 @@ class node_break_stmt:
         self.break_t = break_t
 
     def __repr__(self):
-        return f'{self.break_t["tokenName"]};'
+        return f'node_break_stmt( {self.break_t["tokenName"]}; )'
 
 class node_continue_stmt:
     def __init__(self, continue_t):
         self.continue_t = continue_t
     
     def __repr__(self):
-        return f'{self.continue_t["tokenName"]};'
+        return f'node_continue_stmt( {self.continue_t["tokenName"]}; )'
 
 class node_class_inst:
     def __init__(self, class_id_n, obj_id_n, class_instcont_n):

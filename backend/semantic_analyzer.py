@@ -70,6 +70,8 @@ class SemanticAnalyzer:
     def __init__(self):
         self.curr_scope = SymbolTable()
         self.errors = []
+        self.loop_depth = 0
+        self.switch_depth = 0
 
     def enter_scope(self, nodeName):
         print(F'(semantic)(dbg) ENTERING scope {nodeName}')
@@ -545,6 +547,7 @@ class SemanticAnalyzer:
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
         loop_name = type(node_loop).__name__
+        self.loop_depth += 1
 
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
@@ -571,6 +574,7 @@ class SemanticAnalyzer:
             print(f"(semantic)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_val_result}")
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
+        self.loop_depth -= 1
         self.exit_scope(loop_name)
 
     # input
@@ -667,3 +671,31 @@ class SemanticAnalyzer:
     #             print("(semantic)(dbg) ERROR: Unrecognized statement type inside code block.")
         
     #     self.exit_scope()
+    
+    # ALEX HERE
+    def visit_node_ctrl_stmt_body(self, node):
+        self.enter_scope(type(node).__name__)
+        statements_n = node.statements_n
+        
+        for statement in statements_n:
+            ctrl_stmt = type(statement).__name__
+
+            if ctrl_stmt == "node_break_stmt":
+                if self.loop_depth == 0 and self.switch_depth == 0:
+                    print("(semantic)(dbg) 'break' statements may only be used within the scope of loop and case statements.")
+                print("(semantic)(dbg) FOUND 'break' !!!")
+                continue
+            
+            elif ctrl_stmt == "node_continue_stmt":
+                if self.loop_depth == 0 and self.switch_depth == 0:
+                    print("(semantic)(dbg)'continue' statements may only be used within the scope of loop and case statements.")
+                print("(semantic)(dbg) FOUND 'continue' !!!")
+                continue
+            
+            else:
+                self.visit_node(statement)
+
+        print("(semantic)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ", self.curr_scope.syms)
+        self.curr_scope = self.curr_scope.parent
+        return
+
