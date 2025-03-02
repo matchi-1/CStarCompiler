@@ -472,11 +472,11 @@ class program_node:
         return f"program: {{ \n{statements} \n}}"
 
 # alex here
-class node_condition:
-    def __init__(self, condition_n):
-        self.condition_n = condition_n
+class node_condition_value:
+    def __init__(self, condition_value_n):
+        self.condition_value_n = condition_value_n
     def __repr__(self):
-        return f"condition_n -> {self.condition_n}, Type: {type(self.condition_n).__name__}"
+        return f"condition_value_n -> {self.condition_value_n}, Type: {type(self.condition_value_n).__name__}"
 
 class node_switch_stmt:
     def __init__(self, value_n, case_n, default_n):
@@ -2027,7 +2027,7 @@ class SyntaxAnalyzer:
                     self.ERROR_invalid_condition(condType)
         
         print("(parser) exited production: \"condition\"")
-        return node_condition(condition_temp_n)
+        return node_condition_value(condition_temp_n)
         
     def output(self):
         '''<output> → <print_stmts>(<print_params>);'''
