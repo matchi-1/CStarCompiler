@@ -297,20 +297,20 @@ class SemanticAnalyzer:
                     
         if value and dtype != val_type:
             self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", node.id_n)
-        if not value:
-            match dtype:
-                case 'bool':
-                    value = False
-                case 'int':
-                    value = 0
-                case 'long':
-                    value = 0
-                case 'float':
-                    value = 0.0
-                case 'double':
-                    value = 0.0
-                case 'string':
-                    value = ''
+        # if not value:
+        #     match dtype:
+        #         case 'bool':
+        #             value = False
+        #         case 'int':
+        #             value = 0
+        #         case 'long':
+        #             value = 0
+        #         case 'float':
+        #             value = 0.0
+        #         case 'double':
+        #             value = 0.0
+        #         case 'string':
+        #             value = ''
         self.curr_scope.set(id, value, dtype=dtype, const=const)
         for dec_node in idec_rec or []:
             self.curr_scope.set(dec_node.id_n.id_t["tokenName"], self.visit_node(dec_node.value_n) if dec_node.value_n else None, dtype=dtype, const=const)
