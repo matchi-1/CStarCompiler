@@ -34,7 +34,7 @@ class SymbolTable:
         sym_content["class_info"] = class_info 
         self.syms[sym_name] = sym_content
 
-    def set_function(self, sym_name, return_type, param_types, priv=False, const=False, isStd_lib=True):
+    def set_function(self, sym_name, return_type, param_types, priv=False, const=False, isStd_lib=False):
         sym_content = self._create_symbol_entry(value=None, dtype=return_type, priv=priv, const=const)
         sym_content["params"] = param_types 
         sym_content["isStd_lib"] = isStd_lib 
@@ -179,28 +179,30 @@ class SemanticAnalyzer:
             self.logError(f"Function '{func_name}' is already declared.", node.id_n)
             return
 
+        
         # Store func params into function signature in symbol table
         param_types = []
 
-        for param in node.params_n:
-            if type(param).__name__ == "node_funcpar_class":
-                param_types.append({
-                    "type": "class",
-                    "classname": param.class_id_n.id_t["tokenName"]
-                })  
+        if node.params_n: # if params_n isn't None
+            for param in node.params_n:
+                if type(param).__name__ == "node_funcpar_class":
+                    param_types.append({
+                        "type": "class",
+                        "classname": param.class_id_n.id_t["tokenName"]
+                    })  
 
-            elif type(param).__name__ == "node_funcpar_arr":
-                param_types.append({
-                    "type": "arr",
-                    "dtype": param.dtype_t["tokenName"],  # Include the data type
-                    "dimension": param.arrdim_i
-                })  
+                elif type(param).__name__ == "node_funcpar_arr":
+                    param_types.append({
+                        "type": "arr",
+                        "dtype": param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types
+                        "dimension": param.arrdim_i if param.arrdim_i else None # for any dimensions
+                    })  
 
-            elif type(param).__name__ == "node_funcpar_var":
-                param_types.append({
-                    "type": "var",
-                    "dtype": param.dtype_t["tokenName"]
-                })  
+                elif type(param).__name__ == "node_funcpar_var":
+                    param_types.append({
+                        "type": "var",
+                        "dtype": param.dtype_t["tokenName"]
+                    })  
         
         # sample parameter format
         # [
@@ -209,33 +211,39 @@ class SemanticAnalyzer:
         #     {"type": "arr", "dimension": 10}
         # ]
 
+        # Ensure param_types is set to None if empty
+        param_types = param_types if param_types else None
+
         # Store function in symbol table
-        self.curr_scope.set_function(func_name, return_type, param_types, isStd_lib = False)  # const bc functions are not reassignable
+        self.curr_scope.set_function(func_name, return_type, param_types, node.is_std_lib)
+
 
         # Enter function scope
         self.enter_scope(type(node).__name__)
 
         # Add parameters to new function scope
-        for param in node.params_n:
-            param_name = param.id_n.id_t["tokenName"]
+        if node.params_n:
+            for param in node.params_n:
+                param_name = param.id_n.id_t["tokenName"]
 
-            # Check if parameter name is duplicated
-            if self.curr_scope.get(param_name, checkParent=False):
-                self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
+                # Check if parameter name is duplicated
+                if self.curr_scope.get(param_name, checkParent=False):
+                    self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
 
-            # Handle different parameter types properly
-            if type(param).__name__ == "node_funcpar_class":
-                class_name = param.class_id_n.id_t["tokenName"]
-                self.curr_scope.set_class(param_name, value=None, dtype="class", class_info={"classname": class_name}, const=False)
+                # Handle different parameter types properly
+                if type(param).__name__ == "node_funcpar_class":
+                    class_name = param.class_id_n.id_t["tokenName"]
+                    self.curr_scope.set_class(param_name, value=None, dtype="class", class_info={"classname": class_name}, const=False)
 
-            elif type(param).__name__ == "node_funcpar_arr":
-                arr_dtype = param.dtype_t["tokenName"]
-                arr_dim = param.arrdim_i
-                self.curr_scope.set_array(param_name, value=None, dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
+                elif type(param).__name__ == "node_funcpar_arr":
+                    arr_dtype = param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types -- std lib Carray
+                    arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
 
-            elif type(param).__name__ == "node_funcpar_var":
-                var_dtype = param.dtype_t["tokenName"]
-                self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
+                    self.curr_scope.set_array(param_name, value=None, dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
+
+                elif type(param).__name__ == "node_funcpar_var":
+                    var_dtype = param.dtype_t["tokenName"]
+                    self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
 
 
         # Visit function body
