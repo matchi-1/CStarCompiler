@@ -132,6 +132,7 @@ class SemanticAnalyzer:
     def visit_node_code_block(self, node):
         # PLACEHODLER!! idk if correct
         for statement in node.code_block_statement_n:
+            print("++++ CODE BLOCK STATEMENT: " + str(statement))
             self.visit_node(statement)
 
     def visit_node_program_constructs(self, node):
@@ -258,6 +259,21 @@ class SemanticAnalyzer:
         print(f"(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ", self.curr_scope.syms)
         self.curr_scope = self.curr_scope.parent
 
+    # assign_stmt  -- need to refactor nodes in ast bc stephen :skull:
+    def visit_node_assign_stmt(self, node):
+        iden = node.iden_n
+        value = node.value_n
+        iden_name = iden.id_t["tokenName"]
+        iden_symbol = self.curr_scope.get(iden_name)
+        if not iden_symbol:
+            self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
+        if iden_symbol["const"]:
+            self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", iden)
+        dtype = iden_symbol["dtype"]
+        val_type, val = self.visit_node(value)
+        if dtype != val_type:
+            self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", iden)
+        self.curr_scope.set(iden_name, val, dtype=dtype)
 
     #var_dec
     def visit_node_vardec(self, node):
