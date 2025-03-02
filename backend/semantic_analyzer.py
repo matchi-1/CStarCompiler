@@ -329,20 +329,20 @@ class SemanticAnalyzer:
         self.curr_scope = self.curr_scope.parent
 
     # assign_stmt  -- need to refactor nodes in ast bc stephen :skull:
-    # def visit_node_assign_stmt_var(self, node):
-    #     iden = node.id_n
-    #     value = node.value_n
-    #     iden_name = iden.id_t["tokenName"]
-    #     iden_symbol = self.curr_scope.get(iden_name)
-    #     if not iden_symbol:
-    #         self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
-    #     if iden_symbol["const"]:
-    #         self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", iden)
-    #     dtype = iden_symbol["dtype"]
-    #     val_type, val = self.visit_node(value)
-    #     if dtype != val_type:
-    #         self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", iden)
-    #     self.curr_scope.set(iden_name, val, dtype=dtype)
+    def visit_node_assign_stmt_var(self, node):
+        iden = node.id_n
+        value = node.value_n
+        iden_name = iden.id_t["tokenName"]
+        iden_symbol = self.curr_scope.get(iden_name)
+        if not iden_symbol:
+            self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
+        if iden_symbol["const"]:
+            self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", iden)
+        dtype = iden_symbol["dtype"]
+        val_type, val = self.visit_node(value)
+        if dtype != val_type:
+            self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", iden)
+        self.curr_scope.set(iden_name, val, dtype=dtype)
 
     #var_dec
     def visit_node_vardec(self, node, priv = False):
@@ -660,7 +660,7 @@ class SemanticAnalyzer:
 
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
-            self.visit_node_vardec(node_loop.init_arg_n)
+            self.visit_node(node_loop.init_arg_n)
             loop_condition = self.visit_node(node_loop.condition_n.condition_value_n)
             if loop_condition[0] != 'bool':
                 self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{loop_condition[0]}' instead.")
