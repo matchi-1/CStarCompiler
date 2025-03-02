@@ -1012,10 +1012,10 @@ class SyntaxAnalyzer:
 
                 elif currentTokenType == "(":
                     self.match("(", False)
-                    func_arg_n = self.func_arg()
+                    func_arg_n = self.func_arg([])
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
-                    return node_assign_func_method_mods(iden_temp_n, None, None, func_arg_n, None, None)
+                    return node_func_call(iden_temp_n, func_arg_n)
 
                 elif currentTokenType == ".":
                     self.match(".")
