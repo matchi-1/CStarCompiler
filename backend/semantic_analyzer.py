@@ -23,6 +23,7 @@ class SymbolTable:
     def set(self, sym_name, value, dtype=None, priv=False, const=False):
         sym_content = self._create_symbol_entry(value, dtype, priv, const)
         self.syms[sym_name] = sym_content
+        return {sym_name: sym_content}
 
     def set_array(self, sym_name, value, dtype, arr_info, priv=False, const=False):
         sym_content = self._create_symbol_entry(value, dtype, priv, const)
@@ -35,11 +36,23 @@ class SymbolTable:
         sym_content["class_info"] = class_info 
         self.syms[sym_name] = sym_content
 
-    def set_function(self, sym_name, return_type, param_types, priv=False, const=False, isStd_lib=False):
-        sym_content = self._create_symbol_entry(value=None, dtype=return_type, priv=priv, const=const)
+    def set_function(self, sym_name, return_type, param_types, priv=False, isStd_lib=False):
+        # sym_content = self._create_symbol_entry(value=None, dtype=return_type, priv=priv, const=const)
+        #removed const from functions, prolly not needed (????)
+        sym_content = {}
+        sym_content["value"] = None #prolly needed in the future when we implement returning actual value
+        sym_content["dtype"] = return_type
+        sym_content["priv"] = priv
         sym_content["params"] = param_types 
         sym_content["isStd_lib"] = isStd_lib 
         self.syms[sym_name] = sym_content
+        return {sym_name: sym_content}
+    
+    def set_constructor(self, sym_name, param_types):
+        sym_content = {}
+        sym_content["params"] = param_types
+        self.syms[sym_name] = sym_content
+        return {sym_name: sym_content}
 
 class SemanticAnalyzer:
 
@@ -95,22 +108,51 @@ class SemanticAnalyzer:
             return visit_func(node)
         
     def print_symbols(self, d, indent=2):
-        """Recursively prints dictionary with proper indentation and {} for dictionaries."""
-        if not d: print("\t" * indent + "{ }")  # Print {} for empty dictionary
+        """Recursively prints dictionaries with {} and lists with [] using proper indentation."""
 
-        for key, value in d.items():
+        if isinstance(d, dict):
+            if not d:
+                print("\t" * indent + "{ }")  # Print {} for empty dictionary
+                return
 
-            print("\t" * indent + f"{key} :", end=" ")
+            for key, value in d.items():
+                print("\t" * indent + f"{key} :", end=" ")
 
-            if isinstance(value, dict):  
-                if not value or not key:  # If the dictionary is empty, print {}
-                    print("{}")
-                else:
-                    print("{")  # Open brace for non-empty dictionary
-                    self.print_symbols(value, indent + 1)  # Recursively print contents
+                if isinstance(value, dict):
+                    print("{")  # Open brace for dictionary
+                    self.print_symbols(value, indent + 1)  # Recursive call for nested dict
                     print("\t" * indent + "}")  # Closing brace
+
+                elif isinstance(value, list):
+                    if not value:
+                        print("[ ]")  # Print [] for empty list
+                    else:
+                        print("[")  # Open bracket for list
+                        for item in value:
+                            if isinstance(item, dict):  # Fix indentation for dicts inside lists
+                                self.print_symbols(item, indent + 1)
+                            else:
+                                print("\t" * (indent + 1) + str(item))
+                        print("\t" * indent + "]")  # Closing bracket
+
+                else:
+                    print(value)  # Print primitive values
+
+        elif isinstance(d, list):  # Handle standalone lists
+            if not d:
+                print("\t" * indent + "[ ]")  # Print [] for empty list
             else:
-                print(value)  # Print normal values
+                print("\t" * indent + "[")  # Open bracket for list
+                for item in d:
+                    if isinstance(item, dict):  # Fix indentation for dicts inside lists
+                        self.print_symbols(item, indent + 1)
+                    else:
+                        print("\t" * (indent + 1) + str(item))
+                print("\t" * indent + "]")  # Closing bracket
+
+        else:
+            print(d)  # Print non-dictionary/list values
+
 
 
 
@@ -168,26 +210,96 @@ class SemanticAnalyzer:
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
 
+
+
     def visit_node_class_dec(self, node):
         className = node.class_id_n.id_t["tokenName"]
 
         if self.curr_scope.get(className, checkParent=False):
             self.logError(f"Class '{className}' is already declared.", node.class_id_n)
             return
-        
-        self.enter_scope(type(node).__name__)
-        if node.constructor_dec_n: self.visit_node(node.constructor_dec_n) 
-        if node.class_body_n.class_body_stmt_n : self.visit_node(node.class_body_n)
-        self.exit_scope(type(node).__name__)
+        constructorInfo = None
+        if node.constructor_dec_n: constructorInfo = self.visit_node_constructor_dec(node.constructor_dec_n) 
+        if node.class_body_n.class_body_stmt_n : self.visit_node_class_body(node.class_body_n, className, constructorInfo)
+
+
 
     def visit_node_constructor_dec(self, node): #TODO: be wary of return statements
+        className = node.class_id_n.id_t["tokenName"]
+
+        param_types = []
+        if node.params_n: # if params_n isn't None
+            for param in node.params_n:
+                if type(param).__name__ == "node_funcpar_class":
+                    param_types.append({
+                        "type": "class",
+                        "classname": param.class_id_n.id_t["tokenName"]
+                    })  
+
+                elif type(param).__name__ == "node_funcpar_arr":
+                    param_types.append({
+                        "type": "arr",
+                        "dtype": param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types
+                        "dimension": param.arrdim_i if param.arrdim_i else None # for any dimensions
+                    })  
+
+                elif type(param).__name__ == "node_funcpar_var":
+                    param_types.append({
+                        "type": "var",
+                        "dtype": param.dtype_t["tokenName"]
+                    }) 
+
+        # Ensure param_types is set to None if empty
+        param_types = param_types if param_types else None
+        constructorInfo = self.curr_scope.set_constructor(className, param_types)
+
+
         self.enter_scope(type(node).__name__)
 
-        self.exit_scope(type(node).__name__)
 
-    def visit_node_class_body(self, node):
+        # Add parameters to new function scope
+        if node.params_n:
+            for param in node.params_n:
+                param_name = param.id_n.id_t["tokenName"]
+
+                # Check if parameter name is duplicated
+                if self.curr_scope.get(param_name, checkParent=False):
+                    self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
+
+                # Handle different parameter types properly
+                if type(param).__name__ == "node_funcpar_class":
+                    class_name = param.class_id_n.id_t["tokenName"]
+                    self.curr_scope.set_class(param_name, dtype="class", class_info={"classname": class_name})
+
+                elif type(param).__name__ == "node_funcpar_arr":
+                    arr_dtype = param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types -- std lib Carray
+                    arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
+
+                    self.curr_scope.set_array(param_name, value=None, dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
+
+                elif type(param).__name__ == "node_funcpar_var":
+                    var_dtype = param.dtype_t["tokenName"]
+                    self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
+
+
+        # Visit function body
+        # has_return = any(self.visit_node(stmt) for stmt in node.body_n)
+
+        # # If function is non-void, ensure at least one return exists
+        # if return_type != "void" and not has_return:
+        #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.id_n)
+
+        # Exit function scope, back to program constructs
+        # constructorInfo = self.visit_node_func_dec(vardec_n, priv)
+
+        self.exit_scope(type(node).__name__)
+        return constructorInfo
+
+
+
+    def visit_node_class_body(self, node, className, constructorInfo):
         class_body_stmt = node.class_body_stmt_n
-        class_content = {}
+        class_content = []
 
         self.enter_scope(type(node).__name__)
         for class_body_stmt_n in class_body_stmt:
@@ -195,12 +307,15 @@ class SemanticAnalyzer:
             vardec_n = class_body_stmt_n.vardec_n
             
             if type(vardec_n).__name__ == "node_vardec":
-                self.visit_node_vardec(vardec_n, priv)
-            elif type(vardec_n).__name__ == "node_func_dec":
-                self.visit_node_func_dec(vardec_n, priv) 
+                class_content.append(self.visit_node_vardec(vardec_n, priv))
 
-        
+            elif type(vardec_n).__name__ == "node_func_dec":
+                class_content.append(self.visit_node_func_dec(vardec_n, priv))
+
+        flattened = [item for sublist in class_content for item in sublist]
+        self.curr_scope.parent.set_class(className, dtype="class", class_info={"constructor_dec" : constructorInfo, "class_body_content": flattened})
         self.exit_scope(type(node).__name__)
+
 
 
     def visit_node_num(self, node):
@@ -285,8 +400,11 @@ class SemanticAnalyzer:
 
         print(f">>>>>>>>>>> {func_name} IS FUNC STD LIB? " + str(node.is_std_lib))
 
-        # Store function in symbol table
-        self.curr_scope.set_function(func_name, return_type, param_types, priv, isStd_lib = node.is_std_lib)
+        classReturn = []
+        # Store function in symbol table. (for classes only) also returns the resulting dict
+        classReturn.append(self.curr_scope.set_function(func_name, return_type, param_types, priv, isStd_lib = node.is_std_lib))
+        #add actual value param in da future
+
 
         # Enter function scope
         self.enter_scope(type(node).__name__)
@@ -327,6 +445,7 @@ class SemanticAnalyzer:
         print(f"\n(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
+        return classReturn
 
     # assign_stmt  -- need to refactor nodes in ast bc stephen :skull:
     def visit_node_assign_stmt_var(self, node):
@@ -375,9 +494,12 @@ class SemanticAnalyzer:
         #             value = 0.0
         #         case 'string':
         #             value = ''
-        self.curr_scope.set(id, value, dtype=dtype, const=const)
+        classReturn = []
+        classReturn.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
         for dec_node in idec_rec or []:
-            self.curr_scope.set(dec_node.id_n.id_t["tokenName"], self.visit_node(dec_node.value_n) if dec_node.value_n else None, dtype=dtype, const=const)
+            classReturn.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], self.visit_node(dec_node.value_n) if dec_node.value_n else None, dtype=dtype, priv = priv, const=const))
+
+        return classReturn
 
     #array declaration
     def visit_node_arr_dec(self, node):
