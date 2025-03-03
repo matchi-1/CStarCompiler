@@ -507,32 +507,30 @@ class SemanticAnalyzer:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
         if not func_symbol["params"]:
             if node.args_n:
-                self.logError(f"Function '{func_name}' does not take any parameters.", node)
+                self.logError(f"Function '{func_name}' does not take any parameters.", node.id_n)
         else:
-            if not node.args_n:
-                self.logError(f"Function '{func_name}' requires parameters.", node)
-            else:
-                if len(func_symbol["params"]) != len(node.args_n):
-                    self.logError(f"Function '{func_name}' expects {len(func_symbol['params'])} parameters but got {len(node.args_n)}.", node)
-                for param_node, param_type in zip(node.args_n, func_symbol["params"]):
-                    param_val_type, param_val = self.visit_node(param_node)
-                    
-                    if param_type["type"] == "var":
-                        if param_val_type != param_type["dtype"]:
-                            self.logError(f"Type mismatch: expected '{param_type['dtype']}' but found '{param_val_type}'", param_node)
-                    
-                    elif param_type["type"] == "arr":
-                        if not param_val_type.startswith("arr_") or param_val_type[4:] != param_type["dtype"]:
-                            self.logError(f"Type mismatch: expected array of '{param_type['dtype']}' but found '{param_val_type}'", param_node)
-                        elif param_node.dimension != param_type["dimension"]:
-                            self.logError(f"Dimension mismatch: expected {param_type['dimension']} dimensions but found {param_node.dimension}", param_node)
-                    
-                    elif param_type["type"] == "class":
-                        if param_val_type != param_type["classname"]:
-                            self.logError(f"Type mismatch: expected instance of class '{param_type['classname']}' but found '{param_val_type}'", param_node)
-                    
-                    else:
-                        self.logError(f"Unknown parameter type '{param_type['type']}'", param_node)
+            if len(func_symbol["params"]) != len(node.args_n):
+                param_count = len(func_symbol['params'])
+                self.logError(f"Function '{func_name}' expects {param_count} parameter{'s' if param_count > 1 else ''} but got {len(node.args_n)}.", node.id_n)
+            for param_node, param_type in zip(node.args_n, func_symbol["params"]):
+                param_val_type, param_val = self.visit_node(param_node)
+                
+                if param_type["type"] == "var":
+                    if param_val_type != param_type["dtype"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameter: expected '{param_type['dtype']}' but found '{param_val_type}'", param_node)
+                
+                elif param_type["type"] == "arr":
+                    if not param_val_type.startswith("arr_") or param_val_type[4:] != param_type["dtype"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameters: expected array of '{param_type['dtype']}' but found '{param_val_type}'", param_node)
+                    elif param_node.dimension != param_type["dimension"]:
+                        self.logError(f"Dimension mismatch for function '{func_name}' parameter: expected {param_type['dimension']} dimensions but found {param_node.dimension}", param_node)
+                
+                elif param_type["type"] == "class":
+                    if param_val_type != param_type["classname"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameter: expected instance of class '{param_type['classname']}' but found '{param_val_type}'", param_node)
+                
+                else:
+                    self.logError(f"Unknown parameter type for function '{func_name}' parameter: '{param_type['type']}'", param_node)
         return (func_symbol["dtype"], None) 
 
 
