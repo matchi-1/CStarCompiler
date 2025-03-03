@@ -1077,10 +1077,12 @@ class SemanticAnalyzer:
     
     def visit_node_switch_stmt(self, node):
         self.enter_scope(type(node).__name__)
-
+        self.switch_depth += 1
+        
         value_n = node.value_n
         case_n = node.case_n
         default_n = node.default_n
 
+        self.switch_depth -= 1
         self.exit_scope(type(node).__name__)
         return

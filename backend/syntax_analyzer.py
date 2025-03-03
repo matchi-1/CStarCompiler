@@ -513,7 +513,7 @@ class node_case_stmt:
         self.ctrl_stmt_body_n = ctrl_stmt_body_n
 
     def __repr__(self):
-        return f"node_case_stmt( \n case_value_n: {self.case_value_n["tokenName"]} \n case_body_n( {self.ctrl_stmt_body_n} ) \n)"
+        return f"node_case_stmt( \n case_value_n: {self.case_value_n} \n case_body_n( {self.ctrl_stmt_body_n} ) \n)"
         
 class node_default_stmt:
     def __init__(self, ctrl_stmt_body_n):
@@ -2421,19 +2421,19 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
         
             if currentTokenType == "string_lit": 
-                case_value_temp_t = self.match("string_lit", False)
+                case_value_temp_t = node_str(self.match("string_lit", False))
                 
             elif currentTokenType == "whole_lit": 
-                case_value_temp_t = self.match("whole_lit", False)
+                case_value_temp_t = node_num(self.match("whole_lit", False))
             
             elif currentTokenType == "-":
                 case_value_temp_t = node_un_op(self.match("-", False), self.match("whole_lit"))
                 
-                #if not case_value_temp_t:
-                #    self.logError("Expected negative numerical constant.")
+                if not case_value_temp_t:
+                    self.logError(f"Expected negative numerical constant but got {self.currToken} instead.")
             
             else:
-                self.logError("Invalid value for 'case' statement.")
+                self.logError(f"Invalid value for 'case' statement. Expected: 'string_lit' or 'whole_lit' but got {self.currToken} instead.")
 
         else: self.logError("'case' must be preceded with a valid value (Whole Number or String).")
 
