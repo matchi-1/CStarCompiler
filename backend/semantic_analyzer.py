@@ -499,6 +499,43 @@ class SemanticAnalyzer:
             self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", iden)
         self.curr_scope.set(iden_name, val, dtype=dtype)
 
+    # func calls
+    def visit_node_func_call(self, node):
+        func_name = node.id_n.id_t["tokenName"]
+        func_symbol = self.curr_scope.get(func_name)
+        if not func_symbol:
+            self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
+        if not func_symbol["params"]:
+            if node.args_n:
+                self.logError(f"Function '{func_name}' does not take any parameters.", node)
+        else:
+            if not node.args_n:
+                self.logError(f"Function '{func_name}' requires parameters.", node)
+            else:
+                if len(func_symbol["params"]) != len(node.args_n):
+                    self.logError(f"Function '{func_name}' expects {len(func_symbol['params'])} parameters but got {len(node.args_n)}.", node)
+                for param_node, param_type in zip(node.args_n, func_symbol["params"]):
+                    param_val_type, param_val = self.visit_node(param_node)
+                    
+                    if param_type["type"] == "var":
+                        if param_val_type != param_type["dtype"]:
+                            self.logError(f"Type mismatch: expected '{param_type['dtype']}' but found '{param_val_type}'", param_node)
+                    
+                    elif param_type["type"] == "arr":
+                        if not param_val_type.startswith("arr_") or param_val_type[4:] != param_type["dtype"]:
+                            self.logError(f"Type mismatch: expected array of '{param_type['dtype']}' but found '{param_val_type}'", param_node)
+                        elif param_node.dimension != param_type["dimension"]:
+                            self.logError(f"Dimension mismatch: expected {param_type['dimension']} dimensions but found {param_node.dimension}", param_node)
+                    
+                    elif param_type["type"] == "class":
+                        if param_val_type != param_type["classname"]:
+                            self.logError(f"Type mismatch: expected instance of class '{param_type['classname']}' but found '{param_val_type}'", param_node)
+                    
+                    else:
+                        self.logError(f"Unknown parameter type '{param_type['type']}'", param_node)
+        return (func_symbol["dtype"], None) 
+
+
     #var_dec
     def visit_node_vardec(self, node, priv = False):
         if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
@@ -562,7 +599,7 @@ class SemanticAnalyzer:
                 print(f'arr init valtype: {val_type}')
                 #error for arr size in code gen
                 if val_type != node.dtype_t["tokenName"]:
-                    self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
+                    self.logError(f'Array contents can only be of type \'{node.dtype_t["tokenName"]}\'')
                 else:
                     arr_vals.append(val)
         else:
