@@ -1,3 +1,5 @@
+from syntax_analyzer import node_body, node_code_block, node_if_stmt, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block
+
 class SymbolTable:
     def __init__(self, parent=None):
         self.syms = {} #key: string val: dict
@@ -99,6 +101,7 @@ class SemanticAnalyzer:
         self.errors = []
         self.loop_depth = 0
         self.switch_depth = 0
+        self.function_return_stack = []
 
     def enter_scope(self, nodeName):
         print(F'\n(semantic)(dbg) ENTERING scope {nodeName}')
@@ -203,7 +206,12 @@ class SemanticAnalyzer:
     def visit_node_body(self, node):
         self.enter_scope(type(node).__name__)
         # PLACEHOLDER! idk if it's correct
-        self.visit_node(node.body_codeblock_n)
+
+        if node.body_codeblock_n:
+            self.visit_node(node.body_codeblock_n)
+        
+        if node.return_stmt_n:
+            self.visit_node(node.return_stmt_n)
         
         self.exit_scope(type(node).__name__)
         
@@ -510,13 +518,19 @@ class SemanticAnalyzer:
                     var_dtype = ('var', param.dtype_t["tokenName"])
                     self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
 
-
+        self.function_return_stack.append(return_type)
+        print(f"Return stack = {self.function_return_stack}")
+        
         # Visit function body
-        # has_return = any(self.visit_node(stmt) for stmt in node.body_n)
+        has_return = self.check_return_in_body(node.body_n)
+        self.visit_node(node.body_n)
 
-        # # If function is non-void, ensure at least one return exists
-        # if return_type != "void" and not has_return:
-        #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.id_n)
+        # Ensure non-void functions return a value
+        if return_type != "void" and not has_return:
+            self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.")
+
+        self.function_return_stack.pop()
+        print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
 
         # Exit function scope, back to program constructs
         print(f"\n(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
@@ -1230,7 +1244,7 @@ class SemanticAnalyzer:
         
         switch_value = self.visit_node(node.value_n)
         if switch_value[0] not in ["string", "int", "long"]:
-            self.logError("Invalid data type for 'switch' value. Expected: 'string', 'int', 'long' data types")
+            self.logError("Invalid data type for 'switch' value. Expected: 'string', 'int', 'long' data types.")
         
         # CASE
         case_n = node.case_n
@@ -1267,3 +1281,30 @@ class SemanticAnalyzer:
         self.switch_depth -= 1
         self.exit_scope(type(node).__name__)
         return
+    
+    def visit_node_return_block(self, node):
+
+        print("ENTERED RETURN BLOCK")
+
+        if self.function_return_stack:
+
+            # Get current function return type
+            expected_return_type = self.function_return_stack[-1]  
+
+            if node.ret_value_n:
+                result = self.visit_node(node.ret_value_n)
+                print(result)
+        
+                actual_return_type = self.visit_node(node.ret_value_n)[0]
+
+                if expected_return_type == "void":
+                    self.logError("Semantic Error: 'void' functions cannot return a value.")
+
+                if expected_return_type != actual_return_type:
+                    self.logError(f"Semantic Error: Expected return type '{expected_return_type}', but got '{actual_return_type}'.")
+
+            else:
+                if expected_return_type != "void":
+                    self.logError(f"Semantic Error: Function must return a value of type '{expected_return_type}', but got none.")
+
+

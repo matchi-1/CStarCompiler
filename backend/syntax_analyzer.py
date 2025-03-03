@@ -347,7 +347,8 @@ class node_assign_func_method_mods_cont:
         return f"{self.__class__.__name__}({attr_str})"
 
 class node_return_block:
-    def __init__(self, ret_value_n=None):
+    def __init__(self, return_t, ret_value_n=None):
+        self.return_t = return_t
         self.ret_value_n = ret_value_n
     def __repr__(self):
         return f'node_return_block: (ret_value_n: {self.ret_value_n})'
@@ -2625,13 +2626,13 @@ class SyntaxAnalyzer:
     def return_block(self, isVoid = False):
         print("(parser) entered production: \"return_block\"")
         
-        self.match("return", False)
+        return_t = self.match("return", False)
         ret_value_n = self.ret_value(isVoid)
         if not self.match(";"):
             self.ERROR_terminating_token(";")
 
         print("(parser) exited production: \"return_block\"")
-        return node_return_block(ret_value_n)
+        return node_return_block(return_t, ret_value_n)
     
     # bare-minimum tested
     def ctrl_stmt_body(self, isVoid = False):
