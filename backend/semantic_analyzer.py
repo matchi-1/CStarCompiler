@@ -529,13 +529,13 @@ class SemanticAnalyzer:
             # Ensure non-void functions return a value
             if return_type != "void" and not has_return:
                 self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.")
+            
+            self.visit_node(node.body_n)
 
             self.function_return_stack.pop()
             print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+ 
 
-            
-        self.visit_node(node.body_n) 
-        
         # Exit function scope, back to program constructs
         print(f"\n(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
