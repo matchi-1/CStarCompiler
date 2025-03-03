@@ -626,7 +626,7 @@ class SemanticAnalyzer:
             if size_2_type and size_2_type not in ['int', 'long']:
                 self.logError('Expected whole number.')
             if self.curr_scope.get(id, checkParent=False):
-                self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
+                self.logError(f"Symbol '{arrdec_node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
             self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], None, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
         
 
