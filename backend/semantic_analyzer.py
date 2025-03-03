@@ -387,16 +387,16 @@ class SemanticAnalyzer:
         #     val = int(node.val_t["tokenName"])
         # elif node.dtype in ['float', 'double']:
         #     val = float(node.val_t["tokenName"])
-        # return (node.dtype, val) 
-        return (node.dtype, None)
+        # return (('var', node.dtype), val) 
+        return (('lit', node.dtype), None)
     
     def visit_node_str(self, node):
-        # return (node.dtype, node.val_t["tokenName"][1:-1])
-        return (node.dtype, None)
+        # return (('var', node.dtype), node.val_t["tokenName"][1:-1])
+        return (('lit', node.dtype), None)
     
     def visit_node_bool(self, node):
         # return (node.dtype, node.val_t["tokenName"]=="true")
-        return (node.dtype, None)
+        return (('lit', node.dtype), None)
     
     def visit_node_iden(self, node):
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
@@ -410,20 +410,20 @@ class SemanticAnalyzer:
             # elif dtype in ['float', 'double']:
             #     val = float(iden_symbol["value"])
             # return (dtype, val)
-            return (iden_symbol["dtype"], None)
+            return (('var', iden_symbol["dtype"][1]), None)
         
     def visit_node_arr_idx(self, node):
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
-        if arr_sym["dtype"][:4] != 'arr_':
+        if arr_sym["dtype"][0] != 'arr':
             self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.')
-        dtype = arr_sym["dtype"][4:]
+        dtype = arr_sym["dtype"][1]
         if node.idx2_n:
             if arr_sym["arr_info"]["dimension"] == 1:
                 self.logError(f'Array {node.id_n.id_t["tokenName"]} only has 1 dimension.')
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 self.logError(f'Array {node.id_n.id_t["tokenName"]} has 2 dimensions.')
-        return (dtype, None) #for now, since seman
+        return (('var', dtype), None) #for now, since seman
     #cont...
 
     def visit_node_func_dec(self, node, priv = False):
@@ -619,7 +619,7 @@ class SemanticAnalyzer:
         if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
             self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
         const = node.const_b
-        dtype = node.dtype_t["tokenName"]
+        dtype = ('var', node.dtype_t["tokenName"])
         id = node.id_n.id_t["tokenName"]
         val_type = None
         value = None
@@ -627,12 +627,12 @@ class SemanticAnalyzer:
         if (node.vardec_cont_n):
             if node.vardec_cont_n.value_n:
                 val_type, value = self.visit_node(node.vardec_cont_n.value_n)
-            print('(semantic)(dbg) dec valtype: ', val_type)
+            print('(semantic)(dbg) dec valtype: ', val_type[1])
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
-        if val_type and dtype != val_type:
-            if dtype not in ['float', 'double'] or val_type not in ['int', 'long']:
-                self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", node.id_n)
+        if val_type and dtype[1] != val_type[1]:
+            if dtype[1] not in ['float', 'double'] or val_type not in ['int', 'long']:
+                self.logError(f"Type mismatch: expected '{dtype[1]}' but found '{val_type[1]}'", node.id_n)
         # if not value:
         #     match dtype:
         #         case 'bool':
@@ -659,13 +659,13 @@ class SemanticAnalyzer:
         id = node.id_n.id_t["tokenName"]
         if self.curr_scope.get(id, checkParent=False):
             self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
-        dtype = f'arr_{node.dtype_t["tokenName"]}'
+        dtype = ('arr', node.dtype_t["tokenName"])
         dim = 2 if node.size2_n else 1
         size_1_type, size_1 = self.visit_node(node.size1_n)
-        if size_1_type not in ['int', 'long']:
+        if size_1_type[1] not in ['int', 'long']:
             self.logError('Expected whole number.')
         size_2_type, size_2 = self.visit_node(node.size2_n) if node.size2_n else (None, None)
-        if size_2_type and size_2_type not in ['int', 'long']:
+        if size_2_type and size_2_type[1] not in ['int', 'long']:
             self.logError('Expected whole number.')
         values_list = None
         arr_rec = None
@@ -678,9 +678,9 @@ class SemanticAnalyzer:
         if dim == 1:
             for value_node in values_list or []:
                 val_type, val = self.visit_node(value_node)
-                print(f'arr init valtype: {val_type}')
+                print(f'arr init valtype: {val_type[1]}')
                 #error for arr size in code gen
-                if val_type != node.dtype_t["tokenName"]:
+                if val_type[1] != node.dtype_t["tokenName"]:
                     self.logError(f'Array contents can only be of type \'{node.dtype_t["tokenName"]}\'')
                 else:
                     arr_vals.append(val)
@@ -689,9 +689,9 @@ class SemanticAnalyzer:
                 temp_arr = []
                 for value_node in inner_arr or []:
                     val_type, val = self.visit_node(value_node)
-                    print(f'arr init valtype: {val_type}')
+                    print(f'arr init valtype: {val_type[1]}')
                     #error for arr size in code gen
-                    if val_type != node.dtype_t["tokenName"]:
+                    if val_type[1] != node.dtype_t["tokenName"]:
                         self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
                     else:
                         temp_arr.append(val)
@@ -699,10 +699,10 @@ class SemanticAnalyzer:
         self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
         for arrdec_node in arr_rec or []:
             size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
-            if size_1_type not in ['int', 'long']:
+            if size_1_type[1] not in ['int', 'long']:
                 self.logError('Expected whole number.')
             size_2_type, size_2 = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None)
-            if size_2_type and size_2_type not in ['int', 'long']:
+            if size_2_type and size_2_type[1] not in ['int', 'long']:
                 self.logError('Expected whole number.')
             if self.curr_scope.get(arrdec_node.id_n.id_t["tokenName"], checkParent=False):
                 self.logError(f"Symbol '{arrdec_node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
@@ -714,29 +714,29 @@ class SemanticAnalyzer:
         
         left_type, left_val = self.visit_node(node.left_n)
         right_type, right_val = self.visit_node(node.right_n)
-        dtype = 'int'
-        if (left_type == 'long' or right_type == 'long'):
-            dtype = 'long'
-        if (left_type == 'float' or right_type == 'float'):
-            dtype = 'float'
-        if (left_type == 'double' or right_type == 'double'):
-            dtype = 'double'
+        dtype = ('lit', 'int')
+        if (left_type[1] == 'long' or right_type[1] == 'long'):
+            dtype = ('lit', 'long')
+        if (left_type[1] == 'float' or right_type[1] == 'float'):
+            dtype = ('lit', 'float')
+        if (left_type[1] == 'double' or right_type[1] == 'double'):
+            dtype = ('lit', 'double')
         match node.op_t["tokenName"]:
             case '+': 
-                if left_type == 'string':
-                    if right_type != 'string':
+                if left_type[1] == 'string':
+                    if right_type[1] != 'string':
                         print('(semantic)(dbg) ERROR: string exp only strings')
                     else:
                         # return ('string', left_val + right_val)
-                        return ('string', None)
-                elif left_type in self.numtypes and right_type in self.numtypes:
+                        return (('lit', 'string'), None)
+                elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     # return (dtype, left_val + right_val)
                     return (dtype, None)
                 else:
                      print('(semantic)(dbg) ERROR: only numerics')
 
             case '-':
-                if left_type in self.numtypes and right_type in self.numtypes:
+                if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     # return (dtype, left_val - right_val)
                     return (dtype, None)
                 else:
@@ -744,22 +744,22 @@ class SemanticAnalyzer:
             case '/':
                 if right_val == 0: #todo
                     print("(semantic)(dbg) ERROR: DIVIDE BY 0")
-                if left_type in self.numtypes and right_type in self.numtypes:
+                if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     # return (dtype, left_val / right_val)
                     return (dtype, None)
                 else:
                     print('(semantic)(dbg) ERROR: only numerics')
             case '*':
-                if left_type in self.numtypes and right_type in self.numtypes:
+                if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     # return (dtype, left_val * right_val)
                     return (dtype, None)
                 else:
                     print('(semantic)(dbg) ERROR: only numerics')
             case '%':
-                if dtype in ['float', 'double']:
+                if dtype[1] in ['float', 'double']:
                     print('(semantic)(dbg) ERROR : MODULO FLOATING POINT')
                 else:
-                    if left_type in self.numtypes and right_type in self.numtypes:
+                    if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                         # return (dtype, left_val % right_val)
                         return (dtype, None)
                     else:
@@ -767,98 +767,98 @@ class SemanticAnalyzer:
 
             #relational
             case '==':
-                if left_type in self.numtypes:
-                    if right_type not in self.numtypes:
+                if left_type[1] in self.numtypes:
+                    if right_type[1] not in self.numtypes:
                         print('(semantic)(dbg) ERROR: comparison with numeric can only be with another numeric')
-                elif left_type == 'string':
-                    if right_type != 'string':
+                elif left_type[1] == 'string':
+                    if right_type[1] != 'string':
                         print('(semantic)(dbg) ERROR: comparisong with string can only be with another string')
-                elif left_type == 'bool':
-                    if right_type != 'bool':
+                elif left_type[1] == 'bool':
+                    if right_type[1] != 'bool':
                         print('(semantic)(dbg) ERROR: comparisong with bool can only be with another bool')
                 # return ('bool', left_val == right_val)
-                return ('bool', None)
+                return (('lit', 'bool'), None)
             
             case '!=':
-                if left_type in self.numtypes:
-                    if right_type not in self.numtypes:
+                if left_type[1] in self.numtypes:
+                    if right_type[1] not in self.numtypes:
                         print('(semantic)(dbg) ERROR: comparison with numeric can only be with another numeric')
-                elif left_type == 'string':
-                    if right_type != 'string':
+                elif left_type[1] == 'string':
+                    if right_type[1] != 'string':
                         print('(semantic)(dbg) ERROR: comparisong with string can only be with another string')
-                elif left_type == 'bool':
-                    if right_type != 'bool':
+                elif left_type[1] == 'bool':
+                    if right_type[1] != 'bool':
                         print('(semantic)(dbg) ERROR: comparisong with bool can only be with another bool')
                 # return ('bool', left_val != right_val)
-                return ('bool', None)
+                return (('lit', 'bool'), None)
             
             case '<':
-                if left_type not in self.numtypes or right_type not in self.numtypes:
+                if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     print('(semantic)(dbg) ERROR: only numerics allowed')
 
                 # return ('bool', left_val < right_val)  
-                return ('bool', None)
+                return (('lit', 'bool'), None)
             case '<=':
-                if left_type not in self.numtypes or right_type not in self.numtypes:
+                if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     print('(semantic)(dbg) ERROR: only numerics allowed')
 
                 # return ('bool', left_val <= right_val)  
-                return ('bool', None)
+                return (('lit', 'bool'), None)
             case '>':
-                if left_type not in self.numtypes or right_type not in self.numtypes:
+                if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     print('(semantic)(dbg) ERROR: only numerics allowed')
 
                 # return ('bool', left_val > right_val)  
-                return ('bool', None)
+                return (('lit', 'bool'), None)
             case '>=':
-                if left_type not in self.numtypes or right_type not in self.numtypes:
+                if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     print('(semantic)(dbg) ERROR: only numerics allowed')
 
                 # return ('bool', left_val >= right_val)  
-                return ('bool', None)
+                return (('lit', 'bool'), None)
             
             #logical
             case '&&':
-                if left_type != 'bool' or right_type != 'bool':
+                if left_type[1] != 'bool' or right_type[1] != 'bool':
                     print('(semantic)(dbg) ERROR: booleans only!!')
 
                 # return ('bool', left_val and right_val)
-                return ('bool', None)
+                return (('lit', 'bool'), None)
             case '||':
-                if left_type != 'bool' or right_type != 'bool':
+                if left_type[1] != 'bool' or right_type[1] != 'bool':
                     print('(semantic)(dbg) ERROR: booleans only!!')
 
                 # return ('bool', left_val or right_val)
-                return ('bool', None)
+                return (('lit', 'bool'), None)
 
     #unary ops
     def visit_node_un_op(self, node):
         right_type, right_val = self.visit_node(node.id_right_n)
         match node.left_t["tokenName"]:
             case '!':
-                if right_type != 'bool':
+                if right_type[1] != 'bool':
                     print('(semantic)(dbg) ERROR: only bool')
                 # return ('bool', not right_val)
-                return ('bool', None)
+                return (('lit', 'bool'), None)
             case '-':
-                if right_type not in self.numtypes:
+                if right_type[1] not in self.numtypes:
                     print('(semantic)(dbg) ERROR: invalid data type')
                 # return (right_type, -right_val)
                 return (right_type, None)
             case '++':
-                if right_type not in self.numtypes:
+                if right_type[1] not in self.numtypes:
                     print('(semantic)(dbg) ERROR: invalid data type')
                 # self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] += 1
                 # return (right_type, right_val + 1)
                 return (right_type, None)
             case '--':
-                if right_type not in self.numtypes:
+                if right_type[1] not in self.numtypes:
                     print('(semantic)(dbg) ERROR: invalid data type')
                 # self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] -= 1
                 # return (right_type, right_val - 1 )
                 return (right_type, None)
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
-            if right_type not in ["bool", "string", "int", "long", "double", "float"]:
+            if right_type[1] not in ["bool", "string", "int", "long", "double", "float"]:
                 self.logError(f'{node.id_right_n.id_t["tokenName"]} cannot be typecasted.')
             match node.left_t["tokenName"] :
                 case 'bool':
@@ -875,18 +875,18 @@ class SemanticAnalyzer:
                     #         return ('bool', right_val != 0.0)
                     #     case 'double':
                     #         return ('bool', right_val != 0.0)
-                    return ('bool', None)
+                    return (('lit', 'bool'), None)
                 case 'string':
                     # return ('string', str(right_val))
-                    return ('string', None)
+                    return (('lit', 'string',), None)
                 case 'int':
-                    match right_type:
+                    match right_type[1]:
                         # case 'bool':
                         #     return ('int', int(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into integers.')
                         case _:
-                            return ('int', None)
+                            return (('lit', 'int'), None)
                         # case 'int':
                         #     return ('int', right_val)
                         # case 'long':
@@ -902,13 +902,13 @@ class SemanticAnalyzer:
                         #     else:
                         #         self.logError(f'Value {right_val} is out of integer range.')
                 case 'long':
-                    match right_type:
+                    match right_type[1]:
                         # case 'bool':
                         #     return ('long', int(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into long.')
                         case _:
-                            return ('long', None)
+                            return (('lit', 'long'), None)
                         # case 'int':
                         #     return ('long', right_val)
                         # case 'long':
@@ -918,13 +918,13 @@ class SemanticAnalyzer:
                         # case 'double':
                         #     return ('long', int(right_val))
                 case 'float':
-                    match right_type:
+                    match right_type[1]:
                         # case 'bool':
                         #     return ('float', float(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into float.')
                         case _:
-                            return ('float', None)
+                            return (('lit', 'float'), None)
                         # case 'int':
                         #     return ('float', float(right_val))
                         # case 'long':
@@ -940,13 +940,13 @@ class SemanticAnalyzer:
                         #     else:
                         #         self.logError(f'Value {right_val} is out of float range.')
                 case 'double':
-                    match right_type:
+                    match right_type[1]:
                         # case 'bool':
                         #     return ('double', float(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into double.')
                         case _:
-                            return ('double', None)
+                            return (('lit', 'double'), None)
                         # case 'int':
                         #     return ('double', float(right_val))
                         # case 'long':
@@ -1054,7 +1054,7 @@ class SemanticAnalyzer:
             self.logError(f"Unsupported data type for input: {expected_dtype}", node)
             return None
 
-        return (expected_dtype, None)
+        return (('lit', expected_dtype), None)
     
     # def visit_node_output(self, node):
     #     print_stmts_n = node.print_stmts_n 
