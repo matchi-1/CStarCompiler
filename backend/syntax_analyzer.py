@@ -29,7 +29,7 @@ PREDICT_SETS = {
     "string_value": ["string_lit", "Identifier", "(", "in"],
     "expression":["!", "(", "++", "-", "--", "Identifier", "bool_lit", "frac_lit", "in", "string_lit", "whole_lit"],
     "output":["print", "println"],
-    "code_block": [ "const", "++", "--", "Identifier", "bool", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while" ],
+    "code_block": [ "const", "++", "--", "Identifier", "bool", "const", "do", "double", "float", "for", "if", "int", "long", "print", "println", "repeat", "string", "switch", "while", "in" ],
     "iden_as_var_mods": ["[","."],
     "body": [],  # Placeholder for now
     "add_min_cont":["+", "-"],
@@ -46,7 +46,7 @@ PREDICT_SETS = {
     "case_value": ["whole_lit", "string_lit", "-"],
     "input_params": ["string_lit"]
 }
-PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]  #bruh
+PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]   #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
 PREDICT_SETS["assign_func_method_mods"] = PREDICT_SETS["assign_func_method_mods"]+ PREDICT_SETS["assign_operator"]
 PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDICT_SETS["assign_func_method_mods"] 
@@ -990,6 +990,13 @@ class SyntaxAnalyzer:
                 
             elif currentTokenType in PREDICT_SETS["loop_stmt"]:
                 code_block_statement_n.append(self.loop_stmt(isVoid))
+
+            elif currentTokenType == "in":  
+                input_node = self.input() 
+                if input_node:
+                    code_block_statement_n.append(input_node) 
+                if not self.match(";"): 
+                    self.ERROR_terminating_token(";")
         
             else: self.logError("You're not supposed to see this.")
             print("AMBATURETURNNNNNNN")

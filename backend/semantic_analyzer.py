@@ -809,55 +809,71 @@ class SemanticAnalyzer:
         self.exit_scope(loop_name)
 
     # input
-    def visit_node_input(self, node):
-        expected_dtype = node.type_t["tokenName"]
-        prompt_n = node.prompt_n
-        count_n = node.count_n
+    # def visit_node_input(self, node):
+    #     expected_dtype = node.type_t["tokenName"]
+    #     prompt_n = node.prompt_n
+    #     count_n = node.count_n
 
-        promp_text = ""
-        if prompt_n:
-            promp_type, promp_text = self.visit_node(prompt_n)
-            if promp_type != "string":
-                print("(semantic)(dbg) ERROR: Prompt must be a string")
-                return None
-        if count_n:
-            count_type, count = self.visit_node(count_n)
-            if count_type not in ["int", "long"]:
-                print("(semantic)(dbg) ERROR: Count must be an integer or long")
-                return None
-            if count <= 0:
-                print("(semantic)(dbg) ERROR: Count must be greater than 0")
-                return None
+    #     promp_text = ""
+    #     if prompt_n:
+    #         promp_type, promp_text = self.visit_node(prompt_n)
+    #         if promp_type != "string":
+    #             print("(semantic)(dbg) ERROR: Prompt must be a string")
+    #             return None
+    #     if count_n:
+    #         count_type, count = self.visit_node(count_n)
+    #         if count_type not in ["int", "long"]:
+    #             print("(semantic)(dbg) ERROR: Count must be an integer or long")
+    #             return None
+    #         if count <= 0:
+    #             print("(semantic)(dbg) ERROR: Count must be greater than 0")
+    #             return None
             
-        user_input = input(promp_text)
+    #     user_input = input(promp_text)
 
-        try:
-            if expected_dtype == 'int':
-                value = int(user_input) 
-            elif expected_dtype == 'long':
-                value = int(user_input)
-            elif expected_dtype == 'float':
-                value = float(user_input)
-            elif expected_dtype == 'double':
-                value = float(user_input)
-            elif expected_dtype == 'string':
-                value = user_input
-            elif expected_dtype == 'bool':
-                value = user_input.lower() == 'true'
-            else:
-                print("(semantic)(dbg) ERROR: Unsupported data type for input")
-                return None
-        except ValueError:
-            print("(semantic)(dbg) ERROR: Input does not match expected data type")
-            return None
+    #     try:
+    #         if expected_dtype == 'int':
+    #             value = int(user_input) 
+    #         elif expected_dtype == 'long':
+    #             value = int(user_input)
+    #         elif expected_dtype == 'float':
+    #             value = float(user_input)
+    #         elif expected_dtype == 'double':
+    #             value = float(user_input)
+    #         elif expected_dtype == 'string':
+    #             value = user_input
+    #         elif expected_dtype == 'bool':
+    #             value = user_input.lower() == 'true'
+    #         else:
+    #             print("(semantic)(dbg) ERROR: Unsupported data type for input")
+    #             return None
+    #     except ValueError:
+    #         print("(semantic)(dbg) ERROR: Input does not match expected data type")
+    #         return None
         
-        if count_n:
-           _, count = self.visit_node(count_n) 
-           if not isinstance(count, int) or count <= 0:
-               print("(semantic)(dbg) ERROR: Invalid count for input")
-               return None
+    #     if count_n:
+    #        _, count = self.visit_node(count_n) 
+    #        if not isinstance(count, int) or count <= 0:
+    #            print("(semantic)(dbg) ERROR: Invalid count for input")
+    #            return None
            
-        return (expected_dtype, value)
+    #     return (expected_dtype, value)
+    def visit_node_input(self, node):
+        if not hasattr(node, 'type_t'):
+            self.logError("Input node is missing the 'type_t' attribute.", node)
+            return None
+
+        expected_dtype = node.type_t["tokenName"] 
+
+
+        print(f"(semantic)(dbg) Expected Data Type: {expected_dtype}")
+
+
+        if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
+            self.logError(f"Unsupported data type for input: {expected_dtype}", node)
+            return None
+
+        return expected_dtype
     
     # def visit_node_output(self, node):
     #     print_stmts_n = node.print_stmts_n 
