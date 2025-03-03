@@ -526,8 +526,8 @@ class SemanticAnalyzer:
         self.visit_node(node.body_n)
 
         # Ensure non-void functions return a value
-        if return_type != "void" and not has_return:
-            self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.")
+        #---------- if return_type != "void" and not has_return:
+        #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.")
 
         self.function_return_stack.pop()
         print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
@@ -612,6 +612,8 @@ class SemanticAnalyzer:
                         self.logError(f"Type mismatch for function call '{func_name}' parameter {i+1}: expected '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node.id_n)
                 
                 elif param_type["type"] == "arr":
+                    if param_type["dtype"] is None or param_type["dimension"] is None:
+                        continue  # Accept any dtype and dimension for std libs
                     if param_type["dtype"] != arg_val_type[1]:
                         self.logError(f"Type mismatch for function '{func_name}' parameter {i+1}: expected array of '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node.id_n)
                     else:
@@ -1285,30 +1287,30 @@ class SemanticAnalyzer:
         self.exit_scope(type(node).__name__)
         return
     
-    def visit_node_return_block(self, node):
+    # --------- def visit_node_return_block(self, node):
 
-        print("ENTERED RETURN BLOCK")
+    #     print("ENTERED RETURN BLOCK")
 
-        if self.function_return_stack:
+    #     if self.function_return_stack:
 
-            # Get current function return type
-            expected_return_type = self.function_return_stack[-1]  
+    #         # Get current function return type
+    #         expected_return_type = self.function_return_stack[-1]  
 
-            if node.ret_value_n:
-                result = self.visit_node(node.ret_value_n)
-                print(result)
+    #         if node.ret_value_n:
+    #             result = self.visit_node(node.ret_value_n)
+    #             print(result)
         
-                actual_return_type = self.visit_node(node.ret_value_n)[0][1]
+    #             actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
-                if expected_return_type == "void":
-                    self.logError("Semantic Error: 'void' functions cannot return a value.")
+    #             if expected_return_type == "void":
+    #                 self.logError("Semantic Error: 'void' functions cannot return a value.")
 
-                if expected_return_type != actual_return_type:
-                    self.logError(f"Semantic Error: Expected return type '{expected_return_type}', but got '{actual_return_type}'.")
+    #             if expected_return_type != actual_return_type:
+    #                 self.logError(f"Semantic Error: Expected return type '{expected_return_type}', but got '{actual_return_type}'.")
 
-            else:
-                if expected_return_type != "void":
-                    self.logError(f"Semantic Error: Function must return a value of type '{expected_return_type}', but got none.")
+    #         else:
+    #             if expected_return_type != "void":
+    #                 self.logError(f"Semantic Error: Function must return a value of type '{expected_return_type}', but got none.")
 
     def check_return_in_body(self, node):
             print("ENTERED CHEKING RETURN")
