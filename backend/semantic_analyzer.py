@@ -547,15 +547,15 @@ class SemanticAnalyzer:
             else:
                 values_list = node.arr_dec_cont_n
         arr_vals = []
-        for value_node in values_list[:-1] or []:
-            print(f'\n\n\n\n\n{self.visit_node(value_node)}\n\n\n')
+        for value_node in values_list or []:
             val_type, val = self.visit_node(value_node)
+            print(f'arr init valtype: {val_type}')
             #error for arr size in code gen
             if val_type != node.dtype_t["tokenName"]:
                 self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
             else:
                 arr_vals.append(val)
-        self.curr_scope.set_array(id, values_list, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
+        self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
         for arrdec_node in arr_rec or []:
             size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
             if size_1_type not in ['int', 'long']:
