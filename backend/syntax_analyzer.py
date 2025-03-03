@@ -2427,7 +2427,7 @@ class SyntaxAnalyzer:
                 case_value_temp_t = node_num(self.match("whole_lit", False))
             
             elif currentTokenType == "-":
-                case_value_temp_t = node_un_op(self.match("-", False), self.match("whole_lit", False))
+                case_value_temp_t = node_un_op(self.match("-", False), node_num(self.match("whole_lit", False)))
                 
                 if not case_value_temp_t:
                     self.logError(f"Expected negative numerical constant but got {self.currToken} instead.")

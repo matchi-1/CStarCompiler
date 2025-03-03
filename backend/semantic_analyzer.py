@@ -1042,13 +1042,13 @@ class SemanticAnalyzer:
 
             if ctrl_stmt == "node_break_stmt":
                 if self.loop_depth == 0 and self.switch_depth == 0:
-                    print("(semantic)(dbg) 'break' statements may only be used within the scope of loop and case statements.")
+                    self.logError("'break' statements may only be used within the scope of 'loop' and 'switch' statements.")
                 print("(semantic)(dbg) FOUND 'break' !!!")
                 continue
             
             elif ctrl_stmt == "node_continue_stmt":
                 if self.loop_depth == 0 and self.switch_depth == 0:
-                    print("(semantic)(dbg)'continue' statements may only be used within the scope of loop and case statements.")
+                    self.logError("'continue' statements may only be used within the scope of 'loop' and 'switch' statements.")
                 print("(semantic)(dbg) FOUND 'continue' !!!")
                 continue
             
@@ -1106,6 +1106,8 @@ class SemanticAnalyzer:
         self.switch_depth += 1
         
         switch_value = self.visit_node(node.value_n)
+        if switch_value[0] not in ["string", "int", "long"]:
+            self.logError("Invalid data type for 'switch' value. Expected: 'string', 'int', 'long' data types")
         
         # CASE
         case_n = node.case_n
@@ -1115,22 +1117,29 @@ class SemanticAnalyzer:
             self.enter_scope(case_stmt)
             case_value_type = case_stmt.case_value_n
             case_value = self.visit_node(case_value_type)
-            
-            #if case_value[0] != switch_value[0]:
-            #    self.logError("'switch' value and 'case' value must be of same data type.")
-
             print(f"(semantic)(dbg) FOUND 'case_value'")
+            
+            if case_value[0] != switch_value[0]:
+                self.logError(f"'switch' value and 'case' value must be of same data type. Expected: '{switch_value[0]}' data type for case value.")
+
+            if case_stmt.ctrl_stmt_body_n:
+                self.visit_node(case_stmt.ctrl_stmt_body_n)
+
+            print(f"(semantic)(dbg) FOUND 'case_body'")
             self.exit_scope(case_stmt)
             
         
         # DEFAULT
-        default_n = node.default_n
+        default_stmt = node.default_n
 
-        if default_n:
-            self.enter_scope(default_n)
+        if default_stmt:
+            self.enter_scope(default_stmt)
+            
+            if default_stmt.ctrl_stmt_body_n:
+                self.visit_node(default_stmt.ctrl_stmt_body_n)
+                print(f"(semantic)(dbg) FOUND 'default_body'")
 
-
-            self.exit_scope(default_n)
+            self.exit_scope(default_stmt)
 
         self.switch_depth -= 1
         self.exit_scope(type(node).__name__)
