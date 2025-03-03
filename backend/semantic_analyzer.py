@@ -456,10 +456,10 @@ class SemanticAnalyzer:
         dtype = arr_sym["dtype"][1]
         if node.idx2_n:
             if arr_sym["arr_info"]["dimension"] == 1:
-                self.logError(f'Array {node.id_n.id_t["tokenName"]} only has 1 dimension.')
+                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.')
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
-                self.logError(f'Array {node.id_n.id_t["tokenName"]} has 2 dimensions.')
+                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
         return (('var', dtype), None) #for now, since seman
     #cont...
 
@@ -621,7 +621,7 @@ class SemanticAnalyzer:
         if idx1_type[1] not in ['int', 'long']:
             self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", arr_node.id_n)
 
-        if idx1_val is not None and (idx1_val < 0 or (arr_symbol["arr_info"]["size1"] is not None and idx1_val >= arr_symbol["arr_info"]["size1"])):
+        if idx1_val is not None and (idx1_val < 0 or (arr_symbol["arr_info"]["size1"] is not None and idx1_val >= arr_symbol["arr_info"]["size1"])):  # code gen    
             self.logError(f"Array index '{idx1_val}' out of bounds for array '{arr_name}'.", arr_node.id_n)
 
         if arr_dim == 2:
@@ -634,7 +634,7 @@ class SemanticAnalyzer:
 
         value_type, value = self.visit_node(node.value_n)
         if value_type[1] != arr_dtype:
-            self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_n)
+            self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
 
         # Update the array value in the symbol table (for code generation purposes)
         # if arr_dim == 1:
