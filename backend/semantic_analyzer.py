@@ -1433,9 +1433,19 @@ class SemanticAnalyzer:
             return self.check_return_in_body(node.loop_stmt_n.ctrl_stmt_body_n)
 
         if isinstance(node, node_switch_stmt):
-            has_return_in_cases = any(self.check_return_in_body(case) for case in node.case_n.case_stmt_n)
-            has_return_in_default = self.check_return_in_body(node.default_n) if node.default_n else False
-            return has_return_in_cases or has_return_in_default  
+            print(f"(semantic)(dbg) Checking return in SWITCH statement")
+
+            case_returns = [self.check_return_in_body(case) for case in node.case_n.case_stmt_n]
+
+            has_default = node.default_n is not None
+            has_return_in_default = self.check_return_in_body(node.default_n) if has_default else False
+
+            print(f"(semantic)(dbg) Switch case returns: {case_returns}, has_default={has_default}, has_return_in_default={has_return_in_default}")
+
+            if not all(case_returns) or (has_default and not has_return_in_default):
+                return False
+
+            return True 
 
         if isinstance(node, node_case_stmt):
             return self.check_return_in_body(node.ctrl_stmt_body_n)
