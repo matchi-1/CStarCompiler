@@ -737,6 +737,8 @@ class SemanticAnalyzer:
                 # return (right_type, right_val - 1 )
                 return (right_type, None)
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
+            if right_type not in ["bool", "string", "int", "long", "double", "float"]:
+                self.logError(f'{node.id_right_n.id_t["tokenName"]} cannot be typecasted.')
             match node.left_t["tokenName"] :
                 case 'bool':
                     # match right_type:
@@ -832,7 +834,7 @@ class SemanticAnalyzer:
                         #     return ('double', right_val)
                         # case 'double':
                         #     return ('double', right_val)
-                        
+                    
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
         loop_name = type(node_loop).__name__
