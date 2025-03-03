@@ -521,6 +521,8 @@ class SemanticAnalyzer:
         
         # Visit function body
         if not node.is_std_lib:
+            self.current_function_name = func_name
+
             self.function_return_stack.append(return_type)
             print(f"Return stack = {self.function_return_stack}")
 
@@ -534,6 +536,7 @@ class SemanticAnalyzer:
 
             self.function_return_stack.pop()
             print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+            self.current_function_name = None
  
 
         # Exit function scope, back to program constructs
@@ -1307,14 +1310,14 @@ class SemanticAnalyzer:
                 actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
                 if expected_return_type == "void":
-                    self.logError("Semantic Error: 'void' functions cannot return a value.")
+                    self.logError(f"Function '{self.current_function_name}' is 'void' and cannot return a value.")
 
                 if expected_return_type != actual_return_type:
-                    self.logError(f"Semantic Error: Expected return type '{expected_return_type}', but got '{actual_return_type}'.")
+                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.")
 
             else:
                 if expected_return_type != "void":
-                    self.logError(f"Semantic Error: Function must return a value of type '{expected_return_type}', but got none.")
+                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.")
 
     def check_return_in_body(self, node):
         print("ENTERED CHEKING RETURN")
