@@ -607,23 +607,24 @@ class SemanticAnalyzer:
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_val: " + str(arg_val))
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
                 
-                if arg_val_type[0] in ["var", "lit"]:
-                    if arg_val_type[1] != param_type["dtype"]:
-                        self.logError(f"Type mismatch for function call '{func_name}' parameter {i+1}: expected '{param_type['dtype']}' but found '{arg_val_type[1]}'", None)
+                if param_type["type"] in ["var", "lit"]:
+                    if param_type["dtype"] != arg_val_type[1]:
+                        self.logError(f"Type mismatch for function call '{func_name}' parameter {i+1}: expected '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node.id_n)
                 
-                elif arg_val_type[0] == "arr":
-                    if arg_val_type[1] != param_type["dtype"]:
-                        self.logError(f"Type mismatch for function '{func_name}' parameter {i+1}: expected array of '{param_type['dtype']}' but found '{arg_val_type[1]}'", None)
-                    elif arg_node.dimension != param_type["dimension"]:
-                        self.logError(f"Dimension mismatch for function call '{func_name}' parameter {i+1}: expected {param_type['dimension']} dimensions but found {arg_node.dimension}", None)
+                elif param_type["type"] == "arr":
+                    if param_type["dtype"] != arg_val_type[1]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameter {i+1}: expected array of '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node.id_n)
+                    else:
+                        arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
+                        if arg_sym["arr_info"]["dimension"] != param_type["dimension"]:
+                            self.logError(f"Dimension mismatch for function call '{func_name}' parameter {i+1}: expected {param_type['dimension']} dimensions but found {arg_sym['arr_info']['dimension']}.", node.id_n)
                 
-                elif arg_val_type[0] == "object":
-                    if arg_val_type[1] != param_type["class_name"]:
-                        self.logError(f"Type mismatch for function call '{func_name}' parameter {i+1}: expected instance of class '{param_type['class_name']}' but found '{arg_val_type[1]}'", None)
+                elif param_type["type"] == "object":
+                    if param_type["class_name"] != arg_val_type[1]:
+                        self.logError(f"Type mismatch for function call '{func_name}' parameter {i+1}: expected instance of class '{param_type['class_name']}' but found '{arg_val_type[1]}'.", node.id_n)
                 
                 else:
-                    self.logError(f"Unknown parameter type for function call '{func_name}' parameter {i+1}: '{param_type['dtype']}'", None)
-        
+                    self.logError(f"Unknown parameter type for function call '{func_name}' parameter {i+1}: '{param_type['dtype']}'", node.id_n)
         
         else:
             if node.args_n:
