@@ -665,15 +665,14 @@ class SyntaxAnalyzer:
             return None
 
     def matchPredictSet(self, non_terminal, hasSpecError=True):
-        if self.currToken is None:  # EOF
-            self.ERROR_unexpected("", "Unexpected EOF", PREDICT_SETS.get(non_terminal, []))
-            return False
-
         expected_predict_set = PREDICT_SETS.get(non_terminal, [])
+        if self.currToken is None:  # EOF
+            self.ERROR_expected_token(expected_predict_set)
+            return False
 
         if self.currToken["tokenType"] not in expected_predict_set:
             if not hasSpecError:
-                self.ERROR_unexpected("", "Unexpected Token", expected_predict_set)
+                self.ERROR_expected_token(expected_predict_set)
                 return False
             else:
                 return False
@@ -703,15 +702,15 @@ class SyntaxAnalyzer:
             currLine = currToken["tokenLine"]
             currCol = currToken["tokenCol"]
 
-        # Determine the expected message
+        
         if expected_predict_set:
-            # Format the list of expected tokens
+            
             expected_tokens = ", ".join(f"'{token}'" for token in expected_predict_set)
             expected_message = f"{expected_tokens}"
         else:
             expected_message = f"'{expected_token}'"
 
-        # Construct the error message
+        
         if self.currToken:
             message = (
                 f"\tSyntax Error: Unexpected Token '{currToken}' at line {currLine}, column {currCol}"
