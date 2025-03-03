@@ -1,4 +1,4 @@
-from syntax_analyzer import node_body, node_code_block, node_if_stmt, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block
+from syntax_analyzer import node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body
 
 class SymbolTable:
     def __init__(self, parent=None):
@@ -1034,24 +1034,24 @@ class SemanticAnalyzer:
         if loop_name == 'node_forloop':    
             self.visit_node(node_loop.init_arg_n)
             loop_condition = self.visit_node(node_loop.condition_n.condition_value_n)
-            if loop_condition[0] != 'bool':
-                self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{loop_condition[0]}' instead.")
+            if loop_condition[0][1] != 'bool':
+                self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{loop_condition[0][1]}' instead.")
             print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
             self.visit_node(node_loop.inc_arg_n) 
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         elif loop_name == 'node_while' or loop_name == 'node_do':
             loop_condition = self.visit_node(node_loop.condition_n.condition_value_n)
-            if loop_condition[0] != 'bool':
-                self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{loop_condition[0]}' instead.")
+            if loop_condition[0][1] != 'bool':
+                self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{loop_condition[0][1]}' instead.")
 
             print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         elif loop_name == 'node_repeat':
             repeat_val_result = self.visit_node(node_loop.repeat_value_n)
-            if repeat_val_result[0] not in ['int', 'long']:
-                self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_val_result[0]}' instead.")
+            if repeat_val_result[0][1] not in ['int', 'long']:
+                self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_val_result[0][1]}' instead.")
             print(f"(semantic)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_val_result}")
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
@@ -1296,7 +1296,7 @@ class SemanticAnalyzer:
         self.switch_depth += 1
         
         switch_value = self.visit_node(node.value_n)
-        if switch_value[0] not in ["string", "int", "long"]:
+        if switch_value[0][1] not in ["string", "int", "long"]:
             self.logError("Invalid data type for 'switch' value. Expected: 'string', 'int', 'long' data types.")
         
         # CASE
@@ -1309,8 +1309,8 @@ class SemanticAnalyzer:
             case_value = self.visit_node(case_value_type)
             print(f"(semantic)(dbg) FOUND 'case_value'")
             
-            if case_value[0] != switch_value[0]:
-                self.logError(f"'switch' value and 'case' value must be of same data type. Expected: '{switch_value[0]}' data type for case value.")
+            if case_value[0][1] != switch_value[0][1]:
+                self.logError(f"'switch' value and 'case' value must be of same data type. Expected: '{switch_value[0][1]}' data type for case value.")
 
             if case_stmt.ctrl_stmt_body_n:
                 self.visit_node(case_stmt.ctrl_stmt_body_n)
@@ -1351,7 +1351,7 @@ class SemanticAnalyzer:
                 actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
                 if expected_return_type == "void":
-                    self.logError(f"Function '{self.current_function_name}' is 'void' and cannot return a value.")
+                    self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.")
 
                 if expected_return_type != actual_return_type:
                     self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.")
@@ -1361,25 +1361,46 @@ class SemanticAnalyzer:
                     self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.")
 
     def check_return_in_body(self, node):
-        print("ENTERED CHEKING RETURN")
+        print(f"(semantic)(dbg) Checking return in {type(node).__name__}")
+
+        if node is None:
+            return False
+
         if isinstance(node, node_body):
             return self.check_return_in_body(node.body_codeblock_n) or self.check_return_in_body(node.return_stmt_n)
 
         if isinstance(node, node_code_block):
             return any(self.check_return_in_body(stmt) for stmt in node.code_block_statement_n)
 
+        if isinstance(node, node_ctrl_stmt_body):
+            return any(self.check_return_in_body(stmt) for stmt in node.statements_n)
+
         if isinstance(node, node_if_stmt):
+            print(f"(semantic)(dbg) Checking return in IF statement")
+
             has_return_in_if = self.check_return_in_body(node.body_n)
-            has_return_in_else = self.check_return_in_body(node.else_chain_n) if node.else_chain_n else True
-            return has_return_in_if and has_return_in_else
+            has_return_in_else = False
+
+            if node.else_chain_n:
+                has_return_in_else = self.check_return_in_body(node.else_chain_n)
+
+            print(f"(semantic)(dbg) has_return_in_if={has_return_in_if}, has_return_in_else={has_return_in_else}")
+
+            return has_return_in_if and has_return_in_else 
+
+        if isinstance(node, node_else_stmt):
+            return self.check_return_in_body(node.body_n)
+
+        if isinstance(node, node_else_chain):
+            return any(self.check_return_in_body(stmt) for stmt in node.else_chain_n)
 
         if isinstance(node, node_loop_stmt):
             return self.check_return_in_body(node.loop_stmt_n.ctrl_stmt_body_n)
 
         if isinstance(node, node_switch_stmt):
             has_return_in_cases = any(self.check_return_in_body(case) for case in node.case_n.case_stmt_n)
-            has_return_in_default = self.check_return_in_body(node.default_n) if node.default_n else True
-            return has_return_in_cases and has_return_in_default
+            has_return_in_default = self.check_return_in_body(node.default_n) if node.default_n else False
+            return has_return_in_cases or has_return_in_default  
 
         if isinstance(node, node_case_stmt):
             return self.check_return_in_body(node.ctrl_stmt_body_n)
@@ -1388,6 +1409,8 @@ class SemanticAnalyzer:
             return self.check_return_in_body(node.ctrl_stmt_body_n)
 
         if isinstance(node, node_return_block):
+            print(f"(semantic)(dbg) Found return statement")
             return True
 
         return False
+
