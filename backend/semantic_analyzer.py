@@ -377,7 +377,16 @@ class SemanticAnalyzer:
             return (iden_symbol["dtype"], None)
         
     def visit_node_arr_idx(self, node):
-        dtype = self.curr_scope.get(node.id_n.id_t["tokenName"])["dtype"][4:]
+        arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
+        if arr_sym["dtype"][:4] != 'arr_':
+            self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.')
+        dtype = arr_sym["dtype"][4:]
+        if node.idx2_n:
+            if arr_sym["arr_info"]["dimension"] == 1:
+                self.logError(f'Array {node.id_n.id_t["tokenName"]} only has 1 dimension.')
+        else:
+            if arr_sym["arr_info"]["dimension"] == 2:
+                self.logError(f'Array {node.id_n.id_t["tokenName"]} has 2 dimensions.')
         return (dtype, None) #for now, since seman
     #cont...
 
@@ -547,14 +556,27 @@ class SemanticAnalyzer:
             else:
                 values_list = node.arr_dec_cont_n
         arr_vals = []
-        for value_node in values_list or []:
-            val_type, val = self.visit_node(value_node)
-            print(f'arr init valtype: {val_type}')
-            #error for arr size in code gen
-            if val_type != node.dtype_t["tokenName"]:
-                self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
-            else:
-                arr_vals.append(val)
+        if dim == 1:
+            for value_node in values_list or []:
+                val_type, val = self.visit_node(value_node)
+                print(f'arr init valtype: {val_type}')
+                #error for arr size in code gen
+                if val_type != node.dtype_t["tokenName"]:
+                    self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
+                else:
+                    arr_vals.append(val)
+        else:
+            for inner_arr in values_list or []:
+                temp_arr = []
+                for value_node in inner_arr or []:
+                    val_type, val = self.visit_node(value_node)
+                    print(f'arr init valtype: {val_type}')
+                    #error for arr size in code gen
+                    if val_type != node.dtype_t["tokenName"]:
+                        self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
+                    else:
+                        temp_arr.append(val)
+                arr_vals.append(temp_arr)
         self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
         for arrdec_node in arr_rec or []:
             size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
