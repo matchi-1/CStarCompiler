@@ -53,6 +53,13 @@ class SymbolTable:
         sym_content["params"] = param_types
         self.syms[sym_name] = sym_content
         return {sym_name: sym_content}
+    
+    def print_symbol_tree(self, indent=0):
+        """Recursively prints the symbol table from the current scope up to the root."""
+        print("\t" * indent + f"Scope Level {indent}: {self.syms}")
+
+        if self.parent:
+            self.parent.print_symbol_tree(indent + 1)  # Move up the tree
 
 class SemanticAnalyzer:
 
@@ -75,7 +82,7 @@ class SemanticAnalyzer:
             #print('(semantic)(dbg) global table: ')
             #print global dbg #wont be seen until prog construts is implemented
             for s in self.curr_scope.syms:
-                print(f'(semantic)(dbg)\t\t{s} : {self.curr_scope.syms[s]}')
+                print(f'\t\t{s} : {self.curr_scope.syms[s]}')
         except SyntaxError as e:
             print (e)
 
@@ -156,6 +163,7 @@ class SemanticAnalyzer:
 
 
 
+
     def logError(self, msg, idenNode = None): #only works on node_iden
         if idenNode:
             currLine = idenNode.id_t["tokenLine"]
@@ -168,7 +176,7 @@ class SemanticAnalyzer:
                 f"Semantic Error(#todo line nums): {msg}"
             )
         self.errors.append(full_message)
-        print(full_message)
+        #print(full_message)
         raise SyntaxError(full_message)
 
 
@@ -190,7 +198,9 @@ class SemanticAnalyzer:
         self.enter_scope(type(node).__name__)
         # PLACEHOLDER! idk if it's correct
         self.visit_node(node.body_codeblock_n)
+        
         self.exit_scope(type(node).__name__)
+        
 
     #code_block PLACEHODLER
     def visit_node_code_block(self, node):
@@ -206,9 +216,10 @@ class SemanticAnalyzer:
             if global_declarations:
                 self.visit_node(global_declarations)
 
-        print("\n(semantic)(dbg) EXITING scope 'node_program_constructs', GLOBAL TABLE: ")
+        print("\n(semantic)(dbg) DONE VISITNG scope 'node_program_constructs', GLOBAL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
-        self.curr_scope = self.curr_scope.parent
+
+        
 
 
 
@@ -220,7 +231,7 @@ class SemanticAnalyzer:
             return
         constructorInfo = None
         if node.constructor_dec_n: constructorInfo = self.visit_node_constructor_dec(node.constructor_dec_n) 
-        if node.class_body_n.class_body_stmt_n : self.visit_node_class_body(node.class_body_n, className, constructorInfo)
+        self.visit_node_class_body(node.class_body_n, className, constructorInfo)
 
 
 
@@ -264,7 +275,7 @@ class SemanticAnalyzer:
 
                 # Check if parameter name is duplicated
                 if self.curr_scope.get(param_name, checkParent=False):
-                    self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
+                    self.logError(f"Parameter '{param_name}' is already declared in function '{className}'.", param.id_n)
 
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
@@ -289,32 +300,48 @@ class SemanticAnalyzer:
         # if return_type != "void" and not has_return:
         #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.id_n)
 
-        # Exit function scope, back to program constructs
-        # constructorInfo = self.visit_node_func_dec(vardec_n, priv)
-
         self.exit_scope(type(node).__name__)
         return constructorInfo
 
 
 
     def visit_node_class_body(self, node, className, constructorInfo):
-        class_body_stmt = node.class_body_stmt_n
         class_content = []
+        
+        if node.class_body_stmt_n:
+            class_body_stmt = node.class_body_stmt_n
+        
+            self.enter_scope(type(node).__name__)
+            for class_body_stmt_n in class_body_stmt:
+                priv = class_body_stmt_n.is_private_b
+                vardec_n = class_body_stmt_n.vardec_n
+                
+                if type(vardec_n).__name__ == "node_vardec":
+                    class_content.append(self.visit_node_vardec(vardec_n, priv))
 
-        self.enter_scope(type(node).__name__)
-        for class_body_stmt_n in class_body_stmt:
-            priv = class_body_stmt_n.is_private_b
-            vardec_n = class_body_stmt_n.vardec_n
-            
-            if type(vardec_n).__name__ == "node_vardec":
-                class_content.append(self.visit_node_vardec(vardec_n, priv))
-
-            elif type(vardec_n).__name__ == "node_func_dec":
-                class_content.append(self.visit_node_func_dec(vardec_n, priv))
+                elif type(vardec_n).__name__ == "node_func_dec":
+                    class_content.append(self.visit_node_func_dec(vardec_n, priv))
+            self.exit_scope(type(node).__name__)
 
         flattened = [item for sublist in class_content for item in sublist]
-        self.curr_scope.parent.set_class(className, dtype="class", class_info={"constructor_dec" : constructorInfo, "class_body_content": flattened})
-        self.exit_scope(type(node).__name__)
+        self.curr_scope.set_class(className, dtype="class", class_info={"constructor_dec" : constructorInfo, "class_body_content": flattened})
+        
+
+    def visit_node_class_inst(self, node):
+        class_id = node.class_id_n.id_t["tokenName"]
+        class_inst_cont = node.class_instcont_n
+        dtype = ('class', class_id)
+        if not self.curr_scope.get(class_id, checkParent=True):
+            self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
+
+        if class_inst_cont:
+            constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
+            if constructor_call_id != class_id:
+                self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
+
+            #TODO: add params and to scope and custom scope hahahahahahahhahahajfdhkasdhflkjawdh;geiurswthnbjoernbiop;las
+
+        self.curr_scope.set(node.obj_id_n.id_t["tokenName"], value = None, dtype = dtype, )
 
 
 
