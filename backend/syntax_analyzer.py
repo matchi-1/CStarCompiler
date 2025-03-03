@@ -585,7 +585,7 @@ class node_assign_stmt_object_att:
     def __init__(self, class_att_n, op_t, value_n):
         self.class_att_n = class_att_n   # iden.iden
         self.op_t = op_t
-        self.assign_value_n = value_n
+        self.value_n = value_n
     def __repr__(self):
         return f"node_assign_stmt_object_att: class_att_n:'{self.class_att_n}', op:'{self.op_t["tokenName"]}', val:'{self.value_n}'"
 

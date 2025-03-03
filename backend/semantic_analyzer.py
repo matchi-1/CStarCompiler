@@ -586,6 +586,11 @@ class SemanticAnalyzer:
         value = node.value_n
         iden_name = iden.id_t["tokenName"]
         iden_symbol = self.curr_scope.get(iden_name)
+        if iden_symbol["dtype"][0] in ["arr", "object"]:
+            if iden_symbol["dtype"][0] == "arr":
+                self.logError(f"Symbol '{iden_name}' is an array and cannot be reassigned.", iden)
+            elif iden_symbol["dtype"][0] == "object":
+                self.logError(f"Symbol '{iden_name}' is an object and cannot be reassigned.", iden)
         if not iden_symbol:
             self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
         if iden_symbol["const"]:
@@ -598,37 +603,49 @@ class SemanticAnalyzer:
 
 
     def visit_node_assign_stmt_array_elem(self, node):
-        iden = node.id_n
-        value = node.value_n
-        iden_name = iden.id_t["tokenName"]
-        iden_symbol = self.curr_scope.get(iden_name)
-        if not iden_symbol:
-            self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
-        if iden_symbol["const"]:
-            self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", iden)
-        dtype = iden_symbol["dtype"][4:]
-        val_type, val = self.visit_node(value)
-        if dtype != val_type:
-            self.logError(f"Type Mismatch: expected '{dtype}' for array '{iden_name}' but found '{val_type}'", iden)
+        arr_node = node.id_arr_n   # current node
+        arr_name = arr_node.id_n.id_t["tokenName"]
+        arr_symbol = self.curr_scope.get(arr_name)  # reference node in sym table
 
-        # Check dimensions
-        if node.idx2_n:
-            if iden_symbol["arr_info"]["dimension"] != 2:
-                self.logError(f"Array '{iden_name}' is not 2-dimensional.", iden)
-            idx1_type, idx1_val = self.visit_node(node.idx1_n)
-            idx2_type, idx2_val = self.visit_node(node.idx2_n)
-            if idx1_type not in ['int', 'long'] or idx2_type not in ['int', 'long']:
-                self.logError(f"Array indices must be of type 'int' or 'long'.", iden)
-            if idx1_val >= iden_symbol["arr_info"]["size1"] or idx2_val >= iden_symbol["arr_info"]["size2"]:  # this wont work for expressions yet
-                self.logError(f"Array index out of bounds.", iden)
-        else:
-            if iden_symbol["arr_info"]["dimension"] != 1:
-                self.logError(f"Array '{iden_name}' is not 1-dimensional.", iden)
-            idx1_type, idx1_val = self.visit_node(node.idx1_n)
-            if idx1_type not in ['int', 'long']:
-                self.logError(f"Array index must be of type 'int' or 'long", iden)
-            if idx1_val >= iden_symbol["arr_info"]["size1"]:
-                self.logError(f"Array index out of bounds.", iden)
+        if not arr_symbol:
+            self.logError(f"Array '{arr_name}' hasn't been declared yet.", arr_node.id_n)
+
+        if arr_symbol["const"]:
+            self.logError(f"Array '{arr_name}' is a constant and cannot be modified.", arr_node.id_n)
+
+        arr_dtype = arr_symbol["dtype"][1]
+        arr_dim = arr_symbol["arr_info"]["dimension"]
+
+        if arr_dim == 1 and arr_node.idx2_n:
+            self.logError(f"Array '{arr_name}' is 1-dimensional but accessed with 2 indices.", arr_node.id_n)
+        elif arr_dim == 2 and not arr_node.idx2_n:
+            self.logError(f"Array '{arr_name}' is 2-dimensional but accessed with 1 index.", arr_node.id_n)
+
+        idx1_type, idx1_val = self.visit_node(arr_node.idx_n)
+        if idx1_type[1] not in ['int', 'long']:
+            self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", arr_node.id_n)
+
+        if idx1_val is not None and (idx1_val < 0 or (arr_symbol["arr_info"]["size1"] is not None and idx1_val >= arr_symbol["arr_info"]["size1"])):
+            self.logError(f"Array index '{idx1_val}' out of bounds for array '{arr_name}'.", arr_node.id_n)
+
+        if arr_dim == 2:
+            idx2_type, idx2_val = self.visit_node(arr_node.idx2_n)
+            if idx2_type[1] not in ['int', 'long']:
+                self.logError(f"Array index must be an integer, but found '{idx2_type[1]}'.", arr_node.id_n)
+
+            if idx2_val is not None and (idx2_val < 0 or (arr_symbol["arr_info"]["size2"] is not None and idx2_val >= arr_symbol["arr_info"]["size2"])):
+                self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", arr_node.id_n)
+
+        value_type, value = self.visit_node(node.value_n)
+        if value_type[1] != arr_dtype:
+            self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_n)
+
+        # Update the array value in the symbol table (for code generation purposes)
+        # if arr_dim == 1:
+        #     arr_symbol["value"][idx1_val] = value
+        # else:
+        #     arr_symbol["value"][idx1_val][idx2_val] = value
+        
 
 
     def visit_node_assign_stmt_object_att(self,node):
