@@ -140,10 +140,10 @@ class node_arr_idx:
 
 class node_class_att:
     def __init__(self, class_id_n, att_id_n):
-        self.class_id_n = class_id_n
+        self.obj_id_n = class_id_n
         self.att_id_n = att_id_n
     def __repr__(self):
-        return f'{self.class_id_n}.{self.att_id_n}'
+        return f'{self.obj_id_n}.{self.att_id_n}'
 
 class node_class_method_call:
     def __init__(self, class_id_n, method_id_n, args_n = None):
