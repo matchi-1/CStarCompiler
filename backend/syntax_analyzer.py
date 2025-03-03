@@ -2190,7 +2190,7 @@ class SyntaxAnalyzer:
         self.hasFunctionReturned = False
 
         if self.currToken and self.currToken["tokenType"] == "else" and not isChain:
-            else_chain_n = node_else_chain(self.else_chain())
+            else_chain_n = node_else_chain(self.else_chain(isVoid))
 
         print("(parser) entered production: \"if_stmt\"")
         return node_if_stmt(condition_n, body_n, else_chain_n)
@@ -2302,7 +2302,7 @@ class SyntaxAnalyzer:
         return None
 
     # bare-minimum tested
-    def else_chain(self):
+    def else_chain(self, isVoid = False):
         '''<else_stmt> → <if_stmt> | { <ctrl_stmt_body> }'''
         print("(parser) entered production: \"else_chain\"")
         
@@ -2312,13 +2312,13 @@ class SyntaxAnalyzer:
             self.match("else", False)
 
             if self.currToken and self.currToken["tokenType"] == "if":
-                else_chain_n.append(self.if_stmt(False,True))
+                else_chain_n.append(self.if_stmt(isVoid,True))
 
                 if self.currToken and self.currToken["tokenType"] == "else":
-                    else_chain_n += self.else_chain()
+                    else_chain_n += self.else_chain(isVoid)
 
             elif self.currToken and self.currToken["tokenType"] == "{":
-                else_chain_n.append(self.else_stmt())
+                else_chain_n.append(self.else_stmt(isVoid))
             
             print("(parser) exited production: \"else_chain\"")
             return else_chain_n
