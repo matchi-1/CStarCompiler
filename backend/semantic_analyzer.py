@@ -553,7 +553,8 @@ class SemanticAnalyzer:
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
         if val_type and dtype != val_type:
-            self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", node.id_n)
+            if dtype not in ['float', 'double'] or val_type not in ['int', 'long']:
+                self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", node.id_n)
         # if not value:
         #     match dtype:
         #         case 'bool':
