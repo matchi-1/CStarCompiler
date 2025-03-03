@@ -915,7 +915,21 @@ class SemanticAnalyzer:
     #         return param_type == "double"
     #     else:
     #         return False
+    def visit_node_output(self, node):
+        print_stmts_n = node.print_stmts_n 
+        print_params_n = node.print_params_n  
 
+        if not print_params_n:
+            self.logError("Output statement requires at least one parameter.", node)
+            return None
+
+        format_string_node = print_params_n[0]
+        format_string_type, _ = self.visit_node(format_string_node)
+
+        if format_string_type != "string":
+            self.logError("First parameter in output statement must be a string.", format_string_node)
+            return None
+        return None
     
     #code block
     # def visit_code_block(self, node, isVoid=False):
