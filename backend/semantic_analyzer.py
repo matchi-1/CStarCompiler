@@ -1204,8 +1204,8 @@ class SemanticAnalyzer:
 
         if_condition = self.visit_node(node.condition_n.condition_value_n)
         
-        if if_condition[0] != 'bool':
-            self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{if_condition[0]}' instead.")
+        if if_condition[0][1] != 'bool':
+            self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{if_condition[0][1]}' instead.")
         print(f"(semantic)(dbg) FOUND CONDITION for {type(node).__name__} -> {node.condition_n.condition_value_n} = {self.visit_node(node.condition_n.condition_value_n)}")
         
         if node.body_n:
@@ -1297,7 +1297,7 @@ class SemanticAnalyzer:
                 result = self.visit_node(node.ret_value_n)
                 print(result)
         
-                actual_return_type = self.visit_node(node.ret_value_n)[0]
+                actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
                 if expected_return_type == "void":
                     self.logError("Semantic Error: 'void' functions cannot return a value.")
