@@ -1336,16 +1336,22 @@ class SemanticAnalyzer:
         
         # CASE
         case_n = node.case_n
+        case_value_list = []
 
         for case_stmt in case_n.case_stmt_n:
 
             self.enter_scope(case_stmt)
             case_value_type = case_stmt.case_value_n
             case_value = self.visit_node(case_value_type)
-            print(f"(semantic)(dbg) FOUND 'case_value'")
+
+            if str(case_value_type) in case_value_list:
+                self.logError(f"'switch' statement already contains case value '{str(case_value_type)}'")
             
             if case_value[0][1] != switch_value[0][1]:
                 self.logError(f"'switch' value and 'case' value must be of same data type. Expected: '{switch_value[0][1]}' data type for case value.")
+
+            case_value_list.append(str(case_value_type))
+            print(f"(semantic)(dbg) FOUND CASE VALUE: '{str(case_value_type)}'")
 
             if case_stmt.ctrl_stmt_body_n:
                 self.visit_node(case_stmt.ctrl_stmt_body_n)
