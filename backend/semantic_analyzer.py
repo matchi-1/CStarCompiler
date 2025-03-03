@@ -565,7 +565,7 @@ class SemanticAnalyzer:
 
             # Ensure non-void functions return a value
             if return_type != "void" and not has_return:
-                self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.")
+                self.logError(f"Not all code paths in function '{func_name}' return a value.")
             
             self.visit_node(node.body_n)
 
