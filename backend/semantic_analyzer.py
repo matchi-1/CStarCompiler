@@ -909,7 +909,7 @@ class SemanticAnalyzer:
             self.logError(f"Unsupported data type for input: {expected_dtype}", node)
             return None
 
-        return expected_dtype
+        return (expected_dtype, None)
     
     # def visit_node_output(self, node):
     #     print_stmts_n = node.print_stmts_n 
