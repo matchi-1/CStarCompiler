@@ -522,15 +522,17 @@ class SemanticAnalyzer:
         print(f"Return stack = {self.function_return_stack}")
         
         # Visit function body
-        has_return = self.check_return_in_body(node.body_n)
+        if not node.is_std_lib:
+            has_return = self.check_return_in_body(node.body_n)
+
+            # Ensure non-void functions return a value
+            if return_type != "void" and not has_return:
+                self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.")
+
+            self.function_return_stack.pop()
+            print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+
         self.visit_node(node.body_n)
-
-        # Ensure non-void functions return a value
-        if return_type != "void" and not has_return:
-            self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.")
-
-        self.function_return_stack.pop()
-        print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
 
         # Exit function scope, back to program constructs
         print(f"\n(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
@@ -1298,7 +1300,7 @@ class SemanticAnalyzer:
 
             if node.ret_value_n:
                 result = self.visit_node(node.ret_value_n)
-                print(result)
+                print(f"RETURN VALUE: {result}")
         
                 actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
@@ -1313,33 +1315,33 @@ class SemanticAnalyzer:
                     self.logError(f"Semantic Error: Function must return a value of type '{expected_return_type}', but got none.")
 
     def check_return_in_body(self, node):
-            print("ENTERED CHEKING RETURN")
-            if isinstance(node, node_body):
-                return self.check_return_in_body(node.body_codeblock_n) or self.check_return_in_body(node.return_stmt_n)
+        print("ENTERED CHEKING RETURN")
+        if isinstance(node, node_body):
+            return self.check_return_in_body(node.body_codeblock_n) or self.check_return_in_body(node.return_stmt_n)
 
-            if isinstance(node, node_code_block):
-                return any(self.check_return_in_body(stmt) for stmt in node.code_block_statement_n)
+        if isinstance(node, node_code_block):
+            return any(self.check_return_in_body(stmt) for stmt in node.code_block_statement_n)
 
-            if isinstance(node, node_if_stmt):
-                has_return_in_if = self.check_return_in_body(node.body_n)
-                has_return_in_else = self.check_return_in_body(node.else_chain_n) if node.else_chain_n else True
-                return has_return_in_if and has_return_in_else
+        if isinstance(node, node_if_stmt):
+            has_return_in_if = self.check_return_in_body(node.body_n)
+            has_return_in_else = self.check_return_in_body(node.else_chain_n) if node.else_chain_n else True
+            return has_return_in_if and has_return_in_else
 
-            if isinstance(node, node_loop_stmt):
-                return self.check_return_in_body(node.loop_stmt_n.ctrl_stmt_body_n)
+        if isinstance(node, node_loop_stmt):
+            return self.check_return_in_body(node.loop_stmt_n.ctrl_stmt_body_n)
 
-            if isinstance(node, node_switch_stmt):
-                has_return_in_cases = any(self.check_return_in_body(case) for case in node.case_n.case_stmt_n)
-                has_return_in_default = self.check_return_in_body(node.default_n) if node.default_n else True
-                return has_return_in_cases and has_return_in_default
+        if isinstance(node, node_switch_stmt):
+            has_return_in_cases = any(self.check_return_in_body(case) for case in node.case_n.case_stmt_n)
+            has_return_in_default = self.check_return_in_body(node.default_n) if node.default_n else True
+            return has_return_in_cases and has_return_in_default
 
-            if isinstance(node, node_case_stmt):
-                return self.check_return_in_body(node.ctrl_stmt_body_n)
+        if isinstance(node, node_case_stmt):
+            return self.check_return_in_body(node.ctrl_stmt_body_n)
 
-            if isinstance(node, node_default_stmt):
-                return self.check_return_in_body(node.ctrl_stmt_body_n)
+        if isinstance(node, node_default_stmt):
+            return self.check_return_in_body(node.ctrl_stmt_body_n)
 
-            if isinstance(node, node_return_block):
-                return True
+        if isinstance(node, node_return_block):
+            return True
 
-            return False
+        return False
