@@ -214,6 +214,11 @@ class SemanticAnalyzer:
         for statement in node.code_block_statement_n:
             #print("++++ CODE BLOCK STATEMENT: " + str(statement))
             self.visit_node(statement)
+            print("\n(semantic)(dbg) CURRENT LOCAL SCOPE TABLE: ")
+            self.print_symbols(self.curr_scope.syms, indent=2)
+        
+        
+        
 
     def visit_node_program_constructs(self, node):
         self.enter_scope(type(node).__name__)
@@ -536,38 +541,76 @@ class SemanticAnalyzer:
             self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", iden)
         self.curr_scope.set(iden_name, val, dtype=dtype)
 
+    def visit_node_assign_stmt_arr(self, node):
+        iden = node.id_n
+        value = node.value_n
+        iden_name = iden.id_t["tokenName"]
+        iden_symbol = self.curr_scope.get(iden_name)
+        if not iden_symbol:
+            self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
+        if iden_symbol["const"]:
+            self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", iden)
+        dtype = iden_symbol["dtype"][4:]
+        val_type, val = self.visit_node(value)
+        if dtype != val_type:
+            self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", iden)
+
+        # Check dimensions
+        if node.idx2_n:
+            if iden_symbol["arr_info"]["dimension"] != 2:
+                self.logError(f"Array '{iden_name}' is not 2-dimensional.", iden)
+            idx1_type, idx1_val = self.visit_node(node.idx1_n)
+            idx2_type, idx2_val = self.visit_node(node.idx2_n)
+            if idx1_type not in ['int', 'long'] or idx2_type not in ['int', 'long']:
+                self.logError(f"Array indices must be of type 'int' or 'long'.", iden)
+            if idx1_val >= iden_symbol["arr_info"]["size1"] or idx2_val >= iden_symbol["arr_info"]["size2"]:  # this wont work for expressions yet
+                self.logError(f"Array index out of bounds.", iden)
+        else:
+            if iden_symbol["arr_info"]["dimension"] != 1:
+                self.logError(f"Array '{iden_name}' is not 1-dimensional.", iden)
+            idx1_type, idx1_val = self.visit_node(node.idx1_n)
+            if idx1_type not in ['int', 'long']:
+                self.logError(f"Array index must be of type 'int' or 'long", iden)
+            if idx1_val >= iden_symbol["arr_info"]["size1"]:
+                self.logError(f"Array index out of bounds.", iden)
+        
+
+
     # func calls
     def visit_node_func_call(self, node):
         func_name = node.id_n.id_t["tokenName"]
         func_symbol = self.curr_scope.get(func_name)
         if not func_symbol:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
-        if not func_symbol["params"]:
-            if node.args_n:
-                self.logError(f"Function '{func_name}' does not take any parameters.", node.id_n)
-        else:
+        
+        if func_symbol["params"]:
             if len(func_symbol["params"]) != len(node.args_n):
                 param_count = len(func_symbol['params'])
                 self.logError(f"Function '{func_name}' expects {param_count} parameter{'s' if param_count > 1 else ''} but got {len(node.args_n)}.", node.id_n)
             for param_node, param_type in zip(node.args_n, func_symbol["params"]):
                 param_val_type, param_val = self.visit_node(param_node)
                 
-                if param_type["type"] == "var":
-                    if param_val_type != param_type["dtype"]:
-                        self.logError(f"Type mismatch for function '{func_name}' parameter: expected '{param_type['dtype']}' but found '{param_val_type}'", param_node)
+                if param_val_type[0] == "var":
+                    if param_val_type[1] != param_type["dtype"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameter: expected '{param_type['dtype']}' but found '{param_val_type[1]}'", None)
                 
-                elif param_type["type"] == "arr":
-                    if not param_val_type.startswith("arr_") or param_val_type[4:] != param_type["dtype"]:
-                        self.logError(f"Type mismatch for function '{func_name}' parameters: expected array of '{param_type['dtype']}' but found '{param_val_type}'", param_node)
+                elif param_val_type[0] == "arr":
+                    if param_val_type[1] != param_type["dtype"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameters: expected array of '{param_type['dtype']}' but found '{param_val_type[1]}'", None)
                     elif param_node.dimension != param_type["dimension"]:
-                        self.logError(f"Dimension mismatch for function '{func_name}' parameter: expected {param_type['dimension']} dimensions but found {param_node.dimension}", param_node)
+                        self.logError(f"Dimension mismatch for function '{func_name}' parameter: expected {param_type['dimension']} dimensions but found {param_node.dimension}", None)
                 
-                elif param_type["type"] == "class":
-                    if param_val_type != param_type["classname"]:
-                        self.logError(f"Type mismatch for function '{func_name}' parameter: expected instance of class '{param_type['classname']}' but found '{param_val_type}'", param_node)
+                elif param_val_type[0] == "object":
+                    if param_val_type[1] != param_type["classname"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameter: expected instance of class '{param_type['classname']}' but found '{param_val_type[1]}'", None)
                 
                 else:
-                    self.logError(f"Unknown parameter type for function '{func_name}' parameter: '{param_type['type']}'", param_node)
+                    self.logError(f"Unknown parameter type for function '{func_name}' parameter: '{param_type['type']}'", None)
+        
+        else:
+            if node.args_n:
+                self.logError(f"Function '{func_name}' does not take any parameters.", node.id_n)
+
         return (func_symbol["dtype"], None) 
 
 
