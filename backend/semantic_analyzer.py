@@ -1069,7 +1069,8 @@ class SemanticAnalyzer:
             self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{if_condition[0]}' instead.")
         print(f"(semantic)(dbg) FOUND CONDITION for {type(node).__name__} -> {node.condition_n.condition_value_n} = {self.visit_node(node.condition_n.condition_value_n)}")
         
-        self.visit_node(node.body_n)
+        if node.body_n:
+            self.visit_node(node.body_n)
 
         if node.else_chain_n:
             self.visit_node(node.else_chain_n)
@@ -1094,7 +1095,8 @@ class SemanticAnalyzer:
     def visit_node_else_stmt(self, node):
         self.enter_scope(type(node).__name__)
 
-        self.visit_node(node.body_n)
+        if node.body_n:
+            self.visit_node(node.body_n)
 
         self.exit_scope(type(node).__name__)
         return
@@ -1103,9 +1105,32 @@ class SemanticAnalyzer:
         self.enter_scope(type(node).__name__)
         self.switch_depth += 1
         
-        value_n = node.value_n
+        switch_value = self.visit_node(node.value_n)
+        
+        # CASE
         case_n = node.case_n
+
+        for case_stmt in case_n.case_stmt_n:
+
+            self.enter_scope(case_stmt)
+            case_value_type = case_stmt.case_value_n
+            case_value = self.visit_node(case_value_type)
+            
+            #if case_value[0] != switch_value[0]:
+            #    self.logError("'switch' value and 'case' value must be of same data type.")
+
+            print(f"(semantic)(dbg) FOUND 'case_value'")
+            self.exit_scope(case_stmt)
+            
+        
+        # DEFAULT
         default_n = node.default_n
+
+        if default_n:
+            self.enter_scope(default_n)
+
+
+            self.exit_scope(default_n)
 
         self.switch_depth -= 1
         self.exit_scope(type(node).__name__)
