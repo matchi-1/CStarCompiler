@@ -647,19 +647,33 @@ class SemanticAnalyzer:
                         self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node_id)
                 
                 elif param_type["type"] == "arr":
-                    if param_type["dtype"] is None or param_type["dimension"] is None:
-                        continue  # Accept any dtype and dimension for std libs
-                    if param_type["dtype"] != arg_val_type[1]:
-                        self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected array of '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node_id)
-                    else:
-                        arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
-                    if arg_sym["arr_info"]["dimension"] != param_type["dimension"]:
-                        self.logError(f"Dimension mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected {param_type['dimension']} dimensions but found {arg_sym['arr_info']['dimension']}.", node_id)
+                    if arg_val_type[0] != "arr":  # arr vs incorrect value types
+                        if arg_val_type[0] in ["var", "lit"]: # arr vs value
+                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found a value of type '{arg_val_type[1]}'.", node_id)
+                        elif arg_val_type[0] == "object": # arr vs object 
+                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found an object instance of class '{arg_val_type[1]}'.", node_id)
+        
+                    else:  # arr vs arr
+                        if param_type["dtype"] is None or param_type["dimension"] is None:
+                            continue  # Accept any dtype and dimension for std libs
+
+                        if param_type["dtype"] != arg_val_type[1]: # arr vs arr -- wrong dtype
+                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected array of '{param_type['dtype']}' but found array of '{arg_val_type[1]}'.", node_id)
+                        else:
+                            arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
+
+                        if arg_sym["arr_info"]["dimension"] != param_type["dimension"]: # arr vs arr -- wrong dimension
+                            self.logError(f"Dimension mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected {param_type['dimension']} dimensions but found {arg_sym['arr_info']['dimension']}.", node_id)
                 
                 elif param_type["type"] == "object":
-                    if param_type["class_name"] != arg_val_type[1]:
+                    if arg_val_type[0] != "object":
+                        if arg_val_type[0] == "arr": # object vs arr
+                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an object but found an array of type '{arg_val_type[1]}'.", node_id)
+                        else: # object vs value
+                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an object but found a value of type '{arg_val_type[1]}'.", node_id)
+                    
+                    elif param_type["class_name"] != arg_val_type[1]:  # object vs object -- wrong classname
                         self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected instance of class '{param_type['class_name']}' but found '{arg_val_type[1]}'.", node_id)
-                
                 else:
                         self.logError(f"Unknown parameter type for function call '{node_id.id_t['tokenName']}' parameter {i+1}: '{param_type['dtype']}'", node_id)
             
