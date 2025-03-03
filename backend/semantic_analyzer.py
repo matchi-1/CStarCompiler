@@ -583,13 +583,8 @@ class SemanticAnalyzer:
         value = None
         idec_rec = None
         if (node.vardec_cont_n):
-<<<<<<< HEAD
-            #print(f"!!!!!!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@{node.vardec_cont_n.value_n}\n{type(node.vardec_cont_n.value_n).__name__}")
-            val_type, value = self.visit_node(node.vardec_cont_n.value_n)
-=======
             if node.vardec_cont_n.value_n:
                 val_type, value = self.visit_node(node.vardec_cont_n.value_n)
->>>>>>> cf7861b9e763463f506c9c77dcacf996cf647651
             print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
