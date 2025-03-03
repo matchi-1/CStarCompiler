@@ -1898,10 +1898,10 @@ class SyntaxAnalyzer:
             elif currentTokenType == "-":
                 self.match("-", False)
                 if not self.match("whole_lit"):
-                    self.logError("Expected negative numerical constant.")
+                    self.logError(f"Expected negative numerical constant but got {self.currToken} instead.")
             
             else:
-                self.logError("Invalid value for 'case' statement.")
+                self.logError(f"Invalid value for 'case' statement. Expected: 'string_lit' or 'whole_lit' but got {self.currToken} instead.")
 
         else: self.logError("'case' must be preceded with a valid value (Whole Number or String).")
 
