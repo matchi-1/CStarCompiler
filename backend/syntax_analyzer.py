@@ -409,10 +409,10 @@ class node_class_inst:
 class node_classinst_cont:
     def __init__(self, class_id_n, func_arg_n):
         self.class_id_n = class_id_n
-        self.func_arg_n = func_arg_n
+        self.args_n = func_arg_n
 
     def __repr__(self):
-        return f"node_classinst_cont: (class_id_n: {self.class_id_n}, func_arg_n: {self.func_arg_n})"
+        return f"node_classinst_cont: (class_id_n: {self.class_id_n}, func_arg_n: {self.args_n})"
 
 class node_class_dec:
     def __init__(self, class_id_n, constructor_dec_n, class_body_n):
@@ -587,7 +587,7 @@ class node_assign_stmt_object_att:
         self.op_t = op_t
         self.assign_value_n = value_n
     def __repr__(self):
-        return f"node_assign_stmt_object_att: class_att_n:'{self.class_att_n}', op:'{self.op_t["tokenName"]}', val:'{self.value_n}'"
+        return f"node_assign_stmt_object_att: class_att_n:'{self.class_att_n}', op:'{self.op_t["tokenName"]}', val:'{self.assign_value_n}'"
 
 class node_assign_stmt_object_att_arr:
     def __init__(self, class_arr_n, op_t, value_n):

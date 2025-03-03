@@ -37,10 +37,11 @@ class SymbolTable:
         sym_content["class_info"] = class_info 
         self.syms[sym_name] = sym_content
 
-    def set_obj(self, sym_name, initVal, class_name):
+    def set_obj(self, sym_name, initVal, class_name, obj_info):
         sym_content = {}
         sym_content["init_val"] = initVal
         sym_content["dtype"] = class_name 
+        sym_content["obj_info"] = obj_info 
         self.syms[sym_name] = sym_content
 
     def set_function(self, sym_name, return_type, param_types, priv=False, isStd_lib=False):
@@ -353,38 +354,51 @@ class SemanticAnalyzer:
 
     def visit_node_class_inst(self, node):
         class_id = node.class_id_n.id_t["tokenName"]
+        obj_id = node.obj_id_n.id_t["tokenName"]
         class_inst_cont = node.class_instcont_n
+
+        if self.curr_scope.get(obj_id, False):
+            self.logError(f"Symbol '{obj_id}' has already been declared.", node.obj_id_n)
+
         dtype = ('object', class_id)
+        class_elem_info = self.curr_scope.parent.get(class_id)["class_info"]["class_body_content"]
+        class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
+        
         
         if not self.curr_scope.get(class_id, checkParent=True):
-            self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
+            self.logError(f"Class '{class_id}' declaration not found.", node.class_id_n)
 
         if class_inst_cont:
             constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
+            class_constructor_info = self.curr_scope.parent.get(class_id)["class_info"]["constructor_dec"]
             if constructor_call_id != class_id:
                 self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
-
-            #TODO: add params and to scope and custom scope hahahahahahahhahahajfdhkasdhflkjawdh;geiurswthnbjoernbiop;las
-
-        self.curr_scope.set_obj(node.obj_id_n.id_t["tokenName"], None, dtype)
+            if not class_constructor_info:
+                self.logError(f"Class '{class_id}' has no defined constructor.",node.class_id_n)
+        
+            #TODO constructor call
+            
+        self.curr_scope.set_obj(obj_id, None, dtype, class_elem_info)
 
 
 
     def visit_node_class_att(self, node):
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.att_id_n.id_t["tokenName"]
-        print(obj_name)
 
         obj_info = self.curr_scope.get(obj_name)
         if not obj_info:
-            self.logError(f"'{obj_name}' object is not yet declared.", node.obj_id_n)
+            self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
         class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
+        class_info_no_privates = {k: v for k, v in class_info.items() if not v["priv"]}
 
-        if class_elem not in class_info:
-            self.logError(f"Attribute '{class_elem}' not found in '{obj_name}', instance of class '{obj_info["class_name"]}'.", node.att_id_n)
-        print(class_info)
-        print(class_elem)
+        if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
+            self.logError(f"Attribute '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
+        
+        elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
+            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+
 
         return (class_info[class_elem]["dtype"], None)   #None is TODO for code gen
 
@@ -555,11 +569,12 @@ class SemanticAnalyzer:
             self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
         if iden_symbol["const"]:
             self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", iden)
-        dtype = iden_symbol["dtype"]
+        dtype = iden_symbol["dtype"][1]
         val_type, val = self.visit_node(value)
-        if dtype != val_type:
-            self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", iden)
+        if dtype != val_type[1]:
+            self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
         self.curr_scope.set(iden_name, val, dtype=dtype)
+
 
     def visit_node_assign_stmt_arr(self, node):
         iden = node.id_n
@@ -573,7 +588,7 @@ class SemanticAnalyzer:
         dtype = iden_symbol["dtype"][4:]
         val_type, val = self.visit_node(value)
         if dtype != val_type:
-            self.logError(f"Type mismatch: expected '{dtype}' but found '{val_type}'", iden)
+            self.logError(f"Type Mismatch: expected '{dtype}' for array '{iden_name}' but found '{val_type}'", iden)
 
         # Check dimensions
         if node.idx2_n:
@@ -593,9 +608,29 @@ class SemanticAnalyzer:
                 self.logError(f"Array index must be of type 'int' or 'long", iden)
             if idx1_val >= iden_symbol["arr_info"]["size1"]:
                 self.logError(f"Array index out of bounds.", iden)
+
+
+    def visit_node_assign_stmt_object_att(self,node):
+        self.visit_node(node.class_att_n)
+
+        obj_name = node.class_att_n.obj_id_n.id_t["tokenName"]
+        att_name = node.class_att_n.att_id_n.id_t["tokenName"]
+        value = node.assign_value_n
+        # print(f"!@!@!@!@!@!@!#!#!#!#!#!#!#!{self.curr_scope.get(obj_name)} \n{obj_name}")
+        att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
+
+        if att_info["const"]:
+            self.logError(f"Attribute '{att_name}' is a constant and cannot be reassigned.", node.class_att_n.att_id_n)
         
+        dtype = att_info["dtype"][1]
+        val_type, val = self.visit_node(value)
 
+        if dtype != val_type[1]:
+            self.logError(f"Type Mismatch: expected '{dtype}' for attribute '{att_name}' but found '{val_type[1]}'", node.class_att_n.att_id_n)
 
+        # self.curr_scope.set(iden_name, val, dtype=dtype) #for code gen na e2 ryt
+
+        
     # func calls
     def visit_node_func_call(self, node):
         func_name = node.id_n.id_t["tokenName"]
@@ -701,7 +736,7 @@ class SemanticAnalyzer:
                     
         if val_type and dtype[1] != val_type[1]:
             if dtype[1] not in ['float', 'double'] or val_type not in ['int', 'long']:
-                self.logError(f"Type mismatch: expected '{dtype[1]}' but found '{val_type[1]}'", node.id_n)
+                self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'", node.id_n)
         # if not value:
         #     match dtype:
         #         case 'bool':
