@@ -518,11 +518,12 @@ class SemanticAnalyzer:
                     var_dtype = ('var', param.dtype_t["tokenName"])
                     self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
 
-        self.function_return_stack.append(return_type)
-        print(f"Return stack = {self.function_return_stack}")
         
         # Visit function body
         if not node.is_std_lib:
+            self.function_return_stack.append(return_type)
+            print(f"Return stack = {self.function_return_stack}")
+
             has_return = self.check_return_in_body(node.body_n)
 
             # Ensure non-void functions return a value
@@ -532,8 +533,9 @@ class SemanticAnalyzer:
             self.function_return_stack.pop()
             print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
 
-        self.visit_node(node.body_n)
-
+            
+        self.visit_node(node.body_n) 
+        
         # Exit function scope, back to program constructs
         print(f"\n(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
