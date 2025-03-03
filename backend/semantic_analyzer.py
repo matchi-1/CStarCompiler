@@ -222,8 +222,8 @@ class SemanticAnalyzer:
         for statement in node.code_block_statement_n:
             #print("++++ CODE BLOCK STATEMENT: " + str(statement))
             self.visit_node(statement)
-        print("\n(semantic)(dbg) CURRENT LOCAL SCOPE TABLE: ")
-        self.print_symbols(self.curr_scope.syms, indent=2)
+            print("\n(semantic)(dbg) CURRENT LOCAL SCOPE TABLE: ")
+            self.print_symbols(self.curr_scope.syms, indent=2)
         
         
         
@@ -622,15 +622,28 @@ class SemanticAnalyzer:
             if len(func_symbol["params"]) != len(args):
                 param_count = len(func_symbol['params'])
                 self.logError(f"Function call '{node_id.id_t['tokenName']}' requires {param_count} parameter{'s' if param_count > 1 else ''} but got {len(args)}.", node_id)
+            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++ args: " + str(args))
             for i, (arg_node, param_type) in enumerate(zip(args, func_symbol["params"])):
-                arg_val_type, arg_val = self.visit_node(arg_node)
+                if hasattr(arg_node, 'id_t'):
+                    arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
+                    if not arg_sym:
+                        self.logError(f"Argument '{arg_node.id_t['tokenName']}' is not declared.", arg_node)
+                    arg_val_type = arg_sym["dtype"]
+                else:
+                    arg_val_type = ('lit', arg_node.dtype)
+
+                print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_val_type: " + str(arg_val_type))
                 print(">>>>>>>>>>>>>>>>>>>>>> param_type: " + str(param_type))
-                print(">>>>>>>>>>>>>>>>>>>>>> arg_val: " + str(arg_val))
-                print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
                 
-                if param_type["type"] in ["var", "lit"]:
-                    if param_type["dtype"] != arg_val_type[1]:
+                if param_type["type"] == "var":
+                    if arg_val_type[0] != "lit":  # values and vars are treated the sme type
+                        if arg_val_type[0] == 'arr': # value  vs  array
+                                self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an array of type '{arg_val_type[1]}'.", node_id)
+                        elif arg_val_type[0] == 'object': # value  vs  object
+                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an object of class '{arg_val_type[1]}'.", node_id)
+                   
+                    if param_type["dtype"] != arg_val_type[1]: # value vs value but not correct dtype
                         self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node_id)
                 
                 elif param_type["type"] == "arr":
