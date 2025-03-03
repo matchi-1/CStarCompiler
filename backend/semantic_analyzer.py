@@ -258,6 +258,11 @@ class SemanticAnalyzer:
     def visit_node_constructor_dec(self, node): #TODO: be wary of return statements
         className = node.class_id_n.id_t["tokenName"]
 
+        # Check if constructor already exists in current scope
+        if self.curr_scope.get(className, checkParent=False):
+            self.logError("Constructor is already declared.", node.class_id_n)
+            return
+
         param_types = []
         if node.params_n: # if params_n isn't None
             for param in node.params_n:
@@ -282,9 +287,12 @@ class SemanticAnalyzer:
 
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
+        constructorInfo = {}
         constructorInfo = self.curr_scope.set_constructor(className, param_types)
 
-        self.enter_scope(type(node).__name__)
+        #self.enter_scope(type(node).__name__)
+        print(f"\n(semantic)(dbg) ENTERING scope Constructor for class '{className}'")
+        self.curr_scope = SymbolTable(self.curr_scope)
 
         # Add parameters to new function scope
         if node.params_n:
@@ -293,7 +301,7 @@ class SemanticAnalyzer:
 
                 # Check if parameter name is duplicated
                 if self.curr_scope.get(param_name, checkParent=False):
-                    self.logError(f"Parameter '{param_name}' is already declared in function '{className}'.", param.id_n)
+                    self.logError(f"Parameter '{param_name}' is already declared in constructor.", param.id_n)
 
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
@@ -318,7 +326,13 @@ class SemanticAnalyzer:
         # if return_type != "void" and not has_return:
         #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.id_n)
 
-        self.exit_scope(type(node).__name__)
+        #self.exit_scope(type(node).__name__)
+
+        print(f"\n(semantic)(dbg) EXITING scope Constructor for class '{className}', SYMBOL TABLE: ")
+        self.print_symbols(self.curr_scope.syms, indent=2)
+        self.curr_scope = self.curr_scope.parent
+
+
         return constructorInfo
 
 
@@ -360,13 +374,15 @@ class SemanticAnalyzer:
         if self.curr_scope.get(obj_id, False):
             self.logError(f"Symbol '{obj_id}' has already been declared.", node.obj_id_n)
 
+        if not self.curr_scope.get(class_id, checkParent=True):
+            self.logError(f"Class '{class_id}' declaration not found.", node.class_id_n)
+            
         dtype = ('object', class_id)
         class_elem_info = self.curr_scope.parent.get(class_id)["class_info"]["class_body_content"]
         class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
         
         
-        if not self.curr_scope.get(class_id, checkParent=True):
-            self.logError(f"Class '{class_id}' declaration not found.", node.class_id_n)
+
 
         if class_inst_cont:
             constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
@@ -376,7 +392,10 @@ class SemanticAnalyzer:
             if not class_constructor_info:
                 self.logError(f"Class '{class_id}' has no defined constructor.",node.class_id_n)
         
-            #TODO constructor call
+            self.check_function_params(class_constructor_info[class_id], class_inst_cont.args_n, class_inst_cont.class_id_n, "constructor")
+            #TODO constructor call 
+                # self.class_id_n = class_id_n
+                # self.args_n = func_arg_n
             
         self.curr_scope.set_obj(obj_id, None, dtype, class_elem_info)
 
@@ -521,7 +540,9 @@ class SemanticAnalyzer:
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
                     class_name = ('object', param.class_id_n.id_t["tokenName"])
-                    self.curr_scope.set_obj(param_name, None, class_name, None)
+                    class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
+                    class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
+                    self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
@@ -628,7 +649,7 @@ class SemanticAnalyzer:
         if dtype != val_type[1]:
             self.logError(f"Type Mismatch: expected '{dtype}' for attribute '{att_name}' but found '{val_type[1]}'", node.class_att_n.att_id_n)
 
-        # self.curr_scope.set(iden_name, val, dtype=dtype) #for code gen na e2 ryt
+        # self.curr_scope.set(iden_name, val, dtype=dtype) #for code gen na e2 ryt TODO
 
         
     # func calls
@@ -638,11 +659,11 @@ class SemanticAnalyzer:
         if not func_symbol:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
         
-        self.check_function_params(func_symbol, node.args_n, node.id_n)
+        self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
         return (func_symbol["dtype"], None) 
 
     
-    def check_function_params(self, func_symbol, args, node_id):
+    def check_function_params(self, func_symbol, args, node_id, call_string):
         """
         Checks params vs args -- used for func calls / method calls / constructors.
         params:
@@ -656,7 +677,7 @@ class SemanticAnalyzer:
         if func_symbol["params"]:
             if len(func_symbol["params"]) != len(args):
                 param_count = len(func_symbol['params'])
-                self.logError(f"Function call '{node_id.id_t['tokenName']}' requires {param_count} parameter{'s' if param_count > 1 else ''} but got {len(args)}.", node_id)
+                self.logError(f"{call_string.capitalize()} call '{node_id.id_t['tokenName']}' requires {param_count} parameter{'s' if param_count > 1 else ''} but got {len(args)}.", node_id)
             print("+++++++++++++++++++++++++++++++++++++++++++++++++++++ args: " + str(args))
             for i, (arg_node, param_type) in enumerate(zip(args, func_symbol["params"])):
                 arg_sym = None
@@ -689,48 +710,48 @@ class SemanticAnalyzer:
                 if param_type["type"] == "var":
                     if arg_val_type[0] != "lit" and not arg_flag:  # values and vars are treated the sme type
                         if arg_val_type[0] == 'arr': # value  vs  array (not array element)
-                                self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an array of type '{arg_val_type[1]}'.", node_id)
+                                self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an array of type '{arg_val_type[1]}'.", node_id)
                         
                         elif arg_val_type[0] == 'object': # value  vs  object
-                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an object of class '{arg_val_type[1]}'.", node_id)
+                            self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an object of class '{arg_val_type[1]}'.", node_id)
                    
                     if param_type["dtype"] != arg_val_type[1]: # value vs value but not correct dtype
-                        self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node_id)
+                        self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype']}' but found '{arg_val_type[1]}'.", node_id)
                 
                 elif param_type["type"] == "arr":
                     if arg_val_type[0] != "arr":  # arr vs incorrect value types
                         if arg_val_type[0] in ["var", "lit"] or arg_flag: # arr vs value
-                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found a value of type '{arg_val_type[1]}'.", node_id)
+                            self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found a value of type '{arg_val_type[1]}'.", node_id)
                         elif arg_val_type[0] == "object": # arr vs object 
-                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found an object instance of class '{arg_val_type[1]}'.", node_id)
+                            self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found an object instance of class '{arg_val_type[1]}'.", node_id)
                       
                     else:  # arr vs arr
                         if param_type["dtype"] is None or param_type["dimension"] is None:
                             continue  # Accept any dtype and dimension for std libs
 
                         if param_type["dtype"] != arg_val_type[1]: # arr vs arr -- wrong dtype
-                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected array of '{param_type['dtype']}' but found array of '{arg_val_type[1]}'.", node_id)
+                            self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected array of '{param_type['dtype']}' but found array of '{arg_val_type[1]}'.", node_id)
                         else:
                             arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
 
                         if arg_sym["arr_info"]["dimension"] != param_type["dimension"]: # arr vs arr -- wrong dimension
-                            self.logError(f"Dimension mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected {param_type['dimension']} dimensions but found {arg_sym['arr_info']['dimension']}.", node_id)
+                            self.logError(f"Dimension mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected {param_type['dimension']} dimensions but found {arg_sym['arr_info']['dimension']}.", node_id)
                 
                 elif param_type["type"] == "object":
                     if arg_val_type[0] != "object":
-                        if arg_val_type[0] == "arr" and not arg_flag: # object vs arr
+                        if arg_val_type[0] == "arr": # object vs arr
                             self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an object but found an array of type '{arg_val_type[1]}'.", node_id)
                         else: # object vs value
-                            self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an object but found a value of type '{arg_val_type[1]}'.", node_id)
+                            self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an object but found a value of type '{arg_val_type[1]}'.", node_id)
                     
                     elif param_type["class_name"] != arg_val_type[1]:  # object vs object -- wrong classname
-                        self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected instance of class '{param_type['class_name']}' but found '{arg_val_type[1]}'.", node_id)
+                        self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected instance of class '{param_type['class_name']}' but found '{arg_val_type[1]}'.", node_id)
                 else:
-                        self.logError(f"Unknown parameter type for function call '{node_id.id_t['tokenName']}' parameter {i+1}: '{param_type['dtype']}'", node_id)
+                        self.logError(f"Unknown parameter type for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: '{param_type['dtype']}'", node_id)
             
         else:
             if args:
-                self.logError(f"Function call '{node_id.id_t['tokenName']}' requires 0 parameters but got {len(args)}.", node_id)
+                self.logError(f"{call_string.capitalize()} call '{node_id.id_t['tokenName']}' requires 0 parameters but got {len(args)}.", node_id)
 
 
 
