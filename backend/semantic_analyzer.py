@@ -447,6 +447,7 @@ class SemanticAnalyzer:
                         self.logError(f"Class '{class_name}' hasnt been declared yet.", param.class_id_n)
                     param_types.append({
                         "type": "object",
+                        "dtype": class_name,
                         "class_name": class_name
                     })  
 
@@ -585,26 +586,29 @@ class SemanticAnalyzer:
             if len(func_symbol["params"]) != len(node.args_n):
                 param_count = len(func_symbol['params'])
                 self.logError(f"Function '{func_name}' expects {param_count} parameter{'s' if param_count > 1 else ''} but got {len(node.args_n)}.", node.id_n)
-            for param_node, param_type in zip(node.args_n, func_symbol["params"]):
-                param_val_type, param_val = self.visit_node(param_node)
-                print(">>>>>>>>>>>>>>>>>>>>>> param_val_type: " + str(param_val_type))
-                if param_val_type[0] == "var":
-                    if param_val_type[1] != param_type["dtype"]:
-                        self.logError(f"Type mismatch for function call of '{func_name}' parameter: expected '{param_type['dtype']}' but found '{param_val_type[1]}'", None)
+            for arg_node, param_type in zip(node.args_n, func_symbol["params"]):
+                arg_val_type, arg_val = self.visit_node(arg_node)
+                print(">>>>>>>>>>>>>>>>>>>>>> arg_val_type: " + str(arg_val_type))
+                print(">>>>>>>>>>>>>>>>>>>>>> param_type: " + str(param_type))
+                print(">>>>>>>>>>>>>>>>>>>>>> arg_val: " + str(arg_val))
+                print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
                 
-                elif param_val_type[0] == "arr":
-                    if param_val_type[1] != param_type["dtype"]:
-                        self.logError(f"Type mismatch for function '{func_name}' parameters: expected array of '{param_type['dtype']}' but found '{param_val_type[1]}'", None)
-                    elif param_node.dimension != param_type["dimension"]:
-                        self.logError(f"Dimension mismatch for function call of '{func_name}' parameter: expected {param_type['dimension']} dimensions but found {param_node.dimension}", None)
+                if arg_val_type[0] in ["var", "lit"]:
+                    if arg_val_type[1] != param_type["dtype"]:
+                        self.logError(f"Type mismatch for function call of '{func_name}' parameter: expected '{param_type['dtype']}' but found '{arg_val_type[1]}'", None)
                 
-                elif param_val_type[0] == "object":
-                    if param_val_type[1] != param_type["class_name"]:
-                        self.logError(f"Type mismatch for function call of '{func_name}' parameter: expected instance of class '{param_type['class_name']}' but found '{param_val_type[1]}'", None)
+                elif arg_val_type[0] == "arr":
+                    if arg_val_type[1] != param_type["dtype"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameters: expected array of '{param_type['dtype']}' but found '{arg_val_type[1]}'", None)
+                    elif arg_node.dimension != param_type["dimension"]:
+                        self.logError(f"Dimension mismatch for function call of '{func_name}' parameter: expected {param_type['dimension']} dimensions but found {arg_node.dimension}", None)
+                
+                elif arg_val_type[0] == "object":
+                    if arg_val_type[1] != param_type["class_name"]:
+                        self.logError(f"Type mismatch for function call of '{func_name}' parameter: expected instance of class '{param_type['class_name']}' but found '{arg_val_type[1]}'", None)
                 
                 else:
-                    self.logError(f"Unknown parameter type for function '{func_name}' parameter: '{param_type['type']}'", None)
-        
+                    self.logError(f"Unknown parameter type for function '{func_name}' parameter: '{param_type['dtype']}'", None)
         else:
             if node.args_n:
                 self.logError(f"Function '{func_name}' does not take any parameters.", node.id_n)
