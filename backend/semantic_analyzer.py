@@ -37,8 +37,8 @@ class SymbolTable:
 
     def set_obj(self, sym_name, initVal, class_name):
         sym_content = {}
-        sym_content["initVal"] = initVal
-        sym_content["class_name"] = class_name 
+        sym_content["init_val"] = initVal
+        sym_content["dtype"] = class_name 
         self.syms[sym_name] = sym_content
 
     def set_function(self, sym_name, return_type, param_types, priv=False, isStd_lib=False):
@@ -341,6 +341,7 @@ class SemanticAnalyzer:
     def visit_node_class_inst(self, node):
         class_id = node.class_id_n.id_t["tokenName"]
         class_inst_cont = node.class_instcont_n
+        dtype = ('object', class_id)
         
         if not self.curr_scope.get(class_id, checkParent=True):
             self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
@@ -352,7 +353,7 @@ class SemanticAnalyzer:
 
             #TODO: add params and to scope and custom scope hahahahahahahhahahajfdhkasdhflkjawdh;geiurswthnbjoernbiop;las
 
-        self.curr_scope.set_obj(node.obj_id_n.id_t["tokenName"], None, class_id)
+        self.curr_scope.set_obj(node.obj_id_n.id_t["tokenName"], None, dtype)
 
 
 
@@ -365,7 +366,7 @@ class SemanticAnalyzer:
         if not obj_info:
             self.logError(f"'{obj_name}' object is not yet declared.", node.obj_id_n)
 
-        class_info = self.curr_scope.parent.get(obj_info["class_name"])["class_info"]["class_body_content"]
+        class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
 
         if class_elem not in class_info:
             self.logError(f"Attribute '{class_elem}' not found in '{obj_name}', instance of class '{obj_info["class_name"]}'.", node.att_id_n)
