@@ -147,11 +147,11 @@ class node_class_att:
 
 class node_class_method_call:
     def __init__(self, class_id_n, method_id_n, args_n = None):
-        self.class_id_n = class_id_n
+        self.obj_id_n = class_id_n
         self.method_id_n = method_id_n
         self.args_n = args_n
     def __repr__(self):
-        return f'{self.class_id_n}.{self.method_id_n}({self.args_n})'
+        return f'{self.obj_id_n}.{self.method_id_n}({self.args_n})'
 
 class node_class_arr_idx:
     def __init__(self, class_id_n, att_id_n, idx_n, idx2_n = None):

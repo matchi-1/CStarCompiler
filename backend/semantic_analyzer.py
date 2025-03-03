@@ -376,14 +376,12 @@ class SemanticAnalyzer:
 
         if not self.curr_scope.get(class_id, checkParent=True):
             self.logError(f"Class '{class_id}' declaration not found.", node.class_id_n)
-            
+
         dtype = ('object', class_id)
         class_elem_info = self.curr_scope.parent.get(class_id)["class_info"]["class_body_content"]
         class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
         
         
-
-
         if class_inst_cont:
             constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
             class_constructor_info = self.curr_scope.parent.get(class_id)["class_info"]["constructor_dec"]
@@ -392,10 +390,8 @@ class SemanticAnalyzer:
             if not class_constructor_info:
                 self.logError(f"Class '{class_id}' has no defined constructor.",node.class_id_n)
         
-            self.check_function_params(class_constructor_info[class_id], class_inst_cont.args_n, class_inst_cont.class_id_n, "constructor")
-            #TODO constructor call 
-                # self.class_id_n = class_id_n
-                # self.args_n = func_arg_n
+            self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
+
             
         self.curr_scope.set_obj(obj_id, None, dtype, class_elem_info)
 
@@ -485,7 +481,7 @@ class SemanticAnalyzer:
                 if type(param).__name__ == "node_funcpar_class":
                     class_name = param.class_id_n.id_t["tokenName"]
                     if not self.curr_scope.get(class_name):
-                        self.logError(f"Class '{class_name}' hasnt been declared yet.", param.class_id_n)
+                        self.logError(f"Class '{class_name}' hasn't been declared yet.", param.class_id_n)
                     param_types.append({
                         "type": "object",
                         "dtype": class_name,
@@ -770,9 +766,32 @@ class SemanticAnalyzer:
             if args:
                 self.logError(f"{call_string.capitalize()} call '{node_id.id_t['tokenName']}' requires 0 parameters but got {len(args)}.", node_id)
 
+    def visit_node_class_method_call(self,node):
+        obj_name = node.obj_id_n.id_t["tokenName"]
+        class_elem = node.method_id_n.id_t["tokenName"]
 
+        obj_info = self.curr_scope.get(obj_name)
+        if not obj_info:
+            self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
-    #var_dec
+        class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
+        class_info_no_privates = {k: v for k, v in class_info.items() if not v["priv"]}
+
+        if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
+            self.logError(f"Method '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
+        
+        elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
+            self.logError(f"Method '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+
+        # self.obj_id_n = class_id_n
+        # self.method_id_n = method_id_n
+        # self.args_n = args_n
+        self.check_function_params(class_info_no_privates[class_elem], node.args_n, node.method_id_n, "method")
+        print(node)
+
+        return (class_info[class_elem]["dtype"], None)
+
+    #node_var_dec
     def visit_node_vardec(self, node, priv = False):
         if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
             self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
