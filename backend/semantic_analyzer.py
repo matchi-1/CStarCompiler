@@ -30,10 +30,15 @@ class SymbolTable:
         sym_content["arr_info"] = arr_info  
         self.syms[sym_name] = sym_content
 
-    def set_class(self, sym_name, dtype, class_info):
+    def set_class(self, sym_name, class_info):
         sym_content = {}
-        sym_content["dtype"] = dtype
         sym_content["class_info"] = class_info 
+        self.syms[sym_name] = sym_content
+
+    def set_obj(self, sym_name, initVal, class_name):
+        sym_content = {}
+        sym_content["initVal"] = initVal
+        sym_content["class_name"] = class_name 
         self.syms[sym_name] = sym_content
 
     def set_function(self, sym_name, return_type, param_types, priv=False, isStd_lib=False):
@@ -47,6 +52,7 @@ class SymbolTable:
         sym_content["isStd_lib"] = isStd_lib 
         self.syms[sym_name] = sym_content
         return {sym_name: sym_content}
+    
     
     def set_constructor(self, sym_name, param_types):
         sym_content = {}
@@ -264,9 +270,7 @@ class SemanticAnalyzer:
         param_types = param_types if param_types else None
         constructorInfo = self.curr_scope.set_constructor(className, param_types)
 
-
         self.enter_scope(type(node).__name__)
-
 
         # Add parameters to new function scope
         if node.params_n:
@@ -280,7 +284,7 @@ class SemanticAnalyzer:
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
                     class_name = param.class_id_n.id_t["tokenName"]
-                    self.curr_scope.set_class(param_name, dtype="class", class_info={"classname": class_name})
+                    self.curr_scope.set_class(param_name, class_info={"classname": class_name})
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types -- std lib Carray
@@ -304,14 +308,16 @@ class SemanticAnalyzer:
         return constructorInfo
 
 
-
     def visit_node_class_body(self, node, className, constructorInfo):
         class_content = []
         
         if node.class_body_stmt_n:
             class_body_stmt = node.class_body_stmt_n
         
-            self.enter_scope(type(node).__name__)
+            #self.enter_scope(type(node).__name__)
+            print(f"\n(semantic)(dbg) ENTERING scope 'Class: {className}'")
+            self.curr_scope = SymbolTable(self.curr_scope)
+
             for class_body_stmt_n in class_body_stmt:
                 priv = class_body_stmt_n.is_private_b
                 vardec_n = class_body_stmt_n.vardec_n
@@ -321,16 +327,21 @@ class SemanticAnalyzer:
 
                 elif type(vardec_n).__name__ == "node_func_dec":
                     class_content.append(self.visit_node_func_dec(vardec_n, priv))
-            self.exit_scope(type(node).__name__)
+
+            # self.exit_scope(type(node).__name__)
+            print(f"\n(semantic)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
+            self.print_symbols(self.curr_scope.syms, indent=2)
+            self.curr_scope = self.curr_scope.parent
 
         flattened = [item for sublist in class_content for item in sublist]
-        self.curr_scope.set_class(className, dtype="class", class_info={"constructor_dec" : constructorInfo, "class_body_content": flattened})
+        merged_dict = {k: v for d in flattened for k, v in d.items()}
+        self.curr_scope.set_class(className, class_info={"constructor_dec" : constructorInfo, "class_body_content": merged_dict})
         
 
     def visit_node_class_inst(self, node):
         class_id = node.class_id_n.id_t["tokenName"]
         class_inst_cont = node.class_instcont_n
-        dtype = ('class', class_id)
+        
         if not self.curr_scope.get(class_id, checkParent=True):
             self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
 
@@ -341,8 +352,27 @@ class SemanticAnalyzer:
 
             #TODO: add params and to scope and custom scope hahahahahahahhahahajfdhkasdhflkjawdh;geiurswthnbjoernbiop;las
 
-        self.curr_scope.set(node.obj_id_n.id_t["tokenName"], value = None, dtype = dtype, )
+        self.curr_scope.set_obj(node.obj_id_n.id_t["tokenName"], None, class_id)
 
+
+
+    def visit_node_class_att(self, node):
+        obj_name = node.obj_id_n.id_t["tokenName"]
+        class_elem = node.att_id_n.id_t["tokenName"]
+        print(obj_name)
+
+        obj_info = self.curr_scope.get(obj_name)
+        if not obj_info:
+            self.logError(f"'{obj_name}' object is not yet declared.", node.obj_id_n)
+
+        class_info = self.curr_scope.parent.get(obj_info["class_name"])["class_info"]["class_body_content"]
+
+        if class_elem not in class_info:
+            self.logError(f"Attribute '{class_elem}' not found in '{obj_name}', instance of class '{obj_info["class_name"]}'.", node.att_id_n)
+        print(class_info)
+        print(class_elem)
+
+        return (class_info[class_elem]["dtype"], None)   #None is TODO for code gen
 
 
     def visit_node_num(self, node):
@@ -406,9 +436,12 @@ class SemanticAnalyzer:
         if node.params_n: # if params_n isn't None
             for param in node.params_n:
                 if type(param).__name__ == "node_funcpar_class":
+                    class_name = param.class_id_n.id_t["tokenName"]
+                    if not self.curr_scope.get(class_name):
+                        self.logError(f"Class '{class_name}' hasnt been declared yet.", param.class_id_n)
                     param_types.append({
-                        "type": "class",
-                        "classname": param.class_id_n.id_t["tokenName"]
+                        "type": "object",
+                        "class_name": class_name
                     })  
 
                 elif type(param).__name__ == "node_funcpar_arr":
@@ -443,7 +476,9 @@ class SemanticAnalyzer:
 
 
         # Enter function scope
-        self.enter_scope(type(node).__name__)
+        #self.enter_scope(type(node).__name__)
+        print(f"\n(semantic)(dbg) ENTERING scope 'Function: {func_name}'")
+        self.curr_scope = SymbolTable(self.curr_scope)
 
         # Add parameters to new function scope
         if node.params_n:
@@ -457,7 +492,8 @@ class SemanticAnalyzer:
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
                     class_name = param.class_id_n.id_t["tokenName"]
-                    self.curr_scope.set_class(param_name, dtype="class", class_info={"classname": class_name})
+
+                    self.curr_scope.set_class(param_name, class_info={"class_name": class_name})
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types -- std lib Carray
@@ -507,32 +543,30 @@ class SemanticAnalyzer:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
         if not func_symbol["params"]:
             if node.args_n:
-                self.logError(f"Function '{func_name}' does not take any parameters.", node)
+                self.logError(f"Function '{func_name}' does not take any parameters.", node.id_n)
         else:
-            if not node.args_n:
-                self.logError(f"Function '{func_name}' requires parameters.", node)
-            else:
-                if len(func_symbol["params"]) != len(node.args_n):
-                    self.logError(f"Function '{func_name}' expects {len(func_symbol['params'])} parameters but got {len(node.args_n)}.", node)
-                for param_node, param_type in zip(node.args_n, func_symbol["params"]):
-                    param_val_type, param_val = self.visit_node(param_node)
-                    
-                    if param_type["type"] == "var":
-                        if param_val_type != param_type["dtype"]:
-                            self.logError(f"Type mismatch: expected '{param_type['dtype']}' but found '{param_val_type}'", param_node)
-                    
-                    elif param_type["type"] == "arr":
-                        if not param_val_type.startswith("arr_") or param_val_type[4:] != param_type["dtype"]:
-                            self.logError(f"Type mismatch: expected array of '{param_type['dtype']}' but found '{param_val_type}'", param_node)
-                        elif param_node.dimension != param_type["dimension"]:
-                            self.logError(f"Dimension mismatch: expected {param_type['dimension']} dimensions but found {param_node.dimension}", param_node)
-                    
-                    elif param_type["type"] == "class":
-                        if param_val_type != param_type["classname"]:
-                            self.logError(f"Type mismatch: expected instance of class '{param_type['classname']}' but found '{param_val_type}'", param_node)
-                    
-                    else:
-                        self.logError(f"Unknown parameter type '{param_type['type']}'", param_node)
+            if len(func_symbol["params"]) != len(node.args_n):
+                param_count = len(func_symbol['params'])
+                self.logError(f"Function '{func_name}' expects {param_count} parameter{'s' if param_count > 1 else ''} but got {len(node.args_n)}.", node.id_n)
+            for param_node, param_type in zip(node.args_n, func_symbol["params"]):
+                param_val_type, param_val = self.visit_node(param_node)
+                
+                if param_type["type"] == "var":
+                    if param_val_type != param_type["dtype"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameter: expected '{param_type['dtype']}' but found '{param_val_type}'", param_node)
+                
+                elif param_type["type"] == "arr":
+                    if not param_val_type.startswith("arr_") or param_val_type[4:] != param_type["dtype"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameters: expected array of '{param_type['dtype']}' but found '{param_val_type}'", param_node)
+                    elif param_node.dimension != param_type["dimension"]:
+                        self.logError(f"Dimension mismatch for function '{func_name}' parameter: expected {param_type['dimension']} dimensions but found {param_node.dimension}", param_node)
+                
+                elif param_type["type"] == "class":
+                    if param_val_type != param_type["classname"]:
+                        self.logError(f"Type mismatch for function '{func_name}' parameter: expected instance of class '{param_type['classname']}' but found '{param_val_type}'", param_node)
+                
+                else:
+                    self.logError(f"Unknown parameter type for function '{func_name}' parameter: '{param_type['type']}'", param_node)
         return (func_symbol["dtype"], None) 
 
 

@@ -140,10 +140,10 @@ class node_arr_idx:
 
 class node_class_att:
     def __init__(self, class_id_n, att_id_n):
-        self.class_id_n = class_id_n
+        self.obj_id_n = class_id_n
         self.att_id_n = att_id_n
     def __repr__(self):
-        return f'{self.class_id_n}.{self.att_id_n}'
+        return f'{self.obj_id_n}.{self.att_id_n}'
 
 class node_class_method_call:
     def __init__(self, class_id_n, method_id_n, args_n = None):
@@ -794,10 +794,10 @@ class SyntaxAnalyzer:
 
     def ERROR_expected_Identifier_classes(self):
         if not self.currToken:  # EOF case
-            self.logError("Expected constructor call after '=', but reached EOF (End of File).")
+            self.logError("Expected identifier for constructor call after '=', but reached EOF (End of File).")
         elif not self.match("Identifier"):  # Invalid token case
             current_value = self.currToken["tokenName"] if self.currToken else "EOF"
-            self.logError(f"Expected constructor call after '=', but found '{current_value}' instead.")
+            self.logError(f"Expected identifier for constructor call after '=', but found '{current_value}' instead.")
 
     def ERROR_missing_initializer(self):
         if self.currToken:
