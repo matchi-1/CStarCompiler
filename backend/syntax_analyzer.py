@@ -5,7 +5,7 @@ PREDICT_SETS = {
     "program":["import", "Identifier", "const", "void", "bool", "string", "int", "long", "float", "double", "private", "class"],
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "std_lib": ["Cstring", "Carray"],
-    "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
+    "program_constructs": ["class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_type": ["bool", "string", "int", "long", "double", "float"],
     "class_body": [ "private" , "const", "int", "long", "bool", "float", "double", "string" , "void"],
     "print_stmts" : ["print", "println"],
