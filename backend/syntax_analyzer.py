@@ -2062,6 +2062,9 @@ class SyntaxAnalyzer:
                 params_n.append(param_class_temp_n)
                 if self.currToken["tokenType"] == "[":  # array
                     self.logError("Array of objects is not supported. Expected ')' or ','. Found '[' instead.")
+                
+                if self.currToken["tokenType"] == "=":
+                    self.logError("Default values for object parameters are not supported. Expected ')' or ','. Found '=' instead.")
 
                 print("Entering params_var_rec after iden iden") 
 
