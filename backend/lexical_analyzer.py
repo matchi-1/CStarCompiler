@@ -34,7 +34,7 @@ class LexicalAnalyzer:
     closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?', '}', '"',',']))
     close_paren_delim = list(set(closing_delim))
     semicolon_delim = newline_delim + plaintext_delim + ['}', '/', '(', ')']
-    negative_delim = list(set(arithmetic_delim + ['/', '+']))
+    negative_delim = list(set(arithmetic_delim + ['/', '+', '.']))
     exclamation_delim = alphabetic_chars + newline + whitespace + ['(', '/', '!']
     percent_delim = list(set(arithmetic_delim + ['/']))
     asterisk_delim = list(set(arithmetic_delim + ['/', '+', '-']))
@@ -974,7 +974,7 @@ class LexicalAnalyzer:
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # - symbol
                     case 'DASH_CHECK':
-                        expected = ['alphanum', ' ', '(', '+', '/']
+                        expected = ['alphanum', ' ', '(', '+', '/', '.']
                         if (code[i] in self.negative_delim):
                             add_token(currToken, '-', currLine, currCol)
                         elif (code[i] in ['-', '=']):
