@@ -1300,9 +1300,9 @@ class SemanticAnalyzer:
         format_string_node = print_params_n[0]
         format_string_type, _ = self.visit_node(format_string_node)
 
-        if format_string_type != "string":
-            self.logError("First parameter in output statement must be a string.", format_string_node)
-            return None
+        # if format_string_type != "string":
+        #     self.logError("First parameter in output statement must be a string.", format_string_node)
+        #     return None
         return None
     
     #code block
