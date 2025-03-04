@@ -1587,7 +1587,7 @@ def lexer(code):
                 if (currWholeCount > 19):
                     if (wholeError):
                         errors.pop()
-                    errors.append(wholeRangeError(currToken, currLine, currCol, lineContent))
+                    errors.append(wholeRangeError(currToken, currLine, currCol, lineContent, leadingSpaces))
                     wholeError = True
                     continue
                 else:
