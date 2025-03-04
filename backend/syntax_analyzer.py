@@ -794,10 +794,10 @@ class SyntaxAnalyzer:
 
     def ERROR_expected_Identifier_classes(self):
         if not self.currToken:  # EOF case
-            self.logError("Expected identifier for constructor call after '=', but reached EOF (End of File).")
+            self.logError("Expected class identifier for constructor call after '=', but reached EOF (End of File).")
         elif not self.match("Identifier"):  # Invalid token case
             current_value = self.currToken["tokenName"] if self.currToken else "EOF"
-            self.logError(f"Expected identifier for constructor call after '=', but found '{current_value}' instead.")
+            self.logError(f"Expected class identifier for constructor call after '=', but found '{current_value}' instead.")
 
     def ERROR_missing_initializer(self):
         if self.currToken:
