@@ -2060,6 +2060,9 @@ class SyntaxAnalyzer:
                 # self.params_var_rec()
                 param_class_temp_n =  node_funcpar_class(node_iden(self.match("Identifier", False)), node_iden(self.match("Identifier", False)))
                 params_n.append(param_class_temp_n)
+                if self.currToken["tokenType"] == "[":  # array
+                    self.logError("Array of objects is not supported. Expected ')' or ','. Found '[' instead.")
+
                 print("Entering params_var_rec after iden iden") 
 
                 # check if there is another parameter
