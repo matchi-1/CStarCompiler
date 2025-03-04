@@ -920,7 +920,7 @@ class SyntaxAnalyzer:
                 if self.currToken["tokenType"] == "private":
                     self.match("private")
                     if self.currToken and self.currToken["tokenType"] == "class":
-                        self.logError(f"Classes cannot be nested within classes. Expected {PREDICT_SETS['iden_dec']} or constructor declaration.")
+                        self.logError(f"Classes cannot be nested within classes. Expected {PREDICT_SETS['iden_dec'] + ['private']} or constructor declaration.")
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["iden_dec"]:
                         self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
                 
