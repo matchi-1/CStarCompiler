@@ -4,7 +4,7 @@ import semantic_analyzer
 PREDICT_SETS = {
     "program":["import", "Identifier", "const", "void", "bool", "string", "int", "long", "float", "double", "private", "class"],
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
-    "std_lib": ["Cmath", "Cstring", "Carray"],
+    "std_lib": ["Cstring", "Carray"],
     "program_constructs": ["private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_type": ["bool", "string", "int", "long", "double", "float"],
     "class_body": [ "private" , "const", "int", "long", "bool", "float", "double", "string" , "void"],
@@ -390,7 +390,7 @@ class SyntaxAnalyzer:
         self.logError(f"Unclosed square bracket: Expected ']', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_stdlib_or_filename(self):
-        self.logError(f"Expected a standard library (Cmath, Cstring, Carray) or a filename with '.cstr', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
+        self.logError(f"Expected a standard library (Cmath, Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_cstr_file(self):
         self.logError("Expected a filename with '.cstr' extension.")
@@ -734,22 +734,22 @@ class SyntaxAnalyzer:
                         self.ERROR_expected_cstr_file()
 
             # Check for filename (non-standard-library identifier followed by .cstr)
-            elif self.currToken["tokenType"] == "Identifier":
-                self.match("Identifier")  # Match the filename
+            # elif self.currToken["tokenType"] == "Identifier":
+            #     self.match("Identifier")  # Match the filename
                 
-                if self.currToken and self.currToken["tokenType"] == ">":
-                    self.logError(f"Expected .cstr extension for an imported header file, before \'>\'")
+            #     if self.currToken and self.currToken["tokenType"] == ">":
+            #         self.logError(f"Expected .cstr extension for an imported header file, before \'>\'")
 
-                if not self.match("."):
-                    if self.currToken:
-                        self.logError(f"Expected .cstr extension for an imported header file, instead got '{self.currToken["tokenName"]}'")
-                    else:
-                        self.logError(f"Expected .cstr extension for an imported header file, instead reached EOF.")
+            #     if not self.match("."):
+            #         if self.currToken:
+            #             self.logError(f"Expected .cstr extension for an imported header file, instead got '{self.currToken["tokenName"]}'")
+            #         else:
+            #             self.logError(f"Expected .cstr extension for an imported header file, instead reached EOF.")
                 
-                if self.currToken and self.currToken["tokenName"] == "cstr":
-                    self.match("Identifier")  # Match 'cstr'
-                else:
-                    self.ERROR_expected_cstr_file()
+            #     if self.currToken and self.currToken["tokenName"] == "cstr":
+            #         self.match("Identifier")  # Match 'cstr'
+            #     else:
+            #         self.ERROR_expected_cstr_file()
         
             else:
                 self.ERROR_expected_stdlib_or_filename()
