@@ -1018,7 +1018,7 @@ class SyntaxAnalyzer:
                     class_instcont_n = self.classinst_cont()
                     if self.currToken:
                         if self.currToken["tokenType"] == "[":
-                            self.logError("Array of objects is not supported. Expected '=' or ';'")
+                            self.logError(f"Array of objects is not supported. Expected '=' or ';', instead got '{self.currToken["tokenName"]}'.")
                         if self.currToken["tokenType"] == "." or self.currToken["tokenType"] == "(":
                             self.logError(f"Unexpected Token '{self.currToken["tokenType"]}' for object declaration. Expected '=' or ';'")
                     
@@ -1299,6 +1299,7 @@ class SyntaxAnalyzer:
                     dtype_temp_t = self.data_type()
                     iden_temp_n = node_iden(self.match("Identifier",False))
                     vardec_cont_temp_n = self.var_dec_cont(dtype_temp_t, iden_temp_n, const_b)
+                    
                     if not self.match(";"):
                         self.ERROR_terminating_token(";")
                     
