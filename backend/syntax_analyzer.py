@@ -389,14 +389,14 @@ class SyntaxAnalyzer:
     def ERROR_unclosed_square_bracket(self):
         self.logError(f"Unclosed square bracket: Expected ']', found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
-    def ERROR_expected_stdlib_or_filename(self):
-        self.logError(f"Expected a standard library (Cmath, Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
+    # def ERROR_expected_stdlib_or_filename(self):
+    #     self.logError(f"Expected a standard library (Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
-    def ERROR_expected_cstr_file(self):
-        self.logError("Expected a filename with '.cstr' extension.")
+    # # def ERROR_expected_cstr_file(self):
+    # #     self.logError("Expected a filename with '.cstr' extension.")
 
     def ERROR_expected_stdlib(self):
-        self.logError(f"Expected a standard library (Cmath, Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
+        self.logError(f"Expected a standard library (Cstring, Carray), found '{self.currToken["tokenName"] if self.currToken else "EOF"}' instead. ")
 
     def ERROR_expected_Identifier_classes(self):
         if not self.currToken:  # EOF case
@@ -726,12 +726,12 @@ class SyntaxAnalyzer:
             # Check for standard library or standard library with .cstr
             if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:   
                 self.match("Identifier")  # Match the standard library -- put logic here per std lib for semantic
-                if self.currToken and self.currToken["tokenType"] == ".":      # potentially stdlib and header file haev the same name 
-                    self.match(".")
-                    if self.currToken and self.currToken["tokenName"] == "cstr":
-                        self.match("Identifier")  # Match 'cstr'
-                    else:
-                        self.ERROR_expected_cstr_file()
+                # if self.currToken and self.currToken["tokenType"] == ".":      # potentially stdlib and header file haev the same name 
+                #     self.match(".")
+                #     if self.currToken and self.currToken["tokenName"] == "cstr":
+                #         self.match("Identifier")  # Match 'cstr'
+                #     else:
+                #         self.ERROR_expected_cstr_file()
 
             # Check for filename (non-standard-library identifier followed by .cstr)
             # elif self.currToken["tokenType"] == "Identifier":
@@ -752,9 +752,9 @@ class SyntaxAnalyzer:
             #         self.ERROR_expected_cstr_file()
         
             else:
-                self.ERROR_expected_stdlib_or_filename()
+                self.ERROR_expected_stdlib()
         else:
-            self.ERROR_expected_stdlib_or_filename()
+            self.ERROR_expected_stdlib()
 
 
 
