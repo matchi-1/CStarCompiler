@@ -1064,8 +1064,7 @@ class SyntaxAnalyzer:
                 elif currentTokenType == ".":
                     self.match(".")
                     att_method_iden_n = node_iden(self.match("Identifier", False)) #####################
-                    class_arr_n = self.as_array(iden_temp_n, att_method_iden_n)
-                    assign_func_method_mods_cont_n = self.assign_stmt_op(iden_temp_n, att_method_iden_n, class_arr_n = class_arr_n)
+                    assign_func_method_mods_cont_n = self.assign_func_method_mods_cont(iden_temp_n, att_method_iden_n)
                     print(f"(parser) production: \"assign_func_method_mods\" EXITED RETURND : {assign_func_method_mods_cont_n}")
                     return assign_func_method_mods_cont_n
                 
