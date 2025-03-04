@@ -860,7 +860,7 @@ class SyntaxAnalyzer:
     def ERROR_expected_operator(self):
         self.logError(f"Expected a valid operator before '{self.currToken['tokenName'] if self.currToken else "EOF"}'.\nEnsure that there is a valid operator before a valid operand.")
     def ERROR_further_class_access(self):
-        self.logError("Cstar doesn't allow subclasses. An attempt to access a subclass and/or its attributes or methods is not supported.")
+        self.logError(f"Cstar doesn't allow subclasses. An attempt to access a subclass and/or its attributes or methods is not supported. Expected ';' but found '{self.currToken['tokenName'] if self.currToken else "EOF"}' instead.")
 
     def ERROR_expected_int_value_in_stmt(self):
         if self.currToken:
