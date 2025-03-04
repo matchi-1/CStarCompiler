@@ -1517,6 +1517,9 @@ class SyntaxAnalyzer:
                 obj_id_n = node_iden(self.match("Identifier", False))
             else:
                 self.ERROR_missing_initializer()
+
+            if self.currToken["tokenType"] == "[":
+                self.logError("Array of objects is not supported. Expected '=' or ';'")
             
             if self.currToken and self.currToken["tokenType"] == '=': # check if there is object instantiation
                 class_instcont_n = self.classinst_cont()
@@ -1524,7 +1527,6 @@ class SyntaxAnalyzer:
             # Match terminating symbol
             if self.currToken and self.currToken["tokenType"] == ';':
                 self.match(";")
-                print(f"######################### AST FOR CLASS INST #########################")
                 return node_class_inst(class_id_n, obj_id_n, class_instcont_n)
             else:
                 self.ERROR_terminating_token(";")
