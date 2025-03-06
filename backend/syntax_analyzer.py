@@ -1470,8 +1470,8 @@ class SyntaxAnalyzer:
         
         if self.currToken:
             if self.currToken["tokenType"] == "Identifier":
-                params_dec_n = None
-                code_block_n = None
+                params_dec_n = []
+                code_block_n = []
                 print("(parser) production: \"constructor_dec\" detected")
                 if self.currToken["tokenName"] != self.classNames[-1]: 
                     self.logError("Constructors must have the same name as its class.") 
@@ -1480,15 +1480,15 @@ class SyntaxAnalyzer:
                 class_id_n = node_iden(self.match("Identifier", False))
                 self.classNames.pop()
                 self.match("(", False)
-                params_dec_n = self.params_dec()
+                params_dec_n = self.params_dec([])
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
 
                 self.match("{", False)
-                code_block_n = self.code_block()
+                code_block_n = self.code_block([])
                 
                 if self.currToken and self.currToken["tokenType"] == "return":
-                    self.logError(f"Constructors cannot have return statements. Expected {PREDICT_SETS['code_block']} or }} ")
+                    self.logError(f"Constructors cannot have return statements. Expected {PREDICT_SETS['code_block']} or '}}'. ")
 
 
                 if not self.match("}"):

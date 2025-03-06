@@ -242,17 +242,14 @@ class SemanticAnalyzer:
         
 
 
-
     def visit_node_class_dec(self, node):
         className = node.class_id_n.id_t["tokenName"]
 
         if self.curr_scope.get(className, checkParent=False):
             self.logError(f"Class '{className}' is already declared.", node.class_id_n)
             return
-        constructorInfo = None
-        if node.constructor_dec_n: constructorInfo = self.visit_node_constructor_dec(node.constructor_dec_n) 
-        self.visit_node_class_body(node.class_body_n, className, constructorInfo)
-
+         
+        self.visit_node_class_body(node.class_body_n, className, node)
 
 
     def visit_node_constructor_dec(self, node): #TODO: be wary of return statements
@@ -262,15 +259,19 @@ class SemanticAnalyzer:
         if self.curr_scope.get(className, checkParent=False):
             self.logError("Constructor is already declared.", node.class_id_n)
             return
-
         param_types = []
         if node.params_n: # if params_n isn't None
             for param in node.params_n:
                 if type(param).__name__ == "node_funcpar_class":
-                    param_types.append({
-                        "type": "class",
-                        "classname": param.class_id_n.id_t["tokenName"]
-                    })  
+                    class_name = param.class_id_n.id_t["tokenName"]
+                    
+                    if not self.curr_scope.get(class_name):
+                        self.logError(f"Class '{class_name}' hasn't been declared yet.", param.class_id_n)
+                        param_types.append({
+                            "type": "object",
+                            "dtype": class_name,
+                            "class_name": class_name
+                        })  
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     param_types.append({
@@ -283,7 +284,7 @@ class SemanticAnalyzer:
                     param_types.append({
                         "type": "var",
                         "dtype": param.dtype_t["tokenName"]
-                    }) 
+                    })  
 
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
@@ -318,8 +319,11 @@ class SemanticAnalyzer:
                     var_dtype = param.dtype_t["tokenName"]
                     self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
 
-
         # Visit function body
+        if node.code_block_n:
+            print(f"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$${node.code_block_n}")
+            self.visit_node(node.code_block_n)
+
         # has_return = any(self.visit_node(stmt) for stmt in node.body_n)
 
         # # If function is non-void, ensure at least one return exists
@@ -336,7 +340,7 @@ class SemanticAnalyzer:
         return constructorInfo
 
 
-    def visit_node_class_body(self, node, className, constructorInfo):
+    def visit_node_class_body(self, node, className, parent_node):
         class_content = []
         
         if node.class_body_stmt_n:
@@ -345,6 +349,8 @@ class SemanticAnalyzer:
             #self.enter_scope(type(node).__name__)
             print(f"\n(semantic)(dbg) ENTERING scope 'Class: {className}'")
             self.curr_scope = SymbolTable(self.curr_scope)
+
+            
 
             for class_body_stmt_n in class_body_stmt:
                 priv = class_body_stmt_n.is_private_b
@@ -356,14 +362,18 @@ class SemanticAnalyzer:
                 elif type(vardec_n).__name__ == "node_func_dec":
                     class_content.append(self.visit_node_func_dec(vardec_n, priv))
 
+            constructor_info = None
+            if parent_node.constructor_dec_n: constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n)
+
             # self.exit_scope(type(node).__name__)
             print(f"\n(semantic)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
             self.print_symbols(self.curr_scope.syms, indent=2)
             self.curr_scope = self.curr_scope.parent
 
+
         flattened = [item for sublist in class_content for item in sublist]
         merged_dict = {k: v for d in flattened for k, v in d.items()}
-        self.curr_scope.set_class(className, class_info={"constructor_dec" : constructorInfo, "class_body_content": merged_dict})
+        self.curr_scope.set_class(className, class_info={"constructor_dec" : constructor_info, "class_body_content": merged_dict})
         
 
     def visit_node_class_inst(self, node):
@@ -582,20 +592,23 @@ class SemanticAnalyzer:
         value = node.value_n
         iden_name = iden.id_t["tokenName"]
         iden_symbol = self.curr_scope.get(iden_name)
+
+        if not iden_symbol: self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
+
         if iden_symbol["dtype"][0] in ["arr", "object"]:
             if iden_symbol["dtype"][0] == "arr":
                 self.logError(f"Symbol '{iden_name}' is an array and cannot be reassigned.", iden)
             elif iden_symbol["dtype"][0] == "object":
                 self.logError(f"Symbol '{iden_name}' is an object and cannot be reassigned.", iden)
-        if not iden_symbol:
-            self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", iden)
+
+            
         if iden_symbol["const"]:
             self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", iden)
         dtype = iden_symbol["dtype"][1]
         val_type, val = self.visit_node(value)
         if dtype != val_type[1]:
             self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
-        self.curr_scope.set(iden_name, val, dtype=dtype)
+        self.curr_scope.set(iden_name, val, dtype=('var', f'{dtype}'))
 
 
     def visit_node_assign_stmt_array_elem(self, node):
@@ -673,10 +686,12 @@ class SemanticAnalyzer:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
         
         self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
-        return (func_symbol["dtype"], None) 
+        print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
+        return (('func_call', f'{func_symbol["dtype"]}'), None) 
 
     
     def check_function_params(self, func_symbol, args, node_id, call_string):
+        print(f"(semantic)(dbg) CHECKING PARAMS from {call_string}!!")
         """
         Checks params vs args -- used for func calls / method calls / constructors.
         params:
@@ -766,6 +781,9 @@ class SemanticAnalyzer:
             if args:
                 self.logError(f"{call_string.capitalize()} call '{node_id.id_t['tokenName']}' requires 0 parameters but got {len(args)}.", node_id)
 
+        print(f"(semantic)(dbg) FINISHED CHECKING PARAMS from {call_string}!!!!!")
+    
+    
     def visit_node_class_method_call(self,node):
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.method_id_n.id_t["tokenName"]
@@ -804,7 +822,7 @@ class SemanticAnalyzer:
         if (node.vardec_cont_n):
             if node.vardec_cont_n.value_n:
                 val_type, value = self.visit_node(node.vardec_cont_n.value_n)
-            print('(semantic)(dbg) dec valtype: ', val_type[1])
+            if val_type: print('(semantic)(dbg) dec valtype: ', val_type[1])
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
         if val_type and dtype[1] != val_type[1]:
