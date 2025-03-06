@@ -119,11 +119,19 @@ const toggleFiles = () => {
       rules: [
         { token: '', background: '181F39', foreground: 'A1ADD5' },
         { token: 'comment', foreground: '5C6370', fontStyle: 'italic' },
-        { token: 'keyword', foreground: '569CD6' },
-        { token: 'number', foreground: 'B5CEA8' },
+        { token: 'identifier', foreground: 'a3d5ff' },
+        { token: 'number', foreground: 'FFB86C' },
         { token: 'string', foreground: 'D69D85' },
         { token: 'variable', foreground: '9CDCFE' },
-        { token: 'keyword', foreground: '76A1E8'}
+        { token: 'bool', foreground: 'FFB86C'},
+        { token: 'control', foreground: '5BAEB7'},
+        { token: 'property', foreground: 'FBE8B3'},
+        { token: 'output', foreground: '78AED3'},
+        { token: 'input', foreground: '78AED3'},
+        { token: 'import', foreground: 'DF4576'},
+        { token: 'type', foreground: '4FC1FF'},
+        { token: 'class', foreground: 'DF4576'},
+        { token: 'return', foreground: 'F7D379'},
       ],
       colors: {
         'editor.background': '#181F39',
@@ -132,14 +140,83 @@ const toggleFiles = () => {
         'editorCursor.foreground': '#A7A7A7',
       },
     };
+
+    const keywords = [
+      "bool",
+      "break",
+      "case",
+      "class",
+      "continue",
+      "const",
+      "default",
+      "do",
+      "double",
+      "else",
+      "false",
+      "float",
+      "if",
+      "import",
+      "in",
+      "int",
+      "long",
+      "print",
+      "println",
+      "private",
+      "repeat",
+      "return",
+      "string",
+      "switch",
+      "true",
+      "false",
+      "void",
+      "while",
+    ];
   
     monaco.editor.defineTheme('blue-theme', blueTheme);
     monaco.editor.setTheme('blue-theme'); // Apply the theme
     console.log("monaco mounted");
     monaco.languages.register({id: 'Cstar'});
     monaco.languages.setMonarchTokensProvider('Cstar', {
+      keywords,
       tokenizer: {
         root: [
+          [
+            /@?[a-zA-Z][\w$]*/,
+            {
+              cases: {
+                bool: "type",
+                int: "type",
+                long: "type",
+                float: "type",
+                double: "type",
+                string: "type",
+                void: "type",
+                if: "control",
+                else: "control",
+                return: "return",
+                for: "control",
+                do: "control",
+                while: "control",
+                continue: "control",
+                break: "control",
+                switch: "control",
+                case: "control",
+                default: "control",
+                repeat: "control",
+                true: "bool",
+                false: "bool",
+                const: "property",
+                private: "property",
+                import: "import",
+                print: "output",
+                println: "output",
+                in: "input",
+                class: "class",
+                "@keywords": "keyword",
+                "@default": "identifier",
+              },
+            },
+          ],
           [/(\W)\b\d+(\.\d+)?\b/, 'number'],
           [/".*?"/, 'string'],
           [/(\/\/[^\n]*)/, 'comment'],
@@ -168,6 +245,7 @@ const toggleFiles = () => {
           startColumn: currWord.startColumn,
           endColumn: currWord.endColumn
         };
+
         const suggestions = [
           {
             label: 'bool',
