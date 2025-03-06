@@ -218,7 +218,7 @@ const toggleFiles = () => {
               },
             },
           ],
-          [/(\W)\b\d+(\.\d+)?\b/, 'number'],
+          [/\b\d+(\.\d+)?\b/, 'number'],
           [/".*?"/, 'string'],
           [/(\/\/[^\n]*)/, 'comment'],
           [/(\/\*[\s\S]*?\*\/)/, 'comment'],
