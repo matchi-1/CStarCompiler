@@ -858,10 +858,10 @@ class SemanticAnalyzer:
         dim = 2 if node.size2_n else 1
         size_1_type, size_1 = self.visit_node(node.size1_n)
         if size_1_type[1] not in ['int', 'long']:
-            self.logError('Expected whole number.')
+            self.logError(f'Type mismatch: expected whole number (integer, long) but got {size_1_type[1]}.')
         size_2_type, size_2 = self.visit_node(node.size2_n) if node.size2_n else (None, None)
         if size_2_type and size_2_type[1] not in ['int', 'long']:
-            self.logError('Expected whole number.')
+            self.logError(f'Type mismatch: expected whole number (integer, long) but got {size_2_type[1]}.')
         values_list = None
         arr_rec = None
         if node.arr_dec_cont_n:
