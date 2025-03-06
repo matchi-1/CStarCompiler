@@ -341,7 +341,10 @@ class SemanticAnalyzer:
 
 
     def visit_node_class_body(self, node, className, parent_node):
+        print(f'\n(semantic)(dbg) VISITING {type(node).__name__}!!')
+
         class_content = []
+        constructor_info = None
         
         if node.class_body_stmt_n:
             class_body_stmt = node.class_body_stmt_n
@@ -362,13 +365,16 @@ class SemanticAnalyzer:
                 elif type(vardec_n).__name__ == "node_func_dec":
                     class_content.append(self.visit_node_func_dec(vardec_n, priv))
 
-            constructor_info = None
+            
             if parent_node.constructor_dec_n: constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n)
-
+            child_sym = self.curr_scope.syms
             # self.exit_scope(type(node).__name__)
-            print(f"\n(semantic)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
-            self.print_symbols(self.curr_scope.syms, indent=2)
             self.curr_scope = self.curr_scope.parent
+
+        
+        print(f"\n(semantic)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
+        if node.class_body_stmt_n: self.print_symbols(child_sym, indent=2)
+        else: self.print_symbols(self.curr_scope.syms, indent=2)
 
 
         flattened = [item for sublist in class_content for item in sublist]
@@ -387,8 +393,14 @@ class SemanticAnalyzer:
         if not self.curr_scope.get(class_id, checkParent=True):
             self.logError(f"Class '{class_id}' declaration not found.", node.class_id_n)
 
+
         dtype = ('object', class_id)
-        class_elem_info = self.curr_scope.parent.get(class_id)["class_info"]["class_body_content"]
+
+        if self.curr_scope.get(class_id).get("class_info"): class_elem_info = self.curr_scope.get(class_id)["class_info"]["class_body_content"]
+        
+        elif self.curr_scope.parent.get(class_id).get("class_info"): class_elem_info = self.curr_scope.parent.get(class_id)["class_info"]["class_body_content"]
+
+        
         class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
         
         
@@ -414,6 +426,10 @@ class SemanticAnalyzer:
         obj_info = self.curr_scope.get(obj_name)
         if obj_info.get("class_info"):
             self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
+
+        if obj_info.get("dtype"):
+            self.logError(f"Symbol '{obj_name}' not an object.", node.obj_id_n)
+
 
         print(obj_info)
         if not obj_info:
