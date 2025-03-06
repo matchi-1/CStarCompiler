@@ -155,12 +155,12 @@ class node_class_method_call:
 
 class node_class_arr_idx:
     def __init__(self, class_id_n, att_id_n, idx_n, idx2_n = None):
-        self.class_id_n = class_id_n
+        self.obj_id_n = class_id_n
         self.att_id_n = att_id_n
         self.idx_n = idx_n
         self.idx2_n = idx2_n
     def __repr__(self):
-        return f'{self.class_id_n}.{self.att_id_n}[{self.idx_n}]' + (f'[{self.idx_n}]' if self.idx2_n else '')
+        return f'{self.obj_id_n}.{self.att_id_n}[{self.idx_n}]' + (f'[{self.idx_n}]' if self.idx2_n else '')
 
 class node_func_args:
     def __init__(self, args_n, args_rec_n = None):

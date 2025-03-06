@@ -450,6 +450,57 @@ class SemanticAnalyzer:
         
         return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])   #None is TODO for code gen
 
+    def visit_node_class_arr_idx(self, node):
+        obj_name = node.obj_id_n.id_t["tokenName"]
+        class_elem = node.att_id_n.id_t["tokenName"]
+
+        obj_info = self.curr_scope.get(obj_name)
+        if obj_info.get("class_info"):
+            self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
+
+        if obj_info.get("dtype")[0] != 'object':
+            self.logError(f"Symbol '{obj_name}' not an object.", node.obj_id_n)
+
+        print(obj_info)
+        if not obj_info:
+            self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
+
+        class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
+        class_info_no_privates = {k: v for k, v in class_info.items() if not v["priv"]}
+
+        if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
+            self.logError(f"Attribute '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
+        
+        elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
+            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+
+        arr_sym = obj_info["obj_info"][class_elem]
+        if arr_sym["dtype"][0] != 'arr':
+            self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.')
+        dtype = arr_sym["dtype"][1]
+        idx_type, idx_val = self.visit_node(node.idx_n)
+        
+        if idx_type[1] not in ['int', 'long']:
+            self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
+        if idx_val < 0:
+                self.logError("Array index cannot be negative.")
+        if idx_val >= arr_sym["arr_info"]["size1"]:
+            self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.')
+        idx2_val = None
+        if node.idx2_n:
+            if arr_sym["arr_info"]["dimension"] == 1:
+                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.')
+            idx2_type, idx2_val = self.visit_node(node.idx2_n)
+            if idx2_type[1] not in ['int', 'long']:
+                self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.')
+            if idx2_val < 0:
+                self.logError("Array index cannot be negative.")
+            if idx2_val >= arr_sym["arr_info"]["size2"]:
+                self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.')
+        else:
+            if arr_sym["arr_info"]["dimension"] == 2:
+                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
+        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val])
 
     def visit_node_num(self, node):
         val = 0
