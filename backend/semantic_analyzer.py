@@ -321,7 +321,7 @@ class SemanticAnalyzer:
 
         # Visit function body
         if node.code_block_n:
-            print(f"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$${node.code_block_n}")
+            #print(f"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$${node.code_block_n}")
             self.visit_node(node.code_block_n)
 
         # has_return = any(self.visit_node(stmt) for stmt in node.body_n)
@@ -412,6 +412,10 @@ class SemanticAnalyzer:
         class_elem = node.att_id_n.id_t["tokenName"]
 
         obj_info = self.curr_scope.get(obj_name)
+        if obj_info.get("class_info"):
+            self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
+
+        print(obj_info)
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
@@ -690,7 +694,7 @@ class SemanticAnalyzer:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
         
         self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
-        print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
+        #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
         return (('func_call', f'{func_symbol["dtype"]}'), None) 
 
     
