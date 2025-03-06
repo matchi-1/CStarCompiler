@@ -1044,13 +1044,13 @@ class SyntaxAnalyzer:
             if currentTokenType in PREDICT_SETS["assign_func_method_mods"]:
                 if currentTokenType in PREDICT_SETS["assign_operator"]:
                     assign_stmt_var_n = self.assign_stmt_op(id_or_class_id_n = iden_temp_n) #iden = 
-                    print(f"(parser) production: \"assign_func_method_mods\" EXITED returnd: {assign_stmt_var_n}")
+                    print(f"(parser) production: \"assign_stmt_op\" EXITED returnd: {assign_stmt_var_n}")
                     return assign_stmt_var_n
                 
                 elif currentTokenType == "[":
                     arr_idx_temp_n = self.as_array(iden_temp_n)  #iden[1] = 
                     assign_stmt_array_elem_n = self.assign_stmt_op(arr_idx_n = arr_idx_temp_n)
-                    print(f"(parser) production: \"assign_func_method_mods\" EXITED returnd: {assign_stmt_array_elem_n}")
+                    print(f"(parser) production: \"assign_stmt_op\" EXITED returnd: {assign_stmt_array_elem_n}")
                     return assign_stmt_array_elem_n
                 
                 elif currentTokenType == "(":
@@ -1058,14 +1058,14 @@ class SyntaxAnalyzer:
                     func_arg_n = self.func_arg([])
                     if not self.match(")"):
                         self.ERROR_unclosed_parentheses()
-                    print(f"(parser) production: \"assign_func_method_mods\" EXITED returnd: {node_func_call(iden_temp_n, func_arg_n)}")
+                    print(f"(parser) production: \"func_arg\" EXITED returnd: {node_func_call(iden_temp_n, func_arg_n)}")
                     return node_func_call(iden_temp_n, func_arg_n)
 
                 elif currentTokenType == ".":
                     self.match(".")
                     att_method_iden_n = node_iden(self.match("Identifier", False)) #####################
                     assign_func_method_mods_cont_n = self.assign_func_method_mods_cont(iden_temp_n, att_method_iden_n)
-                    print(f"(parser) production: \"assign_func_method_mods\" EXITED RETURND : {assign_func_method_mods_cont_n}")
+                    print(f"(parser) production: \"assign_func_method_mods_cont\" EXITED RETURND : {assign_func_method_mods_cont_n}")
                     return assign_func_method_mods_cont_n
                 
             else: self.ERROR_expected_token(PREDICT_SETS["assign_func_method_mods"])
@@ -1075,16 +1075,19 @@ class SyntaxAnalyzer:
 
 
     def assign_func_method_mods_cont(self, classname_temp_n, att_method_iden_n):
-        print("(parser) production: \"assign_func_method_mods_cont\" detected")
+        print(f"(parser) production: \"assign_func_method_mods_cont\" detected, args: classname_temp_n = {classname_temp_n}, att_method_iden_n = {att_method_iden_n}")
 
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
             if currentTokenType in (PREDICT_SETS["assign_func_method_mods_cont"] + PREDICT_SETS["assign_operator"]): 
-                if currentTokenType == "[" or currentTokenType in PREDICT_SETS["assign_operator"]:
+                
+                if currentTokenType == "[":
                     class_arr_temp_n = self.as_array(classname_temp_n, att_method_iden_n) # iden.iden[1] 
+                    
                     if not self.currToken or self.currToken["tokenType"] not in PREDICT_SETS["assign_operator"]:
                         self.ERROR_expected_token(PREDICT_SETS["assign_operator"]) 
                     assign_stmt_object_att_arr_temp_n = self.assign_stmt_op(class_arr_n = class_arr_temp_n) # iden.iden[1]  =
+                    
                     return assign_stmt_object_att_arr_temp_n
 
                 elif currentTokenType == "(":  # iden.iden()
@@ -1095,6 +1098,8 @@ class SyntaxAnalyzer:
                     return node_class_method_call(classname_temp_n, att_method_iden_n, func_arg_n)
 
                 elif currentTokenType in PREDICT_SETS["assign_operator"]:  # iden.iden =
+                    print(f"(!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! args: classname_temp_n = {classname_temp_n}, att_method_iden_n = {att_method_iden_n}")
+
                     assign_stmt_object_att_n = self.assign_stmt_op(classname_temp_n, att_method_iden_n)
                     return assign_stmt_object_att_n
 
@@ -2982,8 +2987,8 @@ class SyntaxAnalyzer:
         return assign_stmt_n
 
     def assign_stmt_op(self, id_or_class_id_n = None, att_id_n = None, class_arr_n = None, arr_idx_n = None, class_att_n = None):
-        print('(parser) production: "assign_stmt_op" detected')
-            
+        print(f'(parser) production: "assign_stmt_op" detected, {self.currToken}')
+        print(f'(parser) "assign_stmt_op" ARGS: id_or_class_id_n = {id_or_class_id_n}, att_id_n = {att_id_n}, class_arr_n = {class_arr_n}, arr_idx_n = {arr_idx_n}, class_att_n = {class_att_n}')
         if not self.currToken or (self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["assign_operator"]):
             self.ERROR_expected_token(PREDICT_SETS["assign_operator"])
 

@@ -755,7 +755,7 @@ class SemanticAnalyzer:
 
         obj_name = node.class_att_n.obj_id_n.id_t["tokenName"]
         att_name = node.class_att_n.att_id_n.id_t["tokenName"]
-        value = node.assign_value_n
+        value = node.value_n
         # print(f"!@!@!@!@!@!@!#!#!#!#!#!#!#!{self.curr_scope.get(obj_name)} \n{obj_name}")
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
 
@@ -768,7 +768,7 @@ class SemanticAnalyzer:
         if dtype != val_type[1]:
             self.logError(f"Type Mismatch: expected '{dtype}' for attribute '{att_name}' but found '{val_type[1]}'", node.class_att_n.att_id_n)
 
-        # self.curr_scope.set(iden_name, val, dtype=dtype) #for code gen na e2 ryt TODO
+        self.curr_scope.set(obj_name, val, dtype=dtype) #for code gen na e2 ryt TODO
 
         
     # func calls
