@@ -119,7 +119,7 @@ const toggleFiles = () => {
       rules: [
         { token: '', background: '181F39', foreground: 'A1ADD5' },
         { token: 'comment', foreground: '5C6370', fontStyle: 'italic' },
-        { token: 'identifier', foreground: 'a3d5ff' },
+        { token: 'identifier', foreground: 'feeaa5' },
         { token: 'number', foreground: 'FFB86C' },
         { token: 'string', foreground: 'D69D85' },
         { token: 'variable', foreground: '9CDCFE' },
@@ -128,10 +128,10 @@ const toggleFiles = () => {
         { token: 'property', foreground: 'FBE8B3'},
         { token: 'output', foreground: '78AED3'},
         { token: 'input', foreground: '78AED3'},
-        { token: 'import', foreground: 'DF4576'},
+        { token: 'import', foreground: 'a3d5ff'},
         { token: 'type', foreground: '4FC1FF'},
-        { token: 'class', foreground: 'DF4576'},
-        { token: 'return', foreground: 'F7D379'},
+        { token: 'class', foreground: 'fcadb0'},
+        { token: 'return', foreground: 'a3d5ff'},
       ],
       colors: {
         'editor.background': '#181F39',
