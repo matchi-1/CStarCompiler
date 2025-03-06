@@ -256,18 +256,13 @@ const toggleFiles = () => {
           {
             label: 'break',
             kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'break',
+            insertText: 'break;',
             range: wordRange
           },
           {
             label: 'case',
             kind:monaco.languages.CompletionItemKind.Keyword,
             insertText: 'case ',
-            range: wordRange
-          },{
-            label: 'char',
-            kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'char',
             range: wordRange
           },
           {
@@ -279,7 +274,7 @@ const toggleFiles = () => {
           {
             label: 'continue',
             kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'continue',
+            insertText: 'continue;',
             range: wordRange
           },
           {
@@ -291,7 +286,7 @@ const toggleFiles = () => {
           {
             label: 'default',
             kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'default',
+            insertText: 'default:',
             range: wordRange
           },
           {
@@ -325,12 +320,6 @@ const toggleFiles = () => {
             range: wordRange
           },
           {
-            label: 'get',
-            kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'get',
-            range: wordRange
-          },
-          {
             label: 'if',
             kind:monaco.languages.CompletionItemKind.Keyword,
             insertText: 'if (${1})',
@@ -354,12 +343,6 @@ const toggleFiles = () => {
             label: 'int',
             kind:monaco.languages.CompletionItemKind.Keyword,
             insertText: 'int',
-            range: wordRange
-          },
-          {
-            label: 'item',
-            kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'item',
             range: wordRange
           },
           {
@@ -389,12 +372,6 @@ const toggleFiles = () => {
             range: wordRange
           },
           {
-            label: 'property',
-            kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'property',
-            range: wordRange
-          },
-          {
             label: 'repeat',
             kind:monaco.languages.CompletionItemKind.Function,
             insertText: 'repeat (${1})',
@@ -408,18 +385,6 @@ const toggleFiles = () => {
             range: wordRange
           },
           {
-            label: 'set',
-            kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'set',
-            range: wordRange
-          },
-          {
-            label: 'static',
-            kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'static',
-            range: wordRange
-          },
-          {
             label: 'string',
             kind:monaco.languages.CompletionItemKind.Keyword,
             insertText: 'string',
@@ -430,12 +395,6 @@ const toggleFiles = () => {
             kind:monaco.languages.CompletionItemKind.Function,
             insertText: 'switch (${1})',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range: wordRange
-          },
-          {
-            label: 'this',
-            kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'this',
             range: wordRange
           },
           {
