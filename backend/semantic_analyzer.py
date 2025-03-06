@@ -439,7 +439,7 @@ class SemanticAnalyzer:
     
     def visit_node_str(self, node):
         # return (('var', node.dtype), node.val_t["tokenName"][1:-1])
-        return (('lit', node.dtype), None)
+        return (('lit', node.dtype), node.val_t["tokenName"][1:-1])
     
     def visit_node_bool(self, node):
         # return (node.dtype, node.val_t["tokenName"]=="true")
@@ -451,13 +451,17 @@ class SemanticAnalyzer:
             self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node)
         else:
             # dtype = iden_symbol["dtype"]
-            # val = 0
-            # if dtype in ['int', 'long']:
+            # val = None
+            # if dtype[1] in ['int', 'long']:
             #     val = int(iden_symbol["value"])
-            # elif dtype in ['float', 'double']:
+            # elif dtype[1] in ['float', 'double']:
             #     val = float(iden_symbol["value"])
+            # elif dtype[1] == 'string':
+            #     val = iden_symbol["value"]
+            
             # return (dtype, val)
-            return (('var', iden_symbol["dtype"][1]), None)
+            return (iden_symbol["dtype"], iden_symbol["value"])
+            # return (('var', iden_symbol["dtype"][1]), None)
         
     def visit_node_arr_idx(self, node):
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
@@ -920,10 +924,10 @@ class SemanticAnalyzer:
             case '+': 
                 if left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        print('(semantic)(dbg) ERROR: string exp only strings')
+                        self.logError("Type mismatch: String expressions can only be between two strings type values.")
                     else:
-                        # return ('string', left_val + right_val)
-                        return (('lit', 'string'), None)
+                        return (('lit', 'string'), (left_val or "") + (right_val or "") ) #or empty string for nontypes
+                        # return (('lit', 'string'), None)
                 elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     # return (dtype, left_val + right_val)
                     return (dtype, None)
@@ -1251,77 +1255,83 @@ class SemanticAnalyzer:
 
         return (('lit', expected_dtype), None)
     
+    def visit_node_output(self, node):
+        print_stmts_n = node.print_stmts_n 
+        print_params_n = node.print_params_n  
+
+        # if not print_params_n:
+        #     self.logError("Output statement requires at least one parameter (format string).")
+        #     return None
+        first_param = print_params_n[0]
+        first_param_type, first_param_val = self.visit_node(first_param)
+        formatted_output = ""
+
+
+        if first_param_type[1] != "string":
+            # self.logError("First parameter in output statement must be a string (format string).", first_param)
+            if len(print_params_n > 1):
+                self.logError("Print statements can only have one parameter, unless a string with format specifiers is used.")
+            # return None
+        else:
+            format_specifiers = self._extract_format_specifiers(first_param_val)
+
+            if len(format_specifiers) != len(print_params_n) - 1:
+                if not format_specifiers:
+                    self.logError(f"String literal {first_param_val} does not have any format specifiers.")
+                else:
+                    self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).")
+
+            formatted_output = first_param_val
+            for i, specifier in enumerate(format_specifiers):
+                param_node = print_params_n[i + 1] 
+                param_type, param_value = self.visit_node(param_node)
+
+            
+                if not self._validate_format_specifier(specifier, param_type[1]):
+                    self.logError(f"Format specifier '{specifier}' does not match parameter type '{param_type[1]}'.")
+                    return None
+                formatted_output = formatted_output.replace(specifier, str(param_value), 1)
+
+        if print_stmts_n == "println":
+            print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+        else:
+            print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+
+        return None
+
+    def _extract_format_specifiers(self, format_string):
+        import re
+        return re.findall(r'%[sdf]|%l[df]', format_string or "")  # matches %s, %d, %f, %ld, %lf
+                                                        #or statement so that we dont throw an exeption on None returns
+
+    def _validate_format_specifier(self, specifier, param_type):
+        if specifier == "%s":
+            return param_type == "string"
+        elif specifier == "%d":
+            return param_type == "int"
+        elif specifier == "%ld":
+            return param_type == "long"
+        elif specifier == "%f":
+            return param_type == "float"
+        elif specifier == "%lf":
+            return param_type == "double"
+        else:
+            return False
     # def visit_node_output(self, node):
     #     print_stmts_n = node.print_stmts_n 
     #     print_params_n = node.print_params_n  
 
     #     if not print_params_n:
-    #         self.logError("Output statement requires at least one parameter (format string).")
-    #         return None
-    #     format_string_node = print_params_n[0]
-    #     format_string_type, format_string_value = self.visit_node(format_string_node)
-
-
-    #     if format_string_type != "string":
-    #         self.logError("First parameter in output statement must be a string (format string).", format_string_node)
+    #         self.logError("Output statement requires at least one parameter.", node)
     #         return None
 
-    #     format_specifiers = self._extract_format_specifiers(format_string_value)
+    #     first_param = print_params_n[0]
+    #     first_param_type, _ = self.visit_node(first_param)
 
-    #     if len(format_specifiers) != len(print_params_n) - 1:
-    #         self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", format_string_node)
-    #         return None
-
-    #     formatted_output = format_string_value
-    #     for i, specifier in enumerate(format_specifiers):
-    #         param_node = print_params_n[i + 1] 
-    #         param_type, param_value = self.visit_node(param_node)
-
-        
-    #         if not self._validate_format_specifier(specifier, param_type):
-    #             self.logError(f"Format specifier '{specifier}' does not match parameter type '{param_type}'.", param_node)
-    #             return None
-    #         formatted_output = formatted_output.replace(specifier, str(param_value), 1)
-
-    #     if print_stmts_n == "println":
-    #         print(formatted_output)
-    #     else:
-    #         print(formatted_output, end='')
-
+    #     # if first_param_type != "string":
+    #     #     self.logError("First parameter in output statement must be a string.", first_param)
+    #     #     return None
     #     return None
-
-    # def _extract_format_specifiers(self, format_string):
-    #     import re
-    #     return re.findall(r'%[sdf]|%l[df]', format_string)  # matches %s, %d, %f, %ld, %lf
-
-    # def _validate_format_specifier(self, specifier, param_type):
-    #     if specifier == "%s":
-    #         return param_type == "string"
-    #     elif specifier == "%d":
-    #         return param_type == "int"
-    #     elif specifier == "%ld":
-    #         return param_type == "long"
-    #     elif specifier == "%f":
-    #         return param_type == "float"
-    #     elif specifier == "%lf":
-    #         return param_type == "double"
-    #     else:
-    #         return False
-    def visit_node_output(self, node):
-        print_stmts_n = node.print_stmts_n 
-        print_params_n = node.print_params_n  
-
-        if not print_params_n:
-            self.logError("Output statement requires at least one parameter.", node)
-            return None
-
-        format_string_node = print_params_n[0]
-        format_string_type, _ = self.visit_node(format_string_node)
-
-        # if format_string_type != "string":
-        #     self.logError("First parameter in output statement must be a string.", format_string_node)
-        #     return None
-        return None
     
     #code block
     # def visit_code_block(self, node, isVoid=False):
