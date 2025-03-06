@@ -31,6 +31,7 @@ class SymbolTable:
         sym_content = self._create_symbol_entry(value, dtype, priv, const)
         sym_content["arr_info"] = arr_info  
         self.syms[sym_name] = sym_content
+        return {sym_name: sym_content}
 
     def set_class(self, sym_name, class_info):
         sym_content = {}
@@ -365,6 +366,9 @@ class SemanticAnalyzer:
                 elif type(vardec_n).__name__ == "node_func_dec":
                     class_content.append(self.visit_node_func_dec(vardec_n, priv))
 
+                elif type(vardec_n).__name__ == "node_arr_dec":
+                    class_content.append(self.visit_node_arr_dec(vardec_n, priv))
+
             
             if parent_node.constructor_dec_n: constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n)
             child_sym = self.curr_scope.syms
@@ -427,9 +431,8 @@ class SemanticAnalyzer:
         if obj_info.get("class_info"):
             self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
 
-        if obj_info.get("dtype"):
+        if obj_info.get("dtype")[0] != 'object':
             self.logError(f"Symbol '{obj_name}' not an object.", node.obj_id_n)
-
 
         print(obj_info)
         if not obj_info:
@@ -444,26 +447,25 @@ class SemanticAnalyzer:
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
             self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
 
-
-        return (class_info[class_elem]["dtype"], None)   #None is TODO for code gen
+        
+        return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])   #None is TODO for code gen
 
 
     def visit_node_num(self, node):
         val = 0
-        # if node.dtype in ['int', 'long']:
-        #     val = int(node.val_t["tokenName"])
-        # elif node.dtype in ['float', 'double']:
-        #     val = float(node.val_t["tokenName"])
-        # return (('var', node.dtype), val) 
-        return (('lit', node.dtype), None)
+        if node.dtype in ['int', 'long']:
+            val = int(node.val_t["tokenName"])
+        elif node.dtype in ['float', 'double']:
+            val = float(node.val_t["tokenName"])
+        return (('var', node.dtype), val) 
+        # return (('lit', node.dtype), None)
     
     def visit_node_str(self, node):
         # return (('var', node.dtype), node.val_t["tokenName"][1:-1])
         return (('lit', node.dtype), node.val_t["tokenName"][1:-1])
     
     def visit_node_bool(self, node):
-        # return (node.dtype, node.val_t["tokenName"]=="true")
-        return (('lit', node.dtype), None)
+        return (('lit', 'bool'), node.val_t["tokenName"]=="true")
     
     def visit_node_iden(self, node):
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
@@ -488,13 +490,29 @@ class SemanticAnalyzer:
         if arr_sym["dtype"][0] != 'arr':
             self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.')
         dtype = arr_sym["dtype"][1]
+        idx_type, idx_val = self.visit_node(node.idx_n)
+        
+        if idx_type[1] not in ['int', 'long']:
+            self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
+        if idx_val < 0:
+                self.logError("Array index cannot be negative.")
+        if idx_val >= arr_sym["arr_info"]["size1"]:
+            self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.')
+        idx2_val = None
         if node.idx2_n:
             if arr_sym["arr_info"]["dimension"] == 1:
                 self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.')
+            idx2_type, idx2_val = self.visit_node(node.idx2_n)
+            if idx2_type[1] not in ['int', 'long']:
+                self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.')
+            if idx2_val < 0:
+                self.logError("Array index cannot be negative.")
+            if idx2_val >= arr_sym["arr_info"]["size2"]:
+                self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.')
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
-        return (('var', dtype), None) #for now, since seman
+        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val])
     #cont...
 
     def visit_node_func_dec(self, node, priv = False):
@@ -850,22 +868,29 @@ class SemanticAnalyzer:
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
         if val_type and dtype[1] != val_type[1]:
-            if dtype[1] not in ['float', 'double'] or val_type not in ['int', 'long']:
+            if dtype[1] not in ['float', 'double'] or val_type[1] not in ['int', 'long']:
                 self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'", node.id_n)
-        # if not value:
-        #     match dtype:
-        #         case 'bool':
-        #             value = False
-        #         case 'int':
-        #             value = 0
-        #         case 'long':
-        #             value = 0
-        #         case 'float':
-        #             value = 0.0
-        #         case 'double':
-        #             value = 0.0
-        #         case 'string':
-        #             value = ''
+            else:
+                if dtype[1] == 'float':
+                    if value >= self.MAX_FLOAT or value <= self.MIN_FLOAT:
+                        self.logError(f'Value {value} is out of float range.')
+                elif dtype[1] == 'double':
+                    if value >= self.MAX_DOUBLE or value <= self.MIN_DOUBLE:
+                        self.logError(f'Value {value} is out of double range.')
+        if not value:
+            match dtype:
+                case 'bool':
+                    value = False
+                case 'int':
+                    value = 0
+                case 'long':
+                    value = 0
+                case 'float':
+                    value = 0.0
+                case 'double':
+                    value = 0.0
+                case 'string':
+                    value = ''
         classReturn = []
         classReturn.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
         for dec_node in idec_rec or []:
@@ -874,7 +899,7 @@ class SemanticAnalyzer:
         return classReturn
 
     #array declaration
-    def visit_node_arr_dec(self, node):
+    def visit_node_arr_dec(self, node, priv = False):
         id = node.id_n.id_t["tokenName"]
         if self.curr_scope.get(id, checkParent=False):
             self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
@@ -883,11 +908,16 @@ class SemanticAnalyzer:
         size_1_type, size_1 = self.visit_node(node.size1_n)
         if size_1_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {size_1_type[1]}.')
+        if size_1 < 1:
+            self.logError("Array size cannot be less than 1.")
         size_2_type, size_2 = self.visit_node(node.size2_n) if node.size2_n else (None, None)
         if size_2_type and size_2_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {size_2_type[1]}.')
+        if size_2 and size_2 < 1:
+            self.logError("Array size cannot be less than 1.")
         values_list = None
         arr_rec = None
+        classReturn = []
         if node.arr_dec_cont_n:
             if type(node.arr_dec_cont_n[0]).__name__ == "node_arr_dec_rec":
                 arr_rec = node.arr_dec_cont_n
@@ -903,6 +933,9 @@ class SemanticAnalyzer:
                     self.logError(f'Array contents can only be of type \'{node.dtype_t["tokenName"]}\'')
                 else:
                     arr_vals.append(val)
+            if arr_vals and len(arr_vals) != size_1:
+                singplur = 'element' if size_1 == 1 else 'elements'
+                self.logError(f"Expected {size_1} {singplur} for array {id}, but got {len(arr_vals)}.")
         else:
             for inner_arr in values_list or []:
                 temp_arr = []
@@ -914,8 +947,14 @@ class SemanticAnalyzer:
                         self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
                     else:
                         temp_arr.append(val)
+                if len(temp_arr) != size_2:
+                        singplur = 'element' if size_2 == 1 else 'elements'
+                        self.logError(f"Expected {size_2} {singplur} for inner array element, but got {len(temp_arr)}.")
                 arr_vals.append(temp_arr)
-        self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
+            if len(arr_vals) != size_1:
+                singplur = 'element' if size_1 == 1 else 'elements'
+                self.logError(f"Expected {size_1} {singplur} for array {id}, but got {len(arr_vals)}.")
+        classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv))
         for arrdec_node in arr_rec or []:
             size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
             if size_1_type[1] not in ['int', 'long']:
@@ -925,8 +964,9 @@ class SemanticAnalyzer:
                 self.logError('Expected whole number.')
             if self.curr_scope.get(arrdec_node.id_n.id_t["tokenName"], checkParent=False):
                 self.logError(f"Symbol '{arrdec_node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
-            self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], None, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2})
+            classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], None, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv))
         
+        return classReturn
 
     # binary and unary operations
     def visit_node_bi_op(self, node):
@@ -949,106 +989,107 @@ class SemanticAnalyzer:
                         return (('lit', 'string'), (left_val or "") + (right_val or "") ) #or empty string for nontypes
                         # return (('lit', 'string'), None)
                 elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    # return (dtype, left_val + right_val)
-                    return (dtype, None)
+                    return (dtype, left_val + right_val)
+                    # return (dtype, None)
                 else:
-                     print('(semantic)(dbg) ERROR: only numerics')
+                     self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
 
             case '-':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    # return (dtype, left_val - right_val)
-                    return (dtype, None)
+                    return (dtype, left_val - right_val)
+                    # return (dtype, None)
                 else:
-                    print('(semantic)(dbg) ERROR: only numerics')
+                    self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
             case '/':
                 if right_val == 0: #todo
-                    print("(semantic)(dbg) ERROR: DIVIDE BY 0")
+                    # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
+                    self.logError("Division by 0 is not allowed.")
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    # return (dtype, left_val / right_val)
-                    return (dtype, None)
+                    return (dtype, left_val / right_val)
+                    # return (dtype, None)
                 else:
-                    print('(semantic)(dbg) ERROR: only numerics')
+                    self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
             case '*':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    # return (dtype, left_val * right_val)
-                    return (dtype, None)
+                    return (dtype, left_val * right_val)
+                    # return (dtype, None)
                 else:
-                    print('(semantic)(dbg) ERROR: only numerics')
+                    self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
             case '%':
-                if dtype[1] in ['float', 'double']:
-                    print('(semantic)(dbg) ERROR : MODULO FLOATING POINT')
+                if dtype[1] in ['float', 'double'] or right_type[1] in ['float', 'double']:
+                    self.logError("Type mismatch: Modulo operation only supports whole numbers (int, long)")
                 else:
                     if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                        # return (dtype, left_val % right_val)
-                        return (dtype, None)
+                        return (dtype, left_val % right_val)
+                        # return (dtype, None)
                     else:
-                        print('(semantic)(dbg) ERROR: only numerics')
+                        self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
 
             #relational
             case '==':
                 if left_type[1] in self.numtypes:
                     if right_type[1] not in self.numtypes:
-                        print('(semantic)(dbg) ERROR: comparison with numeric can only be with another numeric')
+                        self.logError("Type mismatch: Numeric values can only be compard with other numeric values.")
                 elif left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        print('(semantic)(dbg) ERROR: comparisong with string can only be with another string')
+                        self.logError("Type mismatch: Strings an can only be compared with other strings.")
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
-                        print('(semantic)(dbg) ERROR: comparisong with bool can only be with another bool')
-                # return ('bool', left_val == right_val)
-                return (('lit', 'bool'), None)
+                        self.logError("Type mismatch: Bools an can only be compared with other bools.")
+                return (('lit', 'bool'), left_val == right_val)
+                # return (('lit', 'bool'), None)
             
             case '!=':
                 if left_type[1] in self.numtypes:
                     if right_type[1] not in self.numtypes:
-                        print('(semantic)(dbg) ERROR: comparison with numeric can only be with another numeric')
+                        self.logError("Type mismatch: Numeric values can only be compard with other numeric values.")
                 elif left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        print('(semantic)(dbg) ERROR: comparisong with string can only be with another string')
+                        self.logError("Type mismatch: Strings an can only be compared with other strings.")
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
-                        print('(semantic)(dbg) ERROR: comparisong with bool can only be with another bool')
-                # return ('bool', left_val != right_val)
-                return (('lit', 'bool'), None)
+                        self.logError("Type mismatch: Bools an can only be compared with other bools.")
+                return (('lit', 'bool'), left_val != right_val)
+                # return (('lit', 'bool'), None)
             
             case '<':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    print('(semantic)(dbg) ERROR: only numerics allowed')
+                    self.logError(f"Type mismatch: The < operation only accepts numeric operands (int, long, float, double).")
 
-                # return ('bool', left_val < right_val)  
-                return (('lit', 'bool'), None)
+                return (('lit', 'bool'), left_val < right_val)  
+                # return (('lit', 'bool'), None)
             case '<=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    print('(semantic)(dbg) ERROR: only numerics allowed')
+                    self.logError(f"Type mismatch: The <= operation only accepts numeric operands (int, long, float, double).")
 
-                # return ('bool', left_val <= right_val)  
-                return (('lit', 'bool'), None)
+                return (('lit', 'bool'), left_val <= right_val)  
+                # return (('lit', 'bool'), None)
             case '>':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    print('(semantic)(dbg) ERROR: only numerics allowed')
+                    self.logError(f"Type mismatch: The > operation only accepts numeric operands (int, long, float, double).")
 
-                # return ('bool', left_val > right_val)  
-                return (('lit', 'bool'), None)
+                return (('lit', 'bool'), left_val > right_val)  
+                # return (('lit', 'bool'), None)
             case '>=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    print('(semantic)(dbg) ERROR: only numerics allowed')
+                    self.logError(f"Type mismatch: The >= operation only accepts numeric operands (int, long, float, double).")
 
-                # return ('bool', left_val >= right_val)  
-                return (('lit', 'bool'), None)
+                return (('lit', 'bool'), left_val >= right_val)  
+                # return (('lit', 'bool'), None)
             
             #logical
             case '&&':
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
-                    print('(semantic)(dbg) ERROR: booleans only!!')
+                    self.logError(f"Type mismatch: Expected bool for logical expression but got {right_type[1]}.")
 
-                # return ('bool', left_val and right_val)
-                return (('lit', 'bool'), None)
+                return (('lit', 'bool'), left_val and right_val)
+                # return (('lit', 'bool'), None)
             case '||':
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
-                    print('(semantic)(dbg) ERROR: booleans only!!')
+                    self.logError(f"Type mismatch: Expected bool for logical expression but got {right_type[1]}.")
 
-                # return ('bool', left_val or right_val)
-                return (('lit', 'bool'), None)
+                return (('lit', 'bool'), left_val or right_val)
+                # return (('lit', 'bool'), None)
 
     #unary ops
     def visit_node_un_op(self, node):
@@ -1056,124 +1097,117 @@ class SemanticAnalyzer:
         match node.left_t["tokenName"]:
             case '!':
                 if right_type[1] != 'bool':
-                    print('(semantic)(dbg) ERROR: only bool')
-                # return ('bool', not right_val)
-                return (('lit', 'bool'), None)
+                    self.logError(f"Type mismatch: Expected bool for logical expression but got {right_type[1]}.")
+                return (('lit', 'bool'), not right_val)
+                # return (('lit', 'bool'), None)
             case '-':
                 if right_type[1] not in self.numtypes:
-                    print('(semantic)(dbg) ERROR: invalid data type')
-                # return (right_type, -right_val)
-                return (right_type, None)
+                    self.logError(f"Type mismatch: Expected numeric value (int, long, float, double), but got {right_type[1]}.")
+                return (right_type, -right_val)
+                # return (right_type, None)
             case '++':
                 if right_type[1] not in self.numtypes:
-                    print('(semantic)(dbg) ERROR: invalid data type')
-                # self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] += 1
-                # return (right_type, right_val + 1)
-                return (right_type, None)
+                    self.logError(f"Type mismatch: Expected numeric variable (int, long, float, double), but got {right_type[1]}.")
+                self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] += 1
+                return (right_type, right_val + 1)
+                # return (right_type, None)
             case '--':
                 if right_type[1] not in self.numtypes:
-                    print('(semantic)(dbg) ERROR: invalid data type')
-                # self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] -= 1
-                # return (right_type, right_val - 1 )
-                return (right_type, None)
+                    self.logError(f"Type mismatch: Expected numeric variable (int, long, float, double), but got {right_type[1]}.")
+                self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] -= 1
+                return (right_type, right_val - 1 )
+                # return (right_type, None)
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
             if right_type[1] not in ["bool", "string", "int", "long", "double", "float"]:
                 self.logError(f'{node.id_right_n.id_t["tokenName"]} cannot be typecasted.')
             match node.left_t["tokenName"] :
                 case 'bool':
-                    # match right_type:
-                    #     case 'bool':
-                    #         return ('bool', right_val)
-                    #     case 'string':
-                    #         return ('bool', right_val != '')
-                    #     case 'int':
-                    #         return ('bool', right_val != 0)
-                    #     case 'long':
-                    #         return ('bool', right_val != 0)
-                    #     case 'float':
-                    #         return ('bool', right_val != 0.0)
-                    #     case 'double':
-                    #         return ('bool', right_val != 0.0)
-                    return (('lit', 'bool'), None)
+                    match right_type:
+                        case 'bool':
+                            return (('lit', 'bool'), right_val)
+                        case 'string':
+                            return (('lit', 'bool'), right_val != '')
+                        case 'int':
+                            return (('lit', 'bool'), right_val != 0)
+                        case 'long':
+                            return (('lit', 'bool'), right_val != 0)
+                        case 'float':
+                            return (('lit', 'bool'), right_val != 0.0)
+                        case 'double':
+                            return (('lit', 'bool'), right_val != 0.0)
+                    # return (('lit', 'bool'), None)
                 case 'string':
-                    # return ('string', str(right_val))
-                    return (('lit', 'string',), None)
+                    return (('lit', 'string'), str(right_val))
+                    # return (('lit', 'string',), None)
                 case 'int':
                     match right_type[1]:
-                        # case 'bool':
-                        #     return ('int', int(right_val))
+                        case 'bool':
+                            return (('lit', 'int'), int(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into integers.')
-                        case _:
-                            return (('lit', 'int'), None)
-                        # case 'int':
-                        #     return ('int', right_val)
-                        # case 'long':
-                        #     if right_val <= self.MAX_INT and right_val >= self.MIN_INT:
-                        #         return ('int', right_val)
-                        #     else:
-                        #         self.logError(f'Value {right_val} is out of integer range.')
-                        # case 'float':
-                        #     return ('int', int(right_val))
-                        # case 'double':
-                        #     if int(right_val) <= self.MAX_INT and int(right_val) >= self.MIN_INT:
-                        #         return ('int', right_val)
-                        #     else:
-                        #         self.logError(f'Value {right_val} is out of integer range.')
+
+                        case 'int':
+                            return (('lit', 'int'), right_val)
+                        case 'long':
+                            if right_val <= self.MAX_INT and right_val >= self.MIN_INT:
+                                return (('lit', 'int'), right_val)
+                            else:
+                                self.logError(f'Value {right_val} is out of integer range.')
+                        case 'float':
+                            return (('lit', 'int'), int(right_val))
+                        case 'double':
+                            if int(right_val) <= self.MAX_INT and int(right_val) >= self.MIN_INT:
+                                return (('lit', 'int'), right_val)
+                            else:
+                                self.logError(f'Value {right_val} is out of integer range.')
                 case 'long':
                     match right_type[1]:
-                        # case 'bool':
-                        #     return ('long', int(right_val))
+                        case 'bool':
+                            return (('lit', 'long'), int(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into long.')
-                        case _:
-                            return (('lit', 'long'), None)
-                        # case 'int':
-                        #     return ('long', right_val)
-                        # case 'long':
-                        #     return ('long', right_val)
-                        # case 'float':
-                        #     return ('long', int(right_val))
-                        # case 'double':
-                        #     return ('long', int(right_val))
+                        case 'int':
+                            return (('lit', 'long'), right_val)
+                        case 'long':
+                            return (('lit', 'long'), right_val)
+                        case 'float':
+                            return (('lit', 'long'), int(right_val))
+                        case 'double':
+                            return (('lit', 'long'), int(right_val))
                 case 'float':
                     match right_type[1]:
-                        # case 'bool':
-                        #     return ('float', float(right_val))
+                        case 'bool':
+                            return (('lit', 'float'), float(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into float.')
-                        case _:
-                            return (('lit', 'float'), None)
-                        # case 'int':
-                        #     return ('float', float(right_val))
-                        # case 'long':
-                        #     if right_val <= self.MAX_FLOAT and right_val >= self.MIN_FLOAT:
-                        #         return ('float', float(right_val))
-                        #     else:
-                        #         self.logError(f'Value {right_val} is out of float range.')
-                        # case 'float':
-                        #     return ('float', right_val)
-                        # case 'double':
-                        #     if right_val <= self.MAX_FLOAT and right_val >= self.MIN_FLOAT:
-                        #         return ('float', right_val)
-                        #     else:
-                        #         self.logError(f'Value {right_val} is out of float range.')
+                        case 'int':
+                            return (('lit', 'float'), float(right_val))
+                        case 'long':
+                            if right_val <= self.MAX_FLOAT and right_val >= self.MIN_FLOAT:
+                                return (('lit', 'float'), float(right_val))
+                            else:
+                                self.logError(f'Value {right_val} is out of float range.')
+                        case 'float':
+                            return (('lit', 'float'), right_val)
+                        case 'double':
+                            if right_val <= self.MAX_FLOAT and right_val >= self.MIN_FLOAT:
+                                return (('lit', 'float'), right_val)
+                            else:
+                                self.logError(f'Value {right_val} is out of float range.')
                 case 'double':
                     match right_type[1]:
-                        # case 'bool':
-                        #     return ('double', float(right_val))
+                        case 'bool':
+                            return (('lit', 'double'), float(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into double.')
-                        case _:
-                            return (('lit', 'double'), None)
-                        # case 'int':
-                        #     return ('double', float(right_val))
-                        # case 'long':
-                        #     return ('double', float(right_val))
-                        # case 'float':
-                        #     return ('double', right_val)
-                        # case 'double':
-                        #     return ('double', right_val)
+                        case 'int':
+                            return (('lit', 'double'), float(right_val))
+                        case 'long':
+                            return (('lit', 'double'), float(right_val))
+                        case 'float':
+                            return (('lit', 'double'), right_val)
+                        case 'double':
+                            return (('lit', 'double'), right_val)
                     
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
@@ -1289,8 +1323,12 @@ class SemanticAnalyzer:
 
         if first_param_type[1] != "string":
             # self.logError("First parameter in output statement must be a string (format string).", first_param)
-            if len(print_params_n > 1):
+            if len(print_params_n) > 1:
                 self.logError("Print statements can only have one parameter, unless a string with format specifiers is used.")
+            if print_stmts_n == "println":
+                print(f'\n\n(semantic)(OUTUPT)\t{self.visit_node(print_params_n[0])}\n\n') #TEMPORARY 
+            else:
+                print(f'\n\n(semantic)(OUTUPT)\t{self.visit_node(print_params_n[0])}\n\n', end='') #TEMPORARY
             # return None
         else:
             format_specifiers = self._extract_format_specifiers(first_param_val)
