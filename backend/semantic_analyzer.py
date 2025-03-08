@@ -1422,7 +1422,7 @@ class SemanticAnalyzer:
             # self.logError("First parameter in output statement must be a string (format string).", first_param)
             if len(print_params_n) > 1:
                 self.logError("Print statements can only have one parameter, unless a string with format specifiers is used.")
-            _, formatted_output = self.visit_node(print_params_n[0])
+            formatted_output = first_param_val
         
             # return None
         else:
