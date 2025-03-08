@@ -780,7 +780,22 @@ class SemanticAnalyzer:
         
         self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
         #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
-        return (('func_call', f'{func_symbol["dtype"]}'), None) 
+        #temp vals
+        val = None
+        match func_symbol["dtype"]:
+            case 'string':
+                val = ""
+            case 'bool':
+                val = False
+            case 'int':
+                val = 0
+            case 'long':
+                val = 0
+            case 'float':
+                val = 0
+            case 'double':
+                val = 0
+        return (('func_call', f'{func_symbol["dtype"]}'), val) 
 
     
     def check_function_params(self, func_symbol, args, node_id, call_string):
@@ -901,7 +916,22 @@ class SemanticAnalyzer:
         self.check_function_params(class_info_no_privates[class_elem], node.args_n, node.method_id_n, "method")
         print(node)
 
-        return (class_info[class_elem]["dtype"], None)
+        val = None
+        match class_info[class_elem]["dtype"][1]:
+            case 'string':
+                val = ""
+            case 'bool':
+                val = False
+            case 'int':
+                val = 0
+            case 'long':
+                val = 0
+            case 'float':
+                val = 0
+            case 'double':
+                val = 0
+
+        return (class_info[class_elem]["dtype"], val)
 
     #node_var_dec
     def visit_node_vardec(self, node, priv = False):
@@ -1160,13 +1190,13 @@ class SemanticAnalyzer:
             case '++':
                 if right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
-                self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] += 1
+                self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
                 return (right_type, right_val + 1)
                 # return (right_type, None)
             case '--':
                 if right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
-                self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] -= 1
+                self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
                 return (right_type, right_val - 1 )
                 # return (right_type, None)
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
@@ -1260,6 +1290,21 @@ class SemanticAnalyzer:
                             return (('lit', 'double'), right_val)
                         case 'double':
                             return (('lit', 'double'), right_val)
+                        
+    def visit_node_post_un_op(self, node):
+        left_type, left_val = self.visit_node(node.id_left_n)
+        match node.right_t["tokenName"]:
+            case '++':
+                if left_type[1] not in self.numtypes:
+                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {left_type[1]}.")
+                self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
+                return (left_type, left_val)
+                # return (left_type, None)
+            case '--':
+                if left_type[1] not in self.numtypes:
+                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {left_type[1]}.")
+                self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
+                return (left_type, left_val)
                     
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
