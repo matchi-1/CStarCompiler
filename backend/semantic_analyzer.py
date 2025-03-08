@@ -504,10 +504,27 @@ class SemanticAnalyzer:
 
     def visit_node_num(self, node):
         val = 0
-        if node.dtype in ['int', 'long']:
-            val = int(node.val_t["tokenName"])
-        elif node.dtype in ['float', 'double']:
-            val = float(node.val_t["tokenName"])
+        match(node.dtype):
+            case "int":
+                val = int(node.val_t["tokenName"])
+                if val > self.MAX_INT or val < self.MIN_INT:
+                    self.logError(f"Value {val} is out of 'int' range.")
+
+            case "long":
+                val = int(node.val_t["tokenName"])
+                if val > self.MAX_LONG or val < self.MIN_LONG:
+                    self.logError(f"Value {val} is out of 'long' range.")
+            
+            case "float":
+                val = float(node.val_t["tokenName"])
+                if val > self.MAX_FLOAT or val < self.MIN_FLOAT:
+                    self.logError(f"Value {val} is out of 'float' range.")
+            
+            case "double":
+                val = float(node.val_t["tokenName"])
+                if val > self.MAX_DOUBLE or val < self.MIN_DOUBLE:
+                    self.logError(f"Value {val} is out of 'double' range.")
+
         return (('var', node.dtype), val) 
         # return (('lit', node.dtype), None)
     
@@ -956,10 +973,10 @@ class SemanticAnalyzer:
                 self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", node.id_n)
             else:
                 if dtype[1] == 'float':
-                    if value >= self.MAX_FLOAT or value <= self.MIN_FLOAT:
+                    if value > self.MAX_FLOAT or value < self.MIN_FLOAT:
                         self.logError(f'Value {value} is out of float range.')
                 elif dtype[1] == 'double':
-                    if value >= self.MAX_DOUBLE or value <= self.MIN_DOUBLE:
+                    if value > self.MAX_DOUBLE or value < self.MIN_DOUBLE:
                         self.logError(f'Value {value} is out of double range.')
         if not value:
             match dtype[1]:
@@ -1604,7 +1621,8 @@ class SemanticAnalyzer:
                 self.logError(f"'switch' statement already contains case value '{str(case_value_type)}'")
             
             if case_value[0][1] != switch_value[0][1]:
-                self.logError(f"'switch' value and 'case' value must be of the same data type. Expected: '{switch_value[0][1]}' data type for case value.")
+                if (switch_value[0][1] != "long") or (case_value[0][1] != "int"):
+                    self.logError(f"'switch' value and 'case' value must be of the same data type. Expected: '{switch_value[0][1]}' data type for case value, but got '{case_value[0][1]}'.")
 
             case_value_list.append(str(case_value_type))
             print(f"(semantic)(dbg) FOUND CASE VALUE: '{str(case_value_type)}'")

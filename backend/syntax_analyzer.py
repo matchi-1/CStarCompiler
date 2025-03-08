@@ -95,7 +95,7 @@ class node_num:
             if float(self.val_t["tokenName"]) >= MIN_FLOAT and float(self.val_t["tokenName"]) <= MAX_FLOAT:
                 self.dtype = typeFracLit(self.val_t["tokenName"])
             elif float(self.val_t["tokenName"]) >= MIN_DOUBLE and float(self.val_t["tokenName"]) <= MAX_DOUBLE:
-                    self.dtype = "double" if typeFracLit(self.val_t["tokenName"]) != "err" else "err"
+                self.dtype = "double" if typeFracLit(self.val_t["tokenName"]) != "err" else "err"
             else:
                 self.dtype = "err"
             
@@ -1864,9 +1864,11 @@ class SyntaxAnalyzer:
     def lit_type(self):
         print('(parser) production: "lit_type" detected')
         if (self.currToken and self.currToken["tokenType"] == "whole_lit"):
-            return node_num(self.match("whole_lit"))
+            num = node_num(self.match("whole_lit", False))
+            return num if not getattr(num, "dtype") == "err" else self.logError("Value is out of 'whole_lit' range.")
         elif (self.currToken and self.currToken["tokenType"] == "frac_lit"):
-            return node_num(self.match("frac_lit"))
+            num = node_num(self.match("frac_lit", False))
+            return num if not getattr(num, "dtype") == "err" else self.logError("Value is out of 'frac_lit' range.")
         elif (self.currToken and self.currToken["tokenType"] == "string_lit"):
             return node_str(self.match("string_lit"))
         elif (self.currToken and self.currToken["tokenType"] == "bool_lit"):
@@ -2446,10 +2448,12 @@ class SyntaxAnalyzer:
                 case_value_temp_t = node_str(self.match("string_lit", False))
                 
             elif currentTokenType == "whole_lit": 
-                case_value_temp_t = node_num(self.match("whole_lit", False))
+                num = node_num(self.match("whole_lit", False))
+                case_value_temp_t = num if not getattr(num, "dtype") == "err" else self.logError("Value is out of 'whole_lit' range.")
+                #case_value_temp_t = node_num(self.match("whole_lit", False))
             
             elif currentTokenType == "-":
-                case_value_temp_t = node_un_op(self.match("-", False), node_num(self.match("whole_lit", False)))
+                case_value_temp_t = node_un_op(self.match("-", False), node_num(self.match("whole_lit", False)) if not getattr(node_num(self.match("whole_lit", False)), "dtype") == "err" else self.logError("Value is out of 'whole_lit' range."))
                 
                 if not case_value_temp_t:
                     self.logError(f"Expected negative numerical constant but got {self.currToken} instead.")
