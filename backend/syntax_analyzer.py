@@ -1179,6 +1179,7 @@ class SyntaxAnalyzer:
                     array_iden_n = node_iden(array_iden)
 
                     if std_lib_header == "Cstring":
+                        print("ADDED Cstring !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                         # str_isEmpty built-in Cstring stdlib function
                         str_isEmpty_iden_t = Token("str_isEmpty", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
                         str_isEmpty_iden_n = node_iden(str_isEmpty_iden_t) 
@@ -1228,6 +1229,7 @@ class SyntaxAnalyzer:
                         std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_toUpper_iden_n, str_toUpper_params_n, None, True))
 
                     if std_lib_header == "Carray":
+                        print("ADDED Carray !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                         # array_isEmpty built-in Carray stdlib function
                         array_isEmpty_iden_t = Token("array_isEmpty", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
                         array_isEmpty_iden_n = node_iden(array_isEmpty_iden_t)
@@ -1259,7 +1261,7 @@ class SyntaxAnalyzer:
 
             # Handle potential recursive imports
             if self.currToken and self.currToken["tokenType"] == "import":
-                self.imports_list(stdlibs)
+                self.imports_list(stdlibs, std_lib_func_dec_nodes)
 
         return (node_imports_list(stdlibs), std_lib_func_dec_nodes)
 
