@@ -803,14 +803,15 @@ class SemanticAnalyzer:
             for i, (arg_node, param_type) in enumerate(zip(args, func_symbol["params"])):
                 arg_sym = None
                 arg_val_type = None
+                arg_flag = False
                 if hasattr(arg_node, 'id_t'):
                     arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
                     if not arg_sym:
                         self.logError(f"Argument '{arg_node.id_t['tokenName']}' is not declared.", arg_node)
+                    arg_flag = True
                     arg_val_type = arg_sym["dtype"]
                 else:
                     current_node = arg_node
-                    arg_flag = False
                     while not hasattr(current_node, 'id_t') and hasattr(current_node, 'id_n'):
                         if isinstance(current_node, (node_arr_idx, node_class_att, node_class_arr_idx)):
                             arg_flag = True
