@@ -115,7 +115,7 @@ class SemanticAnalyzer:
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
 
-    def visit_node(self, node):
+    def visit_node(self, node, funcExpectedVal = True):
         nodeName = type(node).__name__
         visit_func = getattr(self, f'visit_{nodeName}', None)  # Get the appropriate visit function, or None if it doesn't exist
 
@@ -123,6 +123,8 @@ class SemanticAnalyzer:
             print(f"\n(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
             print(f'\n(semantic)(dbg) VISITING {nodeName}!!')
+            if nodeName in ['node_func_call', 'node_class_method_call']:
+                return visit_func(node, expected_val=funcExpectedVal)
             return visit_func(node)
         
     def print_symbols(self, d, indent=2):
@@ -223,7 +225,7 @@ class SemanticAnalyzer:
         # PLACEHODLER!! idk if correct
         for statement in node.code_block_statement_n:
             #print("++++ CODE BLOCK STATEMENT: " + str(statement))
-            self.visit_node(statement)
+            self.visit_node(statement, funcExpectedVal=False)
             print("\n(semantic)(dbg) CURRENT LOCAL SCOPE TABLE: ")
             self.print_symbols(self.curr_scope.syms, indent=2)
         
@@ -525,7 +527,7 @@ class SemanticAnalyzer:
                 if val > self.MAX_DOUBLE or val < self.MIN_DOUBLE:
                     self.logError(f"Value {val} is out of 'double' range.")
 
-        return (('var', node.dtype), val) 
+        return (('lit', node.dtype), val) 
         # return (('lit', node.dtype), None)
     
     def visit_node_str(self, node):
@@ -790,7 +792,7 @@ class SemanticAnalyzer:
 
         
     # func calls
-    def visit_node_func_call(self, node):
+    def visit_node_func_call(self, node, expected_val):
         func_name = node.id_n.id_t["tokenName"]
         func_symbol = self.curr_scope.get(func_name)
         if not func_symbol:
@@ -813,6 +815,10 @@ class SemanticAnalyzer:
                 val = 0
             case 'double':
                 val = 0
+            case 'void':
+                if expected_val:
+                    self.logError('Void functions do not return any values.')
+                    
         return (('func_call', f'{func_symbol["dtype"]}'), val) 
 
     
@@ -911,7 +917,7 @@ class SemanticAnalyzer:
         print(f"(semantic)(dbg) FINISHED CHECKING PARAMS from {call_string}!!!!!")
     
     
-    def visit_node_class_method_call(self,node):
+    def visit_node_class_method_call(self,node, expected_val):
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.method_id_n.id_t["tokenName"]
 
@@ -948,6 +954,9 @@ class SemanticAnalyzer:
                 val = 0
             case 'double':
                 val = 0
+            case 'void':
+                if expected_val:
+                    self.logError('Void functions do not return any values.')
 
         return (class_info[class_elem]["dtype"], val)
 
@@ -1341,7 +1350,7 @@ class SemanticAnalyzer:
             if loop_condition[0][1] != 'bool':
                 self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{loop_condition[0][1]}' instead.")
             print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
-            self.visit_node(node_loop.inc_arg_n) 
+            self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         elif loop_name == 'node_while' or loop_name == 'node_do':
