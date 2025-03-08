@@ -1621,7 +1621,8 @@ class SemanticAnalyzer:
                 self.logError(f"'switch' statement already contains case value '{str(case_value_type)}'")
             
             if case_value[0][1] != switch_value[0][1]:
-                self.logError(f"'switch' value and 'case' value must be of the same data type. Expected: '{switch_value[0][1]}' data type for case value, but got '{case_value[0][1]}'.")
+                if (switch_value[0][1] != "long") or (case_value[0][1] != "int"):
+                    self.logError(f"'switch' value and 'case' value must be of the same data type. Expected: '{switch_value[0][1]}' data type for case value, but got '{case_value[0][1]}'.")
 
             case_value_list.append(str(case_value_type))
             print(f"(semantic)(dbg) FOUND CASE VALUE: '{str(case_value_type)}'")
