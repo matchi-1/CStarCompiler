@@ -699,6 +699,7 @@ class SemanticAnalyzer:
             self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", iden)
         dtype = iden_symbol["dtype"][1]
         val_type, val = self.visit_node(value)
+        print(f" ------------------------------------------->{val_type[1]}")
         if dtype != val_type[1]:
             self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
         self.curr_scope.set(iden_name, val, dtype=('var', f'{dtype}'))
@@ -949,9 +950,10 @@ class SemanticAnalyzer:
             if val_type: print('(semantic)(dbg) dec valtype: ', val_type[1])
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
+        print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         if val_type and dtype[1] != val_type[1]:
             if dtype[1] not in ['float', 'double'] or val_type[1] not in ['int', 'long']:
-                self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'", node.id_n)
+                self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", node.id_n)
             else:
                 if dtype[1] == 'float':
                     if value >= self.MAX_FLOAT or value <= self.MIN_FLOAT:
