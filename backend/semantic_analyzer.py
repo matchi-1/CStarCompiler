@@ -969,7 +969,11 @@ class SemanticAnalyzer:
                     
         print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         if val_type and dtype[1] != val_type[1]:
-            if dtype[1] not in ['float', 'double'] or val_type[1] not in ['int', 'long']:
+            if dtype[1] == "long" and val_type[1] == "int":
+                pass
+            elif dtype[1] == "double" and val_type[1] == "float":
+                pass
+            elif dtype[1] not in ['float', 'double'] or val_type[1] not in ['int', 'long']:
                 self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", node.id_n)
             else:
                 if dtype[1] == 'float':
