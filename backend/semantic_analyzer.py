@@ -929,7 +929,7 @@ class SemanticAnalyzer:
                     if value >= self.MAX_DOUBLE or value <= self.MIN_DOUBLE:
                         self.logError(f'Value {value} is out of double range.')
         if not value:
-            match dtype:
+            match dtype[1]:
                 case 'bool':
                     value = False
                 case 'int':
@@ -1035,7 +1035,7 @@ class SemanticAnalyzer:
             case '+': 
                 if left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        self.logError("Type mismatch: String expressions can only be between two strings type values.")
+                        self.logError(f"Type mismatch for string expression, expected a string for both operands, but got {right_type[1]}.")
                     else:
                         return (('lit', 'string'), (left_val or "") + (right_val or "") ) #or empty string for nontypes
                         # return (('lit', 'string'), None)
@@ -1043,14 +1043,14 @@ class SemanticAnalyzer:
                     return (dtype, left_val + right_val)
                     # return (dtype, None)
                 else:
-                     self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
+                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
             case '-':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, left_val - right_val)
                     # return (dtype, None)
                 else:
-                    self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
             case '/':
                 if right_val == 0: #todo
                     # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
@@ -1059,13 +1059,13 @@ class SemanticAnalyzer:
                     return (dtype, left_val / right_val)
                     # return (dtype, None)
                 else:
-                    self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
             case '*':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, left_val * right_val)
                     # return (dtype, None)
                 else:
-                    self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
             case '%':
                 if dtype[1] in ['float', 'double'] or right_type[1] in ['float', 'double']:
                     self.logError("Type mismatch: Modulo operation only supports whole numbers (int, long)")
@@ -1074,56 +1074,56 @@ class SemanticAnalyzer:
                         return (dtype, left_val % right_val)
                         # return (dtype, None)
                     else:
-                        self.logError("Type mismatch: Expected numeric value (int, long, float, dobule) for both operands.")
+                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
             #relational
             case '==':
                 if left_type[1] in self.numtypes:
                     if right_type[1] not in self.numtypes:
-                        self.logError("Type mismatch: Numeric values can only be compard with other numeric values.")
+                        self.logError(f"Type mismatch for relational expression, numeric values can only be compard with other numeric values (int, long, float, double,), but got {right_type[1]}.")
                 elif left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        self.logError("Type mismatch: Strings an can only be compared with other strings.")
+                        self.logError("Type mismatch for relational expression, strings an can only be compared with other strings.")
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
-                        self.logError("Type mismatch: Bools an can only be compared with other bools.")
+                        self.logError("Type mismatch for relational expression, bools can only be compared with other bools.")
                 return (('lit', 'bool'), left_val == right_val)
                 # return (('lit', 'bool'), None)
             
             case '!=':
                 if left_type[1] in self.numtypes:
                     if right_type[1] not in self.numtypes:
-                        self.logError("Type mismatch: Numeric values can only be compard with other numeric values.")
+                        self.logError(f"Type mismatch for relational expression, numeric values can only be compard with other numeric values (int, long, float, double,), but got {right_type[1]}.")
                 elif left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        self.logError("Type mismatch: Strings an can only be compared with other strings.")
+                        self.logError("Type mismatch for relational expression, strings an can only be compared with other strings.")
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
-                        self.logError("Type mismatch: Bools an can only be compared with other bools.")
+                        self.logError("Type mismatch for relational expression, bools can only be compared with other bools.")
                 return (('lit', 'bool'), left_val != right_val)
                 # return (('lit', 'bool'), None)
             
             case '<':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch: The < operation only accepts numeric operands (int, long, float, double).")
+                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
                 return (('lit', 'bool'), left_val < right_val)  
                 # return (('lit', 'bool'), None)
             case '<=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch: The <= operation only accepts numeric operands (int, long, float, double).")
+                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
                 return (('lit', 'bool'), left_val <= right_val)  
                 # return (('lit', 'bool'), None)
             case '>':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch: The > operation only accepts numeric operands (int, long, float, double).")
+                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
                 return (('lit', 'bool'), left_val > right_val)  
                 # return (('lit', 'bool'), None)
             case '>=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch: The >= operation only accepts numeric operands (int, long, float, double).")
+                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
                 return (('lit', 'bool'), left_val >= right_val)  
                 # return (('lit', 'bool'), None)
@@ -1131,13 +1131,13 @@ class SemanticAnalyzer:
             #logical
             case '&&':
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
-                    self.logError(f"Type mismatch: Expected bool for logical expression but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.")
 
                 return (('lit', 'bool'), left_val and right_val)
                 # return (('lit', 'bool'), None)
             case '||':
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
-                    self.logError(f"Type mismatch: Expected bool for logical expression but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.")
 
                 return (('lit', 'bool'), left_val or right_val)
                 # return (('lit', 'bool'), None)
@@ -1148,23 +1148,23 @@ class SemanticAnalyzer:
         match node.left_t["tokenName"]:
             case '!':
                 if right_type[1] != 'bool':
-                    self.logError(f"Type mismatch: Expected bool for logical expression but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for logical expression, expected bool value for operand, but got {right_type[1]}.")
                 return (('lit', 'bool'), not right_val)
                 # return (('lit', 'bool'), None)
             case '-':
                 if right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch: Expected numeric value (int, long, float, double), but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for arithmetic expressoin, expected numeric value (int, long, float, double), but got {right_type[1]}.")
                 return (right_type, -right_val)
                 # return (right_type, None)
             case '++':
                 if right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch: Expected numeric variable (int, long, float, double), but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
                 self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] += 1
                 return (right_type, right_val + 1)
                 # return (right_type, None)
             case '--':
                 if right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch: Expected numeric variable (int, long, float, double), but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
                 self.curr_scope[node.id_right_n.id_n.id_t["tokenName"]] -= 1
                 return (right_type, right_val - 1 )
                 # return (right_type, None)
@@ -1384,7 +1384,7 @@ class SemanticAnalyzer:
 
             if len(format_specifiers) != len(print_params_n) - 1:
                 if not format_specifiers:
-                    self.logError(f"String literal {first_param_val} does not have any format specifiers.")
+                    self.logError(f"String {first_param_val} does not contain any format specifiers.")
                 else:
                     self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).")
 
