@@ -89,7 +89,7 @@ class node_num:
                 self.dtype = "int"
             elif int(self.val_t["tokenName"]) >= MIN_LONG and int(self.val_t["tokenName"]) <= MAX_LONG:
                 self.dtype = "long"
-            elif int(self.val_t["tokenName"]) <= MAX_DOUBLE:
+            elif float(self.val_t["tokenName"]) >= MIN_DOUBLE and int(self.val_t["tokenName"]) <= MAX_DOUBLE:
                 self.dtype = "double"
             else:
                 self.dtype = "err"
