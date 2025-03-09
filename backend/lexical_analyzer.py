@@ -1581,7 +1581,7 @@ class LexicalAnalyzer:
                     if (currWholeCount > 19):
                         if (wholeError):
                             errors.pop()
-                        errors.append(self.wholeRangeError(currToken, currLine, currCol, lineContent))
+                        errors.append(self.wholeRangeError(currToken, currLine, currCol, lineContent, leadingSpaces))
                         wholeError = True
                         continue
                     else:
