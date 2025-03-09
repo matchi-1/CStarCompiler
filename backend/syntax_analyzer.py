@@ -778,7 +778,7 @@ class SyntaxAnalyzer:
 
     # If no main function was found throughout the whole program
     def ERROR_no_main_func(self):
-        message = "Syntax Error: Missing void 'main' function to execute the program.\nThe program must include a void 'main' function as the entry point."
+        message = "Syntax Error: Missing 'void main' function to execute the program.\nThe program must include a void 'main' function as the entry point."
         self.errors.append(message)
         raise SyntaxError(message)
 
@@ -2234,8 +2234,7 @@ class SyntaxAnalyzer:
                 self.logError("Non-Void functions must return a value.")
             
             elif isVoid and self.currToken["tokenType"] != ";":
-                self.logError(f"Void functions cannot return a value and must be terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else "EOF"}'.")
-        
+                self.logError(f"Void functions cannot return a value. Return statements must be terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else "EOF"}'.")        
         if not isVoid:
             ret_value_n = self.value([";"])
 

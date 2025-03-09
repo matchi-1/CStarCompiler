@@ -849,7 +849,7 @@ class SemanticAnalyzer:
                 if hasattr(arg_node, 'id_t'):
                     arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
                     if not arg_sym:
-                        self.logError(f"Argument '{arg_node.id_t['tokenName']}' is not declared.", arg_node)
+                        self.logError(f"[Argument {i+1}] Symbol '{arg_node.id_t['tokenName']}' has not been declared yet.", arg_node)
                     arg_flag = True
                     arg_val_type = arg_sym["dtype"]
                 else:
@@ -861,7 +861,7 @@ class SemanticAnalyzer:
                     if hasattr(current_node, 'id_t'):
                         arg_sym = self.curr_scope.get(current_node.id_t["tokenName"])
                         if not arg_sym:
-                            self.logError(f"Argument '{current_node.id_t['tokenName']}' is not declared.", current_node)
+                            self.logError(f"[Argument {i+1}] Symbol '{current_node.id_t['tokenName']}' is not declared.", current_node)
                         arg_val_type = arg_sym["dtype"]
                     else:
                         arg_val_type = ('lit', arg_node.dtype)
