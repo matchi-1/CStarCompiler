@@ -980,27 +980,34 @@ class SemanticAnalyzer:
         if val_type and dtype[1] != val_type[1]:
             match(dtype[1]):
                 case "int":
-                    if value > self.MAX_INT or value < self.MIN_INT:
-                        self.logError(f"Value '{value}' is out of 'int' range for variable '{id}'.", node.id_n)
-                    elif dtype[1] != val_type[1]: 
-                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", node.id_n)   
+                    if val_type[1] not in ["string", "bool"]:
+                        if value > self.MAX_INT or value < self.MIN_INT:
+                            self.logError(f"Value '{value}' is out of 'int' range for variable '{id}'.", node.id_n)
+                     
+                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", node.id_n)   
         
                 case "long":
-                    if value > self.MAX_LONG or value < self.MIN_LONG:
-                        self.logError(f"Value '{value}' is out of 'long' range for variable '{id}'.", node.id_n)
-                    elif val_type[1] in ["string", "bool", "float", "double"]:
+                    if val_type[1] not in ["string", "bool"]:
+                        if value > self.MAX_LONG or value < self.MIN_LONG:
+                            self.logError(f"Value '{value}' is out of 'long' range for variable '{id}'.", node.id_n)
+                    
+                    if val_type[1] != "int":
                         self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", node.id_n)
         
                 case "float":
-                    if value > self.MAX_FLOAT or value < self.MIN_FLOAT:
-                        self.logError(f"Value '{value}' is out of 'float' range for variable '{id}'.", node.id_n)
-                    elif val_type[1] in ["string", "bool", "long", "double"]:
+                    if val_type[1] not in ["string", "bool"]:
+                        if value > self.MAX_FLOAT or value < self.MIN_FLOAT:
+                            self.logError(f"Value '{value}' is out of 'float' range for variable '{id}'.", node.id_n)
+                    
+                    if val_type[1] != "int":
                         self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", node.id_n)
 
                 case "double":
-                    if value > self.MAX_DOUBLE or value < self.MIN_DOUBLE:
-                        self.logError(f"Value '{value}' is out of 'double' range for variable '{id}'.", node.id_n)
-                    elif val_type[1] in ["string", "bool", "double"]:
+                    if val_type[1] not in ["string", "bool"]:
+                        if value > self.MAX_DOUBLE or value < self.MIN_DOUBLE:
+                            self.logError(f"Value '{value}' is out of 'double' range for variable '{id}'.", node.id_n)
+                    
+                    if val_type[1] not in ["int", "float", "long"]:
                         self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", node.id_n)
 
                 case _:
