@@ -1,4 +1,5 @@
 from syntax_analyzer import node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att
+from decimal import Decimal
 
 class SymbolTable:
     def __init__(self, parent=None):
@@ -517,13 +518,13 @@ class SemanticAnalyzer:
                     self.logError(f"Value {val} is out of 'long' range.")
             
             case "float":
-                val = float(node.val_t["tokenName"])
+                val = Decimal(node.val_t["tokenName"])
                 if val > self.MAX_FLOAT or val < self.MIN_FLOAT:
                     self.logError(f"Value {val} is out of 'float' range.")
             
             case "double":
-                val = float(node.val_t["tokenName"])
-                if val > float(self.MAX_DOUBLE) or val < float(self.MIN_DOUBLE):
+                val = Decimal(node.val_t["tokenName"])
+                if val > Decimal(self.MAX_DOUBLE) or val < Decimal(self.MIN_DOUBLE):
                     self.logError(f"Value {val} is out of 'double' range.")
 
         return (('lit', node.dtype), val) 
@@ -546,7 +547,7 @@ class SemanticAnalyzer:
             # if dtype[1] in ['int', 'long']:
             #     val = int(iden_symbol["value"])
             # elif dtype[1] in ['float', 'double']:
-            #     val = float(iden_symbol["value"])
+            #     val = Decimal(iden_symbol["value"])
             # elif dtype[1] == 'string':
             #     val = iden_symbol["value"]
             
@@ -1320,14 +1321,14 @@ class SemanticAnalyzer:
                 case 'float':
                     match right_type[1]:
                         case 'bool':
-                            return (('lit', 'float'), float(right_val))
+                            return (('lit', 'float'), Decimal(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into float.')
                         case 'int':
-                            return (('lit', 'float'), float(right_val))
+                            return (('lit', 'float'), Decimal(right_val))
                         case 'long':
                             if right_val <= self.MAX_FLOAT and right_val >= self.MIN_FLOAT:
-                                return (('lit', 'float'), float(right_val))
+                                return (('lit', 'float'), Decimal(right_val))
                             else:
                                 self.logError(f'Value {right_val} is out of float range.')
                         case 'float':
@@ -1340,13 +1341,13 @@ class SemanticAnalyzer:
                 case 'double':
                     match right_type[1]:
                         case 'bool':
-                            return (('lit', 'double'), float(right_val))
+                            return (('lit', 'double'), Decimal(right_val))
                         case 'string':
                             self.logError(f'Strings cannot be casted into double.')
                         case 'int':
-                            return (('lit', 'double'), float(right_val))
+                            return (('lit', 'double'), Decimal(right_val))
                         case 'long':
-                            return (('lit', 'double'), float(right_val))
+                            return (('lit', 'double'), Decimal(right_val))
                         case 'float':
                             return (('lit', 'double'), right_val)
                         case 'double':
@@ -1429,9 +1430,9 @@ class SemanticAnalyzer:
     #         elif expected_dtype == 'long':
     #             value = int(user_input)
     #         elif expected_dtype == 'float':
-    #             value = float(user_input)
+    #             value = Decimal(user_input)
     #         elif expected_dtype == 'double':
-    #             value = float(user_input)
+    #             value = Decimal(`user_input)
     #         elif expected_dtype == 'string':
     #             value = user_input
     #         elif expected_dtype == 'bool':
