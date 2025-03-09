@@ -103,6 +103,14 @@ const toggleFiles = () => {
   const onMount = (editor, monaco) => {
     editorRef.current = editor;
     editor.focus();
+    // console.log("Editor instance:", editor);
+    // editor.addCommand(
+    //   monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter,
+    //   () => {
+    //       console.log("Ctrl + Shift + Enter pressed!");
+    //       callCompiler(); 
+    //   }
+    // );
 
     if (editorContainerRef.current) {
       resizeObserver.current = new ResizeObserver(() => {
@@ -468,6 +476,20 @@ const toggleFiles = () => {
       if (resizeObserver.current) {
         resizeObserver.current.disconnect();
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'Enter') {
+        event.preventDefault(); // Prevent default action if needed
+        callCompiler();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 

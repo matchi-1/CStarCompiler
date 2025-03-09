@@ -187,7 +187,7 @@ class SemanticAnalyzer:
             )
         else:
             full_message = (
-                f"Semantic Error(#todo line nums): {msg}"
+                f"Semantic Error (#todo line nums): {msg}"
             )
         self.errors.append(full_message)
         #print(full_message)
@@ -559,8 +559,10 @@ class SemanticAnalyzer:
     def visit_node_arr_idx(self, node):
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
         print(f"!!@@@@@@@@@@@@@@@@rr_sym: {node.id_n.id_t["tokenName"]}")
+        if not arr_sym:
+            self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' has not been declared yet.')
         if arr_sym["dtype"][0] != 'arr':
-            self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.')
+            self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' is not an array.')
         dtype = arr_sym["dtype"][1]
         idx_type, idx_val = self.visit_node(node.idx_n)
     
@@ -1557,7 +1559,7 @@ class SemanticAnalyzer:
 
             
                 if not self._validate_format_specifier(specifier, param_type[1]):
-                    self.logError(f"Format specifier '{specifier}' does not match parameter type '{param_type[1]}'.")
+                    self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.")
                     return None
                 formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
