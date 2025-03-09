@@ -1142,7 +1142,7 @@ class SemanticAnalyzer:
                     # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
                     self.logError("Division by 0 is not allowed.")
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, left_val / right_val)
+                    return (dtype, int(left_val / right_val))
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
