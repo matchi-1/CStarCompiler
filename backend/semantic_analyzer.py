@@ -726,8 +726,49 @@ class SemanticAnalyzer:
         dtype = iden_symbol["dtype"][1]
         val_type, val = self.visit_node(value)
         print(f" ------------------------------------------->{val_type[1]}")
-        if dtype != val_type[1]:
-            self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
+        #if dtype != val_type[1]:
+        #    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
+
+        match(dtype):
+            case "int":
+                if val_type[1] not in ["string", "bool"]:
+                    if val > self.MAX_INT or value < self.MIN_INT:
+                        self.logError(f"Value '{val}' is out of 'int' range for variable '{iden_name}'.", iden)
+                
+                if val_type and dtype != val_type[1]:    
+                    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", iden)   
+    
+            case "long":
+                if val_type[1] not in ["string", "bool"]:
+                    if val > self.MAX_LONG or val < self.MIN_LONG:
+                        self.logError(f"Value '{val}' is out of 'long' range for variable '{iden_name}'.", iden)
+                
+                if val_type and dtype != val_type[1]:
+                    if val_type[1] != "int":
+                        self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", iden)
+    
+            case "float":
+                if val_type[1] not in ["string", "bool"]:
+                    if val > self.MAX_FLOAT or val < self.MIN_FLOAT:
+                        self.logError(f"Value '{val}' is out of 'float' range for variable '{iden_name}'.", iden)
+                
+                if val_type and dtype != val_type[1]:
+                    if val_type[1] != "int":
+                        self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", iden)
+
+            case "double":
+                if val_type[1] not in ["string", "bool"]:
+                    if val > self.MAX_DOUBLE or val < self.MIN_DOUBLE:
+                        self.logError(f"Value '{val}' is out of 'double' range for variable '{iden_name}'.", iden)
+                
+                if val_type and dtype != val_type[1]:
+                    if val_type[1] not in ["int", "float", "long"]:
+                        self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", iden)
+
+            case _:
+                if val_type and dtype != val_type[1]:
+                    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", iden)
+
         self.curr_scope.set(iden_name, val, dtype=('var', f'{dtype}'))
 
 
