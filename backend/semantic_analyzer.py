@@ -1063,6 +1063,15 @@ class SemanticAnalyzer:
         if self.curr_scope.get(id, checkParent=False):
             self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
         dtype = ('arr', node.dtype_t["tokenName"])
+        baseVal = None
+        if dtype[1] in ['int', 'long']:
+            baseVal = 0
+        elif dtype[1] in ['float', 'double']:
+            baseVal = 0.0
+        elif dtype[1] == 'bool':
+            baseVal = 'False'
+        elif dtype[1] == 'string':
+            baseVal = ''
         dim = 2 if node.size2_n else 1
         size_1_type, size_1 = self.visit_node(node.size1_n)
         if size_1_type[1] not in ['int', 'long']:
@@ -1084,15 +1093,6 @@ class SemanticAnalyzer:
                 values_list = node.arr_dec_cont_n
         else:
             values_list = []
-            baseVal = None
-            if dtype[1] in ['int', 'long']:
-                baseVal = 0
-            elif dtype[1] in ['float', 'double']:
-                baseVal = 0.0
-            elif dtype[1] == 'bool':
-                baseVal = 'False'
-            elif dtype[1] == 'string':
-                baseVal = ''
             for i in range(size_1):
                 values_list.append(baseVal)
         print(f'##########################values_list@!!@!@!@: {values_list if values_list else arr_rec}')
@@ -1109,9 +1109,12 @@ class SemanticAnalyzer:
                         self.logError(f'Array contents can only be of type \'{node.dtype_t["tokenName"]}\'')
                     else:
                         arr_vals.append(val)
-                if arr_vals and len(arr_vals) != size_1:
+                if arr_vals and len(arr_vals) > size_1:
                     singplur = 'element' if size_1 == 1 else 'elements'
                     self.logError(f"Expected {size_1} {singplur} for array {id}, but got {len(arr_vals)}.")
+                elif arr_vals and len(arr_vals) < size_1:
+                    for i in range(size_1 - len(arr_vals)):
+                        arr_vals.append(baseVal)
             else: arr_vals = values_list
         else:
             for inner_arr in values_list or []:
@@ -1124,13 +1127,19 @@ class SemanticAnalyzer:
                         self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
                     else:
                         temp_arr.append(val)
-                if len(temp_arr) != size_2:
+                if len(temp_arr) > size_2:
                         singplur = 'element' if size_2 == 1 else 'elements'
                         self.logError(f"Expected {size_2} {singplur} for inner array element, but got {len(temp_arr)}.")
+                elif len(temp_arr) < size_2:
+                    for i in range(size_2 - len(temp_arr)):
+                        temp_arr.append(baseVal)
                 arr_vals.append(temp_arr)
-            if len(arr_vals) != size_1:
+            if len(arr_vals) > size_1:
                 singplur = 'element' if size_1 == 1 else 'elements'
                 self.logError(f"Expected {size_1} {singplur} for array {id}, but got {len(arr_vals)}.")
+            elif len(arr_vals) < size_1:
+                    for i in range(size_1 - len(arr_vals)):
+                        arr_vals.append([baseVal]*size_1)
         classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv))
         for arrdec_node in arr_rec or []:
             size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
