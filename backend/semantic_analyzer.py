@@ -89,10 +89,9 @@ class SemanticAnalyzer:
             self.visit_node(node)
             self.errors.append("Semantic analysis completed successfully. No Semantic Errors found.")
             print("Semantic checking completed successfully. No Semantic Errors found.")
-            #print('(semantic)(dbg) global table: ')
-            #print global dbg #wont be seen until prog construts is implemented
-            for s in self.curr_scope.syms:
-                print(f'\t\t{s} : {self.curr_scope.syms[s]}')
+
+            print('---------GLOBAL TABLE---------\n\t\t')
+            self.print_symbols(self.curr_scope.syms, indent=2)
         except SyntaxError as e:
             print (e)
 
@@ -561,7 +560,7 @@ class SemanticAnalyzer:
             self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.')
         dtype = arr_sym["dtype"][1]
         idx_type, idx_val = self.visit_node(node.idx_n)
-        
+    
         if idx_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
         if idx_val < 0:
@@ -582,6 +581,9 @@ class SemanticAnalyzer:
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
+        
+        print(f"!!!!!!!!!!!!!!!!!!!arr_sym: {arr_sym}\nidx_val: {idx_val}\nidx2_val: {idx2_val}")
+        
         return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val])
     #cont...
 
@@ -976,7 +978,7 @@ class SemanticAnalyzer:
             if val_type: print('(semantic)(dbg) dec valtype: ', val_type[1])
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
-        print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
+        if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
         match(dtype[1]):
             case "int":
@@ -1455,15 +1457,27 @@ class SemanticAnalyzer:
 
         expected_dtype = node.type_t["tokenName"] 
 
-
-        print(f"(semantic)(dbg) Expected Data Type: {expected_dtype}")
-
+        # print(f"(semantic)(dbg) Expected Data Type: {expected_dtype}")
 
         if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
             self.logError(f"Unsupported data type for input: {expected_dtype}", node)
             return None
+        value = None
+        match expected_dtype:
+                case 'bool':
+                    value = False
+                case 'int':
+                    value = 0
+                case 'long':
+                    value = 0
+                case 'float':
+                    value = 0.0
+                case 'double':
+                    value = 0.0
+                case 'string':
+                    value = ''
 
-        return (('lit', expected_dtype), None)
+        return (('lit', expected_dtype), value)
     
     def visit_node_output(self, node):
         print_stmts_n = node.print_stmts_n 
