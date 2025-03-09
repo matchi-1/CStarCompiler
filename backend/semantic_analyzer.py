@@ -1299,7 +1299,7 @@ class SemanticAnalyzer:
                 self.logError(f'{node.id_right_n.id_t["tokenName"]} cannot be typecasted.')
             match node.left_t["tokenName"] :
                 case 'bool':
-                    match right_type:
+                    match right_type[1]:
                         case 'bool':
                             return (('lit', 'bool'), right_val)
                         case 'string':
@@ -1759,6 +1759,7 @@ class SemanticAnalyzer:
                 if expected_return_type != actual_return_type:
                     self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.")
 
+                return result
             else:
                 if expected_return_type != "void":
                     self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.")
