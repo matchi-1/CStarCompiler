@@ -181,7 +181,7 @@ class SemanticAnalyzer:
     def logError(self, msg, idenNode = None): #only works on node_iden
         if idenNode:
             currLine = idenNode.id_t["tokenLine"]
-            currCol = idenNode.id_t["tokenCol"]
+            currCol = idenNode.id_t["tokenCol"] - 2
             full_message = (
                 f"Semantic Error ({currLine}, {currCol}): {msg}"
             )
@@ -856,7 +856,7 @@ class SemanticAnalyzer:
                     arg_val_type = arg_sym["dtype"]
                 else:
                     current_node = arg_node
-                    while not hasattr(current_node, 'id_t') and hasattr(current_node, 'id_n'):
+                    while not hasattr(current_node, 'id_t') and hasattr(current_node, 'id_n'):  # loop until it finds an identifier in the nodes (if there are any)
                         if isinstance(current_node, (node_arr_idx, node_class_att, node_class_arr_idx)):
                             arg_flag = True
                         current_node = current_node.id_n
@@ -865,7 +865,7 @@ class SemanticAnalyzer:
                         if not arg_sym:
                             self.logError(f"[Argument {i+1}] Symbol '{current_node.id_t['tokenName']}' is not declared.", current_node)
                         arg_val_type = arg_sym["dtype"]
-                    else:
+                    else: # if the current node doesn't have an iden 
                         arg_val_type = ('lit', arg_node.dtype)
 
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))

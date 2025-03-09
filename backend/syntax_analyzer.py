@@ -1359,6 +1359,12 @@ class SyntaxAnalyzer:
                 return self.params_dec_start(dtype_temp_t, id_temp_n)
             else:
                 node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n)
+                if id_temp_n.id_t["tokenName"] == "main":
+                    err_msg = f"Semantic Error {id_temp_n.id_t["tokenLine"], id_temp_n.id_t["tokenCol"]-2}: Cannot declare 'main' to be a global variable."
+                    self.errors.append(err_msg)
+                    raise SyntaxError(err_msg)
+                    
+
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
                 
@@ -1410,6 +1416,11 @@ class SyntaxAnalyzer:
             if not self.match("}"):
                 self.ERROR_unclosed_curly_braces()
             self.hasFunctionReturned = False
+
+            if id_temp_n.id_t["tokenName"] == "main":
+                err_msg = f"Semantic Error {id_temp_n.id_t["tokenLine"], id_temp_n.id_t["tokenCol"]-2}: The 'main' function must be of type 'void'."
+                self.errors.append(err_msg)
+                raise SyntaxError(err_msg)
             
             return node_func_dec(dtype_tempt_t, id_temp_n, params_n, body_n)
 
