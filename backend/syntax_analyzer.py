@@ -138,8 +138,8 @@ class node_arr_idx:
         self.idx_n = idx_n
         self.idx2_n = idx2_n
     def __repr__(self):
-        return f'node_arr_idx: ({self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}])' if self.idx2_n else ')') 
-
+        #return f'node_arr_idx: ({self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}])' if self.idx2_n else ')') 
+        return f'{self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}]' if self.idx2_n else '') 
 class node_class_att:
     def __init__(self, class_id_n, att_id_n):
         self.obj_id_n = class_id_n

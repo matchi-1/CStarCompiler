@@ -1,4 +1,4 @@
-from syntax_analyzer import node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att
+from syntax_analyzer import node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal
 
 class SymbolTable:
@@ -123,6 +123,7 @@ class SemanticAnalyzer:
             print(f"\n(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
             print(f'\n(semantic)(dbg) VISITING {nodeName}!!')
+            print(f'!!NODE!!: {node}!!')
             if nodeName in ['node_func_call', 'node_class_method_call']:
                 return visit_func(node, expected_val=funcExpectedVal)
             return visit_func(node)
@@ -557,6 +558,7 @@ class SemanticAnalyzer:
         
     def visit_node_arr_idx(self, node):
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
+        print(f"!!@@@@@@@@@@@@@@@@rr_sym: {node.id_n.id_t["tokenName"]}")
         if arr_sym["dtype"][0] != 'arr':
             self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.')
         dtype = arr_sym["dtype"][1]
@@ -976,9 +978,22 @@ class SemanticAnalyzer:
         if (node.vardec_cont_n):
             if node.vardec_cont_n.value_n:
                 val_type, value = self.visit_node(node.vardec_cont_n.value_n)
-            if val_type: print('(semantic)(dbg) dec valtype: ', val_type[1])
+            if val_type: print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
+        else:
+            if dtype[1] in ['int', 'long']:
+                val_type = ('lit', f'{dtype[1]}')
+                value = 0
+            elif dtype[1] in ['float', 'double']:
+                val_type = ('lit', f'{dtype[1]}')
+                value = 0.0
+            elif dtype[1] == 'bool':
+                val_type = ('lit', f'{dtype[1]}')
+                value = False
+            elif dtype[1] == 'string':
+                val_type = ('lit', f'{dtype[1]}')
+                value = ''
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
         match(dtype[1]):
@@ -1053,7 +1068,7 @@ class SemanticAnalyzer:
         if size_1_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {size_1_type[1]}.')
         if size_1 < 1:
-            self.logError("Array size cannot be less than 1.")
+            self.logError("Array size cannot be less than 1.", node.id_n)
         size_2_type, size_2 = self.visit_node(node.size2_n) if node.size2_n else (None, None)
         if size_2_type and size_2_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {size_2_type[1]}.')
@@ -1067,19 +1082,37 @@ class SemanticAnalyzer:
                 arr_rec = node.arr_dec_cont_n
             else:
                 values_list = node.arr_dec_cont_n
+        else:
+            values_list = []
+            baseVal = None
+            if dtype[1] in ['int', 'long']:
+                baseVal = 0
+            elif dtype[1] in ['float', 'double']:
+                baseVal = 0.0
+            elif dtype[1] == 'bool':
+                baseVal = 'False'
+            elif dtype[1] == 'string':
+                baseVal = ''
+            for i in range(size_1):
+                values_list.append(baseVal)
+        print(f'##########################values_list@!!@!@!@: {values_list if values_list else arr_rec}')
+                
+
         arr_vals = []
         if dim == 1:
-            for value_node in values_list or []:
-                val_type, val = self.visit_node(value_node)
-                print(f'arr init valtype: {val_type[1]}')
-                #error for arr size in code gen
-                if val_type[1] != node.dtype_t["tokenName"]:
-                    self.logError(f'Array contents can only be of type \'{node.dtype_t["tokenName"]}\'')
-                else:
-                    arr_vals.append(val)
-            if arr_vals and len(arr_vals) != size_1:
-                singplur = 'element' if size_1 == 1 else 'elements'
-                self.logError(f"Expected {size_1} {singplur} for array {id}, but got {len(arr_vals)}.")
+            if node.arr_dec_cont_n:
+                for value_node in values_list or []:
+                    val_type, val = self.visit_node(value_node)
+                    print(f'arr init valtype: {val_type[1]}')
+                    #error for arr size in code gen
+                    if val_type[1] != node.dtype_t["tokenName"]:
+                        self.logError(f'Array contents can only be of type \'{node.dtype_t["tokenName"]}\'')
+                    else:
+                        arr_vals.append(val)
+                if arr_vals and len(arr_vals) != size_1:
+                    singplur = 'element' if size_1 == 1 else 'elements'
+                    self.logError(f"Expected {size_1} {singplur} for array {id}, but got {len(arr_vals)}.")
+            else: arr_vals = values_list
         else:
             for inner_arr in values_list or []:
                 temp_arr = []
