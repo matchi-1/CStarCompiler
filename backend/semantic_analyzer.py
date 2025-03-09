@@ -524,7 +524,7 @@ class SemanticAnalyzer:
             
             case "double":
                 val = float(node.val_t["tokenName"])
-                if val > self.MAX_DOUBLE or val < self.MIN_DOUBLE:
+                if val > float(self.MAX_DOUBLE) or val < float(self.MIN_DOUBLE):
                     self.logError(f"Value {val} is out of 'double' range.")
 
         return (('lit', node.dtype), val) 
