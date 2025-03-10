@@ -120,7 +120,9 @@ class SemanticAnalyzer:
         visit_func = getattr(self, f'visit_{nodeName}', None)  # Get the appropriate visit function, or None if it doesn't exist
 
         if visit_func is None:
-            print(f"\n(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
+            if nodeName == 'node_imports_list':
+                print()
+            else: print(f"\n(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
             print(f'\n(semantic)(dbg) VISITING {nodeName}!!')
             print(f'!!NODE!!: {node}!!')
@@ -1073,46 +1075,51 @@ class SemanticAnalyzer:
         val_type = None
         value = None
         idec_rec = None
-        if node.vardec_cont_n and node.vardec_cont_n.value_n:
-            val_type, value = self.visit_node(node.vardec_cont_n.value_n)
+        if node.vardec_cont_n:
+            if node.vardec_cont_n.value_n:
+                val_type, value = self.visit_node(node.vardec_cont_n.value_n)
             if val_type: print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
-                    
-        else:
+
+        defaultVal = None
+        if not val_type and not value:
             if dtype[1] in ['int', 'long']:
                 val_type = ('lit', f'{dtype[1]}')
-                value = 0
+                defaultVal = 0
             elif dtype[1] in ['float', 'double']:
                 val_type = ('lit', f'{dtype[1]}')
-                value = 0.0
+                defaultVal = 0.0
             elif dtype[1] == 'bool':
                 val_type = ('lit', f'{dtype[1]}')
-                value = False
+                defaultVal = False
             elif dtype[1] == 'string':
                 val_type = ('lit', f'{dtype[1]}')
-                value = ''
+                defaultVal = ''
+            value = defaultVal
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
         self.check_type_and_range("var", dtype, val_type, node.id_n, value)
 
-        if not value:
+        if not defaultVal:
             match dtype[1]:
                 case 'bool':
-                    value = False
+                    defaultVal = False
                 case 'int':
-                    value = 0
+                    defaultVal = 0
                 case 'long':
-                    value = 0
+                    defaultVal = 0
                 case 'float':
-                    value = 0.0
+                    defaultVal = 0.0
                 case 'double':
-                    value = 0.0
+                    defaultVal = 0.0
                 case 'string':
-                    value = ''
+                    defaultVal = ''
+
+
         classReturn = []
         classReturn.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
         for dec_node in idec_rec or []:
-            classReturn.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], self.visit_node(dec_node.value_n) if dec_node.value_n else None, dtype=dtype, priv = priv, const=const))
+            classReturn.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_node.value_n if dec_node.value_n != None else defaultVal, dtype=dtype, priv = priv, const=const))
 
         return classReturn
 
