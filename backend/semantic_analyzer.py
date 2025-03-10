@@ -1335,7 +1335,7 @@ class SemanticAnalyzer:
             case '==':
                 if left_type[1] in self.numtypes:
                     if right_type[1] not in self.numtypes:
-                        self.logError(f"Type mismatch for relational expression, numeric values can only be compared with other numeric values (int, long, float, double,), but got {right_type[1]}.")
+                        self.logError(f"Type mismatch for relational expression, numeric values can only be compared with other numeric values (int, long, float, double), but got {right_type[1]}.")
                 elif left_type[1] == 'string':
                     if right_type[1] != 'string':
                         self.logError("Type mismatch for relational expression, strings an can only be compared with other strings.")
@@ -1348,7 +1348,7 @@ class SemanticAnalyzer:
             case '!=':
                 if left_type[1] in self.numtypes:
                     if right_type[1] not in self.numtypes:
-                        self.logError(f"Type mismatch for relational expression, numeric values can only be compared with other numeric values (int, long, float, double,), but got {right_type[1]}.")
+                        self.logError(f"Type mismatch for relational expression, numeric values can only be compared with other numeric values (int, long, float, double), but got {right_type[1]}.")
                 elif left_type[1] == 'string':
                     if right_type[1] != 'string':
                         self.logError("Type mismatch for relational expression, strings an can only be compared with other strings.")
