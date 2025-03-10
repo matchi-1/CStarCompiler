@@ -751,11 +751,11 @@ class SemanticAnalyzer:
         print(f" ------------------------------------------->{val_type[1]}")
         #if dtype != val_type[1]:
         #    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
-
+        
         match(dtype):
             case "int":
                 if val_type[1] not in ["string", "bool"]:
-                    if val > self.MAX_INT or value < self.MIN_INT:
+                    if val > self.MAX_INT or val < self.MIN_INT:
                         self.logError(f"Value '{val}' is out of 'int' range for variable '{iden_name}'.", iden)
                 
                 if val_type and dtype != val_type[1]:    
