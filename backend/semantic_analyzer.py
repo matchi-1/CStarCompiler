@@ -1870,10 +1870,11 @@ class SemanticAnalyzer:
             expected_return_type = self.function_return_stack[-1]  
 
             if node.ret_value_n:
-                result = self.visit_node(node.ret_value_n)
+                rettype, result = self.visit_node(node.ret_value_n)
                 print(f"RETURN VALUE: {result}")
-                if result[0][0] == 'arr':
+                if rettype[0][0] == 'arr':
                     self.logError(f"Function '{self.current_function_name}' cannot return an array.", self.curr_func_id)
+                
                 #TODO: add class error
                 actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
