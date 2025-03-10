@@ -388,6 +388,8 @@ class SemanticAnalyzer:
             # self.exit_scope(type(node).__name__)
             self.curr_scope = self.curr_scope.parent
 
+        if parent_node.constructor_dec_n and not node.class_body_stmt_n: 
+            constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n)
         
         print(f"\n(semantic)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
         if node.class_body_stmt_n: self.print_symbols(child_sym, indent=2)
