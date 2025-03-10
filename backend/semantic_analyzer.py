@@ -1082,39 +1082,27 @@ class SemanticAnalyzer:
             idec_rec = node.vardec_cont_n.idec_rec_n
 
         defaultVal = None
-        if not val_type and not value:
-            if dtype[1] in ['int', 'long']:
-                val_type = ('lit', f'{dtype[1]}')
-                defaultVal = 0
-            elif dtype[1] in ['float', 'double']:
-                val_type = ('lit', f'{dtype[1]}')
-                defaultVal = 0.0
-            elif dtype[1] == 'bool':
-                val_type = ('lit', f'{dtype[1]}')
+        match dtype[1]:
+            case 'bool':
                 defaultVal = False
-            elif dtype[1] == 'string':
-                val_type = ('lit', f'{dtype[1]}')
+            case 'int':
+                defaultVal = 0
+            case 'long':
+                defaultVal = 0
+            case 'float':
+                defaultVal = 0.0
+            case 'double':
+                defaultVal = 0.0
+            case 'string':
                 defaultVal = ''
+
+        if not val_type and not value:
+            val_type = ('lit', f'{dtype[1]}')
             value = defaultVal
+            
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
         self.check_type_and_range("var", dtype, val_type, node.id_n, value)
-
-        if not defaultVal:
-            match dtype[1]:
-                case 'bool':
-                    defaultVal = False
-                case 'int':
-                    defaultVal = 0
-                case 'long':
-                    defaultVal = 0
-                case 'float':
-                    defaultVal = 0.0
-                case 'double':
-                    defaultVal = 0.0
-                case 'string':
-                    defaultVal = ''
-
 
         classReturn = []
         classReturn.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
