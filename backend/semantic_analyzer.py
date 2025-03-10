@@ -528,6 +528,7 @@ class SemanticAnalyzer:
                 if val > Decimal(self.MAX_DOUBLE) or val < Decimal(self.MIN_DOUBLE):
                     self.logError(f"Value {val} is out of 'double' range.")
 
+        print(f"RETURNED FROM NODE_NUM: {(node.dtype, val)} using node: {node}")
         return (('lit', node.dtype), val) 
         # return (('lit', node.dtype), None)
     
@@ -553,6 +554,7 @@ class SemanticAnalyzer:
             #     val = iden_symbol["value"]
             
             # return (dtype, val)
+            print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol["dtype"]}, iden_symbol["value"]:{iden_symbol["value"]}')
             return (iden_symbol["dtype"], iden_symbol["value"])
             # return (('var', iden_symbol["dtype"][1]), None)
         
@@ -646,6 +648,8 @@ class SemanticAnalyzer:
         # Store function in symbol table. (for classes only) also returns the resulting dict
         classReturn.append(self.curr_scope.set_function(func_name, return_type, param_types, priv, isStd_lib = node.is_std_lib))
         #add actual value param in da future
+
+        print(f"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{classReturn}")
 
 
         # Enter function scope
@@ -866,7 +870,8 @@ class SemanticAnalyzer:
             case 'void':
                 if expected_val:
                     self.logError('Void functions do not return any values.')
-                    
+
+        print(f"RETURNED FROM FUNC_CALL: {('func_call', f'{func_symbol["dtype"]}'), val}")
         return (('func_call', f'{func_symbol["dtype"]}'), val) 
 
     
@@ -1103,10 +1108,14 @@ class SemanticAnalyzer:
     #array declaration
     def visit_node_arr_dec(self, node, priv = False):
         id = node.id_n.id_t["tokenName"]
+
         if self.curr_scope.get(id, checkParent=False):
             self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
+
         dtype = ('arr', node.dtype_t["tokenName"])
+
         baseVal = None
+
         if dtype[1] in ['int', 'long']:
             baseVal = 0
         elif dtype[1] in ['float', 'double']:
@@ -1115,85 +1124,136 @@ class SemanticAnalyzer:
             baseVal = 'False'
         elif dtype[1] == 'string':
             baseVal = ''
+
         dim = 2 if node.size2_n else 1
+
         size_1_type, size_1 = self.visit_node(node.size1_n)
+
         if size_1_type[1] not in ['int', 'long']:
-            self.logError(f'Type mismatch: expected whole number (integer, long) but got {size_1_type[1]}.')
+            self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
+        
         if size_1 < 1:
-            self.logError("Array size cannot be less than 1.", node.id_n)
+            self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
         size_2_type, size_2 = self.visit_node(node.size2_n) if node.size2_n else (None, None)
+        
         if size_2_type and size_2_type[1] not in ['int', 'long']:
-            self.logError(f'Type mismatch: expected whole number (integer, long) but got {size_2_type[1]}.')
+            self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
+        
         if size_2 and size_2 < 1:
-            self.logError("Array size cannot be less than 1.")
+            self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
+        
         values_list = None
+        
         arr_rec = None
+        
         classReturn = []
+        
         if node.arr_dec_cont_n:
             if type(node.arr_dec_cont_n[0]).__name__ == "node_arr_dec_rec":
                 arr_rec = node.arr_dec_cont_n
+                #print(f'##########################arr_rec@!!@!@!@: {arr_rec} size_1: {size_1} dim = {dim}')
+                # values_list = []
+                
+                # for i in range(size_1):
+                #     values_list.append(baseVal)
+            
             else:
                 values_list = node.arr_dec_cont_n
+        
         else:
             values_list = []
             for i in range(size_1):
                 values_list.append(baseVal)
-        print(f'##########################values_list@!!@!@!@: {values_list if values_list else arr_rec}')
+        
+       #print(f'##########################values_list@!!@!@!@: {values_list if values_list else arr_rec} dim = {dim}')
                 
 
         arr_vals = []
         if dim == 1:
-            if node.arr_dec_cont_n:
+            if node.arr_dec_cont_n and not arr_rec:
+                
                 for value_node in values_list or []:
                     val_type, val = self.visit_node(value_node)
                     print(f'arr init valtype: {val_type[1]}')
+                    
                     #error for arr size in code gen
                     if val_type[1] != node.dtype_t["tokenName"]:
-                        self.logError(f'Array contents can only be of type \'{node.dtype_t["tokenName"]}\'')
+                        self.logError(f"Array contents of '{id}' can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}'.", node.id_n)
+                    
                     else:
                         arr_vals.append(val)
+                
                 if arr_vals and len(arr_vals) > size_1:
                     singplur = 'element' if size_1 == 1 else 'elements'
-                    self.logError(f"Expected {size_1} {singplur} for array {id}, but got {len(arr_vals)}.")
+                    self.logError(f"Expected {size_1} {singplur} for array '{id}', but got {len(arr_vals)} elements instead.", node.id_n)
+                
                 elif arr_vals and len(arr_vals) < size_1:
                     for i in range(size_1 - len(arr_vals)):
                         arr_vals.append(baseVal)
+  
             else: arr_vals = values_list
+        
         else:
+            
             for inner_arr in values_list or []:
                 temp_arr = []
+                
                 for value_node in inner_arr or []:
                     val_type, val = self.visit_node(value_node)
-                    print(f'arr init valtype: {val_type[1]}')
+                    print(f'arr init valtype: {val_type}, val = {val}')
+                    
                     #error for arr size in code gen
                     if val_type[1] != node.dtype_t["tokenName"]:
-                        self.logError(f'Array contents can only be of type {node.dtype_t["tokenName"]}')
+                        self.logError(f"Array contents of '{id}'  can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}.", node.id_n)
+                    
                     else:
                         temp_arr.append(val)
+                
                 if len(temp_arr) > size_2:
                         singplur = 'element' if size_2 == 1 else 'elements'
-                        self.logError(f"Expected {size_2} {singplur} for inner array element, but got {len(temp_arr)}.")
+                        self.logError(f"Expected {size_2} {singplur} for inner array element of array '{id}', but got {len(temp_arr)} elements instead.", node.id_n)
+                
                 elif len(temp_arr) < size_2:
                     for i in range(size_2 - len(temp_arr)):
                         temp_arr.append(baseVal)
+
+                #print(f"_____________________________{temp_arr}")
                 arr_vals.append(temp_arr)
+            
             if len(arr_vals) > size_1:
                 singplur = 'element' if size_1 == 1 else 'elements'
-                self.logError(f"Expected {size_1} {singplur} for array {id}, but got {len(arr_vals)}.")
+                self.logError(f"Expected {size_1} {singplur} for array '{id}', but got {len(arr_vals)}.", node.id_n)
+            
             elif len(arr_vals) < size_1:
                     for i in range(size_1 - len(arr_vals)):
-                        arr_vals.append([baseVal]*size_1)
+                        arr_vals.append([baseVal]*(size_2 if size_2 else size_1))
         classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv))
+        
         for arrdec_node in arr_rec or []:
+            arrdec_vals = []
+            
             size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
+            
             if size_1_type[1] not in ['int', 'long']:
                 self.logError('Expected whole number.')
+            
             size_2_type, size_2 = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None)
+            
             if size_2_type and size_2_type[1] not in ['int', 'long']:
                 self.logError('Expected whole number.')
+            
             if self.curr_scope.get(arrdec_node.id_n.id_t["tokenName"], checkParent=False):
                 self.logError(f"Symbol '{arrdec_node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
-            classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], None, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv))
+
+            for i in range(size_1):
+                if size_2:
+                    temp_arr = []
+                    for j in range(size_2):
+                        temp_arr.append(baseVal)
+                arrdec_vals.append(temp_arr if temp_arr else baseVal)
+            #print(f"_____________________________{arrdec_vals}")
+
+            classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv))
         
         return classReturn
 
