@@ -905,6 +905,9 @@ class SemanticAnalyzer:
                 arg_sym = None
                 arg_val_type = None
                 arg_flag = False
+
+                print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
+                
                 if hasattr(arg_node, 'id_t'):
                     arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
                     if not arg_sym:
@@ -923,9 +926,9 @@ class SemanticAnalyzer:
                             self.logError(f"[Argument {i+1}] Symbol '{current_node.id_t['tokenName']}' is not declared.", current_node)
                         arg_val_type = arg_sym["dtype"]
                     else: # if the current node doesn't have an iden 
-                        arg_val_type = ('lit', arg_node.dtype)
+                        arg_val_type = self.visit_node(arg_node)[0]
 
-                print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
+                
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_sym: " + str(arg_sym))
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_val_type: " + str(arg_val_type))
                 print(">>>>>>>>>>>>>>>>>>>>>> param_type: " + str(param_type))
