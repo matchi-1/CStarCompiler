@@ -1270,8 +1270,14 @@ class SemanticAnalyzer:
         right_type, right_val = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
 
-        if (left_type[0] == "arr" and not (right_type[0] == "arr")) or (right_type[0]== "arr" and not (left_type[0]  == "arr")):
-            self.logError("Performing operations between an array and non-array is not allowed.")
+        if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
+            self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.")
+
+        elif left_type[0] == 'arr' or right_type[0] == 'arr':
+            self.logError("Direct operations on entire arrays are not allowed. Access individual elements or use vectorized computations.")
+
+        elif left_type[0] == 'object' or right_type[0] == 'object':
+            self.logError("Direct operations on entire objects are not allowed. Access specific properties instead.")
 
         if (left_type[1] == 'long' or right_type[1] == 'long'):
             dtype = ('lit', 'long')
