@@ -75,6 +75,14 @@ class SymbolTable:
 class SemanticAnalyzer:
 
     numtypes = ['int', 'long', 'float', 'double']
+    default_vals = {
+        'string': '',
+        'bool' : False,
+        'int' : 0,
+        'long' : 0,
+        'float' : Decimal(0.0),
+        'double' : Decimal(0.0)
+    }
    
     MIN_INT =       -   2147483648
     MAX_INT =           2147483647
@@ -668,7 +676,6 @@ class SemanticAnalyzer:
         #self.enter_scope(type(node).__name__)
         print(f"\n(semantic)(dbg) ENTERING scope 'Function: {func_name}'")
         self.curr_scope = SymbolTable(self.curr_scope)
-
         # Add parameters to new function scope
         if node.params_n:
             for param in node.params_n:
@@ -688,11 +695,11 @@ class SemanticAnalyzer:
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
-                    self.curr_scope.set_array(param_name, value=None, dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
+                    self.curr_scope.set_array(param_name, value=[self.default_vals[arr_dtype[1]]], dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
-                    self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
+                    self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)
 
         
         # Visit function body
@@ -866,22 +873,12 @@ class SemanticAnalyzer:
         #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
         #temp vals
         val = None
-        match func_symbol["dtype"][1]:
-            case 'string':
-                val = ""
-            case 'bool':
-                val = False
-            case 'int':
-                val = 0
-            case 'long':
-                val = 0
-            case 'float':
-                val = 0
-            case 'double':
-                val = 0
-            case 'void':
-                if expected_val:
-                    self.logError('Void functions do not return any values.')
+        if func_symbol["dtype"][1] == 'void':
+            if expected_val:
+                self.logError('Void functions do not return any values.')
+        else:
+            val = self.default_vals[func_symbol["dtype"][1]]
+
 
         print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
         return (('lit', f'{func_symbol["dtype"][1]}'), val) 
@@ -1006,22 +1003,11 @@ class SemanticAnalyzer:
         print(node)
 
         val = None
-        match class_info[class_elem]["dtype"][1]:
-            case 'string':
-                val = ""
-            case 'bool':
-                val = False
-            case 'int':
-                val = 0
-            case 'long':
-                val = 0
-            case 'float':
-                val = 0
-            case 'double':
-                val = 0
-            case 'void':
-                if expected_val:
-                    self.logError('Void functions do not return any values.')
+        if class_info[class_elem]["dtype"][1] == 'void':
+            if expected_val:
+                self.logError('Void functions do not return any values.')
+        else:
+            val = self.default_vals[class_info[class_elem]["dtype"][1]]
 
         return (class_info[class_elem]["dtype"], val)
     
@@ -1100,20 +1086,7 @@ class SemanticAnalyzer:
             if val_type: print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
 
-        defaultVal = None
-        match dtype[1]:
-            case 'bool':
-                defaultVal = False
-            case 'int':
-                defaultVal = 0
-            case 'long':
-                defaultVal = 0
-            case 'float':
-                defaultVal = 0.0
-            case 'double':
-                defaultVal = 0.0
-            case 'string':
-                defaultVal = ''
+        defaultVal = self.default_vals[dtype[1]]
 
         if not val_type and not value:
             val_type = ('lit', f'{dtype[1]}')
@@ -1139,16 +1112,7 @@ class SemanticAnalyzer:
 
         dtype = ('arr', node.dtype_t["tokenName"])
 
-        baseVal = None
-
-        if dtype[1] in ['int', 'long']:
-            baseVal = 0
-        elif dtype[1] in ['float', 'double']:
-            baseVal = 0.0
-        elif dtype[1] == 'bool':
-            baseVal = 'False'
-        elif dtype[1] == 'string':
-            baseVal = ''
+        baseVal = self.default_vals[dtype[1]]
 
         dim = 2 if node.size2_n else 1
 
@@ -1635,20 +1599,7 @@ class SemanticAnalyzer:
         if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
             self.logError(f"Unsupported data type for input: {expected_dtype}", node)
             return None
-        value = None
-        match expected_dtype:
-                case 'bool':
-                    value = False
-                case 'int':
-                    value = 0
-                case 'long':
-                    value = 0
-                case 'float':
-                    value = 0.0
-                case 'double':
-                    value = 0.0
-                case 'string':
-                    value = ''
+        value = self.default_vals[expected_dtype]
 
         return (('lit', expected_dtype), value)
     
