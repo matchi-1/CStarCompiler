@@ -598,7 +598,7 @@ class SemanticAnalyzer:
 
     def visit_node_func_dec(self, node, priv = False):
         func_name = node.id_n.id_t["tokenName"]
-        return_type = node.dtype_t["tokenName"]
+        return_type = ('lit', node.dtype_t["tokenName"])
 
         # Check if function already exists in current scope
         if self.curr_scope.get(func_name, checkParent=False):
@@ -689,13 +689,13 @@ class SemanticAnalyzer:
         if not node.is_std_lib:
             self.current_function_name = func_name
 
-            self.function_return_stack.append(return_type)
+            self.function_return_stack.append(return_type[1])
             print(f"Return stack = {self.function_return_stack}")
 
             has_return = self.check_return_in_body(node.body_n)
 
             # Ensure non-void functions return a value
-            if return_type != "void" and not has_return:
+            if return_type[1] != "void" and not has_return:
                 self.logError(f"Not all code paths in function '{func_name}' return a value.")
             
             self.visit_node(node.body_n)
@@ -856,7 +856,7 @@ class SemanticAnalyzer:
         #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
         #temp vals
         val = None
-        match func_symbol["dtype"]:
+        match func_symbol["dtype"][1]:
             case 'string':
                 val = ""
             case 'bool':
@@ -873,8 +873,8 @@ class SemanticAnalyzer:
                 if expected_val:
                     self.logError('Void functions do not return any values.')
 
-        print(f"RETURNED FROM FUNC_CALL: {('func_call', f'{func_symbol["dtype"]}'), val}")
-        return (('func_call', f'{func_symbol["dtype"]}'), val) 
+        print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
+        return (('lit', f'{func_symbol["dtype"][1]}'), val) 
 
     
     def check_function_params(self, func_symbol, args, node_id, call_string):
@@ -1032,7 +1032,7 @@ class SemanticAnalyzer:
             if index_2D != None:
                 index += f"[{index_2D}]"
         
-        print("PRINT >>>>>>>>>>>>>>>>> index: " + index)
+        print("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
 
         match dtype[1]:
             case "int":
