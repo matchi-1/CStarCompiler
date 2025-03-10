@@ -906,7 +906,6 @@ class SemanticAnalyzer:
             for i, (arg_node, param_type) in enumerate(zip(args, func_symbol["params"])):
                 arg_sym = None
                 arg_val_type = None
-                arg_flag = False
 
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
                 
@@ -914,13 +913,10 @@ class SemanticAnalyzer:
                     arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
                     if not arg_sym:
                         self.logError(f"[Argument {i+1}] Symbol '{arg_node.id_t['tokenName']}' has not been declared yet.", arg_node)
-                    arg_flag = True
                     arg_val_type = arg_sym["dtype"]
                 else:
                     current_node = arg_node
                     while not hasattr(current_node, 'id_t') and hasattr(current_node, 'id_n'):  # loop until it finds an identifier in the nodes (if there are any)
-                        if isinstance(current_node, (node_arr_idx, node_class_att, node_class_arr_idx)):
-                            arg_flag = True
                         current_node = current_node.id_n
                     if hasattr(current_node, 'id_t'):
                         arg_sym = self.curr_scope.get(current_node.id_t["tokenName"])
@@ -930,13 +926,13 @@ class SemanticAnalyzer:
                     else: # if the current node doesn't have an iden 
                         arg_val_type = self.visit_node(arg_node)[0]
 
-                
+                print(">>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: " + str(param_type))
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_sym: " + str(arg_sym))
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_val_type: " + str(arg_val_type))
                 print(">>>>>>>>>>>>>>>>>>>>>> param_type: " + str(param_type))
                 
                 if param_type["type"] == "var":
-                    if arg_val_type[0] != "lit" and not arg_flag:  # values and vars are treated the sme type
+                    if arg_val_type[0] != "lit":  # values and vars are treated the sme type
                         if arg_val_type[0] == 'arr': # value  vs  array (not array element)
                                 self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an array of type '{arg_val_type[1]}'.", node_id)
                         
@@ -948,7 +944,7 @@ class SemanticAnalyzer:
                 
                 elif param_type["type"] == "arr":
                     if arg_val_type[0] != "arr":  # arr vs incorrect value types
-                        if arg_val_type[0] in ["var", "lit"] or arg_flag: # arr vs value
+                        if arg_val_type[0] in ["var", "lit"]: # arr vs value
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found a value of type '{arg_val_type[1]}'.", node_id)
                         elif arg_val_type[0] == "object": # arr vs object 
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found an object instance of class '{arg_val_type[1]}'.", node_id)
