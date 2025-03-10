@@ -388,9 +388,8 @@ class SemanticAnalyzer:
             # self.exit_scope(type(node).__name__)
             self.curr_scope = self.curr_scope.parent
 
-        if parent_node.constructor_dec_n and not node.class_body_stmt_n:
+        if parent_node.constructor_dec_n and not node.class_body_stmt_n: 
             constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n)
-
         
         print(f"\n(semantic)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
         if node.class_body_stmt_n: self.print_symbols(child_sym, indent=2)
@@ -567,8 +566,8 @@ class SemanticAnalyzer:
             #     val = iden_symbol["value"]
             
             # return (dtype, val)
-            print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol["dtype"]}, iden_symbol["value"]:{iden_symbol["value"]}')
-            return (iden_symbol["dtype"], iden_symbol["value"])
+            print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol["dtype"]}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
+            return (iden_symbol["dtype"], iden_symbol.get("value", None))
             # return (('var', iden_symbol["dtype"][1]), None)
         
     def visit_node_arr_idx(self, node):
@@ -1269,8 +1268,14 @@ class SemanticAnalyzer:
         right_type, right_val = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
 
-        if (left_type[0] == "arr" and not (right_type[0] == "arr")) or (right_type[0]== "arr" and not (left_type[0]  == "arr")):
-            self.logError("Performing operations between an array and non-array is not allowed.")
+        if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
+            self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.")
+
+        elif left_type[0] == 'arr' or right_type[0] == 'arr':
+            self.logError("Direct operations on entire arrays are not allowed. Access individual elements or use vectorized computations.")
+
+        elif left_type[0] == 'object' or right_type[0] == 'object':
+            self.logError("Direct operations on entire objects are not allowed. Access specific properties instead.")
 
         if (left_type[1] == 'long' or right_type[1] == 'long'):
             dtype = ('lit', 'long')
@@ -1416,18 +1421,6 @@ class SemanticAnalyzer:
 
                 return (adjusted_type, -right_val)
                 # return (right_type, None)
-            case '++':
-                if right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
-                self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
-                return (right_type, right_val + 1)
-                # return (right_type, None)
-            case '--':
-                if right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
-                self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
-                return (right_type, right_val - 1 )
-                # return (right_type, None)
         
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
             if right_type[1] not in ["bool", "string", "int", "long", "double", "float"]:
@@ -1523,18 +1516,48 @@ class SemanticAnalyzer:
                         
     def visit_node_post_un_op(self, node):
         left_type, left_val = self.visit_node(node.id_left_n)
+        iden_name = node.id_left_n.id_t["tokenName"]
+
+        if not self.curr_scope.get(iden_name):
+            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node.id_left_n)
+        
         match node.right_t["tokenName"]:
             case '++':
-                if left_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {left_type[1]}.")
-                self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
+                print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
+                if left_type[1] not in ["int", "long"]:
+                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {left_type[1]}.", node.id_left_n)
+                #self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
                 return (left_type, left_val)
                 # return (left_type, None)
             case '--':
-                if left_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {left_type[1]}.")
-                self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
+                print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
+                if left_type[1] not in ["int", "long"]:
+                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {left_type[1]}.", node.id_left_n)
+                #self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
                 return (left_type, left_val)
+            
+    def visit_node_pre_un_op(self, node):
+        right_type, right_val = self.visit_node(node.iden_n)
+        iden_name = node.iden_n.id_t["tokenName"]
+
+        if not self.curr_scope.get(iden_name):
+            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node.iden_n)
+
+        match node.left_t["tokenName"]:
+            case '++':
+                print(f"RRRRRRRIIIIIIIIGHT: {right_type[1]}")
+                if right_type[1] not in ["int", "long"]:
+                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {right_type[1]}.", node.iden_n)
+                #self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] += 1
+                return (right_type, right_val + 1)
+                # return (right_type, None)
+            case '--':
+                print(f"RRRRRRRIIIIIIIIGHT: {right_type[1]}")
+                if right_type[1] not in ["int", "long"]:
+                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {right_type[1]}.", node.iden_n)
+                #self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] -= 1
+                return (right_type, right_val - 1 )
+                # return (right_type, None)
                     
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
@@ -1870,10 +1893,11 @@ class SemanticAnalyzer:
             expected_return_type = self.function_return_stack[-1]  
 
             if node.ret_value_n:
-                result = self.visit_node(node.ret_value_n)
+                rettype, result = self.visit_node(node.ret_value_n)
                 print(f"RETURN VALUE: {result}")
-                if result[0][0] == 'arr':
+                if rettype[0][0] == 'arr':
                     self.logError(f"Function '{self.current_function_name}' cannot return an array.", self.curr_func_id)
+                
                 #TODO: add class error
                 actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
@@ -1883,7 +1907,7 @@ class SemanticAnalyzer:
                     
                     case "int":
                         if actual_return_type not in ["string", "bool"]:
-                            if result[1] > self.MAX_INT or result[1] < self.MIN_INT:
+                            if result > self.MAX_INT or result < self.MIN_INT:
                                self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:    
@@ -1891,7 +1915,7 @@ class SemanticAnalyzer:
             
                     case "long":
                         if actual_return_type not in ["string", "bool"]:
-                            if result[1] > self.MAX_LONG or result[1] < self.MIN_LONG:
+                            if result > self.MAX_LONG or result < self.MIN_LONG:
                                 self.logError(f"Value '{result[1]}' is out of 'long' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
@@ -1900,7 +1924,7 @@ class SemanticAnalyzer:
             
                     case "float":
                         if actual_return_type not in ["string", "bool"]:
-                            if result[1] > self.MAX_FLOAT or result[1] < self.MIN_FLOAT:
+                            if result > self.MAX_FLOAT or result < self.MIN_FLOAT:
                                 self.logError(f"Value '{result[1]}' is out of 'float' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
@@ -1909,7 +1933,7 @@ class SemanticAnalyzer:
 
                     case "double":
                         if actual_return_type not in ["string", "bool"]:
-                            if result[1] > self.MAX_DOUBLE or result[1] < self.MIN_DOUBLE:
+                            if result > self.MAX_DOUBLE or result < self.MIN_DOUBLE:
                                 self.logError(f"Value '{result[1]}' is out of 'double' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
@@ -1937,7 +1961,7 @@ class SemanticAnalyzer:
         if isinstance(node, node_code_block):
             return any(self.check_return_in_body(stmt) for stmt in node.code_block_statement_n)
 
-        if isinstance(node, node_ctrl_stmft_body):
+        if isinstance(node, node_ctrl_stmt_body):
             return any(self.check_return_in_body(stmt) for stmt in node.statements_n)
 
         if isinstance(node, node_if_stmt):
@@ -1988,4 +2012,3 @@ class SemanticAnalyzer:
             return True
 
         return False
-
