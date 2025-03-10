@@ -1862,11 +1862,48 @@ class SemanticAnalyzer:
                 #TODO: add class error
                 actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
-                if expected_return_type == "void":
-                    self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.", self.curr_func_id)
+                match(expected_return_type):
+                    case "void":
+                        self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.", self.curr_func_id)
+                    
+                    case "int":
+                        if actual_return_type not in ["string", "bool"]:
+                            if result[1] > self.MAX_INT or result[1] < self.MIN_INT:
+                               self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
+                        
+                        if expected_return_type != actual_return_type:    
+                            self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)  
+            
+                    case "long":
+                        if actual_return_type not in ["string", "bool"]:
+                            if result[1] > self.MAX_LONG or result[1] < self.MIN_LONG:
+                                self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
+                        
+                        if expected_return_type != actual_return_type:
+                            if actual_return_type != "int":
+                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
+            
+                    case "float":
+                        if actual_return_type not in ["string", "bool"]:
+                            if result[1] > self.MAX_FLOAT or result[1] < self.MIN_FLOAT:
+                                self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
+                        
+                        if expected_return_type != actual_return_type:
+                            if actual_return_type != "int":
+                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
 
-                if expected_return_type != actual_return_type:
-                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
+                    case "double":
+                        if actual_return_type not in ["string", "bool"]:
+                            if result[1] > self.MAX_DOUBLE or result[1] < self.MIN_DOUBLE:
+                                self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
+                        
+                        if expected_return_type != actual_return_type:
+                            if actual_return_type not in ["int", "float", "long"]:
+                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
+
+                    case _:
+                        if expected_return_type != actual_return_type:
+                            self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
 
                 return result
             else:
