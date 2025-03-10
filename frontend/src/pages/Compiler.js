@@ -240,7 +240,7 @@ const toggleFiles = () => {
         { open: '(', close: ')'},
         { open: '{', close: '}'},
         { open: '[', close: ']'},
-        { open: '<', close: '>'},
+        //{ open: '<', close: '>'},
         { open: '"', close: '"'},
         { open: '\'', close: '\''}
       ]
@@ -338,7 +338,8 @@ const toggleFiles = () => {
           {
             label: 'import',
             kind:monaco.languages.CompletionItemKind.Keyword,
-            insertText: 'import',
+            insertText: 'import<${1}>;',
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
             range: wordRange
           },
           {
