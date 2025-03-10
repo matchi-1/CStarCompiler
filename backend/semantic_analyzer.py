@@ -564,8 +564,8 @@ class SemanticAnalyzer:
             #     val = iden_symbol["value"]
             
             # return (dtype, val)
-            print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol["dtype"]}, iden_symbol["value"]:{iden_symbol["value"]}')
-            return (iden_symbol["dtype"], iden_symbol["value"])
+            print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol["dtype"]}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
+            return (iden_symbol["dtype"], iden_symbol.get("value", None))
             # return (('var', iden_symbol["dtype"][1]), None)
         
     def visit_node_arr_idx(self, node):
@@ -937,13 +937,14 @@ class SemanticAnalyzer:
                 print(">>>>>>>>>>>>>>>>>>>>>> param_type: " + str(param_type))
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_value_flag: " + str(arg_arr_att_flag))
                 print(">>>>>>>>>>>>>>>>>>>>>> node type: " + str(type(arg_node).__name__))
+
+                self.visit_node(arg_node)
+
                 if param_type["type"] == "var":
-                    if arg_val_type[0] != "lit":  # values and vars are treated the sme type
+                    if arg_val_type[0] != "lit" or arg_arr_att_flag:  # values and vars are treated the sme type
                         if arg_val_type[0] == 'arr' : # value  vs  array 
-                                if not arg_arr_att_flag: # value  vs  array as a whole
-                                    self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an array of type '{arg_val_type[1]}'.", node_id)
-                                else: # value  vs  array element -- check if the passed array element matches the right dimension of the array itself
-                                    self.logError(f"ehe ehhehe placeholder error msg so ther no syntax error heheeheh +1 commit")
+                            if not arg_arr_att_flag: # value  vs  array as a whole
+                                self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an array of type '{arg_val_type[1]}'.", node_id)
 
                         elif arg_val_type[0] == 'object': # value  vs  object
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype']}' but found an object of class '{arg_val_type[1]}'.", node_id)
