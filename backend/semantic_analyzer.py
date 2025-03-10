@@ -705,6 +705,7 @@ class SemanticAnalyzer:
         # Visit function body
         if not node.is_std_lib:
             self.current_function_name = func_name
+            self.curr_func_id = node.id_n
 
             self.function_return_stack.append(return_type[1])
             print(f"Return stack = {self.function_return_stack}")
@@ -720,6 +721,7 @@ class SemanticAnalyzer:
             self.function_return_stack.pop()
             print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
             self.current_function_name = None
+            self.curr_func_id = None
  
 
         # Exit function scope, back to program constructs
@@ -1856,20 +1858,20 @@ class SemanticAnalyzer:
                 result = self.visit_node(node.ret_value_n)
                 print(f"RETURN VALUE: {result}")
                 if result[0][0] == 'arr':
-                    self.logError(f"Function '{self.current_function_name}' cannot return an array.")
+                    self.logError(f"Function '{self.current_function_name}' cannot return an array.", self.curr_func_id)
                 #TODO: add class error
                 actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
                 if expected_return_type == "void":
-                    self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.")
+                    self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.", self.curr_func_id)
 
                 if expected_return_type != actual_return_type:
-                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.")
+                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
 
                 return result
             else:
                 if expected_return_type != "void":
-                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.")
+                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.", self.curr_func_id)
 
     def check_return_in_body(self, node):
         print(f"(semantic)(dbg) Checking return in {type(node).__name__}")
