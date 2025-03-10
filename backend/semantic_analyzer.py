@@ -1304,6 +1304,8 @@ class SemanticAnalyzer:
                 if dtype[1] in ['float', 'double'] or right_type[1] in ['float', 'double']:
                     self.logError("Type mismatch: Modulo operation only supports whole numbers (int, long)")
                 else:
+                    if right_val == 0: #todo err
+                        self.logError("Modulo by 0 is not allowed.")
                     if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                         return (dtype, left_val % right_val)
                         # return (dtype, None)
@@ -1877,7 +1879,7 @@ class SemanticAnalyzer:
                     case "long":
                         if actual_return_type not in ["string", "bool"]:
                             if result[1] > self.MAX_LONG or result[1] < self.MIN_LONG:
-                                self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
+                                self.logError(f"Value '{result[1]}' is out of 'long' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type != "int":
@@ -1886,7 +1888,7 @@ class SemanticAnalyzer:
                     case "float":
                         if actual_return_type not in ["string", "bool"]:
                             if result[1] > self.MAX_FLOAT or result[1] < self.MIN_FLOAT:
-                                self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
+                                self.logError(f"Value '{result[1]}' is out of 'float' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type != "int":
@@ -1895,7 +1897,7 @@ class SemanticAnalyzer:
                     case "double":
                         if actual_return_type not in ["string", "bool"]:
                             if result[1] > self.MAX_DOUBLE or result[1] < self.MIN_DOUBLE:
-                                self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
+                                self.logError(f"Value '{result[1]}' is out of 'double' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type not in ["int", "float", "long"]:
