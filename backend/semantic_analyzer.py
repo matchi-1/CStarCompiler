@@ -616,7 +616,7 @@ class SemanticAnalyzer:
 
     def visit_node_func_dec(self, node, priv = False):
         func_name = node.id_n.id_t["tokenName"]
-        return_type = ('lit', node.dtype_t["tokenName"])
+        return_type = ('func', node.dtype_t["tokenName"])
 
         # Check if function already exists in current scope
         if self.curr_scope.get(func_name, checkParent=False):
@@ -870,6 +870,8 @@ class SemanticAnalyzer:
         func_symbol = self.curr_scope.get(func_name)
         if not func_symbol:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
+        if func_symbol["dtype"][0] != 'func':
+            self.logError(f"Symbol '{func_name}' is not a function.")
         
         self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
         #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
