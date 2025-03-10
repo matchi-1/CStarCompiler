@@ -620,7 +620,7 @@ class SemanticAnalyzer:
 
         # Check if function already exists in current scope
         if self.curr_scope.get(func_name, checkParent=False):
-            self.logError(f"Function '{func_name}' is already declared.", node.id_n)
+            self.logError(f"Symbol '{func_name}' has already been declared.", node.id_n)
             return
 
         
