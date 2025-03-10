@@ -45,6 +45,7 @@ class SymbolTable:
         sym_content["dtype"] = class_name 
         sym_content["obj_info"] = obj_info 
         self.syms[sym_name] = sym_content
+        return {sym_name: sym_content}
 
     def set_function(self, sym_name, return_type, param_types, priv=False, isStd_lib=False):
         # sym_content = self._create_symbol_entry(value=None, dtype=return_type, priv=priv, const=const)
@@ -446,10 +447,11 @@ class SemanticAnalyzer:
         if obj_info.get("class_info"):
             self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
 
+        # print(f"Obj_info : {obj_info} \nobj_name: {obj_name} \nclass_elem: {class_elem}")
+
         if obj_info.get("dtype")[0] != 'object':
             self.logError(f"Symbol '{obj_name}' not an object.", node.obj_id_n)
 
-        print(obj_info)
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
@@ -462,8 +464,8 @@ class SemanticAnalyzer:
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
             self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
 
-        
-        return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])   #None is TODO for code gen
+        print(f"(semantic)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
+        return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])  
 
     def visit_node_class_arr_idx(self, node):
         obj_name = node.obj_id_n.id_t["tokenName"]
@@ -659,7 +661,7 @@ class SemanticAnalyzer:
 
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
-
+        print(f">>param types : {param_types}")
         print(f">>>>>>>>>>> {func_name} IS FUNC STD LIB? " + str(node.is_std_lib))
 
         classReturn = []
@@ -678,6 +680,7 @@ class SemanticAnalyzer:
         if node.params_n:
             for param in node.params_n:
                 param_name = param.id_n.id_t["tokenName"]
+                print(f"\n\nFOUND TYPE '{type(param).__name__}' FOR PARAM '{param_name}'")
 
                 # Check if parameter name is duplicated
                 if self.curr_scope.get(param_name, checkParent=False):
@@ -688,16 +691,16 @@ class SemanticAnalyzer:
                     class_name = ('object', param.class_id_n.id_t["tokenName"])
                     class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
                     class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
-                    self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)
+                    print(f">>>>>>>>>>>>>SET OBJ: {self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)}")
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
-                    self.curr_scope.set_array(param_name, value=[self.default_vals[arr_dtype[1]]], dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)
+                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=[self.default_vals[arr_dtype[1]]], dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
-                    self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)
+                    print(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
 
         
         # Visit function body
@@ -849,6 +852,7 @@ class SemanticAnalyzer:
         value = node.value_n
         # print(f"!@!@!@!@!@!@!#!#!#!#!#!#!#!{self.curr_scope.get(obj_name)} \n{obj_name}")
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
+        #print(f"!!!!!!!!!!!!!found att_info for '{att_name}' in '{obj_name}': {att_info}")   
 
         if att_info["const"]:
             self.logError(f"Attribute '{att_name}' is a constant and cannot be reassigned.", node.class_att_n.att_id_n)
@@ -859,7 +863,10 @@ class SemanticAnalyzer:
         if dtype != val_type[1]:
             self.logError(f"Type Mismatch: expected '{dtype}' for attribute '{att_name}' but found '{val_type[1]}'", node.class_att_n.att_id_n)
 
-        self.curr_scope.set(obj_name, val, dtype=dtype) #for code gen na e2 ryt TODO
+        # self.curr_scope.set(att_name, val, dtype=dtype) #for code gen na e2 ryt TODO
+        att_info["value"] = val
+
+        print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
         
     # func calls
