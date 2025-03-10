@@ -1424,13 +1424,13 @@ class SemanticAnalyzer:
                 return (adjusted_type, -right_val)
                 # return (right_type, None)
             case '++':
-                if right_type[1] not in self.numtypes:
+                if right_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
                 self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
                 return (right_type, right_val + 1)
                 # return (right_type, None)
             case '--':
-                if right_type[1] not in self.numtypes:
+                if right_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
                 self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
                 return (right_type, right_val - 1 )
@@ -1532,14 +1532,14 @@ class SemanticAnalyzer:
         left_type, left_val = self.visit_node(node.id_left_n)
         match node.right_t["tokenName"]:
             case '++':
-                if left_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {left_type[1]}.")
+                if left_type[1] not in ["int", "long"]:
+                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {left_type[1]}.")
                 self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
                 return (left_type, left_val)
                 # return (left_type, None)
             case '--':
-                if left_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {left_type[1]}.")
+                if left_type[1] not in ["int", "long"]:
+                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {left_type[1]}.")
                 self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
                 return (left_type, left_val)
                     
