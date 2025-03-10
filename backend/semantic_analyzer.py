@@ -1885,7 +1885,7 @@ class SemanticAnalyzer:
                     
                     case "int":
                         if actual_return_type not in ["string", "bool"]:
-                            if result[1] > self.MAX_INT or result[1] < self.MIN_INT:
+                            if result > self.MAX_INT or result < self.MIN_INT:
                                self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:    
@@ -1893,7 +1893,7 @@ class SemanticAnalyzer:
             
                     case "long":
                         if actual_return_type not in ["string", "bool"]:
-                            if result[1] > self.MAX_LONG or result[1] < self.MIN_LONG:
+                            if result > self.MAX_LONG or result < self.MIN_LONG:
                                 self.logError(f"Value '{result[1]}' is out of 'long' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
@@ -1902,7 +1902,7 @@ class SemanticAnalyzer:
             
                     case "float":
                         if actual_return_type not in ["string", "bool"]:
-                            if result[1] > self.MAX_FLOAT or result[1] < self.MIN_FLOAT:
+                            if result > self.MAX_FLOAT or result < self.MIN_FLOAT:
                                 self.logError(f"Value '{result[1]}' is out of 'float' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
@@ -1911,7 +1911,7 @@ class SemanticAnalyzer:
 
                     case "double":
                         if actual_return_type not in ["string", "bool"]:
-                            if result[1] > self.MAX_DOUBLE or result[1] < self.MIN_DOUBLE:
+                            if result > self.MAX_DOUBLE or result < self.MIN_DOUBLE:
                                 self.logError(f"Value '{result[1]}' is out of 'double' range for 'return' value.", self.curr_func_id)
                         
                         if expected_return_type != actual_return_type:
