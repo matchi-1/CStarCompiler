@@ -1257,6 +1257,10 @@ class SemanticAnalyzer:
         left_type, left_val = self.visit_node(node.left_n)
         right_type, right_val = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
+
+        if (left_type[0] == "arr" and not (right_type[0] == "arr")) or (right_type[0]== "arr" and not (left_type[0]  == "arr")):
+            self.logError("Performing operations between an array and non-array is not allowed.")
+
         if (left_type[1] == 'long' or right_type[1] == 'long'):
             dtype = ('lit', 'long')
         if (left_type[1] == 'float' or right_type[1] == 'float'):
