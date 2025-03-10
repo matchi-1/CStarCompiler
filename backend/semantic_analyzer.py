@@ -565,10 +565,20 @@ class SemanticAnalyzer:
         print(f"!!@@@@@@@@@@@@@@@@rr_sym: {node.id_n.id_t["tokenName"]}")
         if not arr_sym:
             self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' has not been declared yet.')
-        if arr_sym["dtype"][0] != 'arr':
-            self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' is not an array.')
         dtype = arr_sym["dtype"][1]
         idx_type, idx_val = self.visit_node(node.idx_n)
+        if arr_sym["dtype"][0] != 'arr':
+            if not node.idx2_n and dtype == 'string':
+                if idx_type[1] not in ['int', 'long']:
+                    self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
+                if idx_val < 0:
+                        self.logError("String index cannot be negative.")
+                if idx_val >= len(arr_sym["value"]):
+                    self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.')
+                return (('lit', 'string'), arr_sym["value"][idx_val])
+            else:
+                self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' is not an array.')
+
     
         if idx_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
