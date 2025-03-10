@@ -1383,7 +1383,18 @@ class SemanticAnalyzer:
             case '-':
                 if right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for arithmetic expressoin, expected numeric value (int, long, float, double), but got {right_type[1]}.")
-                return (right_type, -right_val)
+
+                adjusted_type = right_type
+                match (-right_val):
+                    case self.MIN_INT: 
+                        if right_type[1] == "long":
+                            adjusted_type = (right_type[0], "int")
+                    
+                    case self.MIN_LONG:
+                        if right_type[1] == "double":
+                            adjusted_type = (right_type[0], "long")
+
+                return (adjusted_type, -right_val)
                 # return (right_type, None)
             case '++':
                 if right_type[1] not in self.numtypes:
@@ -1397,6 +1408,7 @@ class SemanticAnalyzer:
                 self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
                 return (right_type, right_val - 1 )
                 # return (right_type, None)
+        
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
             if right_type[1] not in ["bool", "string", "int", "long", "double", "float"]:
                 self.logError(f'{node.id_right_n.id_t["tokenName"]} cannot be typecasted.')
