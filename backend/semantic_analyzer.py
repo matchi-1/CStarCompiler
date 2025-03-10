@@ -1016,54 +1016,63 @@ class SemanticAnalyzer:
         return (class_info[class_elem]["dtype"], val)
     
     # var / arr dec helper function for type and range checking
-    def check_type_and_range(self, dec_type, dtype, val_type, id_n, value):
+    def check_type_and_range(self, dec_type, dtype, val_type, id_n, value, index_1D = None, index_2D = None):
         id = id_n.id_t["tokenName"]
         print("PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: " + dec_type)
         print("PRINT >>>>>>>>>>>>>>>>> DTYPE: " + str(dtype))
         print("PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: " + str(val_type))
         print("PRINT >>>>>>>>>>>>>>>>> ID_N: " + str(id_n))
         print("PRINT >>>>>>>>>>>>>>>>> VALUE: " + str(value))
+        print("PRINT >>>>>>>>>>>>>>>>> INDEX_1D: " + str(index_1D))
+        print("PRINT >>>>>>>>>>>>>>>>> INDEX_2D: " + str(index_2D))
+
+        index = None
+        if index_1D != None:
+            index = f" at index [{index_1D}]"
+            if index_2D != None:
+                index += f"[{index_2D}]"
+        
+        print("PRINT >>>>>>>>>>>>>>>>> index: " + index)
 
         match dtype[1]:
             case "int":
                 if val_type[1] not in ["string", "bool"]:
                     if value > self.MAX_INT or value < self.MIN_INT:
-                        self.logError(f"Value '{value}' is out of 'int' range for variable '{id}'.", id_n)
+                       self.logError(f"Value '{value}' is out of 'int' range for {dec_type} '{id}'{index if index else ""}.", id_n)
                 
                 if val_type and dtype[1] != val_type[1]:    
-                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", id_n)   
+                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'." , id_n)
 
             case "long":
                 if val_type[1] not in ["string", "bool"]:
                     if value > self.MAX_LONG or value < self.MIN_LONG:
-                        self.logError(f"Value '{value}' is out of 'long' range for variable '{id}'.", id_n)
+                        self.logError(f"Value '{value}' is out of 'long' range for {dec_type} '{id}'{index if index else ""}.", id_n)
                 
                 if val_type and dtype[1] != val_type[1]:
                     if val_type[1] != "int":
-                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", id_n)
+                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'.", id_n)
 
             case "float":
                 if val_type[1] not in ["string", "bool"]:
                     if value > self.MAX_FLOAT or value < self.MIN_FLOAT:
-                        self.logError(f"Value '{value}' is out of 'float' range for variable '{id}'.", id_n)
+                        self.logError(f"Value '{value}' is out of 'float' range for {dec_type} '{id}'{index if index else ""}.", id_n)
                 
                 if val_type and dtype[1] != val_type[1]:
                     if val_type[1] != "int":
-                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", id_n)
+                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'.", id_n)
 
             case "double":
                 if val_type[1] not in ["string", "bool"]:
                     if value > self.MAX_DOUBLE or value < self.MIN_DOUBLE:
-                        self.logError(f"Value '{value}' is out of 'double' range for variable '{id}'.", id_n)
+                        self.logError(f"Value '{value}' is out of 'double' range for {dec_type} '{id}'{index if index else ""}.", id_n)
                 
                 if val_type and dtype[1] != val_type[1]:
                     if val_type[1] not in ["int", "float", "long"]:
-                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", id_n)
+                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'.", id_n)
 
             case _:
                 if val_type and dtype[1] != val_type[1]:
-                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for variable '{id}' but found '{val_type[1]}'.", id_n)    
-
+                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'.", id_n) 
 
     #node_var_dec
     def visit_node_vardec(self, node, priv = False):
@@ -1102,7 +1111,7 @@ class SemanticAnalyzer:
             
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
-        self.check_type_and_range("var", dtype, val_type, node.id_n, value)
+        self.check_type_and_range("variable", dtype, val_type, node.id_n, value)
 
         classReturn = []
         classReturn.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
@@ -1178,16 +1187,17 @@ class SemanticAnalyzer:
         if dim == 1:
             if node.arr_dec_cont_n and not arr_rec:
                 
-                for value_node in values_list or []:
+                for index_1D, value_node in enumerate(values_list or []):
                     val_type, val = self.visit_node(value_node)
                     print(f'arr init valtype: {val_type[1]}')
                     
                     #error for arr size in code gen
-                    if val_type[1] != node.dtype_t["tokenName"]:
-                        self.logError(f"Array contents of '{id}' can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}'.", node.id_n)
+                    # if val_type[1] != node.dtype_t["tokenName"]:
+                    #     self.logError(f"Array contents of '{id}' can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}'.", node.id_n)
                     
-                    else:
-                        arr_vals.append(val)
+                    self.check_type_and_range("array", dtype, val_type, node.id_n, val, index_1D)
+
+                    arr_vals.append(val)
                 
                 if arr_vals and len(arr_vals) > size_1:
                     singplur = 'element' if size_1 == 1 else 'elements'
@@ -1201,19 +1211,20 @@ class SemanticAnalyzer:
         
         else:
             
-            for inner_arr in values_list or []:
+            for index_1D, inner_arr in enumerate(values_list or []):
                 temp_arr = []
                 
-                for value_node in inner_arr or []:
+                for index_2D, value_node in enumerate(inner_arr or []):
                     val_type, val = self.visit_node(value_node)
                     print(f'arr init valtype: {val_type}, val = {val}')
                     
                     #error for arr size in code gen
-                    if val_type[1] != node.dtype_t["tokenName"]:
-                        self.logError(f"Array contents of '{id}'  can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}.", node.id_n)
+                    # if val_type[1] != node.dtype_t["tokenName"]:
+                    #     self.logError(f"Array contents of '{id}'  can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}.", node.id_n)
                     
-                    else:
-                        temp_arr.append(val)
+                    self.check_type_and_range("array", dtype, val_type, node.id_n, val, index_1D, index_2D)
+
+                    temp_arr.append(val)
                 
                 if len(temp_arr) > size_2:
                         singplur = 'element' if size_2 == 1 else 'elements'
