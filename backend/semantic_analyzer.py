@@ -528,7 +528,7 @@ class SemanticAnalyzer:
                 if val > Decimal(self.MAX_DOUBLE) or val < Decimal(self.MIN_DOUBLE):
                     self.logError(f"Value {val} is out of 'double' range.")
 
-        print(f"RETURNED FROM NODE_NUM: {(node.dtype, val)} using node: {node}")
+        print(f"RETURNED FROM NODE_NUM: {(node.dtype, val)} using node: {node.val_t}")
         return (('lit', node.dtype), val) 
         # return (('lit', node.dtype), None)
     
@@ -1023,9 +1023,8 @@ class SemanticAnalyzer:
         val_type = None
         value = None
         idec_rec = None
-        if (node.vardec_cont_n):
-            if node.vardec_cont_n.value_n:
-                val_type, value = self.visit_node(node.vardec_cont_n.value_n)
+        if node.vardec_cont_n and node.vardec_cont_n.value_n:
+            val_type, value = self.visit_node(node.vardec_cont_n.value_n)
             if val_type: print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
                     
