@@ -1247,7 +1247,7 @@ class SyntaxAnalyzer:
 
 
                 else:
-                    error_msg = f"Duplicate library import: Standard library '{std_lib_header}' has already been imported."
+                    error_msg = f"Semantic Error ({std_lib_header_line}, {std_lib_header_col}): Duplicate library import: Standard library '{std_lib_header}' has already been imported."
                     self.errors.append(error_msg)
                     raise SyntaxError(error_msg)
                     
