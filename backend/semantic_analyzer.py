@@ -1793,17 +1793,12 @@ class SemanticAnalyzer:
             param_type, param_value = self.visit_node(param)
             for i, param in enumerate(print_params_n):
                 param_type, param_value = self.visit_node(param)
+                # entire arrays and objects are not allowed as direct output
                 if param_type[0] == 'arr':
                     self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", param)
                     return None
                 elif param_type[0] == 'object':
                     self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", param)
-                    return None
-                elif param_type[0] == 'class':
-                    self.logError(f"(Output Parameter {i+1}) Direct output of class names is not allowed.", param)
-                    return None
-                elif param_type[0] == 'func':
-                    self.logError(f"(Output Parameter {i+1}) Direct output of function references is not allowed.", param)
                     return None
                 formatted_output += str(param_value)
         
