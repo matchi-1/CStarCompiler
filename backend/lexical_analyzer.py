@@ -44,7 +44,7 @@ class LexicalAnalyzer:
     question_delim = newline + plaintext_delim + ['(', '/', '\"']
     colon_delim = newline + plaintext_delim + ['(', '/', '\"']
     open_bracket_delim = alphanum + whitespace + ['\n', '/', '(', ']','+', '-']
-    open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/', '\"', '(', '+', '-']
+    open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/', '\"', '(', '+', '-', '!']
     close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}', '+', '-']
     plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
     great_less_delim = list(set(arithmetic_delim + ['/', '+', '-']))
@@ -72,7 +72,7 @@ class LexicalAnalyzer:
     str_lit_delim = list(set(newline + whitespace + logical_operator_delim + ['+', ')', ',', ';', '/', ':', '!', '=', '}', '?']))
     nbl_delim = list(set(arithmetic_operator + relational_operator_delim + logical_operator_delim + whitespace + newline + [',', ')', ']', '}', ':', '=', ';', '/', '?']))
     func_delim = newline_delim + ['(']
-    closing_bracket_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '|', ')', '[', ']', ':', ';']
+    closing_bracket_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '|', ')', '}', '[', ']', ':', ';']
     
     need_frac_num = False
     multi_line_start_found = False
