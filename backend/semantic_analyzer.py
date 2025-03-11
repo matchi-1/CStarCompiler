@@ -1518,7 +1518,7 @@ class SemanticAnalyzer:
                 # return (('lit', 'bool'), None)
             case '-':
                 if right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for arithmetic expressoin, expected numeric value (int, long, float, double), but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double), but got {right_type[1]}.")
 
                 adjusted_type = right_type
                 match (-right_val):

@@ -39,11 +39,11 @@ class LexicalAnalyzer:
     percent_delim = list(set(arithmetic_delim + ['/']))
     asterisk_delim = list(set(arithmetic_delim + ['/', '+', '-']))
     dot_delim = alphabetic_chars + whitespace + ['\n', '/'] # from plaintext_delim + ['\n', '/']
-    comma_delim = dot_delim + numbers + ['(', '{', '"']
+    comma_delim = dot_delim + numbers + ['(', '{', '"', '+', '-']
     slash_delim = plaintext_delim + ['\n', '(', '+', '-']
     question_delim = newline + plaintext_delim + ['(', '/', '\"']
     colon_delim = newline + plaintext_delim + ['(', '/', '\"']
-    open_bracket_delim = alphanum + whitespace + ['\n', '/', '(', ']','+', '-']
+    open_bracket_delim = alphanum + whitespace + ['\n', '/', '(', ']', '+', '-']
     open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/', '\"', '(', '+', '-', '!']
     close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}', '+', '-']
     plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
@@ -53,14 +53,14 @@ class LexicalAnalyzer:
     in_delim = newline_delim + ['<', '/']
     this_delim = newline_delim + ['.', '/']
     void_delim = newline + whitespace + ['/']
-    decrement_delim = alphabetic_chars + whitespace + newline + [';', ')', '/', '+', '*', '%', '(', ']']
+    decrement_delim = alphabetic_chars + whitespace + newline + [';', ')', '/', '+', '*', '%', '(', ']', ',']
     subtract_assign_delim = list(set(arithmetic_delim + ['/','+','-']))
     not_equal_delim = alphanum + newline + whitespace + ['(', '!','\"','+','-']
     modulo_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
     and_or_delim =  alphabetic_chars + whitespace + ['(', '\n', '/', '!']
     multi_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
     divi_assign_delim = list(set(arithmetic_delim + ['/', '+', '-']))
-    increment_delim = alphabetic_chars + whitespace + newline_delim + [')', ';', '/', '-', '*', '%', '(', ']']
+    increment_delim = alphabetic_chars + whitespace + newline_delim + [')', ';', '/', '-', '*', '%', '(', ']', ',']
     add_assign_delim = list(set(arithmetic_delim + ['/', '\"', '+', '-']))
     equal_equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '+', '-']))
     import_delim = newline + whitespace + ['<', '/']
@@ -1015,7 +1015,7 @@ class LexicalAnalyzer:
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # , symbol
                     case 'COMMA_CHECK':
-                        expected = ['alphanum', ' ', '/', '(', '{']
+                        expected = ['alphanum', ' ', '/', '(', '{', '+', '-']
                         if (code[i] in self.comma_delim):
                             add_token(currToken, ',', currLine, currCol)
                         else:
@@ -1277,7 +1277,7 @@ class LexicalAnalyzer:
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # -- symbol
                     case 'DECREMENT_CHECK':
-                        expected = self.whitespace + ['alphabetic_chars'] + [';', ')', '/', '+', '*', '%', '(', ']'] + self.newline
+                        expected = self.whitespace + ['alphabetic_chars'] + [';', ')', '/', '+', '*', '%', '(', ']', ','] + self.newline
                         if (code[i] in self.decrement_delim):
                             add_token(currToken, '--', currLine, currCol)
                         elif (code[i] in self.numbers):
@@ -1344,7 +1344,7 @@ class LexicalAnalyzer:
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # ++ symbol
                     case 'INCREMENT_CHECK':
-                        expected = self.whitespace + ['alphabetic_chars', ')', ';', '/', '-', '*', '%', '(', ']']
+                        expected = self.whitespace + ['alphabetic_chars', ')', ';', '/', '-', '*', '%', '(', ']', ',']
                         if (code[i] in self.increment_delim):
                             add_token(currToken, '++', currLine, currCol)
                         elif (code[i] in self.numbers):
