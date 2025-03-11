@@ -572,9 +572,9 @@ class SemanticAnalyzer:
             # return (dtype, val)
             match iden_symbol["dtype"][0]:
                 case 'func':
-                    self.logError(f"Symbol {node.id_t["tokenName"]} is a function and needs to be called.", node)
+                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", node)
                 case 'class':
-                    self.logError(f"Symbol {node.id_t["tokenName"]} is a class and needs to be instantiated.", node)
+                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", node)
 
             print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
             return (iden_symbol.get("dtype", None), iden_symbol.get("value", None))
@@ -1777,11 +1777,30 @@ class SemanticAnalyzer:
         formatted_output = ""
 
 
-        if first_param_type[1] != "string":
-            # self.logError("First parameter in output statement must be a string (format string).", first_param)
+        if first_param_type is None or first_param_type[1] != "string":
+           # self.logError("First parameter in output statement must be a string (format string).", first_param)
             if len(print_params_n) > 1:
-                self.logError("Print statements can only have one parameter, unless a string with format specifiers is used.")
+                self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.")
             formatted_output = first_param_val
+
+        # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
+        for param in print_params_n:
+            param_type, param_value = self.visit_node(param)
+            for i, param in enumerate(print_params_n):
+                param_type, param_value = self.visit_node(param)
+                if param_type[0] == 'arr':
+                    self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", param)
+                    return None
+                elif param_type[0] == 'object':
+                    self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", param)
+                    return None
+                elif param_type[0] == 'class':
+                    self.logError(f"(Output Parameter {i+1}) Direct output of class names is not allowed.", param)
+                    return None
+                elif param_type[0] == 'func':
+                    self.logError(f"(Output Parameter {i+1}) Direct output of function references is not allowed.", param)
+                    return None
+                formatted_output += str(param_value)
         
             # return None
         else:
@@ -1789,7 +1808,7 @@ class SemanticAnalyzer:
 
             if len(format_specifiers) != len(print_params_n) - 1:
                 if not format_specifiers:
-                    self.logError(f"String {first_param_val} does not contain any format specifiers.")
+                    self.logError(f"String '{first_param_val}' does not contain any format specifiers.")
                 else:
                     self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).")
 
