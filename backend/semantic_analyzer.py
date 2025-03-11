@@ -904,8 +904,8 @@ class SemanticAnalyzer:
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
 
-        if att_info["dtype"][0] != 'arr':
-            self.logError(f"Class element '{att_name}' cannot be assigned and indexed because it is not an array.", node.class_arr_n.att_id_n)
+        if att_info["dtype"][0] != 'arr' :      # todo add string!!!
+            self.logError(f"Class element '{att_name}' cannot be indexed because it is not an array.", node.class_arr_n.att_id_n)
 
         if att_info["const"]:
             self.logError(f"Array attribute '{att_name}' is a constant and cannot be reassigned.", node.class_arr_n.att_id_n)
