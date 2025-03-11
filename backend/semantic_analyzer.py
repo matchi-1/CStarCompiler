@@ -1230,10 +1230,13 @@ class SemanticAnalyzer:
 
         if size_2_type and size_2_type[1] not in ['int', 'long']:
             self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
+        print(size_2 and size_2 < 1)
         
-        if size_2 < 1:
-            self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
-        
+        try:
+            if size_2 < 1:
+                self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
+        except TypeError:
+            pass
         values_list = None
         
         arr_rec = None
