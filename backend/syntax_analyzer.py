@@ -138,8 +138,8 @@ class node_arr_idx:
         self.idx_n = idx_n
         self.idx2_n = idx2_n
     def __repr__(self):
-        #return f'node_arr_idx: ({self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}])' if self.idx2_n else ')') 
-        return f'{self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}]' if self.idx2_n else '') 
+        return f'node_arr_idx: ({self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}])' if self.idx2_n else ')') 
+        #return f'{self.id_n}[{self.idx_n}]' + (f'[{self.idx2_n}]' if self.idx2_n else '') 
 class node_class_att:
     def __init__(self, class_id_n, att_id_n):
         self.obj_id_n = class_id_n
@@ -162,7 +162,7 @@ class node_class_arr_idx:
         self.idx_n = idx_n
         self.idx2_n = idx2_n
     def __repr__(self):
-        return f'{self.obj_id_n}.{self.att_id_n}[{self.idx_n}]' + (f'[{self.idx_n}]' if self.idx2_n else '')
+        return f'node_class_arr_idx: ({self.obj_id_n}.{self.att_id_n}[{self.idx_n}]' + (f'[{self.idx2_n}]' if self.idx2_n else '')
 
 class node_func_args:
     def __init__(self, args_n, args_rec_n = None):
@@ -245,7 +245,8 @@ class node_idec_rec:
         return f"{self.__class__.__name__}(\n{statements}\n\n)"
 
 class node_arr_dec:
-    def __init__(self, dtype_t, id_n, size1_n, size2_n, arr_dec_cont_n):
+    def __init__(self, const_b, dtype_t, id_n, size1_n, size2_n, arr_dec_cont_n):
+        self.const_b = const_b
         self.dtype_t = dtype_t
         self.id_n = id_n
         self.size1_n = size1_n
@@ -264,7 +265,7 @@ class node_arr_dec:
         else:
             # Case 2: Regular list of numbers → Format as a normal list
             arr_dec_str = "values: " + str(self.arr_dec_cont_n)
-        return f"node_arr_dec: (size1_n: {self.size1_n}, size2_n: {self.size2_n}, arr_dec_cont_n: {arr_dec_str})"
+        return f"node_arr_dec: (const_b: {self.const_b}, id_n: {self.id_n}, dtype_t: {self.dtype_t["tokenName"]}, size1_n: {self.size1_n}, size2_n: {self.size2_n}, arr_dec_cont_n: {arr_dec_str})"
 
 class node_arr_dec_rec:
     def __init__(self, id_n, size1_n, size2_n):
@@ -1343,14 +1344,14 @@ class SyntaxAnalyzer:
                 dtype_temp_t = self.data_type()
                 id_temp_n = node_iden(self.match("Identifier", False))
                 # return node_vardec(const_b, dtype_temp_t, id_temp_n, self.iden_dec_cont(dtype_temp_t, id_temp_n)) 
-                return self.iden_dec_cont(dtype_temp_t, id_temp_n)
+                return self.iden_dec_cont(dtype_temp_t, id_temp_n, const_b)
                 
             
             else:
                 self.ERROR_expected_token(PREDICT_SETS["iden_dec"])
 
 
-    def iden_dec_cont(self, dtype_temp_t, id_temp_n):
+    def iden_dec_cont(self, dtype_temp_t, id_temp_n, const_b = False):
         print("(parser) production: \"iden_dec_cont\" detected")
 
         if self.currToken:
@@ -1358,7 +1359,7 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == "(":
                 return self.params_dec_start(dtype_temp_t, id_temp_n)
             else:
-                node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n)
+                node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n, const_b)
                 if id_temp_n.id_t["tokenName"] == "main":
                     err_msg = f"Semantic Error {id_temp_n.id_t["tokenLine"], id_temp_n.id_t["tokenCol"]-2}: Cannot declare 'main' to be a global variable."
                     self.errors.append(err_msg)
@@ -1387,7 +1388,7 @@ class SyntaxAnalyzer:
                 size1_temp_n = self.arith_exp(["]"])
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
-                return self.var_id_arr1D(dtype_temp_t, id_temp_n, size1_temp_n)
+                return self.var_id_arr1D(dtype_temp_t, id_temp_n, size1_temp_n, const_b)
 
             else:
                 value_temp_n = self.var_init()
@@ -2798,7 +2799,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"var_iden_rec\"")
         return idec_rec_stmt_n
 
-    def var_id_arr1D(self, dtype_temp_t, id_temp_n, size1_temp_n):
+    def var_id_arr1D(self, dtype_temp_t, id_temp_n, size1_temp_n, const_b = False):
         '''<var_id_arr1D> → <array1D_iden_rec> | <array1D_init>'''
         
         print("(parser) entered production: \"var_id_arr1D\"")
@@ -2807,10 +2808,10 @@ class SyntaxAnalyzer:
             currentTokenType = self.currToken["tokenType"]
 
             if currentTokenType == ",":
-                return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_iden_rec([]))
+                return node_arr_dec(const_b, dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_iden_rec([]))
 
             elif currentTokenType == "=":
-                return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_init([]))
+                return node_arr_dec(const_b, dtype_temp_t, id_temp_n, size1_temp_n, None, self.array1D_init([]))
 
             elif currentTokenType == "[":
                 self.match("[", False)
@@ -2821,10 +2822,10 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_square_bracket()
                 if self.currToken["tokenType"] == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
-                return self.var_id_arr2D(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n)
+                return self.var_id_arr2D(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, const_b)
         
         print("(parser) exited production: \"var_id_arr1D\"")
-        return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, None, None)
+        return node_arr_dec(const_b, dtype_temp_t, id_temp_n, size1_temp_n, None, None)
 
 
     def array1D_iden_rec(self, arr_dec_rec_temp_n = []):
@@ -2890,7 +2891,7 @@ class SyntaxAnalyzer:
             print("(parser) exited production: \"arr_value_1D_rec\"")
             
     
-    def var_id_arr2D(self, dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n):
+    def var_id_arr2D(self, dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, const_b = False):
             '''<var_id_arr2D> → <array2D_iden_rec> | <array2D_init>'''
             print("(parser) entered production: \"var_id_arr2D\"")
             
@@ -2898,14 +2899,14 @@ class SyntaxAnalyzer:
                 currentTokenType = self.currToken["tokenType"]
 
                 if currentTokenType == ",":
-                    return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_iden_rec([])) 
+                    return node_arr_dec(const_b, dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_iden_rec([])) 
                 elif currentTokenType == "=":
-                    return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_init())
+                    return node_arr_dec(const_b, dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, self.array2D_init())
                 #else:
                 #    self.ERROR_expected_token([",", "="])
 
             print("(parser) exited production: \"var_id_arr2D\"")
-            return node_arr_dec(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, None)
+            return node_arr_dec(const_b, dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, None)
 
     def array2D_iden_rec(self, arr_dec_rec_temp_n = []):
             '''<array2D_iden_rec> → , Identifier [<int_val>] [<int_val>] <array2D_iden_rec> | λ'''

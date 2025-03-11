@@ -439,11 +439,14 @@ class SemanticAnalyzer:
 
 
 
-    def visit_node_class_att(self, node):
+    def visit_node_class_att(self, node):   #iden.iden
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.att_id_n.id_t["tokenName"]
 
         obj_info = self.curr_scope.get(obj_name)
+        if not obj_info:
+            self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
+
         if obj_info.get("class_info"):
             self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
 
@@ -452,8 +455,6 @@ class SemanticAnalyzer:
         if obj_info.get("dtype")[0] != 'object':
             self.logError(f"Symbol '{obj_name}' not an object.", node.obj_id_n)
 
-        if not obj_info:
-            self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
         class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
         class_info_no_privates = {k: v for k, v in class_info.items() if not v["priv"]}
@@ -798,7 +799,8 @@ class SemanticAnalyzer:
         self.curr_scope.set(iden_name, val, dtype=('var', f'{dtype}'))
 
 
-    def visit_node_assign_stmt_array_elem(self, node):
+    def visit_node_assign_stmt_array_elem(self, node): 
+        # visit_node_assign_stmt_object_att_arr REFERENCES THIS, CHANGE BOTH FUNCS WHEN U CHANGE THIS ONE THANK U
         arr_node = node.id_arr_n   # current node
         arr_name = arr_node.id_n.id_t["tokenName"]
         arr_symbol = self.curr_scope.get(arr_name)  # reference node in sym table
@@ -850,15 +852,24 @@ class SemanticAnalyzer:
         obj_name = node.class_att_n.obj_id_n.id_t["tokenName"]
         att_name = node.class_att_n.att_id_n.id_t["tokenName"]
         value = node.value_n
-        # print(f"!@!@!@!@!@!@!#!#!#!#!#!#!#!{self.curr_scope.get(obj_name)} \n{obj_name}")
+        print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}")
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
         #print(f"!!!!!!!!!!!!!found att_info for '{att_name}' in '{obj_name}': {att_info}")   
 
-        if att_info["const"]:
+        if att_info["dtype"][0] == 'var' and att_info["const"]:
             self.logError(f"Attribute '{att_name}' is a constant and cannot be reassigned.", node.class_att_n.att_id_n)
         
+        if att_info["dtype"][0] == 'arr':
+            self.logError(f"Cannot assign to class array attribute '{att_name}' without providing index.", node.class_att_n.att_id_n)
+        
+        if att_info["dtype"][0] != 'var':
+            self.logError(f"Cannot assign to class element '{att_name}' because it is not an attribute.", node.class_att_n.att_id_n)
+
+
         dtype = att_info["dtype"][1]
         val_type, val = self.visit_node(value)
+        print(f">>>>>>>>>>>>>>>>dtype: {dtype}, val_type: {val_type}, val: {val}")
+
 
         if dtype != val_type[1]:
             self.logError(f"Type Mismatch: expected '{dtype}' for attribute '{att_name}' but found '{val_type[1]}'", node.class_att_n.att_id_n)
@@ -869,6 +880,74 @@ class SemanticAnalyzer:
         print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
         
+    def visit_node_assign_stmt_object_att_arr(self, node): # # iden.iden[1][2] = val
+        print(node.class_arr_n)
+        # node_assign_stmt_object_att_arr:
+            # self.op_t         #assign_op
+            # self.value_n       #lit/var/func  
+            # self.class_arr_n   # iden.iden[1][]
+                # node_class_arr_idx
+                    # self.obj_id_n     #iden
+                    # self.att_id_n     #iden
+                    # self.idx_n        #1stD
+                    # self.idx2_n       #2ndD
+        print('\n(semantic)(dbg) VISITING node_class_att!!')
+        print(f'!!NODE!!: {node.class_arr_n}!!')
+        self.visit_node_class_att(node.class_arr_n)
+
+
+        obj_name = node.class_arr_n.obj_id_n.id_t["tokenName"]
+        att_name = node.class_arr_n.att_id_n.id_t["tokenName"]
+        val_to_be_assigned = node.value_n
+        att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
+        print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
+
+        if att_info["dtype"][0] != 'arr':
+            self.logError(f"Class element '{att_name}' cannot be assigned and indexed because it is not an array.", node.class_arr_n.att_id_n)
+
+        if att_info["const"]:
+            self.logError(f"Array attribute '{att_name}' is a constant and cannot be reassigned.", node.class_arr_n.att_id_n)
+
+        att_arr_dtype = att_info["dtype"][1]
+        att_arr_dim = att_info["arr_info"]["dimension"]
+        att_arr_idx1 = node.class_arr_n.idx_n
+        att_arr_idx2 = node.class_arr_n.idx2_n
+
+        if att_arr_dim == 1 and att_arr_idx2:
+            self.logError(f"Array attribute '{att_name}' is 1-dimensional but accessed with 2 indices.", node.class_arr_n.att_id_n)
+        elif att_arr_dim == 2 and not att_arr_idx2:
+            self.logError(f"Array attribute '{att_name}' is 2-dimensional but accessed with 1 index.", node.class_arr_n.att_id_n)
+
+        idx1_type, idx1_val = self.visit_node(att_arr_idx1)
+        if idx1_type[1] not in ['int', 'long']:
+            self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", node.class_arr_n.att_id_n)
+
+        if idx1_val is not None and (idx1_val < 0 or (att_info["arr_info"]["size1"] is not None and idx1_val >= att_info["arr_info"]["size1"])):  # code gen    
+            self.logError(f"Array index '{idx1_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
+
+        if att_arr_dtype == 2:
+            idx2_type, idx2_val = self.visit_node(att_arr_idx2)
+            if idx2_type[1] not in ['int', 'long']:
+                self.logError(f"Array index must be an integer, but found '{idx2_type[1]}'.", node.class_arr_n.att_id_n)
+
+            if idx2_val is not None and (idx2_val < 0 or (att_info["arr_info"]["size2"] is not None and idx2_val >= att_info["arr_info"]["size2"])):
+                self.logError(f"Array index '{idx2_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
+
+        value_type, value = self.visit_node(node.value_n)
+        if value_type[1] != att_arr_dtype:
+            self.logError(f"Type Mismatch: expected '{att_arr_dtype}' for array '{att_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
+
+        # Update the array value in the symbol table (for code generation purposes)
+        # if arr_dim == 1:
+        #     arr_symbol["value"][idx1_val] = value
+        # else:
+        #     arr_symbol["value"][idx1_val][idx2_val] = value
+
+
+        print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
+
+
+    
     # func calls
     def visit_node_func_call(self, node, expected_val):
         func_name = node.id_n.id_t["tokenName"]
@@ -1125,6 +1204,8 @@ class SemanticAnalyzer:
 
     #array declaration
     def visit_node_arr_dec(self, node, priv = False):
+        print(f'\n(semantic)(dbg) VISITING {type(node).__name__}!!')
+        print(f'!!NODE!!: {node}!!')
         id = node.id_n.id_t["tokenName"]
 
         if self.curr_scope.get(id, checkParent=False):
@@ -1238,7 +1319,7 @@ class SemanticAnalyzer:
             elif len(arr_vals) < size_1:
                     for i in range(size_1 - len(arr_vals)):
                         arr_vals.append([baseVal]*(size_2 if size_2 else size_1))
-        classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv))
+        classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
         
         for arrdec_node in arr_rec or []:
             arrdec_vals = []
@@ -1264,7 +1345,7 @@ class SemanticAnalyzer:
                 arrdec_vals.append(temp_arr if temp_arr else baseVal)
             #print(f"_____________________________{arrdec_vals}")
 
-            classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv))
+            classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
         
         return classReturn
 
