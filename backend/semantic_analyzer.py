@@ -460,6 +460,10 @@ class SemanticAnalyzer:
         class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
         class_info_no_privates = {k: v for k, v in class_info.items() if not v["priv"]}
 
+        if class_info_no_privates.get(class_elem) and class_info_no_privates.get(class_elem)["dtype"][0] == 'func':
+            self.logError(f"'{class_elem}' is a method of object '{obj_name}', instance of class '{obj_info["dtype"][1]}', and cannot be used as a value. Use a method call instead.", node.att_id_n)
+            
+            
         if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
             self.logError(f"Attribute '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
         
