@@ -569,8 +569,8 @@ class SemanticAnalyzer:
             #     val = iden_symbol["value"]
             
             # return (dtype, val)
-            print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol["dtype"]}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
-            return (iden_symbol["dtype"], iden_symbol.get("value", None))
+            print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
+            return (iden_symbol.get("dtype", None), iden_symbol.get("value", None))
             # return (('var', iden_symbol["dtype"][1]), None)
         
     def visit_node_arr_idx(self, node):
@@ -1063,13 +1063,13 @@ class SemanticAnalyzer:
                 
                 elif param_type["dtype"][0] == "object":
                     if arg_val_type[0] != "object":
-                        if arg_val_type[0] == "arr": # object vs arr
+                        if arg_val_type[0] == "arr" and not arg_arr_att_flag: # object vs arr
                             self.logError(f"Type mismatch for function call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an object but found an array of type '{arg_val_type[1]}'.", node_id)
                         else: # object vs value
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an object but found a value of type '{arg_val_type[1]}'.", node_id)
                     
                     elif param_type["dtype"][1] != arg_val_type[1]:  # object vs object -- wrong classname
-                        self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected instance of class '{param_type['dtype'][0]}' but found '{arg_val_type[1]}'.", node_id)
+                        self.logError(f"Class type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected instance of class '{param_type['dtype'][0]}' but found '{arg_val_type[1]}'.", node_id)
                 else:
                         self.logError(f"Unknown parameter type for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: '{param_type['dtype'][1]}'", node_id)
             
