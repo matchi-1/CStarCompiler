@@ -570,6 +570,14 @@ class SemanticAnalyzer:
             #     val = iden_symbol["value"]
             
             # return (dtype, val)
+            match iden_symbol["dtype"][0]:
+                case 'func':
+                    self.logError(f"Symbol {node.id_t["tokenName"]} is a function and needs to be called.", node)
+                case 'class':
+                    self.logError(f"Symbol {node.id_t["tokenName"]} is a class and needs to be instantiated.", node)
+                case 'object':
+                    self.logError(f"Symbol {node.id_t["tokenName"]} is an object and cannot be used as a value.", node)
+                    
             print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
             return (iden_symbol.get("dtype", None), iden_symbol.get("value", None))
             # return (('var', iden_symbol["dtype"][1]), None)
