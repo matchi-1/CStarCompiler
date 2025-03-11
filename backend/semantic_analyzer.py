@@ -37,6 +37,7 @@ class SymbolTable:
     def set_class(self, sym_name, class_info):
         sym_content = {}
         sym_content["class_info"] = class_info 
+        sym_content["dtype"] = ('class', None)
         self.syms[sym_name] = sym_content
 
     def set_obj(self, sym_name, initVal, class_name, obj_info):
