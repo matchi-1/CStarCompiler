@@ -1237,6 +1237,8 @@ class SemanticAnalyzer:
                 self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
         except TypeError:
             pass
+
+
         values_list = None
         
         arr_rec = None
@@ -1332,13 +1334,18 @@ class SemanticAnalyzer:
             size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
             
             if size_1_type[1] not in ['int', 'long']:
-                self.logError('Expected whole number.')
-            
+                self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", arrdec_node.id_n)
+            if size_1 < 1:
+                self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 1st Dimension size less than 1.", arrdec_node.id_n)
             size_2_type, size_2 = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None)
             
             if size_2_type and size_2_type[1] not in ['int', 'long']:
-                self.logError('Expected whole number.')
+                self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", arrdec_node.id_n)
             
+            if size_2 and size_2 < 1:
+                self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 2nd Dimension size less than 1.", arrdec_node.id_n)
+
+
             if self.curr_scope.get(arrdec_node.id_n.id_t["tokenName"], checkParent=False):
                 self.logError(f"Symbol '{arrdec_node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
 
