@@ -623,7 +623,8 @@ class SemanticAnalyzer:
                 self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.')
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
-                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
+                # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
+                return (('arr', dtype), arr_sym["value"][idx_val])
         
         print(f"!!!!!!!!!!!!!!!!!!!arr_sym: {arr_sym}\nidx_val: {idx_val}\nidx2_val: {idx2_val}")
         
