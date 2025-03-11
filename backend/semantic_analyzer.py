@@ -1639,7 +1639,6 @@ class SemanticAnalyzer:
                             return (('lit', 'double'), right_val)
                         
     def visit_node_post_un_op(self, node):
-
         left_type, left_val = self.visit_node(node.id_left_n)
         iden_name = node.id_left_n.id_t["tokenName"]
 
@@ -1662,7 +1661,6 @@ class SemanticAnalyzer:
                 return (left_type, left_val)
             
     def visit_node_pre_un_op(self, node):
-        print(f"+++++++++++TYPE: {right_type} VAL: {right_val}")
         right_type, right_val = self.visit_node(node.iden_n)
         iden_name = node.iden_n.id_t["tokenName"]
 
