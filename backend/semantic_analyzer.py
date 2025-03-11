@@ -1911,7 +1911,7 @@ class SemanticAnalyzer:
 
             if ctrl_stmt == "node_break_stmt":
                 if self.loop_depth == 0 and self.switch_depth == 0:
-                    self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statements.")
+                    self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statement.")
                 print("(semantic)(dbg) FOUND 'break' !!!")
                 continue
             
