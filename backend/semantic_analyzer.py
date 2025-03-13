@@ -191,7 +191,7 @@ class SemanticAnalyzer:
         else:
             print(d)  # Print non-dictionary/list values
 
-    def logError(self, msg, err_n): 
+    def logError(self, msg, err_n = None): 
         if isinstance(err_n, ErrorNode):
             full_message = (
                 f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
@@ -1737,10 +1737,15 @@ class SemanticAnalyzer:
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         elif loop_name == 'node_repeat':
-            repeat_val_result = self.visit_node(node_loop.repeat_value_n)
-            if repeat_val_result[0][1] not in ['int', 'long']:
-                self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_val_result[0][1]}' instead.")
-            print(f"(semantic)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_val_result}")
+            repeat_type, repeat_val, err_n = self.visit_node(node_loop.repeat_value_n)
+            
+            if repeat_type[1] not in ['int', 'long']:
+                self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_type[1]}' instead.", err_n)
+            
+            if repeat_val < 0:
+                self.logError(f"Invalid value for repeat statement. Expected positive 'int' or 'long' values, but found '{repeat_val}' instead.", err_n)
+            
+            print(f"(semantic)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_type}, {repeat_val}")
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         self.loop_depth -= 1
