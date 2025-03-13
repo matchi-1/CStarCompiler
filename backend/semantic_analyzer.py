@@ -727,15 +727,19 @@ class SemanticAnalyzer:
             self.function_return_stack.append(return_type[1])
             print(f"Return stack = {self.function_return_stack}")
 
-            has_return = self.check_return_in_body(node.body_n)
+            
 
             # Ensure non-void functions return a value
             if not node.body_n:
                 self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
 
+            self.count_return = 0
+            has_return = self.check_return_in_body(node.body_n)
             if not has_return:
-                self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
-            
+                if self.count_return:
+                    self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
+                else:
+                    self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
             self.visit_node(node.body_n)
 
             self.function_return_stack.pop()
@@ -2154,6 +2158,7 @@ class SemanticAnalyzer:
 
         if isinstance(node, node_return_block):
             print(f"(semantic)(dbg) Found return statement")
+            self.count_return += 1
             return True
 
         return False
