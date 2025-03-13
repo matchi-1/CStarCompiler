@@ -411,17 +411,15 @@ class SemanticAnalyzer:
         
 
     def visit_node_class_inst(self, node):
-        err_n_class = ErrorNode(node.class_id_n.id_n.id_t["tokenLine"], node.class_id_n.id_n.id_t["tokenCol"] - len(node.class_id_n.id_n.id_t["tokenName"]) - 1)
-        err_n_obj = ErrorNode(node.obj_id_n.id_n.id_t["tokenLine"], node.obj_id_n.id_n.id_t["tokenCol"] - len(node.obj_id_n.id_n.id_t["tokenName"]) - 1)
         class_id = node.class_id_n.id_t["tokenName"]
         obj_id = node.obj_id_n.id_t["tokenName"]
         class_inst_cont = node.class_instcont_n
 
         if self.curr_scope.get(obj_id, False):
-            self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", err_n_obj)
+            self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", node.obj_id_n)
 
         if not self.curr_scope.get(class_id, checkParent=True):
-            self.logError(f"Class '{class_id}' definition not found.", err_n_class)
+            self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
 
 
         dtype = ('object', class_id)
@@ -442,7 +440,7 @@ class SemanticAnalyzer:
                 self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", err_n_class_inst)
             
             if not class_constructor_info:
-                self.logError(f"Class '{class_id}' has no defined constructor function.",err_n_class)
+                self.logError(f"Class '{class_id}' has no defined constructor function.",node.class_id_n)
         
             self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
 
@@ -518,7 +516,7 @@ class SemanticAnalyzer:
         if idx_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
         if idx_val < 0:
-                self.logError("Array index cannot be negative.")
+                self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
         if idx_val >= arr_sym["arr_info"]["size1"]:
             self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.')
         idx2_val = None
@@ -529,7 +527,7 @@ class SemanticAnalyzer:
             if idx2_type[1] not in ['int', 'long']:
                 self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.')
             if idx2_val < 0:
-                self.logError("Array index cannot be negative.")
+                self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
             if idx2_val >= arr_sym["arr_info"]["size2"]:
                 self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.')
         else:
@@ -602,6 +600,7 @@ class SemanticAnalyzer:
         
     def visit_node_arr_idx(self, node):
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
+        print(f"ARRRRRRRRRRRRRRRR SYMMMMMMMMMM: {arr_sym}")
         arr_id_err = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"])-1)
         print(f"!!@@@@@@@@@@@@@@@@rr_sym: {node.id_n.id_t["tokenName"]}")
         if not arr_sym:
@@ -849,7 +848,7 @@ class SemanticAnalyzer:
         elif arr_dim == 2 and not arr_node.idx2_n:
             self.logError(f"Array '{arr_name}' is 2-dimensional but accessed with 1 index.", arr_node.id_n)
 
-        idx1_type, idx1_val = self.visit_node(arr_node.idx_n)
+        idx1_type, idx1_val, _ = self.visit_node(arr_node.idx_n)
         if idx1_type[1] not in ['int', 'long']:
             self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", arr_node.id_n)
 
@@ -864,7 +863,7 @@ class SemanticAnalyzer:
             if idx2_val is not None and (idx2_val < 0 or (arr_symbol["arr_info"]["size2"] is not None and idx2_val >= arr_symbol["arr_info"]["size2"])):
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", arr_node.id_n)
 
-        value_type, value = self.visit_node(node.value_n)
+        value_type, value, _ = self.visit_node(node.value_n)
         if value_type[1] != arr_dtype:
             self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
 
@@ -1278,10 +1277,10 @@ class SemanticAnalyzer:
             if type(node.arr_dec_cont_n[0]).__name__ == "node_arr_dec_rec":
                 arr_rec = node.arr_dec_cont_n
                 #print(f'##########################arr_rec@!!@!@!@: {arr_rec} size_1: {size_1} dim = {dim}')
-                # values_list = []
+                values_list = []
                 
-                # for i in range(size_1):
-                #     values_list.append(baseVal)
+                for i in range(size_1):
+                     values_list.append(baseVal)
             
             else:
                 values_list = node.arr_dec_cont_n
@@ -1360,7 +1359,7 @@ class SemanticAnalyzer:
         for arrdec_node in arr_rec or []:
             arrdec_vals = []
             
-            size_1_type, size_1 = self.visit_node(arrdec_node.size1_n)
+            size_1_type, size_1, _ = self.visit_node(arrdec_node.size1_n)
             
             if size_1_type[1] not in ['int', 'long']:
                 self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", arrdec_node.id_n)
@@ -1379,8 +1378,8 @@ class SemanticAnalyzer:
                 self.logError(f"Symbol '{arrdec_node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
 
             for i in range(size_1):
+                temp_arr = []
                 if size_2:
-                    temp_arr = []
                     for j in range(size_2):
                         temp_arr.append(baseVal)
                 arrdec_vals.append(temp_arr if temp_arr else baseVal)
@@ -1814,8 +1813,8 @@ class SemanticAnalyzer:
             self.logError(f"Unsupported data type for input: {expected_dtype}", node)
             return None
         value = self.default_vals[expected_dtype]
-
-        return (('lit', expected_dtype), value)
+        print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), value)}")
+        return (('lit', expected_dtype), value, None)
     
     def visit_node_output(self, node):
         print_stmts_n = node.print_stmts_n 
