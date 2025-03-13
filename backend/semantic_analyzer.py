@@ -450,8 +450,6 @@ class SemanticAnalyzer:
 
 
     def visit_node_class_att(self, node):   #iden.iden
-        err_n_obj = ErrorNode(node.obj_id_n.id_t["tokenLine"], node.obj_id_n.id_t["tokenCol"] - len(node.obj_id_n.id_t["tokenName"]) - 1)
-        err_n_att = ErrorNode(node.att_id_n.id_t["tokenLine"], node.obj_id_n.id_t["tokenCol"] - len(node.obj_id_n.id_t["tokenName"]) - 1)
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.att_id_n.id_t["tokenName"]
 
@@ -460,12 +458,12 @@ class SemanticAnalyzer:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
         if obj_info.get("class_info"):
-            self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", err_n_obj)
+            self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
 
         # print(f"Obj_info : {obj_info} \nobj_name: {obj_name} \nclass_elem: {class_elem}")
 
         if obj_info.get("dtype")[0] != 'object':
-            self.logError(f"Symbol '{obj_name}' not an object instance.", err_n_obj)
+            self.logError(f"Symbol '{obj_name}' not an object instance.", node.obj_id_n)
 
 
         class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
@@ -482,7 +480,7 @@ class SemanticAnalyzer:
             self.logError(f"Element '{class_elem}' is a private element within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
 
         print(f"(semantic)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
-        return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"], err_n_obj)  
+        return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"], node.obj_id_n)  
 
     def visit_node_class_arr_idx(self, node):
         err_n_obj = ErrorNode(node.obj_id_n.id_t["tokenLine"], node.obj_id_n.id_t["tokenCol"] - len(node.obj_id_n.id_t["tokenName"]) - 1)
@@ -614,7 +612,7 @@ class SemanticAnalyzer:
         
     def visit_node_arr_idx(self, node):
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
-        print(f"ARRRRRRRRRRRRRRRR SYMMMMMMMMMM of {node.id_n.id_t["tokenName"]}: {arr_sym}")
+        #print(f"ARRRRRRRRRRRRRRRR SYMMMMMMMMMM of {node.id_n.id_t["tokenName"]}: {arr_sym}")
         arr_id_err = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"])-1)
         
         if not arr_sym:
@@ -719,7 +717,7 @@ class SemanticAnalyzer:
         classReturn.append(self.curr_scope.set_function(func_name, return_type, param_types, priv, isStd_lib = node.is_std_lib))
         #add actual value param in da future
 
-        print(f"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{classReturn}")
+        #print(f"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{classReturn}")
 
 
         # Enter function scope
@@ -793,14 +791,15 @@ class SemanticAnalyzer:
         id_err = ErrorNode(iden.id_t["tokenLine"], iden.id_t["tokenCol"] - len(iden.id_t["tokenName"]) - 1)
         if not iden_symbol: self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", id_err)
 
-        if iden_symbol["dtype"][0] in ["arr", "object"]:
+        if iden_symbol["dtype"][0] in ["arr", "object", "class"]:
             if iden_symbol["dtype"][0] == "arr":
                 self.logError(f"Symbol '{iden_name}' is an array and cannot be reassigned. Try accessing its elements instead.", id_err)
             elif iden_symbol["dtype"][0] == "object":
                 self.logError(f"Symbol '{iden_name}' is an object and cannot be reassigned. Try accessing its attributes instead.", id_err)
-
+            else:
+                self.logError(f"Symbol '{iden_name}' is a class and cannot be reassigned.", id_err)
             
-        if iden_symbol["const"]:
+        if iden_symbol.get("const"):
             self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", id_err)
         dtype = iden_symbol["dtype"][1]
         val_type, val, val_err = self.visit_node(value)
@@ -954,7 +953,7 @@ class SemanticAnalyzer:
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
 
-        if att_info["dtype"][0] != 'arr' :      # todo add string!!!
+        if att_info["dtype"][0] != 'arr' :      
             self.logError(f"Class element '{att_name}' cannot be indexed because it is not an array.", node.class_arr_n.att_id_n)
 
         if att_info["const"]:
@@ -972,7 +971,7 @@ class SemanticAnalyzer:
 
         idx1_type, idx1_val = self.visit_node(att_arr_idx1)
         if idx1_type[1] not in ['int', 'long']:
-            self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", node.class_arr_n.att_id_n)
+            self.logError(f"Array index must be an integer, but found a '{idx1_type[1]}' instead.", node.class_arr_n.att_id_n)
 
         if idx1_val is not None and (idx1_val < 0 or (att_info["arr_info"]["size1"] is not None and idx1_val >= att_info["arr_info"]["size1"])):  # code gen    
             self.logError(f"Array index '{idx1_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
@@ -980,14 +979,14 @@ class SemanticAnalyzer:
         if att_arr_dtype == 2:
             idx2_type, idx2_val = self.visit_node(att_arr_idx2)
             if idx2_type[1] not in ['int', 'long']:
-                self.logError(f"Array index must be an integer, but found '{idx2_type[1]}'.", node.class_arr_n.att_id_n)
+                self.logError(f"Array index must be an integer, but found a '{idx2_type[1]}' instead.", node.class_arr_n.att_id_n)
 
             if idx2_val is not None and (idx2_val < 0 or (att_info["arr_info"]["size2"] is not None and idx2_val >= att_info["arr_info"]["size2"])):
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
 
         value_type, value, err_n = self.visit_node(node.value_n)
         if value_type[1] != att_arr_dtype:
-            self.logError(f"Type Mismatch: expected '{att_arr_dtype}' for array '{att_name}' but found '{value_type[1]}'.", err_n)
+            self.logError(f"Type Mismatch: expected '{att_arr_dtype}' for array '{att_name}' but found '{value_type[1]}' instead.", err_n)
 
         # Update the array value in the symbol table (for code generation purposes)
         # if arr_dim == 1:
@@ -1248,27 +1247,27 @@ class SemanticAnalyzer:
             if val_type: print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
 
-        defaultVal = self.default_vals[dtype[1]]
+        default_val = self.default_vals[dtype[1]]
 
         if not val_type and not value:
             val_type = ('lit', f'{dtype[1]}')
-            value = defaultVal
+            value = default_val
             
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
         self.check_type_and_range("variable", dtype, val_type, node.id_n, value, err_n = err_n)
 
-        classReturn = []
-        classReturn.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
+        class_return = []
+        class_return.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
 
         for dec_node in idec_rec or []:
             err_n = ErrorNode(dec_node.id_n.id_t["tokenLine"], dec_node.id_n.id_t["tokenCol"] - len(dec_node.id_n.id_t["tokenName"]) - 1)
             
             if self.curr_scope.get(dec_node.id_n.id_t["tokenName"], False):
                 self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
-            classReturn.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_node.value_n if dec_node.value_n != None else defaultVal, dtype=dtype, priv = priv, const=const))
+            class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_node.value_n if dec_node.value_n != None else default_val, dtype=dtype, priv = priv, const=const))
 
-        return classReturn
+        return class_return
 
     #array declaration
     def visit_node_arr_dec(self, node, priv = False):
@@ -1281,18 +1280,18 @@ class SemanticAnalyzer:
 
         dtype = ('arr', node.dtype_t["tokenName"])
 
-        baseVal = self.default_vals[dtype[1]]
+        base_val = self.default_vals[dtype[1]]
 
         dim = 2 if node.size2_n else 1
 
-        size_1_type, size_1, size1_err = self.visit_node(node.size1_n)
+        size_1_type, size_1, _ = self.visit_node(node.size1_n)
 
         if size_1_type[1] not in ['int', 'long']:
             self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
         
         if size_1 < 1:
             self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
-        size_2_type, size_2, size2_err = self.visit_node(node.size2_n) if node.size2_n else (None, None, None)
+        size_2_type, size_2, _ = self.visit_node(node.size2_n) if node.size2_n else (None, None, None)
 
         if size_2_type and size_2_type[1] not in ['int', 'long']:
             self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
@@ -1318,7 +1317,7 @@ class SemanticAnalyzer:
                 values_list = []
                 
                 for i in range(size_1):
-                     values_list.append(baseVal)
+                     values_list.append(base_val)
             
             else:
                 values_list = node.arr_dec_cont_n
@@ -1326,7 +1325,7 @@ class SemanticAnalyzer:
         else:
             values_list = []
             for i in range(size_1):
-                values_list.append(baseVal)
+                values_list.append(base_val)
         
        #print(f'##########################values_list@!!@!@!@: {values_list if values_list else arr_rec} dim = {dim}')
                 
@@ -1353,7 +1352,7 @@ class SemanticAnalyzer:
                 
                 elif arr_vals and len(arr_vals) < size_1:
                     for i in range(size_1 - len(arr_vals)):
-                        arr_vals.append(baseVal)
+                        arr_vals.append(base_val)
   
             else: arr_vals = values_list
         
@@ -1380,7 +1379,7 @@ class SemanticAnalyzer:
                 
                 elif len(temp_arr) < size_2:
                     for i in range(size_2 - len(temp_arr)):
-                        temp_arr.append(baseVal)
+                        temp_arr.append(base_val)
 
                 #print(f"_____________________________{temp_arr}")
                 arr_vals.append(temp_arr)
@@ -1391,7 +1390,7 @@ class SemanticAnalyzer:
             
             elif len(arr_vals) < size_1:
                     for i in range(size_1 - len(arr_vals)):
-                        arr_vals.append([baseVal]*(size_2 if size_2 else size_1))
+                        arr_vals.append([base_val]*(size_2 if size_2 else size_1))
         classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
         
         for arrdec_node in arr_rec or []:
@@ -1403,7 +1402,7 @@ class SemanticAnalyzer:
                 self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", arrdec_node.id_n)
             if size_1 < 1:
                 self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 1st Dimension size less than 1.", arrdec_node.id_n)
-            size_2_type, size_2, _ = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None)
+            size_2_type, size_2, _ = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None, None)
             
             if size_2_type and size_2_type[1] not in ['int', 'long']:
                 self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", arrdec_node.id_n)
@@ -1419,8 +1418,8 @@ class SemanticAnalyzer:
                 temp_arr = []
                 if size_2:
                     for j in range(size_2):
-                        temp_arr.append(baseVal)
-                arrdec_vals.append(temp_arr if temp_arr else baseVal)
+                        temp_arr.append(base_val)
+                arrdec_vals.append(temp_arr if temp_arr else base_val)
             #print(f"_____________________________{arrdec_vals}")
 
             classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
@@ -1438,22 +1437,26 @@ class SemanticAnalyzer:
             self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.", left_err)
 
         elif left_type[0] == 'arr' or right_type[0] == 'arr':
+            var_name = node.left_n.id_t["tokenName"]
             if left_type[0] == 'arr' and right_type[0] == 'arr':
                 err_n = left_err
             elif right_type[0] == 'arr':
                 err_n = right_err
+                var_name= node.right_n.id_t["tokenName"]
             else:
                 err_n =left_err
-            self.logError("Direct operations on entire arrays are not allowed. Access individual elements or use vectorized computations.", err_n)
+            self.logError(f"Direct operations on entire arrays are not allowed. Access individual elements of array '{var_name}' or use vectorized computations.", err_n)
 
         elif left_type[0] == 'object' or right_type[0] == 'object':
+            var_name = node.left_n.id_t["tokenName"]
             if left_type[0] == 'object' and right_type[0] == 'object':
                 err_n = left_err
             elif right_type[0] == 'object':
                 err_n = right_err
+                var_name= node.right_n.id_t["tokenName"]
             else:
                 err_n =left_err
-            self.logError("Direct operations on entire objects are not allowed. Access specific properties instead.", err_n)
+            self.logError(f"Direct operations on entire objects are not allowed. Access specific properties of object '{var_name}' instead.", err_n)
 
         if (left_type[1] == 'long' or right_type[1] == 'long'):
             dtype = ('lit', 'long')
@@ -1918,7 +1921,7 @@ class SemanticAnalyzer:
             
             if len(format_specifiers) != len(print_params_n) - 1:
                 if not format_specifiers:
-                    self.logError(f"String '{first_param_val}' does not contain any format specifiers.", err_n)
+                    self.logError(f"String '{first_param_val}' does not contain any format specifiers, no parameters can follow it.", err_n)
                 else:
                     self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", err_n)
                     return None
