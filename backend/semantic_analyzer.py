@@ -407,15 +407,17 @@ class SemanticAnalyzer:
         
 
     def visit_node_class_inst(self, node):
+        err_n_class = ErrorNode(node.class_id_n.id_n.id_t["tokenLine"], node.class_id_n.id_n.id_t["tokenCol"] - len(node.class_id_n.id_n.id_t["tokenName"]) - 1)
+        err_n_obj = ErrorNode(node.obj_id_n.id_n.id_t["tokenLine"], node.obj_id_n.id_n.id_t["tokenCol"] - len(node.obj_id_n.id_n.id_t["tokenName"]) - 1)
         class_id = node.class_id_n.id_t["tokenName"]
         obj_id = node.obj_id_n.id_t["tokenName"]
         class_inst_cont = node.class_instcont_n
 
         if self.curr_scope.get(obj_id, False):
-            self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", node.obj_id_n)
+            self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", err_n_obj)
 
         if not self.curr_scope.get(class_id, checkParent=True):
-            self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
+            self.logError(f"Class '{class_id}' definition not found.", err_n_class)
 
 
         dtype = ('object', class_id)
@@ -431,11 +433,12 @@ class SemanticAnalyzer:
         if class_inst_cont:
             constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
             class_constructor_info = self.curr_scope.parent.get(class_id)["class_info"]["constructor_dec"]
+            err_n_class_inst = ErrorNode(class_inst_cont.class_id_n.id_n.id_t["tokenLine"], class_inst_cont.class_id_n.id_n.id_t["tokenCol"] - len(class_inst_cont.class_id_n.id_n.id_t["tokenName"]) - 1)
             if constructor_call_id != class_id:
-                self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
+                self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", err_n_class_inst)
             
             if not class_constructor_info:
-                self.logError(f"Class '{class_id}' has no defined constructor function.",node.class_id_n)
+                self.logError(f"Class '{class_id}' has no defined constructor function.",err_n_class)
         
             self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
 
