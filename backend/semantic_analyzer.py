@@ -738,6 +738,7 @@ class SemanticAnalyzer:
         
         # Visit function body
         if not node.is_std_lib:
+            self.function_return_stack.append(return_type[1])
             if not node.body_n:
                 self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
 
@@ -749,12 +750,11 @@ class SemanticAnalyzer:
                 else:
                     self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
                 
-                self.visit_node(node.body_n)
+            self.visit_node(node.body_n)
 
-                self.function_return_stack.pop()
-                print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
-                self.current_function_name = None
-                self.curr_func_id = None
+            self.function_return_stack.pop()
+            print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+            self.current_function_name = None
  
 
         # Exit function scope, back to program constructs
@@ -2076,64 +2076,64 @@ class SemanticAnalyzer:
             expected_return_type = self.function_return_stack[-1]  
 
             if node.ret_value_n:
-                rettype, result = self.visit_node(node.ret_value_n)
+                rettype, result, err_n = self.visit_node(node.ret_value_n)
                 print(f"RETURN VALUE: {result}\n RETTYPE: {rettype}")
                 if rettype[0] == 'arr':
-                    self.logError(f"Function '{self.current_function_name}' cannot return an array.", self.curr_func_id)
+                    self.logError(f"Function '{self.current_function_name}' cannot return an array.", err_n)
                 
                 if rettype[0] == 'object':
-                    self.logError(f"Function '{self.current_function_name}' cannot return an object.", self.curr_func_id)
+                    self.logError(f"Function '{self.current_function_name}' cannot return an object.", err_n)
 
                 #TODO: add class error
                 actual_return_type = self.visit_node(node.ret_value_n)[0][1]
 
                 match(expected_return_type):
                     case "void":
-                        self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.", self.curr_func_id)
+                        self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.", err_n)
                     
                     case "int":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_INT or result < self.MIN_INT:
-                               self.logError(f"Value '{result[1]}' is out of 'int' range for 'return' value.", self.curr_func_id)
+                               self.logError(f"Value '{result}' is out of 'int' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:    
-                            self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)  
+                            self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)  
             
                     case "long":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_LONG or result < self.MIN_LONG:
-                                self.logError(f"Value '{result[1]}' is out of 'long' range for 'return' value.", self.curr_func_id)
+                                self.logError(f"Value '{result[1]}' is out of 'long' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type != "int":
-                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
+                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
             
                     case "float":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_FLOAT or result < self.MIN_FLOAT:
-                                self.logError(f"Value '{result[1]}' is out of 'float' range for 'return' value.", self.curr_func_id)
+                                self.logError(f"Value '{result[1]}' is out of 'float' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type != "int":
-                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
+                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
 
                     case "double":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_DOUBLE or result < self.MIN_DOUBLE:
-                                self.logError(f"Value '{result[1]}' is out of 'double' range for 'return' value.", self.curr_func_id)
+                                self.logError(f"Value '{result[1]}' is out of 'double' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type not in ["int", "float", "long"]:
-                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
+                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
 
                     case _:
                         if expected_return_type != actual_return_type:
-                            self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", self.curr_func_id)
+                            self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
 
                 return result
             else:
                 if expected_return_type != "void":
-                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.", self.curr_func_id)
+                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.", err_n)
 
     def check_return_in_body(self, node):
         print(f"(semantic)(dbg) Checking return in {type(node).__name__}")
