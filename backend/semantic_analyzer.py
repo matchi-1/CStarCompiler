@@ -74,6 +74,11 @@ class SymbolTable:
         if self.parent:
             self.parent.print_symbol_tree(indent + 1)  # Move up the tree
 
+class ErrorNode:
+    def __init__(self, line, startCol):
+        self.line = line
+        self.startCol = startCol
+
 class SemanticAnalyzer:
 
     numtypes = ['int', 'long', 'float', 'double']
@@ -190,12 +195,10 @@ class SemanticAnalyzer:
 
 
 
-    def logError(self, msg, idenNode = None): #only works on node_iden
-        if idenNode:
-            currLine = idenNode.id_t["tokenLine"]
-            currCol = idenNode.id_t["tokenCol"] - len(idenNode.id_t["tokenName"]) - 1
+    def logError(self, msg, err_n): 
+        if err_n:
             full_message = (
-                f"Semantic Error ({currLine}, {currCol}): {msg}"
+                f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
             )
         else:
             full_message = (
@@ -528,42 +531,46 @@ class SemanticAnalyzer:
 
     def visit_node_num(self, node):
         val = 0
+        err_n = ErrorNode(node.val_t["tokenLine"], node.val_t["tokenCol"] - len(node.val_t["tokenName"]) - 1)
         match(node.dtype):
             case "int":
                 val = int(node.val_t["tokenName"])
                 if val > self.MAX_INT or val < self.MIN_INT:
-                    self.logError(f"Value {val} is out of 'int' range.")
+                    self.logError(f"Value {val} is out of 'int' range.", err_n)
 
             case "long":
                 val = int(node.val_t["tokenName"])
                 if val > self.MAX_LONG or val < self.MIN_LONG:
-                    self.logError(f"Value {val} is out of 'long' range.")
+                    self.logError(f"Value {val} is out of 'long' range.", err_n)
             
             case "float":
                 val = Decimal(node.val_t["tokenName"])
                 if val > self.MAX_FLOAT or val < self.MIN_FLOAT:
-                    self.logError(f"Value {val} is out of 'float' range.")
+                    self.logError(f"Value {val} is out of 'float' range.", err_n)
             
             case "double":
                 val = Decimal(node.val_t["tokenName"])
                 if val > Decimal(self.MAX_DOUBLE) or val < Decimal(self.MIN_DOUBLE):
-                    self.logError(f"Value {val} is out of 'double' range.")
+                    self.logError(f"Value {val} is out of 'double' range.", err_n)
 
         print(f"RETURNED FROM NODE_NUM: {(node.dtype, val)} using node: {node.val_t}")
-        return (('lit', node.dtype), val) 
+        return (('lit', node.dtype), val, err_n) 
         # return (('lit', node.dtype), None)
     
     def visit_node_str(self, node):
-        # return (('var', node.dtype), node.val_t["tokenName"][1:-1])
-        return (('lit', node.dtype), node.val_t["tokenName"][1:-1])
+        # return (('var', node.dtype), node.val_t["tokenName"][1:-1]
+        err_n = ErrorNode(node.val_t["tokenLine"], node.val_t["tokenCol"] - len(node.val_t["tokenName"]) - 1)
+        return (('lit', node.dtype), node.val_t["tokenName"][1:-1], err_n)
     
     def visit_node_bool(self, node):
-        return (('lit', 'bool'), node.val_t["tokenName"]=="true")
+        err_n = ErrorNode(node.val_t["tokenLine"], node.val_t["tokenCol"] - len(node.val_t["tokenName"]) - 1)
+        return (('lit', 'bool'), node.val_t["tokenName"]=="true", err_n)
     
     def visit_node_iden(self, node):
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
+        err_n = ErrorNode(node.id_t["tokenLine"], node.id_t["tokenCol"] - len(node.id_t["tokenName"]) - 1)
         if not iden_symbol:
-            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node)
+            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", err_n)
         else:
             # dtype = iden_symbol["dtype"]
             # val = None
@@ -577,9 +584,9 @@ class SemanticAnalyzer:
             # return (dtype, val)
             match iden_symbol["dtype"][0]:
                 case 'func':
-                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", node)
+                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
                 case 'class':
-                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", node)
+                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
 
             print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
             return (iden_symbol.get("dtype", None), iden_symbol.get("value", None))
@@ -587,41 +594,42 @@ class SemanticAnalyzer:
         
     def visit_node_arr_idx(self, node):
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
+        arr_id_err = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"])-1)
         print(f"!!@@@@@@@@@@@@@@@@rr_sym: {node.id_n.id_t["tokenName"]}")
         if not arr_sym:
-            self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' has not been declared yet.')
+            self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' has not been declared yet.', arr_id_err)
         dtype = arr_sym["dtype"][1]
-        idx_type, idx_val = self.visit_node(node.idx_n)
+        idx_type, idx_val, idx_err = self.visit_node(node.idx_n)
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int', 'long']:
-                    self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
+                    self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.', idx_err)
                 if idx_val < 0:
-                        self.logError("String index cannot be negative.")
+                        self.logError("String index cannot be negative.", idx_err)
                 if idx_val >= len(arr_sym["value"]):
-                    self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.')
-                return (('lit', 'string'), arr_sym["value"][idx_val])
+                    self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.', idx_err)
+                return (('lit', 'string'), arr_sym["value"][idx_val], arr_id_err)
             else:
-                self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' is not an array.')
+                self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' is not an array.', arr_id_err)
 
     
         if idx_type[1] not in ['int', 'long']:
-            self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
+            self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.'. idx_err)
         if idx_val < 0:
-                self.logError("Array index cannot be negative.")
+                self.logError("Array index cannot be negative.", idx_err)
         if idx_val >= arr_sym["arr_info"]["size1"]:
-            self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.')
+            self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', idx_err)
         idx2_val = None
         if node.idx2_n:
+            idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
             if arr_sym["arr_info"]["dimension"] == 1:
-                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.')
-            idx2_type, idx2_val = self.visit_node(node.idx2_n)
+                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.', idx2_err)
             if idx2_type[1] not in ['int', 'long']:
-                self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.')
+                self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.', idx2_err)
             if idx2_val < 0:
-                self.logError("Array index cannot be negative.")
+                self.logError("Array index cannot be negative.", idx2_err)
             if idx2_val >= arr_sym["arr_info"]["size2"]:
-                self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.')
+                self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', idx2_err)
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
@@ -629,7 +637,7 @@ class SemanticAnalyzer:
         
         print(f"!!!!!!!!!!!!!!!!!!!arr_sym: {arr_sym}\nidx_val: {idx_val}\nidx2_val: {idx2_val}")
         
-        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val])
+        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
     #cont...
 
     def visit_node_func_dec(self, node, priv = False):
@@ -727,19 +735,12 @@ class SemanticAnalyzer:
             self.function_return_stack.append(return_type[1])
             print(f"Return stack = {self.function_return_stack}")
 
-            
+            has_return = self.check_return_in_body(node.body_n)
 
             # Ensure non-void functions return a value
-            if not node.body_n:
-                self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
-
-            self.count_return = 0
-            has_return = self.check_return_in_body(node.body_n)
-            if not has_return:
-                if self.count_return:
-                    self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
-                else:
-                    self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
+            if return_type[1] != "void" and not has_return:
+                self.logError(f"Not all code paths in function '{func_name}' return a value.")
+            
             self.visit_node(node.body_n)
 
             self.function_return_stack.pop()
@@ -1204,7 +1205,7 @@ class SemanticAnalyzer:
         idec_rec = None
         if node.vardec_cont_n:
             if node.vardec_cont_n.value_n:
-                val_type, value = self.visit_node(node.vardec_cont_n.value_n)
+                val_type, value, _ = self.visit_node(node.vardec_cont_n.value_n)
             if val_type: print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
 
@@ -1385,8 +1386,9 @@ class SemanticAnalyzer:
     # binary and unary operations
     def visit_node_bi_op(self, node):
         
-        left_type, left_val = self.visit_node(node.left_n)
-        right_type, right_val = self.visit_node(node.right_n)
+        left_type, left_val, left_err = self.visit_node(node.left_n)
+        right_type, right_val, right_err = self.visit_node(node.right_n)
+        exp_start_err = left_err
         dtype = ('lit', 'int')
 
         if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
@@ -1410,17 +1412,17 @@ class SemanticAnalyzer:
                     if right_type[1] != 'string':
                         self.logError(f"Type mismatch for string expression, expected a string for both operands, but got {right_type[1]}.")
                     else:
-                        return (('lit', 'string'), (left_val or "") + (right_val or "") ) #or empty string for nontypes
+                        return (('lit', 'string'), (left_val or "") + (right_val or ""), exp_start_err ) #or empty string for nontypes
                         # return (('lit', 'string'), None)
                 elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, left_val + right_val)
+                    return (dtype, left_val + right_val, exp_start_err)
                     # return (dtype, None)
                 else:
                      self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
             case '-':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, left_val - right_val)
+                    return (dtype, left_val - right_val, exp_start_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
@@ -1429,13 +1431,13 @@ class SemanticAnalyzer:
                     # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
                     self.logError("Division by 0 is not allowed.")
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, int(left_val / right_val))
+                    return (dtype, int(left_val / right_val), exp_start_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
             case '*':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, left_val * right_val)
+                    return (dtype, left_val * right_val, exp_start_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
@@ -1446,7 +1448,7 @@ class SemanticAnalyzer:
                     if right_val == 0: #todo err
                         self.logError("Modulo by 0 is not allowed.")
                     if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                        return (dtype, left_val % right_val)
+                        return (dtype, left_val % right_val, exp_start_err)
                         # return (dtype, None)
                     else:
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
@@ -1462,7 +1464,7 @@ class SemanticAnalyzer:
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
                         self.logError("Type mismatch for relational expression, bools can only be compared with other bools.")
-                return (('lit', 'bool'), left_val == right_val)
+                return (('lit', 'bool'), left_val == right_val, exp_start_err)
                 # return (('lit', 'bool'), None)
             
             case '!=':
@@ -1475,32 +1477,32 @@ class SemanticAnalyzer:
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
                         self.logError("Type mismatch for relational expression, bools can only be compared with other bools.")
-                return (('lit', 'bool'), left_val != right_val)
+                return (('lit', 'bool'), left_val != right_val, exp_start_err)
                 # return (('lit', 'bool'), None)
             
             case '<':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val < right_val)  
+                return (('lit', 'bool'), left_val < right_val, exp_start_err)  
                 # return (('lit', 'bool'), None)
             case '<=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val <= right_val)  
+                return (('lit', 'bool'), left_val <= right_val, exp_start_err)  
                 # return (('lit', 'bool'), None)
             case '>':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val > right_val)  
+                return (('lit', 'bool'), left_val > right_val, exp_start_err)  
                 # return (('lit', 'bool'), None)
             case '>=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val >= right_val)  
+                return (('lit', 'bool'), left_val >= right_val, exp_start_err)  
                 # return (('lit', 'bool'), None)
             
             #logical
@@ -1508,13 +1510,13 @@ class SemanticAnalyzer:
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
                     self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val and right_val)
+                return (('lit', 'bool'), left_val and right_val, exp_start_err)
                 # return (('lit', 'bool'), None)
             case '||':
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
                     self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val or right_val)
+                return (('lit', 'bool'), left_val or right_val, exp_start_err)
                 # return (('lit', 'bool'), None)
 
     #unary ops
@@ -1920,13 +1922,13 @@ class SemanticAnalyzer:
 
             if ctrl_stmt == "node_break_stmt":
                 if self.loop_depth == 0 and self.switch_depth == 0:
-                    self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statement.", statement)
+                    self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statement.")
                 print("(semantic)(dbg) FOUND 'break' !!!")
                 continue
             
             elif ctrl_stmt == "node_continue_stmt":
                 if self.loop_depth == 0:
-                    self.logError("'continue' statement may only be used within the scope of a 'loop' statement.", statement)
+                    self.logError("'continue' statement may only be used within the scope of a 'loop' statement.")
                 print("(semantic)(dbg) FOUND 'continue' !!!")
                 continue
             
@@ -2159,7 +2161,6 @@ class SemanticAnalyzer:
 
         if isinstance(node, node_return_block):
             print(f"(semantic)(dbg) Found return statement")
-            self.count_return += 1
             return True
 
         return False
