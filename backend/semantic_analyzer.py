@@ -1721,19 +1721,19 @@ class SemanticAnalyzer:
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
             self.visit_node(node_loop.init_arg_n)
-            loop_condition = self.visit_node(node_loop.condition_n.condition_value_n)
-            if loop_condition[0][1] != 'bool':
-                self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{loop_condition[0][1]}' instead.")
-            print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
+            
+            self.visit_node(node_loop.condition_n)
+            print(f"CONDITION was found from: {loop_name}")
+            #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
+            
             self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         elif loop_name == 'node_while' or loop_name == 'node_do':
-            loop_condition = self.visit_node(node_loop.condition_n.condition_value_n)
-            if loop_condition[0][1] != 'bool':
-                self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{loop_condition[0][1]}' instead.")
-
-            print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
+            self.visit_node(node_loop.condition_n)
+            print(f"CONDITION was found from: {loop_name}")
+            #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
+            
             self.visit_node(node_loop.ctrl_stmt_body_n)
 
         elif loop_name == 'node_repeat':
@@ -1938,16 +1938,17 @@ class SemanticAnalyzer:
         
         for statement in statements_n:
             ctrl_stmt = type(statement).__name__
+            err_n = ErrorNode(statement.id_t["tokenLine"], statement.id_t["tokenCol"] - len(statement.id_t["tokenName"]) - 1)
 
             if ctrl_stmt == "node_break_stmt":
                 if self.loop_depth == 0 and self.switch_depth == 0:
-                    self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statement.")
+                    self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statement.", err_n)
                 print("(semantic)(dbg) FOUND 'break' !!!")
                 continue
             
             elif ctrl_stmt == "node_continue_stmt":
                 if self.loop_depth == 0:
-                    self.logError("'continue' statement may only be used within the scope of a 'loop' statement.")
+                    self.logError("'continue' statement may only be used within the scope of a 'loop' statement.", err_n)
                 print("(semantic)(dbg) FOUND 'continue' !!!")
                 continue
             
@@ -1956,18 +1957,24 @@ class SemanticAnalyzer:
 
         print("(semantic)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
         self.exit_scope(type(node).__name__)
+        return
+    
+    def visit_node_condition_value(self, node):
+        condition = self.visit_node(node.condition_value_n)
+        err_n = condition[2]
+
+        if condition[0][1] != 'bool':
+            self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{condition[0][1]}' instead.", err_n)
+        print(f"(semantic)(dbg) FOUND CONDITION for {type(node).__name__} -> {node.condition_value_n} = {self.visit_node(node.condition_value_n)[0]}, {self.visit_node(node.condition_value_n)[1]}")
 
         return
 
     def visit_node_if_stmt(self, node):
         self.enter_scope(type(node).__name__)
 
-        if_condition = self.visit_node(node.condition_n.condition_value_n)
-        
-        if if_condition[0][1] != 'bool':
-            self.logError(f"Invalid data type for loop condition. Expected 'bool', but found '{if_condition[0][1]}' instead.")
-        print(f"(semantic)(dbg) FOUND CONDITION for {type(node).__name__} -> {node.condition_n.condition_value_n} = {self.visit_node(node.condition_n.condition_value_n)}")
-        
+        self.visit_node(node.condition_n)
+        print(f"CONDITION was found from: {type(node).__name__}")
+
         if node.body_n:
             self.visit_node(node.body_n)
 
