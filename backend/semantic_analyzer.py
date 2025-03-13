@@ -1595,13 +1595,22 @@ class SemanticAnalyzer:
             case '++':
                 if right_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
-                self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
+                
+                if self.curr_scope.get(node.id_right_n.id_t["tokenName"], False):
+                    self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
+                else:
+                    self.curr_scope.parent.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
+
                 return (right_type, right_val + 1, left_err)
                 # return (right_type, None)
             case '--':
                 if right_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
-                self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
+
+                if self.curr_scope.get(node.id_right_n.id_t["tokenName"], False):
+                    self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
+                else:
+                    self.curr_scope.parent.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
                 return (right_type, right_val - 1 , left_err)
                 # return (right_type, None)
         
@@ -1708,14 +1717,24 @@ class SemanticAnalyzer:
                 print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
                 if left_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {left_type[1]}.", left_err)
-                self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
+                
+                if self.curr_scope.get(node.id_left_n.id_t["tokenName"], False):
+                    self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
+                else:
+                    self.curr_scope.parent.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
+
                 return (left_type, left_val, left_err)
                 # return (left_type, None)
             case '--':
                 print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
                 if left_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {left_type[1]}.", left_err)
-                self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
+                
+                if self.curr_scope.get(node.id_left_n.id_t["tokenName"], False):
+                    self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
+                else:
+                    self.curr_scope.parent.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
+                
                 return (left_type, left_val, left_err)
             
     def visit_node_pre_un_op(self, node):
@@ -1728,19 +1747,25 @@ class SemanticAnalyzer:
 
         match node.left_t["tokenName"]:
             case '++':
-                print(f"RRRRRRRIIIIIIIIGHT: {right_type[1]}")
                 if right_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {right_type[1]}.", right_err)
-                self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] += 1
+                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
+                
+                if self.curr_scope.get(node.iden_n.id_t["tokenName"], False):
+                    self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] += 1
+                else:
+                    self.curr_scope.parent.syms[node.iden_n.id_t["tokenName"]]["value"] += 1
+
                 return (right_type, right_val + 1, left_err)
                 # return (right_type, None)
             case '--':
-                print(f"RRRRRRRIIIIIIIIGHT: {right_type[1]}")
                 if right_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {right_type[1]}.", right_err)
-                self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] -= 1
-                return (right_type, right_val - 1, left_err)
-                # return (right_type, None)
+                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
+
+                if self.curr_scope.get(node.iden_n.id_t["tokenName"], False):
+                    self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] -= 1
+                else:
+                    self.curr_scope.parent.syms[node.iden_n.id_t["tokenName"]]["value"] -= 1
+                return (right_type, right_val - 1 , left_err)
                     
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
