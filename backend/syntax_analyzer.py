@@ -2400,19 +2400,21 @@ class SyntaxAnalyzer:
             
             ## TODO: FIX!!!!!
             value_temp_n = None
-            if self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
+
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
                 value_temp_n = self.value([")", "{"])
-            
-            if not value_temp_n:
-                self.ERROR_empty_condition("switch")
-            
+            else:
+                if not self.value([")", "{"]):
+                    self.ERROR_empty_condition("switch") 
+                self.logError(f"Invalid value for 'switch' statement. Expected: 'string_lit' or 'whole_lit' but got '{self.tokens[self.currToken_index-1]["tokenName"]}' instead.")
+    
             if not self.match(")"): 
                 self.ERROR_unclosed_parentheses()
             
             self.match("{", False)
             case_temp_n = node_case(self.case_stmt(isVoid))
             
-            if self.currToken["tokenType"] == "default":
+            if self.currToken and self.currToken["tokenType"] == "default":
                 default_temp_n = self.default_stmt(isVoid)
 
             if not self.currToken:
@@ -2437,12 +2439,12 @@ class SyntaxAnalyzer:
             case_value_temp_n = self.case_value()
             self.match(":", False)
             
-            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
             case_stmt_n.append(node_case_stmt(case_value_temp_n, ctrl_stmt_body_temp_n))
 
-            if self.currToken["tokenType"] == "case":
+            if self.currToken and self.currToken["tokenType"] == "case":
                 case_stmt_n += self.case_stmt()
             
         print("(parser) exited production: \"case_stmt\" !!!!!!!!!!!")
@@ -2495,15 +2497,16 @@ class SyntaxAnalyzer:
     def loop_stmt(self, isVoid = False):
         print("(parser) entered production: \"loop_stmt\"")
         
-        match self.currToken["tokenType"]:
-            case "while": 
-                loop_stmt_temp_n = self.while_stmt(isVoid)
-            case "do": 
-                loop_stmt_temp_n = self.do_stmt(isVoid)
-            case "for": 
-                loop_stmt_temp_n = self.forloop_stmt(isVoid)
-            case "repeat": 
-                loop_stmt_temp_n = self.repeat_stmt(isVoid) 
+        if self.currToken:
+            match self.currToken["tokenType"]:
+                case "while": 
+                    loop_stmt_temp_n = self.while_stmt(isVoid)
+                case "do": 
+                    loop_stmt_temp_n = self.do_stmt(isVoid)
+                case "for": 
+                    loop_stmt_temp_n = self.forloop_stmt(isVoid)
+                case "repeat": 
+                    loop_stmt_temp_n = self.repeat_stmt(isVoid) 
 
         print("(parser) exited production: \"loop_stmt\"")
         print (node_loop_stmt(loop_stmt_temp_n))
@@ -2525,7 +2528,7 @@ class SyntaxAnalyzer:
                 self.logError("Missing forloop arguments.")
 
             ## INIT ARG
-            if self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
                 init_arg_temp_n = self.init_arg()
             else: 
                 print("(parser) empty init_arg detected")
@@ -2542,7 +2545,7 @@ class SyntaxAnalyzer:
                 self.logError(f"Condition argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else "EOF"}'.")
 
             ## INC ARG
-            if self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["inc_arg"]:
                 inc_arg_temp_n = self.inc_arg()
             else: 
                 print("(parser) empty inc_arg detected")
@@ -2552,7 +2555,7 @@ class SyntaxAnalyzer:
 
             ## CTRL STMT BODY
             self.match("{", False)
-            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
             if not self.currToken:
@@ -2581,7 +2584,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_parentheses()
             
             self.match("{", False)
-            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
             
             if not self.currToken:
@@ -2603,7 +2606,7 @@ class SyntaxAnalyzer:
             
             ## CTRL STMT BODY
             ctrl_stmt_body_temp_n = None
-            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
 
             if not self.match("}"):
@@ -2649,7 +2652,7 @@ class SyntaxAnalyzer:
             self.match("{", False)
 
             ctrl_stmt_body_temp_n = None
-            if self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["ctrl_stmt_body"]:
                 ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
 
             if not self.match("}"):
@@ -2705,7 +2708,7 @@ class SyntaxAnalyzer:
             self.match("in", False)
             self.match("<", False)
 
-            if self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
                 type_t = self.data_type()
             else:
                 self.ERROR_expected_token(PREDICT_SETS["data_type"])
@@ -2820,7 +2823,7 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_pos_integer_value()
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
-                if self.currToken["tokenType"] == "[":
+                if self.currToken and self.currToken["tokenType"] == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
                 return self.var_id_arr2D(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, const_b)
         
@@ -2841,7 +2844,7 @@ class SyntaxAnalyzer:
                 self.ERROR_expected_pos_integer_value()
             if not self.match("]"):
                 self.ERROR_unclosed_square_bracket()
-            if self.currToken["tokenType"] == ",":
+            if self.currToken and self.currToken["tokenType"] == ",":
                 self.array1D_iden_rec(arr_dec_rec_temp_n)
 
         print("(parser) exited production: \"array1D_iden_rec\"")
@@ -2867,7 +2870,7 @@ class SyntaxAnalyzer:
                 
                 if self.currToken["tokenType"] in PREDICT_SETS["value"]:
                     val_list.append(self.value(["}", ","]))
-                    if self.currToken["tokenType"] == ",":
+                    if self.currToken and self.currToken["tokenType"] == ",":
                         self.arr_value_1D_rec(val_list)
                 else:
                     self.ERROR_expected_token("value")
@@ -2882,7 +2885,7 @@ class SyntaxAnalyzer:
 
                 if self.currToken["tokenType"] == ",":
                     self.match(",")
-                    if self.currToken["tokenType"] in PREDICT_SETS["value"]:
+                    if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
                         val_list.append(self.value(["}", ","]))
                         self.arr_value_1D_rec(val_list)
                     else:
@@ -2932,7 +2935,7 @@ class SyntaxAnalyzer:
                 if self.currToken["tokenType"] == "[":
                     self.logError("Only up to 2 dimensions of arrays are allowed.")
                 arr_dec_rec_temp_n.append(node_arr_dec_rec(id_temp_n, size1_temp_n, size2_temp_n))
-                if self.currToken["tokenType"] == ",":
+                if self.currToken and self.currToken["tokenType"] == ",":
                     self.array2D_iden_rec(arr_dec_rec_temp_n)
                 
                 #else:
@@ -2977,7 +2980,7 @@ class SyntaxAnalyzer:
                 val_2dlist.append(self.arr_value_1D([]))
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
-                if self.currToken["tokenType"] == ",":
+                if self.currToken and self.currToken["tokenType"] == ",":
                     self.arr_value_2D_rec(val_2dlist)
         
             print("(parser) exited production: \"arr_value_2D_rec\"")

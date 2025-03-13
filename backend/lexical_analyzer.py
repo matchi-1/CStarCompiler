@@ -42,7 +42,7 @@ class LexicalAnalyzer:
     comma_delim = dot_delim + numbers + ['(', '{', '"', '+', '-']
     slash_delim = plaintext_delim + ['\n', '(', '+', '-']
     question_delim = newline + plaintext_delim + ['(', '/', '\"']
-    colon_delim = newline + plaintext_delim + ['(', '/', '\"']
+    colon_delim = newline + plaintext_delim + ['/', '}']
     open_bracket_delim = alphanum + whitespace + ['\n', '/', '(', ']', '+', '-']
     open_curly_delim = newline_delim + plaintext_delim + ['{', '}', '/', '\"', '(', '+', '-', '!']
     close_curly_delim = newline_delim + plaintext_delim + [';', '/', ',', '}', '+', '-']

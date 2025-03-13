@@ -2018,9 +2018,9 @@ class SemanticAnalyzer:
         self.enter_scope(type(node).__name__)
         self.switch_depth += 1
         
-        switch_value = self.visit_node(node.value_n)
-        if switch_value[0][1] not in ["string", "int", "long"]:
-            self.logError("Invalid data type for 'switch' value. Expected: 'string', 'int', 'long' data types.")
+        switch_type, switch_val, err_n = self.visit_node(node.value_n)
+        if switch_type[1] not in ["string", "int", "long"]:
+            self.logError("Invalid data type for 'switch' value. Expected: 'string', 'int', 'long' data types.", err_n)
         
         # CASE
         case_n = node.case_n
@@ -2029,18 +2029,17 @@ class SemanticAnalyzer:
         for case_stmt in case_n.case_stmt_n:
 
             self.enter_scope(case_stmt)
-            case_value_type = case_stmt.case_value_n
-            case_value = self.visit_node(case_value_type)
+            case_type, case_val, err_n = self.visit_node(case_stmt.case_value_n)
 
-            if str(case_value_type) in case_value_list:
-                self.logError(f"'switch' statement already contains case value '{str(case_value_type)}'")
+            if case_val in case_value_list:
+                self.logError(f"'switch' statement already contains case value '{case_val}'", err_n)
             
-            if case_value[0][1] != switch_value[0][1]:
-                if (switch_value[0][1] != "long") or (case_value[0][1] != "int"):
-                    self.logError(f"'switch' value and 'case' value must be of the same data type. Expected: '{switch_value[0][1]}' data type for case value, but got '{case_value[0][1]}'.")
+            if case_type[1] != switch_type[1]:
+                if (switch_type[1] != "long") and (case_type[1] != "int"):
+                    self.logError(f"'switch' value and 'case' value must be of the same data type. Expected: '{switch_type[1]}' data type for case value, but got '{case_type[1]}'.", err_n)
 
-            case_value_list.append(str(case_value_type))
-            print(f"(semantic)(dbg) FOUND CASE VALUE: '{str(case_value_type)}'")
+            case_value_list.append(case_val)
+            print(f"(semantic)(dbg) FOUND CASE VALUE: '{case_val}'")
 
             if case_stmt.ctrl_stmt_body_n:
                 self.visit_node(case_stmt.ctrl_stmt_body_n)
