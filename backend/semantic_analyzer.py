@@ -1824,7 +1824,8 @@ class SemanticAnalyzer:
         #     self.logError("Output statement requires at least one parameter (format string).")
         #     return None
         first_param = print_params_n[0]
-        first_param_type, first_param_val = self.visit_node(first_param)
+        print(f"First param structure: {first_param.__dict__}")
+        first_param_type, first_param_val, first_param_err = self.visit_node(first_param)
         formatted_output = ""
 
 
@@ -1836,10 +1837,8 @@ class SemanticAnalyzer:
             formatted_output = first_param_val
 
         # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
-        for param in print_params_n:
-            param_type, param_value = self.visit_node(param)
             for i, param in enumerate(print_params_n):
-                param_type, param_value = self.visit_node(param)
+                param_type, param_value, param_err = self.visit_node(param)
                 # entire arrays and objects are not allowed as direct output
                 if param_type[0] == 'arr':
                     self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", param)
@@ -1859,11 +1858,12 @@ class SemanticAnalyzer:
                     self.logError(f"String '{first_param_val}' does not contain any format specifiers.", err_n)
                 else:
                     self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", err_n)
+                    return None
 
             formatted_output = first_param_val
             for i, specifier in enumerate(format_specifiers):
                 param_node = print_params_n[i + 1] 
-                param_type, param_value = self.visit_node(param_node)
+                param_type, param_value, param_err = self.visit_node(param_node)
 
             
                 if not self._validate_format_specifier(specifier, param_type[1]):
