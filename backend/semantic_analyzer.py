@@ -1251,7 +1251,12 @@ class SemanticAnalyzer:
 
         classReturn = []
         classReturn.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
+
         for dec_node in idec_rec or []:
+            err_n = ErrorNode(dec_node.id_n.id_t["tokenLine"], dec_node.id_n.id_t["tokenCol"] - len(dec_node.id_n.id_t["tokenName"]) - 1)
+            
+            if self.curr_scope.get(dec_node.id_n.id_t["tokenName"], False):
+                self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
             classReturn.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_node.value_n if dec_node.value_n != None else defaultVal, dtype=dtype, priv = priv, const=const))
 
         return classReturn
