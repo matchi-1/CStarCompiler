@@ -1066,6 +1066,8 @@ class SemanticAnalyzer:
                         self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype'][1]}' but found '{arg_val_type[1]}'.", node_id)
                 
                 elif param_type["dtype"][0] == "arr":
+                    #if arg_val_type[0] != "arr":
+
                     if arg_val_type[0] != "arr" or arg_arr_att_flag:  # arr vs incorrect value types (or array elements too)
                         print("ARRAYYYYYYYYYYYYYYYYYY ARR VS NOT ARR OR ARR ELEM")
                         if arg_val_type[0] in ["var", "lit"] or arg_arr_att_flag: # arr vs value
@@ -1298,7 +1300,7 @@ class SemanticAnalyzer:
             if node.arr_dec_cont_n and not arr_rec:
                 
                 for index_1D, value_node in enumerate(values_list or []):
-                    val_type, val = self.visit_node(value_node)
+                    val_type, val, _ = self.visit_node(value_node)
                     print(f'arr init valtype: {val_type[1]}')
                     
                     #error for arr size in code gen
@@ -1325,7 +1327,7 @@ class SemanticAnalyzer:
                 temp_arr = []
                 
                 for index_2D, value_node in enumerate(inner_arr or []):
-                    val_type, val = self.visit_node(value_node)
+                    val_type, val, _ = self.visit_node(value_node)
                     print(f'arr init valtype: {val_type}, val = {val}')
                     
                     #error for arr size in code gen
@@ -1824,36 +1826,34 @@ class SemanticAnalyzer:
         #     self.logError("Output statement requires at least one parameter (format string).")
         #     return None
         first_param = print_params_n[0]
-        print(f"First param structure: {first_param.__dict__}")
-        first_param_type, first_param_val, first_param_err = self.visit_node(first_param)
+        first_param_type, first_param_val, err_n = self.visit_node(first_param)
         formatted_output = ""
 
-
         if first_param_type is None or first_param_type[1] != "string":
-            err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)  
            # self.logError("First parameter in output statement must be a string (format string).", first_param)
             if len(print_params_n) > 1:
                 self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
-            formatted_output = first_param_val
+            formatted_output = str(first_param_val)
 
         # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
+        for param in print_params_n:
+            param_type, param_value, err_n = self.visit_node(param)
             for i, param in enumerate(print_params_n):
-                param_type, param_value, param_err = self.visit_node(param)
+                param_type, param_value, err_n  = self.visit_node(param)
                 # entire arrays and objects are not allowed as direct output
                 if param_type[0] == 'arr':
-                    self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", param)
+                    self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", err_n)
                     return None
                 elif param_type[0] == 'object':
-                    self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", param)
+                    self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", err_n)
                     return None
                 formatted_output += str(param_value)
         
             # return None
         else:
-            format_specifiers = self._extract_format_specifiers(first_param_val)
+            format_specifiers = self._extract_format_specifiers(str(first_param_val))
             
             if len(format_specifiers) != len(print_params_n) - 1:
-                err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
                 if not format_specifiers:
                     self.logError(f"String '{first_param_val}' does not contain any format specifiers.", err_n)
                 else:
@@ -1863,7 +1863,7 @@ class SemanticAnalyzer:
             formatted_output = first_param_val
             for i, specifier in enumerate(format_specifiers):
                 param_node = print_params_n[i + 1] 
-                param_type, param_value, param_err = self.visit_node(param_node)
+                param_type, param_value, err_n  = self.visit_node(param_node)
 
             
                 if not self._validate_format_specifier(specifier, param_type[1]):
