@@ -510,7 +510,7 @@ class SemanticAnalyzer:
 
         arr_sym = obj_info["obj_info"][class_elem]
         if arr_sym["dtype"][0] != 'arr':
-            self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.', node.id_n)
+            self.logError(f'Symbol \'{node.obj_id_n.id_t["tokenName"]}\' is not an array.', node.obj_id_n)
         dtype = arr_sym["dtype"][1]
         idx_type, idx_val, err_n = self.visit_node(node.idx_n)
         
@@ -1067,7 +1067,7 @@ class SemanticAnalyzer:
                         self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype'][1]}' but found '{arg_val_type[1]}'.", node_id)
                 
                 elif param_type["dtype"][0] == "arr":
-                    #if arg_val_type[0] != "arr":
+                    #if arg_arr_att_flag  arg_sym["arr_info"]["dimension"] == 2:
 
                     if arg_val_type[0] != "arr" or arg_arr_att_flag:  # arr vs incorrect value types (or array elements too)
                         print("ARRAYYYYYYYYYYYYYYYYYY ARR VS NOT ARR OR ARR ELEM")
@@ -1076,7 +1076,7 @@ class SemanticAnalyzer:
                         elif arg_val_type[0] == "object": # arr vs object 
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found an object instance of class '{arg_val_type[1]}'.", node_id)
                       
-                    else:  # arr vs arr
+                    elif arg_val_type[0] == "arr":  # arr vs arr
                         print("ARRAYYYYYYYYYYYYYYYYYY ARR VS ARR")
                         if param_type["dtype"][1] is None or param_type["dimension"] is None:
                             continue  # Accept any dtype and dimension for std libs
