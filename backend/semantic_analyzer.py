@@ -757,6 +757,7 @@ class SemanticAnalyzer:
         
         # Visit function body
         if not node.is_std_lib:
+            self.current_function_name = func_name
             self.function_return_stack.append(return_type[1])
             if not node.body_n:
                 self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
@@ -1602,13 +1603,23 @@ class SemanticAnalyzer:
             case '++':
                 if right_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
-                self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
+                
+                check_scope = self.curr_scope
+                while not check_scope.get(node.id_right_n.id_t["tokenName"], False):
+                    check_scope = check_scope.parent
+                check_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
+
                 return (right_type, right_val + 1, left_err)
                 # return (right_type, None)
             case '--':
                 if right_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
-                self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
+
+                check_scope = self.curr_scope
+                while not check_scope.get(node.id_right_n.id_t["tokenName"], False):
+                    check_scope = check_scope.parent
+                check_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
+                
                 return (right_type, right_val - 1 , left_err)
                 # return (right_type, None)
         
@@ -1715,14 +1726,24 @@ class SemanticAnalyzer:
                 print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
                 if left_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {left_type[1]}.", left_err)
-                self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
+                
+                check_scope = self.curr_scope
+                while not check_scope.get(node.id_left_n.id_t["tokenName"], False):
+                    check_scope = check_scope.parent
+                check_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
+
                 return (left_type, left_val, left_err)
                 # return (left_type, None)
             case '--':
                 print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
                 if left_type[1] not in ["int", "long"]:
                     self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {left_type[1]}.", left_err)
-                self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
+                
+                check_scope = self.curr_scope
+                while not check_scope.get(node.id_left_n.id_t["tokenName"], False):
+                    check_scope = check_scope.parent
+                check_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
+                
                 return (left_type, left_val, left_err)
             
     def visit_node_pre_un_op(self, node):
@@ -1735,19 +1756,26 @@ class SemanticAnalyzer:
 
         match node.left_t["tokenName"]:
             case '++':
-                print(f"RRRRRRRIIIIIIIIGHT: {right_type[1]}")
                 if right_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {right_type[1]}.", right_err)
-                self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] += 1
+                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
+                
+                check_scope = self.curr_scope
+                while not check_scope.get(node.iden_n.id_t["tokenName"], False):
+                    check_scope = check_scope.parent
+                check_scope.syms[node.iden_n.id_t["tokenName"]]["value"] += 1
+
                 return (right_type, right_val + 1, left_err)
                 # return (right_type, None)
             case '--':
-                print(f"RRRRRRRIIIIIIIIGHT: {right_type[1]}")
                 if right_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {right_type[1]}.", right_err)
-                self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] -= 1
-                return (right_type, right_val - 1, left_err)
-                # return (right_type, None)
+                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
+
+                check_scope = self.curr_scope
+                while not check_scope.get(node.iden_n.id_t["tokenName"], False):
+                    check_scope = check_scope.parent
+                check_scope.syms[node.iden_n.id_t["tokenName"]]["value"] -= 1
+                
+                return (right_type, right_val - 1 , left_err)
                     
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
@@ -2136,7 +2164,7 @@ class SemanticAnalyzer:
                     case "long":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_LONG or result < self.MIN_LONG:
-                                self.logError(f"Value '{result[1]}' is out of 'long' range for 'return' value.", err_n)
+                                self.logError(f"Value '{result}' is out of 'long' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type != "int":
@@ -2145,7 +2173,7 @@ class SemanticAnalyzer:
                     case "float":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_FLOAT or result < self.MIN_FLOAT:
-                                self.logError(f"Value '{result[1]}' is out of 'float' range for 'return' value.", err_n)
+                                self.logError(f"Value '{result}' is out of 'float' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type != "int":
@@ -2154,7 +2182,7 @@ class SemanticAnalyzer:
                     case "double":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_DOUBLE or result < self.MIN_DOUBLE:
-                                self.logError(f"Value '{result[1]}' is out of 'double' range for 'return' value.", err_n)
+                                self.logError(f"Value '{result}' is out of 'double' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type not in ["int", "float", "long"]:
