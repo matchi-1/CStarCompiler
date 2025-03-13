@@ -1830,9 +1830,10 @@ class SemanticAnalyzer:
 
 
         if first_param_type is None or first_param_type[1] != "string":
+            err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)  
            # self.logError("First parameter in output statement must be a string (format string).", first_param)
             if len(print_params_n) > 1:
-                self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.")
+                self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
             formatted_output = first_param_val
 
         # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
@@ -1852,12 +1853,13 @@ class SemanticAnalyzer:
             # return None
         else:
             format_specifiers = self._extract_format_specifiers(first_param_val)
-
+            
             if len(format_specifiers) != len(print_params_n) - 1:
+                err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
                 if not format_specifiers:
-                    self.logError(f"String '{first_param_val}' does not contain any format specifiers.")
+                    self.logError(f"String '{first_param_val}' does not contain any format specifiers.", err_n)
                 else:
-                    self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).")
+                    self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", err_n)
 
             formatted_output = first_param_val
             for i, specifier in enumerate(format_specifiers):
@@ -1866,7 +1868,8 @@ class SemanticAnalyzer:
 
             
                 if not self._validate_format_specifier(specifier, param_type[1]):
-                    self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.")
+                    err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
+                    self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
                     return None
                 formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
