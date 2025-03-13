@@ -1079,9 +1079,14 @@ class SemanticAnalyzer:
                         self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype'][1]}' but found '{arg_val_type[1]}'.", node_id)
                 
                 elif param_type["dtype"][0] == "arr":
-                    #if arg_arr_att_flag  arg_sym["arr_info"]["dimension"] == 2:
+                    if arg_arr_att_flag and arg_sym["arr_info"]["dimension"] == 2: # array with 2 dimensions and the array value in 1d is trying to be accessed and passed
+                        if param_type["dtype"][1] is None or param_type["dimension"] is None:
+                            continue  # Accept any dtype and dimension for std libs
 
-                    if arg_val_type[0] != "arr" or arg_arr_att_flag:  # arr vs incorrect value types (or array elements too)
+                        if param_type["dtype"][1] != arg_val_type[1]: # arr vs arr -- wrong dtype
+                            self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected array of type '{param_type['dtype'][1]}' but found array of type '{arg_val_type[1]}'.", node_id)
+                        
+                    elif arg_val_type[0] != "arr" or arg_arr_att_flag:  # arr vs incorrect value types (or array elements too)
                         print("ARRAYYYYYYYYYYYYYYYYYY ARR VS NOT ARR OR ARR ELEM")
                         if arg_val_type[0] in ["var", "lit"] or arg_arr_att_flag: # arr vs value
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found a value of type '{arg_val_type[1]}'.", node_id)
@@ -1095,6 +1100,7 @@ class SemanticAnalyzer:
 
                         if param_type["dtype"][1] != arg_val_type[1]: # arr vs arr -- wrong dtype
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected array of type '{param_type['dtype'][1]}' but found array of type '{arg_val_type[1]}'.", node_id)
+                        
                         else:
                             arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
 
