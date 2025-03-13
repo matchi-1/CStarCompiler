@@ -750,6 +750,7 @@ class SemanticAnalyzer:
         
         # Visit function body
         if not node.is_std_lib:
+            self.current_function_name = func_name
             self.function_return_stack.append(return_type[1])
             if not node.body_n:
                 self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
