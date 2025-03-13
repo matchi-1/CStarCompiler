@@ -262,27 +262,28 @@ class SemanticAnalyzer:
         className = node.class_id_n.id_t["tokenName"]
 
         if self.curr_scope.get(className, checkParent=False):
-            self.logError(f"Class '{className}' is already declared.", node.class_id_n)
+            self.logError(f"Symbol '{className}' is already declared.", node.class_id_n)
             return
          
         self.visit_node_class_body(node.class_body_n, className, node)
 
 
-    def visit_node_constructor_dec(self, node): #TODO: be wary of return statements
+    def visit_node_constructor_dec(self, node, parentClassname): #TODO: be wary of return statements
         className = node.class_id_n.id_t["tokenName"]
 
         # Check if constructor already exists in current scope
         if self.curr_scope.get(className, checkParent=False):
-            self.logError("Constructor is already declared.", node.class_id_n)
+            self.logError(f"Only one constructor allowed for each class. Duplicate constructor definition found at class '{className}'.", node.class_id_n)
             return
         param_types = []
         if node.params_n: # if params_n isn't None
             for param in node.params_n:
                 if type(param).__name__ == "node_funcpar_class":
                     class_name = param.class_id_n.id_t["tokenName"]
-                    
+                    if parentClassname == class_name:
+                        self.logError(f"Constructors cannot take an object instance of their own class as parameters. Parameter '{class_name} {param.id_n.id_t["tokenName"]}' not allowed for constructor definition for class '{className}'. ", param.class_id_n)
                     if not self.curr_scope.get(class_name):
-                        self.logError(f"Class '{class_name}' hasn't been declared yet.", param.class_id_n)
+                        self.logError(f"Class '{class_name}' definition not found for parameter '{class_name} {param.id_n.id_t["tokenName"]}' on constructor definition for class '{className}'.", param.class_id_n)
                         param_types.append({
                             "type": "object",
                             "dtype": class_name,
@@ -318,7 +319,7 @@ class SemanticAnalyzer:
 
                 # Check if parameter name is duplicated
                 if self.curr_scope.get(param_name, checkParent=False):
-                    self.logError(f"Parameter '{param_name}' is already declared in constructor.", param.id_n)
+                    self.logError(f"Parameter '{param_name}' is already declared in constructor for class '{className}'.", param.id_n)
 
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
@@ -385,13 +386,13 @@ class SemanticAnalyzer:
                     class_content.append(self.visit_node_arr_dec(vardec_n, priv))
 
             
-            if parent_node.constructor_dec_n: constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n)
+            if parent_node.constructor_dec_n: constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n, className)
             child_sym = self.curr_scope.syms
             # self.exit_scope(type(node).__name__)
             self.curr_scope = self.curr_scope.parent
 
         if parent_node.constructor_dec_n and not node.class_body_stmt_n: 
-            constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n)
+            constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n, className)
         
         print(f"\n(semantic)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
         if node.class_body_stmt_n: self.print_symbols(child_sym, indent=2)
@@ -409,10 +410,10 @@ class SemanticAnalyzer:
         class_inst_cont = node.class_instcont_n
 
         if self.curr_scope.get(obj_id, False):
-            self.logError(f"Symbol '{obj_id}' has already been declared.", node.obj_id_n)
+            self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", node.obj_id_n)
 
         if not self.curr_scope.get(class_id, checkParent=True):
-            self.logError(f"Class '{class_id}' declaration not found.", node.class_id_n)
+            self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
 
 
         dtype = ('object', class_id)
@@ -430,14 +431,14 @@ class SemanticAnalyzer:
             class_constructor_info = self.curr_scope.parent.get(class_id)["class_info"]["constructor_dec"]
             if constructor_call_id != class_id:
                 self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
+            
             if not class_constructor_info:
-                self.logError(f"Class '{class_id}' has no defined constructor.",node.class_id_n)
+                self.logError(f"Class '{class_id}' has no defined constructor function.",node.class_id_n)
         
             self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
 
             
         self.curr_scope.set_obj(obj_id, None, dtype, class_elem_info)
-
 
 
     def visit_node_class_att(self, node):   #iden.iden
@@ -454,7 +455,7 @@ class SemanticAnalyzer:
         # print(f"Obj_info : {obj_info} \nobj_name: {obj_name} \nclass_elem: {class_elem}")
 
         if obj_info.get("dtype")[0] != 'object':
-            self.logError(f"Symbol '{obj_name}' not an object.", node.obj_id_n)
+            self.logError(f"Symbol '{obj_name}' not an object instance.", node.obj_id_n)
 
 
         class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
@@ -746,7 +747,7 @@ class SemanticAnalyzer:
         self.curr_scope = self.curr_scope.parent
         return classReturn
 
-    # assign_stmt  -- need to refactor nodes in ast bc stephen :skull:
+    # assign_stmt  -- need to refactor nodes in ast bc 
     def visit_node_assign_stmt_var(self, node):
         iden = node.id_n
         value = node.value_n
@@ -977,7 +978,7 @@ class SemanticAnalyzer:
         val = None
         if func_symbol["dtype"][1] == 'void':
             if expected_val:
-                self.logError('Void functions do not return any values.')
+                self.logError("Function '{func_name}' is void and cannot return any value, it cannot be used as a value.", node.id_n)
         else:
             val = self.default_vals[func_symbol["dtype"][1]]
 
@@ -1118,7 +1119,7 @@ class SemanticAnalyzer:
         val = None
         if class_info[class_elem]["dtype"][1] == 'void':
             if expected_val:
-                self.logError('Void functions do not return any values.')
+                self.logError(f"Class method '{class_elem}' is void and cannot return any value, it cannot be used as a value.", node.method_id_n)
         else:
             val = self.default_vals[class_info[class_elem]["dtype"][1]]
 
