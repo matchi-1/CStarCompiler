@@ -730,8 +730,11 @@ class SemanticAnalyzer:
             has_return = self.check_return_in_body(node.body_n)
 
             # Ensure non-void functions return a value
+            if not node.body_n:
+                self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
+
             if not has_return:
-                self.logError(f"Function '{func_name}' must return a value in all possible code paths.", node.id_n)
+                self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
             
             self.visit_node(node.body_n)
 
