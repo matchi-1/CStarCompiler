@@ -523,7 +523,7 @@ class SemanticAnalyzer:
         idx2_val = None
         if node.idx2_n:
             if arr_sym["arr_info"]["dimension"] == 1:
-                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.', err_n)
+                self.logError(f'Array \'{class_elem}\' is 1-dimensional but accessed with 2 indices.', err_n)
             idx2_type, idx2_val = self.visit_node(node.idx2_n)
             if idx2_type[1] not in ['int', 'long']:
                 self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.', err_n)
@@ -533,7 +533,7 @@ class SemanticAnalyzer:
                 self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', err_n)
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
-                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.', err_n)
+                self.logError(f'Array \'{class_elem}\' is 2-dimensional but accessed with 1 index.', err_n)
         return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], err_n_obj)
 
     def visit_node_num(self, node):
