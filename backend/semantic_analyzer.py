@@ -466,10 +466,10 @@ class SemanticAnalyzer:
             
             
         if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
-            self.logError(f"Attribute '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
+            self.logError(f"Element '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
         
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
-            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+            self.logError(f"Element '{class_elem}' is a private element within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
 
         print(f"(semantic)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
         return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])  
@@ -765,9 +765,9 @@ class SemanticAnalyzer:
 
         if iden_symbol["dtype"][0] in ["arr", "object"]:
             if iden_symbol["dtype"][0] == "arr":
-                self.logError(f"Symbol '{iden_name}' is an array and cannot be reassigned.", iden)
+                self.logError(f"Symbol '{iden_name}' is an array and cannot be reassigned. Try accessing its elements instead.", iden)
             elif iden_symbol["dtype"][0] == "object":
-                self.logError(f"Symbol '{iden_name}' is an object and cannot be reassigned.", iden)
+                self.logError(f"Symbol '{iden_name}' is an object and cannot be reassigned. Try accessing its attributes instead.", iden)
 
             
         if iden_symbol["const"]:
@@ -1107,15 +1107,16 @@ class SemanticAnalyzer:
         obj_info = self.curr_scope.get(obj_name)
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
-
+        if obj_info["dtype"][0] != "object":    
+            self.logError(f"Symbol '{obj_name}' is not an object.", node.obj_id_n)
         class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
         class_info_no_privates = {k: v for k, v in class_info.items() if not v["priv"]}
 
         if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
-            self.logError(f"Method '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
+            self.logError(f"Method '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.method_id_n)
         
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
-            self.logError(f"Method '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+            self.logError(f"Method '{class_elem}' is a private method within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.method_id_n)
 
         # self.obj_id_n = class_id_n
         # self.method_id_n = method_id_n
