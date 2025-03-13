@@ -191,12 +191,8 @@ class SemanticAnalyzer:
         else:
             print(d)  # Print non-dictionary/list values
 
-
-
-
-
     def logError(self, msg, err_n): 
-        if err_n:
+        if isinstance(err_n, ErrorNode):
             full_message = (
                 f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
             )
@@ -262,10 +258,11 @@ class SemanticAnalyzer:
 
 
     def visit_node_class_dec(self, node):
+        err_n = ErrorNode(node.class_id_n.id_t["tokenLine"], node.class_id_n.id_t["tokenCol"] - len(node.class_id_n.id_t["tokenName"]) - 1)
         className = node.class_id_n.id_t["tokenName"]
 
         if self.curr_scope.get(className, checkParent=False):
-            self.logError(f"Symbol '{className}' is already declared.", node.class_id_n)
+            self.logError(f"Symbol '{className}' is already declared.", err_n)
             return
          
         self.visit_node_class_body(node.class_body_n, className, node)
@@ -273,20 +270,21 @@ class SemanticAnalyzer:
 
     def visit_node_constructor_dec(self, node, parentClassname): #TODO: be wary of return statements
         className = node.class_id_n.id_t["tokenName"]
-
+        err_n = ErrorNode(node.class_id_n.id_t["tokenLine"], node.class_id_n.id_t["tokenCol"] - len(node.class_id_n.id_t["tokenName"]) - 1)
         # Check if constructor already exists in current scope
         if self.curr_scope.get(className, checkParent=False):
-            self.logError(f"Only one constructor allowed for each class. Duplicate constructor definition found at class '{className}'.", node.class_id_n)
+            self.logError(f"Only one constructor allowed for each class. Duplicate constructor definition found at class '{className}'.", err_n)
             return
         param_types = []
         if node.params_n: # if params_n isn't None
             for param in node.params_n:
                 if type(param).__name__ == "node_funcpar_class":
+                    err_n = ErrorNode(node.class_id_n.id_t["tokenLine"], param.class_id_n.id_t["tokenCol"] - len(param.class_id_n.id_t["tokenName"]) - 1)
                     class_name = param.class_id_n.id_t["tokenName"]
                     if parentClassname == class_name:
-                        self.logError(f"Constructors cannot take an object instance of their own class as parameters. Parameter '{class_name} {param.id_n.id_t["tokenName"]}' not allowed for constructor definition for class '{className}'. ", param.class_id_n)
+                        self.logError(f"Constructors cannot take an object instance of their own class as parameters. Parameter '{class_name} {param.id_n.id_t["tokenName"]}' not allowed for constructor definition for class '{className}'. ", err_n)
                     if not self.curr_scope.get(class_name):
-                        self.logError(f"Class '{class_name}' definition not found for parameter '{class_name} {param.id_n.id_t["tokenName"]}' on constructor definition for class '{className}'.", param.class_id_n)
+                        self.logError(f"Class '{class_name}' definition not found for parameter '{class_name} {param.id_n.id_t["tokenName"]}' on constructor definition for class '{className}'.", err_n)
                         param_types.append({
                             "type": "object",
                             "dtype": class_name,
@@ -319,10 +317,11 @@ class SemanticAnalyzer:
         if node.params_n:
             for param in node.params_n:
                 param_name = param.id_n.id_t["tokenName"]
+                err_n = ErrorNode(node.param.id_n.id_t["tokenLine"], param.param.id_n.id_t["tokenCol"] - len(param.param.id_n.id_t["tokenName"]) - 1)
 
                 # Check if parameter name is duplicated
                 if self.curr_scope.get(param_name, checkParent=False):
-                    self.logError(f"Parameter '{param_name}' is already declared in constructor for class '{className}'.", param.id_n)
+                    self.logError(f"Parameter '{param_name}' is already declared in constructor for class '{className}'.", err_n)
 
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
