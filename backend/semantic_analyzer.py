@@ -1,4 +1,4 @@
-from syntax_analyzer import node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
+from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal
 
 class SymbolTable:
@@ -195,6 +195,10 @@ class SemanticAnalyzer:
         if isinstance(err_n, ErrorNode):
             full_message = (
                 f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
+            )
+        elif isinstance(err_n, node_iden):
+            full_message = (
+                f"Semantic Error ({err_n.id_t['tokenLine']}, {err_n.id_t['tokenCol']}): {msg}"
             )
         else:
             full_message = (
@@ -433,7 +437,7 @@ class SemanticAnalyzer:
         if class_inst_cont:
             constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
             class_constructor_info = self.curr_scope.parent.get(class_id)["class_info"]["constructor_dec"]
-            err_n_class_inst = ErrorNode(class_inst_cont.class_id_n.id_n.id_t["tokenLine"], class_inst_cont.class_id_n.id_n.id_t["tokenCol"] - len(class_inst_cont.class_id_n.id_n.id_t["tokenName"]) - 1)
+            err_n_class_inst = ErrorNode(class_inst_cont.class_id_n.id_t["tokenLine"], class_inst_cont.class_id_n.id_t["tokenCol"] - len(class_inst_cont.class_id_n.id_t["tokenName"]) - 1)
             if constructor_call_id != class_id:
                 self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", err_n_class_inst)
             
@@ -447,6 +451,8 @@ class SemanticAnalyzer:
 
 
     def visit_node_class_att(self, node):   #iden.iden
+        err_n_obj = ErrorNode(node.obj_id_n.id_t["tokenLine"], node.obj_id_n.id_t["tokenCol"] - len(node.obj_id_n.id_t["tokenName"]) - 1)
+        err_n_att = ErrorNode(node.att_id_n.id_t["tokenLine"], node.obj_id_n.id_t["tokenCol"] - len(node.obj_id_n.id_t["tokenName"]) - 1)
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.att_id_n.id_t["tokenName"]
 
@@ -455,12 +461,12 @@ class SemanticAnalyzer:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
         if obj_info.get("class_info"):
-            self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
+            self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", err_n_obj)
 
         # print(f"Obj_info : {obj_info} \nobj_name: {obj_name} \nclass_elem: {class_elem}")
 
         if obj_info.get("dtype")[0] != 'object':
-            self.logError(f"Symbol '{obj_name}' not an object instance.", node.obj_id_n)
+            self.logError(f"Symbol '{obj_name}' not an object instance.", err_n_obj)
 
 
         class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
