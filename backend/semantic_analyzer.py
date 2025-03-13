@@ -197,8 +197,9 @@ class SemanticAnalyzer:
                 f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
             )
         elif isinstance(err_n, node_iden):
+            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"]) - 1
             full_message = (
-                f"Semantic Error ({err_n.id_t['tokenLine']}, {err_n.id_t['tokenCol']}): {msg}"
+                f"Semantic Error ({err_n.id_t['tokenLine']}, {col}): {msg}"
             )
         else:
             full_message = (
