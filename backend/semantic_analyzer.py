@@ -1388,7 +1388,6 @@ class SemanticAnalyzer:
         
         left_type, left_val, left_err = self.visit_node(node.left_n)
         right_type, right_val, right_err = self.visit_node(node.right_n)
-        exp_start_err = left_err
         dtype = ('lit', 'int')
 
         if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
@@ -1412,17 +1411,17 @@ class SemanticAnalyzer:
                     if right_type[1] != 'string':
                         self.logError(f"Type mismatch for string expression, expected a string for both operands, but got {right_type[1]}.")
                     else:
-                        return (('lit', 'string'), (left_val or "") + (right_val or ""), exp_start_err ) #or empty string for nontypes
+                        return (('lit', 'string'), (left_val or "") + (right_val or ""), left_err ) #or empty string for nontypes
                         # return (('lit', 'string'), None)
                 elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, left_val + right_val, exp_start_err)
+                    return (dtype, left_val + right_val, left_err)
                     # return (dtype, None)
                 else:
                      self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
             case '-':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, left_val - right_val, exp_start_err)
+                    return (dtype, left_val - right_val, left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
@@ -1431,13 +1430,13 @@ class SemanticAnalyzer:
                     # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
                     self.logError("Division by 0 is not allowed.")
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, int(left_val / right_val), exp_start_err)
+                    return (dtype, int(left_val / right_val), left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
             case '*':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, left_val * right_val, exp_start_err)
+                    return (dtype, left_val * right_val, left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
@@ -1448,7 +1447,7 @@ class SemanticAnalyzer:
                     if right_val == 0: #todo err
                         self.logError("Modulo by 0 is not allowed.")
                     if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                        return (dtype, left_val % right_val, exp_start_err)
+                        return (dtype, left_val % right_val, left_err)
                         # return (dtype, None)
                     else:
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
@@ -1464,7 +1463,7 @@ class SemanticAnalyzer:
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
                         self.logError("Type mismatch for relational expression, bools can only be compared with other bools.")
-                return (('lit', 'bool'), left_val == right_val, exp_start_err)
+                return (('lit', 'bool'), left_val == right_val, left_err)
                 # return (('lit', 'bool'), None)
             
             case '!=':
@@ -1477,32 +1476,32 @@ class SemanticAnalyzer:
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
                         self.logError("Type mismatch for relational expression, bools can only be compared with other bools.")
-                return (('lit', 'bool'), left_val != right_val, exp_start_err)
+                return (('lit', 'bool'), left_val != right_val, left_err)
                 # return (('lit', 'bool'), None)
             
             case '<':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val < right_val, exp_start_err)  
+                return (('lit', 'bool'), left_val < right_val, left_err)  
                 # return (('lit', 'bool'), None)
             case '<=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val <= right_val, exp_start_err)  
+                return (('lit', 'bool'), left_val <= right_val, left_err)  
                 # return (('lit', 'bool'), None)
             case '>':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val > right_val, exp_start_err)  
+                return (('lit', 'bool'), left_val > right_val, left_err)  
                 # return (('lit', 'bool'), None)
             case '>=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
                     self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val >= right_val, exp_start_err)  
+                return (('lit', 'bool'), left_val >= right_val, left_err)  
                 # return (('lit', 'bool'), None)
             
             #logical
@@ -1510,13 +1509,13 @@ class SemanticAnalyzer:
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
                     self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val and right_val, exp_start_err)
+                return (('lit', 'bool'), left_val and right_val, left_err)
                 # return (('lit', 'bool'), None)
             case '||':
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
                     self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.")
 
-                return (('lit', 'bool'), left_val or right_val, exp_start_err)
+                return (('lit', 'bool'), left_val or right_val, left_err)
                 # return (('lit', 'bool'), None)
 
     #unary ops
