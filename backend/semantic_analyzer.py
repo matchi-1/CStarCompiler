@@ -730,8 +730,8 @@ class SemanticAnalyzer:
             has_return = self.check_return_in_body(node.body_n)
 
             # Ensure non-void functions return a value
-            if return_type[1] != "void" and not has_return:
-                self.logError(f"Not all code paths in function '{func_name}' return a value.")
+            if not has_return:
+                self.logError(f"Function '{func_name}' must return a value in all possible code paths.", node.id_n)
             
             self.visit_node(node.body_n)
 
@@ -1912,13 +1912,13 @@ class SemanticAnalyzer:
 
             if ctrl_stmt == "node_break_stmt":
                 if self.loop_depth == 0 and self.switch_depth == 0:
-                    self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statement.")
+                    self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statement.", statement)
                 print("(semantic)(dbg) FOUND 'break' !!!")
                 continue
             
             elif ctrl_stmt == "node_continue_stmt":
                 if self.loop_depth == 0:
-                    self.logError("'continue' statement may only be used within the scope of a 'loop' statement.")
+                    self.logError("'continue' statement may only be used within the scope of a 'loop' statement.", statement)
                 print("(semantic)(dbg) FOUND 'continue' !!!")
                 continue
             
