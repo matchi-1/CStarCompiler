@@ -1241,14 +1241,14 @@ class SemanticAnalyzer:
 
         dim = 2 if node.size2_n else 1
 
-        size_1_type, size_1 = self.visit_node(node.size1_n)
+        size_1_type, size_1, size1_err = self.visit_node(node.size1_n)
 
         if size_1_type[1] not in ['int', 'long']:
             self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
         
         if size_1 < 1:
             self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
-        size_2_type, size_2 = self.visit_node(node.size2_n) if node.size2_n else (None, None)
+        size_2_type, size_2, size2_err = self.visit_node(node.size2_n) if node.size2_n else (None, None, None)
 
         if size_2_type and size_2_type[1] not in ['int', 'long']:
             self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
@@ -1391,13 +1391,25 @@ class SemanticAnalyzer:
         dtype = ('lit', 'int')
 
         if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
-            self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.")
+            self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.", left_err)
 
         elif left_type[0] == 'arr' or right_type[0] == 'arr':
-            self.logError("Direct operations on entire arrays are not allowed. Access individual elements or use vectorized computations.")
+            if left_type[0] == 'arr' and right_type[0] == 'arr':
+                err_n = left_err
+            elif right_type[0] == 'arr':
+                err_n = right_err
+            else:
+                err_n =left_err
+            self.logError("Direct operations on entire arrays are not allowed. Access individual elements or use vectorized computations.", err_n)
 
         elif left_type[0] == 'object' or right_type[0] == 'object':
-            self.logError("Direct operations on entire objects are not allowed. Access specific properties instead.")
+            if left_type[0] == 'object' and right_type[0] == 'object':
+                err_n = left_err
+            elif right_type[0] == 'object':
+                err_n = right_err
+            else:
+                err_n =left_err
+            self.logError("Direct operations on entire objects are not allowed. Access specific properties instead.", err_n)
 
         if (left_type[1] == 'long' or right_type[1] == 'long'):
             dtype = ('lit', 'long')
@@ -1409,7 +1421,7 @@ class SemanticAnalyzer:
             case '+': 
                 if left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        self.logError(f"Type mismatch for string expression, expected a string for both operands, but got {right_type[1]}.")
+                        self.logError(f"Type mismatch for string expression, expected a string for both operands, but got {right_type[1]}.", right_err)
                     else:
                         return (('lit', 'string'), (left_val or "") + (right_val or ""), left_err ) #or empty string for nontypes
                         # return (('lit', 'string'), None)
@@ -1417,40 +1429,40 @@ class SemanticAnalyzer:
                     return (dtype, left_val + right_val, left_err)
                     # return (dtype, None)
                 else:
-                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
             case '-':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, left_val - right_val, left_err)
                     # return (dtype, None)
                 else:
-                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '/':
                 if right_val == 0: #todo
                     # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
-                    self.logError("Division by 0 is not allowed.")
+                    self.logError("Division by 0 is not allowed.", right_err)
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, int(left_val / right_val), left_err)
                     # return (dtype, None)
                 else:
-                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '*':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, left_val * right_val, left_err)
                     # return (dtype, None)
                 else:
-                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '%':
                 if dtype[1] in ['float', 'double'] or right_type[1] in ['float', 'double']:
-                    self.logError("Type mismatch: Modulo operation only supports whole numbers (int, long)")
+                    self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", left_err)
                 else:
                     if right_val == 0: #todo err
-                        self.logError("Modulo by 0 is not allowed.")
+                        self.logError("Modulo by 0 is not allowed.", right_err)
                     if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                         return (dtype, left_val % right_val, left_err)
                         # return (dtype, None)
                     else:
-                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
             #relational
             case '==':
@@ -1459,47 +1471,47 @@ class SemanticAnalyzer:
                         self.logError(f"Type mismatch for relational expression, numeric values can only be compared with other numeric values (int, long, float, double), but got {right_type[1]}.")
                 elif left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        self.logError("Type mismatch for relational expression, strings an can only be compared with other strings.")
+                        self.logError("Type mismatch for relational expression, strings an can only be compared with other strings.", right_err)
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
-                        self.logError("Type mismatch for relational expression, bools can only be compared with other bools.")
+                        self.logError("Type mismatch for relational expression, bools can only be compared with other bools.", right_err)
                 return (('lit', 'bool'), left_val == right_val, left_err)
                 # return (('lit', 'bool'), None)
             
             case '!=':
                 if left_type[1] in self.numtypes:
                     if right_type[1] not in self.numtypes:
-                        self.logError(f"Type mismatch for relational expression, numeric values can only be compared with other numeric values (int, long, float, double), but got {right_type[1]}.")
+                        self.logError(f"Type mismatch for relational expression, numeric values can only be compared with other numeric values (int, long, float, double), but got {right_type[1]}.", right_err)
                 elif left_type[1] == 'string':
                     if right_type[1] != 'string':
-                        self.logError("Type mismatch for relational expression, strings an can only be compared with other strings.")
+                        self.logError("Type mismatch for relational expression, strings an can only be compared with other strings.", right_err)
                 elif left_type[1] == 'bool':
                     if right_type[1] != 'bool':
-                        self.logError("Type mismatch for relational expression, bools can only be compared with other bools.")
+                        self.logError("Type mismatch for relational expression, bools can only be compared with other bools.", right_err)
                 return (('lit', 'bool'), left_val != right_val, left_err)
                 # return (('lit', 'bool'), None)
             
             case '<':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
                 return (('lit', 'bool'), left_val < right_val, left_err)  
                 # return (('lit', 'bool'), None)
             case '<=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
                 return (('lit', 'bool'), left_val <= right_val, left_err)  
                 # return (('lit', 'bool'), None)
             case '>':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
                 return (('lit', 'bool'), left_val > right_val, left_err)  
                 # return (('lit', 'bool'), None)
             case '>=':
                 if left_type[1] not in self.numtypes or right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for relational expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
                 return (('lit', 'bool'), left_val >= right_val, left_err)  
                 # return (('lit', 'bool'), None)
@@ -1507,20 +1519,21 @@ class SemanticAnalyzer:
             #logical
             case '&&':
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
-                    self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
                 return (('lit', 'bool'), left_val and right_val, left_err)
                 # return (('lit', 'bool'), None)
             case '||':
                 if left_type[1] != 'bool' or right_type[1] != 'bool':
-                    self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.")
+                    self.logError(f"Type mismatch for logical expression, expected bool value for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
                 return (('lit', 'bool'), left_val or right_val, left_err)
                 # return (('lit', 'bool'), None)
 
     #unary ops
     def visit_node_un_op(self, node):
-        right_type, right_val = self.visit_node(node.id_right_n)
+        right_type, right_val, right_err = self.visit_node(node.id_right_n)
+        left_err = ErrorNode(node.left_t["tokenLine"], node.left_t["tokenCol"] - len(node.left_t["tokenName"])-1)
         match node.left_t["tokenName"]:
             case '!':
                 if right_type[1] != 'bool':
