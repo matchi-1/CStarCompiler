@@ -1539,12 +1539,12 @@ class SemanticAnalyzer:
         match node.left_t["tokenName"]:
             case '!':
                 if right_type[1] != 'bool':
-                    self.logError(f"Type mismatch for logical expression, expected bool value for operand, but got {right_type[1]}.")
-                return (('lit', 'bool'), not right_val)
+                    self.logError(f"Type mismatch for logical expression, expected bool value for operand, but got {right_type[1]}.", right_err)
+                return (('lit', 'bool'), not right_val, left_err)
                 # return (('lit', 'bool'), None)
             case '-':
                 if right_type[1] not in self.numtypes:
-                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double), but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double), but got {right_type[1]}.", right_err)
 
                 adjusted_type = right_type
                 match (-right_val):
@@ -1556,156 +1556,156 @@ class SemanticAnalyzer:
                         if right_type[1] == "double":
                             adjusted_type = (right_type[0], "long")
 
-                return (adjusted_type, -right_val)
+                return (adjusted_type, -right_val, left_err)
                 # return (right_type, None)
             case '++':
                 if right_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for increment operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
                 self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] += 1
-                return (right_type, right_val + 1)
+                return (right_type, right_val + 1, left_err)
                 # return (right_type, None)
             case '--':
                 if right_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.")
+                    self.logError(f"Type mismatch for decrement operation, expected numeric variable (int, long, float, double), but got {right_type[1]}.", right_err)
                 self.curr_scope.syms[node.id_right_n.id_t["tokenName"]]["value"] -= 1
-                return (right_type, right_val - 1 )
+                return (right_type, right_val - 1 , left_err)
                 # return (right_type, None)
         
         if node.left_t["tokenName"] in ["bool", "string", "int", "long", "double", "float"]:
             if right_type[1] not in ["bool", "string", "int", "long", "double", "float"]:
-                self.logError(f'{node.id_right_n.id_t["tokenName"]} cannot be typecasted.')
+                self.logError(f'{node.id_right_n.id_t["tokenName"]} cannot be typecasted.', right_err)
             match node.left_t["tokenName"] :
                 case 'bool':
                     match right_type[1]:
                         case 'bool':
-                            return (('lit', 'bool'), right_val)
+                            return (('lit', 'bool'), right_val, left_err)
                         case 'string':
-                            return (('lit', 'bool'), right_val != '')
+                            return (('lit', 'bool'), right_val != '', left_err)
                         case 'int':
-                            return (('lit', 'bool'), right_val != 0)
+                            return (('lit', 'bool'), right_val != 0, left_err)
                         case 'long':
-                            return (('lit', 'bool'), right_val != 0)
+                            return (('lit', 'bool'), right_val != 0, left_err)
                         case 'float':
-                            return (('lit', 'bool'), right_val != 0.0)
+                            return (('lit', 'bool'), right_val != 0.0, left_err)
                         case 'double':
-                            return (('lit', 'bool'), right_val != 0.0)
+                            return (('lit', 'bool'), right_val != 0.0, left_err)
                     # return (('lit', 'bool'), None)
                 case 'string':
-                    return (('lit', 'string'), str(right_val))
+                    return (('lit', 'string'), str(right_val), left_err)
                     # return (('lit', 'string',), None)
                 case 'int':
                     match right_type[1]:
                         case 'bool':
-                            return (('lit', 'int'), int(right_val))
+                            return (('lit', 'int'), int(right_val), left_err)
                         case 'string':
-                            self.logError(f'Strings cannot be casted into integers.')
+                            self.logError(f'Strings cannot be casted into integers.', right_err)
 
                         case 'int':
-                            return (('lit', 'int'), right_val)
+                            return (('lit', 'int'), right_val, left_err)
                         case 'long':
                             if right_val <= self.MAX_INT and right_val >= self.MIN_INT:
-                                return (('lit', 'int'), right_val)
+                                return (('lit', 'int'), right_val, left_err )
                             else:
-                                self.logError(f'Value {right_val} is out of integer range.')
+                                self.logError(f'Value {right_val} is out of integer range.', right_err)
                         case 'float':
-                            return (('lit', 'int'), int(right_val))
+                            return (('lit', 'int'), int(right_val), left_err)
                         case 'double':
                             if int(right_val) <= self.MAX_INT and int(right_val) >= self.MIN_INT:
-                                return (('lit', 'int'), right_val)
+                                return (('lit', 'int'), right_val, left_err)
                             else:
-                                self.logError(f'Value {right_val} is out of integer range.')
+                                self.logError(f'Value {right_val} is out of integer range.', right_err)
                 case 'long':
                     match right_type[1]:
                         case 'bool':
-                            return (('lit', 'long'), int(right_val))
+                            return (('lit', 'long'), int(right_val), left_err)
                         case 'string':
-                            self.logError(f'Strings cannot be casted into long.')
+                            self.logError(f'Strings cannot be casted into long.', right_err)
                         case 'int':
-                            return (('lit', 'long'), right_val)
+                            return (('lit', 'long'), right_val, left_err)
                         case 'long':
-                            return (('lit', 'long'), right_val)
+                            return (('lit', 'long'), right_val, left_err)
                         case 'float':
-                            return (('lit', 'long'), int(right_val))
+                            return (('lit', 'long'), int(right_val), left_err)
                         case 'double':
-                            return (('lit', 'long'), int(right_val))
+                            return (('lit', 'long'), int(right_val), left_err)
                 case 'float':
                     match right_type[1]:
                         case 'bool':
-                            return (('lit', 'float'), Decimal(right_val))
+                            return (('lit', 'float'), Decimal(right_val), left_err)
                         case 'string':
-                            self.logError(f'Strings cannot be casted into float.')
+                            self.logError(f'Strings cannot be casted into float.', right_err)
                         case 'int':
-                            return (('lit', 'float'), Decimal(right_val))
+                            return (('lit', 'float'), Decimal(right_val), left_err)
                         case 'long':
                             if right_val <= self.MAX_FLOAT and right_val >= self.MIN_FLOAT:
-                                return (('lit', 'float'), Decimal(right_val))
+                                return (('lit', 'float'), Decimal(right_val), left_err)
                             else:
-                                self.logError(f'Value {right_val} is out of float range.')
+                                self.logError(f'Value {right_val} is out of float range.', right_err)
                         case 'float':
-                            return (('lit', 'float'), right_val)
+                            return (('lit', 'float'), right_val, left_err)
                         case 'double':
                             if right_val <= self.MAX_FLOAT and right_val >= self.MIN_FLOAT:
-                                return (('lit', 'float'), right_val)
+                                return (('lit', 'float'), right_val, left_err)
                             else:
-                                self.logError(f'Value {right_val} is out of float range.')
+                                self.logError(f'Value {right_val} is out of float range.', right_err)
                 case 'double':
                     match right_type[1]:
                         case 'bool':
-                            return (('lit', 'double'), Decimal(right_val))
+                            return (('lit', 'double'), Decimal(right_val), left_err)
                         case 'string':
-                            self.logError(f'Strings cannot be casted into double.')
+                            self.logError(f'Strings cannot be casted into double.', right_err)
                         case 'int':
-                            return (('lit', 'double'), Decimal(right_val))
+                            return (('lit', 'double'), Decimal(right_val), left_err)
                         case 'long':
-                            return (('lit', 'double'), Decimal(right_val))
+                            return (('lit', 'double'), Decimal(right_val), left_err)
                         case 'float':
-                            return (('lit', 'double'), right_val)
+                            return (('lit', 'double'), right_val, left_err)
                         case 'double':
-                            return (('lit', 'double'), right_val)
+                            return (('lit', 'double'), right_val, left_err)
                         
     def visit_node_post_un_op(self, node):
-        left_type, left_val = self.visit_node(node.id_left_n)
+        left_type, left_val, left_err = self.visit_node(node.id_left_n)
         iden_name = node.id_left_n.id_t["tokenName"]
-
         if not self.curr_scope.get(iden_name):
-            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node.id_left_n)
+            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node.id_left_n, left_err)
         
         match node.right_t["tokenName"]:
             case '++':
                 print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
                 if left_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {left_type[1]}.", node.id_left_n)
+                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {left_type[1]}.", left_err)
                 self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] += 1
-                return (left_type, left_val)
+                return (left_type, left_val, left_err)
                 # return (left_type, None)
             case '--':
                 print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
                 if left_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {left_type[1]}.", node.id_left_n)
+                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {left_type[1]}.", left_err)
                 self.curr_scope.syms[node.id_left_n.id_t["tokenName"]]["value"] -= 1
-                return (left_type, left_val)
+                return (left_type, left_val, left_err)
             
     def visit_node_pre_un_op(self, node):
-        right_type, right_val = self.visit_node(node.iden_n)
+        right_type, right_val, right_err = self.visit_node(node.iden_n)
+        left_err = ErrorNode(node.left_t["tokenLine"], node.left_t["tokenCol"] - len(node.left_t["tokenName"])-1)
         iden_name = node.iden_n.id_t["tokenName"]
 
         if not self.curr_scope.get(iden_name):
-            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node.iden_n)
+            self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", right_err)
 
         match node.left_t["tokenName"]:
             case '++':
                 print(f"RRRRRRRIIIIIIIIGHT: {right_type[1]}")
                 if right_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {right_type[1]}.", node.iden_n)
+                    self.logError(f"Type mismatch for increment operation, expected whole numeric variable (int, long), but got {right_type[1]}.", right_err)
                 self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] += 1
-                return (right_type, right_val + 1)
+                return (right_type, right_val + 1, left_err)
                 # return (right_type, None)
             case '--':
                 print(f"RRRRRRRIIIIIIIIGHT: {right_type[1]}")
                 if right_type[1] not in ["int", "long"]:
-                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {right_type[1]}.", node.iden_n)
+                    self.logError(f"Type mismatch for decrement operation, expected whole numeric variable (int, long), but got {right_type[1]}.", right_err)
                 self.curr_scope.syms[node.iden_n.id_t["tokenName"]]["value"] -= 1
-                return (right_type, right_val - 1 )
+                return (right_type, right_val - 1, left_err)
                 # return (right_type, None)
                     
     def visit_node_loop_stmt(self, node):
