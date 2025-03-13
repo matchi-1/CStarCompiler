@@ -1958,15 +1958,16 @@ class SemanticAnalyzer:
         
         for statement in statements_n:
             ctrl_stmt = type(statement).__name__
-            err_n = ErrorNode(statement.id_t["tokenLine"], statement.id_t["tokenCol"] - len(statement.id_t["tokenName"]) - 1)
 
             if ctrl_stmt == "node_break_stmt":
+                err_n = ErrorNode(statement.id_t["tokenLine"], statement.id_t["tokenCol"] - len(statement.id_t["tokenName"]) - 1)
                 if self.loop_depth == 0 and self.switch_depth == 0:
                     self.logError("'break' statement may only be used within the scope of a 'loop' or 'switch' statement.", err_n)
                 print("(semantic)(dbg) FOUND 'break' !!!")
                 continue
             
             elif ctrl_stmt == "node_continue_stmt":
+                err_n = ErrorNode(statement.id_t["tokenLine"], statement.id_t["tokenCol"] - len(statement.id_t["tokenName"]) - 1)
                 if self.loop_depth == 0:
                     self.logError("'continue' statement may only be used within the scope of a 'loop' statement.", err_n)
                 print("(semantic)(dbg) FOUND 'continue' !!!")
