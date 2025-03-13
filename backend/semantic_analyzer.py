@@ -559,7 +559,7 @@ class SemanticAnalyzer:
                 if val > Decimal(self.MAX_DOUBLE) or val < Decimal(self.MIN_DOUBLE):
                     self.logError(f"Value {val} is out of 'double' range.", err_n)
 
-        print(f"RETURNED FROM NODE_NUM: {(node.dtype, val)} using node: {node.val_t}")
+        print(f"RETURNED FROM NODE_NUM: {(node.dtype, val), err_n} using node: {node.val_t}")
         return (('lit', node.dtype), val, err_n) 
         # return (('lit', node.dtype), None)
     
@@ -998,7 +998,7 @@ class SemanticAnalyzer:
 
 
         print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
-        return (('lit', f'{func_symbol["dtype"][1]}'), val) 
+        return (('lit', f'{func_symbol["dtype"][1]}'), val, None) 
 
     
     def check_function_params(self, func_symbol, args, node_id, call_string):
@@ -1365,7 +1365,7 @@ class SemanticAnalyzer:
                 self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", arrdec_node.id_n)
             if size_1 < 1:
                 self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 1st Dimension size less than 1.", arrdec_node.id_n)
-            size_2_type, size_2 = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None)
+            size_2_type, size_2, _ = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None)
             
             if size_2_type and size_2_type[1] not in ['int', 'long']:
                 self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", arrdec_node.id_n)
