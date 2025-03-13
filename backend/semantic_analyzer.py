@@ -2157,7 +2157,7 @@ class SemanticAnalyzer:
                     case "long":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_LONG or result < self.MIN_LONG:
-                                self.logError(f"Value '{result[1]}' is out of 'long' range for 'return' value.", err_n)
+                                self.logError(f"Value '{result}' is out of 'long' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type != "int":
@@ -2166,7 +2166,7 @@ class SemanticAnalyzer:
                     case "float":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_FLOAT or result < self.MIN_FLOAT:
-                                self.logError(f"Value '{result[1]}' is out of 'float' range for 'return' value.", err_n)
+                                self.logError(f"Value '{result}' is out of 'float' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type != "int":
@@ -2175,7 +2175,7 @@ class SemanticAnalyzer:
                     case "double":
                         if actual_return_type not in ["string", "bool"]:
                             if result > self.MAX_DOUBLE or result < self.MIN_DOUBLE:
-                                self.logError(f"Value '{result[1]}' is out of 'double' range for 'return' value.", err_n)
+                                self.logError(f"Value '{result}' is out of 'double' range for 'return' value.", err_n)
                         
                         if expected_return_type != actual_return_type:
                             if actual_return_type not in ["int", "float", "long"]:
