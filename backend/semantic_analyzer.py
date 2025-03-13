@@ -597,7 +597,7 @@ class SemanticAnalyzer:
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
 
             print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
-            return (iden_symbol.get("dtype", None), iden_symbol.get("value", None))
+            return (iden_symbol.get("dtype", None), iden_symbol.get("value", None), err_n)
             # return (('var', iden_symbol["dtype"][1]), None)
         
     def visit_node_arr_idx(self, node):
