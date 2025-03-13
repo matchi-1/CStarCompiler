@@ -509,10 +509,22 @@ class SemanticAnalyzer:
             self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
 
         arr_sym = obj_info["obj_info"][class_elem]
-        if arr_sym["dtype"][0] != 'arr':
-            self.logError(f'Symbol \'{node.obj_id_n.id_t["tokenName"]}\' is not an array.', node.obj_id_n)
         dtype = arr_sym["dtype"][1]
         idx_type, idx_val, err_n = self.visit_node(node.idx_n)
+
+        if arr_sym["dtype"][0] != 'arr':
+            if not node.idx2_n and dtype == 'string':
+                if idx_type[1] not in ['int', 'long']:
+                    self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.', err_n)
+                if idx_val < 0:
+                        self.logError("String index cannot be negative.", err_n)
+                if idx_val >= len(arr_sym["value"]):
+                    self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.', err_n)
+                return (('lit', 'string'), arr_sym["value"][idx_val], err_n)
+            else:
+                self.logError(f'Symbol \'{node.obj_id_n.id_t["tokenName"]}\' is not an array.', node.obj_id_n)
+
+        
         
         if idx_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.', err_n)
