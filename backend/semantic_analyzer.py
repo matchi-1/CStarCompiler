@@ -481,9 +481,10 @@ class SemanticAnalyzer:
             self.logError(f"Element '{class_elem}' is a private element within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
 
         print(f"(semantic)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
-        return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])  
+        return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"], err_n_obj)  
 
     def visit_node_class_arr_idx(self, node):
+        err_n_obj = ErrorNode(node.obj_id_n.id_t["tokenLine"], node.obj_id_n.id_t["tokenCol"] - len(node.obj_id_n.id_t["tokenName"]) - 1)
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.att_id_n.id_t["tokenName"]
 
@@ -509,31 +510,31 @@ class SemanticAnalyzer:
 
         arr_sym = obj_info["obj_info"][class_elem]
         if arr_sym["dtype"][0] != 'arr':
-            self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.')
+            self.logError(f'Symbol {node.id_n.id_t["tokenName"]} is not an array.', node.id_n)
         dtype = arr_sym["dtype"][1]
-        idx_type, idx_val = self.visit_node(node.idx_n)
+        idx_type, idx_val, err_n = self.visit_node(node.idx_n)
         
         if idx_type[1] not in ['int', 'long']:
-            self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.')
+            self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.', err_n)
         if idx_val < 0:
                 self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
         if idx_val >= arr_sym["arr_info"]["size1"]:
-            self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.')
+            self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', err_n)
         idx2_val = None
         if node.idx2_n:
             if arr_sym["arr_info"]["dimension"] == 1:
-                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.')
+                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.', err_n)
             idx2_type, idx2_val = self.visit_node(node.idx2_n)
             if idx2_type[1] not in ['int', 'long']:
-                self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.')
+                self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.', err_n)
             if idx2_val < 0:
                 self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
             if idx2_val >= arr_sym["arr_info"]["size2"]:
-                self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.')
+                self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', err_n)
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
-                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
-        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val])
+                self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.', err_n)
+        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], err_n_obj)
 
     def visit_node_num(self, node):
         val = 0
@@ -962,9 +963,9 @@ class SemanticAnalyzer:
             if idx2_val is not None and (idx2_val < 0 or (att_info["arr_info"]["size2"] is not None and idx2_val >= att_info["arr_info"]["size2"])):
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
 
-        value_type, value = self.visit_node(node.value_n)
+        value_type, value, err_n = self.visit_node(node.value_n)
         if value_type[1] != att_arr_dtype:
-            self.logError(f"Type Mismatch: expected '{att_arr_dtype}' for array '{att_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
+            self.logError(f"Type Mismatch: expected '{att_arr_dtype}' for array '{att_name}' but found '{value_type[1]}'.", err_n)
 
         # Update the array value in the symbol table (for code generation purposes)
         # if arr_dim == 1:
