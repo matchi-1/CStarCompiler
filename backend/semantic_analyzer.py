@@ -1223,8 +1223,10 @@ class SemanticAnalyzer:
 
     #node_var_dec
     def visit_node_vardec(self, node, priv = False):
+        err_n = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"]) - 1)
+
         if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
-            self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", node.id_n)
+            self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
         const = node.const_b
         dtype = ('var', node.dtype_t["tokenName"])
         id = node.id_n.id_t["tokenName"]
@@ -2053,7 +2055,7 @@ class SemanticAnalyzer:
             case_type, case_val, err_n = self.visit_node(case_stmt.case_value_n)
 
             if case_val in case_value_list:
-                self.logError(f"'switch' statement already contains case value '{case_val}'", err_n)
+                self.logError(f"'switch' statement already contains case value '{case_val}'.", err_n)
             
             if case_type[1] != switch_type[1]:
                 if (switch_type[1] != "long") and (case_type[1] != "int"):
