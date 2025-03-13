@@ -1011,7 +1011,7 @@ class SemanticAnalyzer:
 
 
         print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
-        return (('lit', f'{func_symbol["dtype"][1]}'), val, None) 
+        return (('lit', f'{func_symbol["dtype"][1]}'), val, node.id_n) 
 
     
     def check_function_params(self, func_symbol, args, node_id, call_string):
@@ -1159,7 +1159,7 @@ class SemanticAnalyzer:
         else:
             val = self.default_vals[class_info[class_elem]["dtype"][1]]
 
-        return (class_info[class_elem]["dtype"], val)
+        return (class_info[class_elem]["dtype"], val, node.obj_id_n)
     
     # var / arr dec helper function for type and range checking
     def check_type_and_range(self, dec_type, dtype, val_type, id_n, value, index_1D = None, index_2D = None, err_n = None):
