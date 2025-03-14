@@ -75,9 +75,10 @@ class SymbolTable:
             self.parent.print_symbol_tree(indent + 1)  # Move up the tree
 
 class ErrorNode:
-    def __init__(self, line, startCol):
+    def __init__(self, line, startCol, id_t = None):
         self.line = line
         self.startCol = startCol
+        self.id_t = id_t
 
 class SemanticAnalyzer:
 
@@ -616,7 +617,7 @@ class SemanticAnalyzer:
     
     def visit_node_iden(self, node):
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
-        err_n = ErrorNode(node.id_t["tokenLine"], node.id_t["tokenCol"] - len(node.id_t["tokenName"]) - 1)
+        err_n = ErrorNode(node.id_t["tokenLine"], node.id_t["tokenCol"] - len(node.id_t["tokenName"]) - 1, node.id_t)
         if not iden_symbol:
             self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", err_n)
         else:
@@ -635,11 +636,7 @@ class SemanticAnalyzer:
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
                 case 'class':
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
-                case 'arr':
-                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
-                case 'object':
-                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
-  
+                
             print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
             return (iden_symbol.get("dtype", None), iden_symbol.get("value", None), err_n)
             # return (('var', iden_symbol["dtype"][1]), None)
@@ -1220,15 +1217,15 @@ class SemanticAnalyzer:
                 index += f"[{index_2D}]"
         
         print("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
-        # match val_type[0]:
-        #     case 'func':
-        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
-        #     case 'class':
-        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
-        #     case 'arr':
-        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
-        #     case 'object':
-        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
+        match val_type[0]:
+            case 'func':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
+            case 'class':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
+            case 'arr':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
+            case 'object':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
   
         match dtype[1]:
             case "int":
