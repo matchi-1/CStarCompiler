@@ -635,7 +635,11 @@ class SemanticAnalyzer:
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
                 case 'class':
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
-
+                case 'arr':
+                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
+                case 'object':
+                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
+  
             print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
             return (iden_symbol.get("dtype", None), iden_symbol.get("value", None), err_n)
             # return (('var', iden_symbol["dtype"][1]), None)
@@ -1216,7 +1220,16 @@ class SemanticAnalyzer:
                 index += f"[{index_2D}]"
         
         print("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
-
+        # match val_type[0]:
+        #     case 'func':
+        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
+        #     case 'class':
+        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
+        #     case 'arr':
+        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
+        #     case 'object':
+        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
+  
         match dtype[1]:
             case "int":
                 if val_type[1] not in ["string", "bool"]:
