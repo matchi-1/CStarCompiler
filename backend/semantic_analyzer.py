@@ -915,13 +915,14 @@ class SemanticAnalyzer:
             self.logError(f"Cannot assign to class element '{att_name}' because it is not an attribute.", node.class_att_n.att_id_n)
 
 
-        dtype = att_info["dtype"][1]
+        dtype = att_info["dtype"]
         val_type, val, err_n = self.visit_node(value)
         print(f">>>>>>>>>>>>>>>>dtype: {dtype}, val_type: {val_type}, val: {val}")
 
+        self.check_type_and_range("variable", dtype, val_type, val, node.class_att_n.att_id_n, err_n = err_n)
 
-        if dtype != val_type[1]:
-            self.logError(f"Type Mismatch: expected '{dtype}' for attribute '{att_name}' but found '{val_type[1]}'", node.class_att_n.att_id_n)
+        #if dtype != val_type[1]:
+        #    self.logError(f"Type Mismatch: expected '{dtype}' for attribute '{att_name}' but found '{val_type[1]}'", node.class_att_n.att_id_n)
 
         # self.curr_scope.set(att_name, val, dtype=dtype) #for code gen na e2 ryt TODO
         att_info["value"] = val
@@ -987,6 +988,7 @@ class SemanticAnalyzer:
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
 
         value_type, value, err_n = self.visit_node(node.value_n)
+        
         if value_type[1] != att_arr_dtype:
             self.logError(f"Type Mismatch: expected '{att_arr_dtype}' for array '{att_name}' but found '{value_type[1]}' instead.", err_n)
 
