@@ -695,6 +695,7 @@ class SemanticAnalyzer:
                         "dtype": ("var", param.dtype_t["tokenName"])
                     })  
         
+        self.current_function_name = func_name
         # sample parameter format
         # [
         #     {"type": "var", "dtype": "int"},
@@ -1006,7 +1007,7 @@ class SemanticAnalyzer:
         val = None
         if func_symbol["dtype"][1] == 'void':
             if expected_val:
-                self.logError("Function '{func_name}' is void and cannot return any value, it cannot be used as a value.", node.id_n)
+                self.logError(f"Function '{func_name}' is void and cannot return any value, it cannot be used as a value.", node.id_n)
         else:
             val = self.default_vals[func_symbol["dtype"][1]]
 
