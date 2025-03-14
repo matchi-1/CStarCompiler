@@ -864,8 +864,15 @@ class SemanticAnalyzer:
             self.logError(f"Array '{arr_name}' is a constant and cannot be modified.", arr_node.id_n)
 
         arr_dtype = arr_symbol["dtype"][1]
+        if arr_symbol["dtype"][0] != 'arr':
+            if arr_dtype == 'string':
+                self.logError(f"Strings are not mutable by index.", arr_node.id_n)
+            else:
+                self.logError(f'Symbol {arr_name} is not an array.', arr_node.id_n)
+
         arr_dim = arr_symbol["arr_info"]["dimension"]
 
+        
         if arr_dim == 1 and arr_node.idx2_n:
             self.logError(f"Array '{arr_name}' is 1-dimensional but accessed with 2 indices.", arr_node.id_n)
         elif arr_dim == 2 and not arr_node.idx2_n:
