@@ -22,7 +22,7 @@ PREDICT_SETS = {
     "rel_operator" : ["==", "!=", "<", "<=", ">", ">="],
     "logic_operator" : ["&&", "||"],
     "iden_mods" : ["(", "[", "."],  # TO ADD 
-    "int_val" : ["++", "--", "whole_lit", "Identifier", "-", "(", "in"],
+    "arith_exp" : [ "-", "(", "bool_lit", "whole_lit", "frac_lit", "string_lit", "in", "--," "++", "Identifier"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "bool_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", ",", ";"],
@@ -47,6 +47,7 @@ PREDICT_SETS = {
     "input_params": ["string_lit"],
     "var_dec_cont" : ["=", ",", ";", "["],
     "params_dec" : ["bool", "string", "int", "long", "double", "float", "Identifier", ")"],
+    "classinst_cont" : ["=", ";"],
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]   #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -839,7 +840,7 @@ class SyntaxAnalyzer:
     def ERROR_expected_num_value(self):
         self.logError(f"Expected numerical value. Found '{self.currToken["tokenType"] if self.currToken else "EOF"}' instead.")
     
-    def ERROR_expected_pos_integer_value(self, expected_tokens = [t for t in PREDICT_SETS["int_val"] if t != "-"]):
+    def ERROR_expected_pos_integer_value(self, expected_tokens = [t for t in PREDICT_SETS["arith_exp"] if t != "-"]):
         current_value = self.currToken["tokenType"] if self.currToken else "EOF"
         self.logError(
             f"Expected an integer value. Allowed tokens: {', '.join(expected_tokens)}. "
@@ -1295,7 +1296,6 @@ class SyntaxAnalyzer:
                     self.program_constructs(program_constructs_statement_n)
                 elif currentTokenType in PREDICT_SETS["iden_dec"]:
                     program_constructs_statement_n.append(self.iden_dec())
-                    
                 else:
                     program_constructs_statement_n.append(self.class_inst())    #initial prog construct ast
                     
@@ -1566,15 +1566,19 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == "[":
                 self.logError("Array of objects is not supported. Expected '=' or ';'")
             
-            if self.currToken and self.currToken["tokenType"] == '=': # check if there is object instantiation
+            elif self.currToken and self.currToken["tokenType"] == '=': # check if there is object instantiation
                 class_instcont_n = self.classinst_cont()
-
+            else:
+                self.matchPredictSet("classinst_cont", False)
+            
             # Match terminating symbol
             if self.currToken and self.currToken["tokenType"] == ';':
                 self.match(";")
-                return node_class_inst(class_id_n, obj_id_n, class_instcont_n)
             else:
                 self.ERROR_terminating_token(";")
+            
+            return node_class_inst(class_id_n, obj_id_n, class_instcont_n)
+            
 
             
     
@@ -1956,7 +1960,7 @@ class SyntaxAnalyzer:
         node_temp = None
         if (self.currToken and self.currToken["tokenType"] == "["):
             self.match("[")
-            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_exp"]:
                 val_temp = self.arith_exp(["]"])
                 if not val_temp:
                     is_valid_value = False
@@ -2778,7 +2782,7 @@ class SyntaxAnalyzer:
         
         if self.currToken:
             self.match(",")
-            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["int_val"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_exp"]:
                 ret = self.arith_exp([")"])
                 if not ret:
                     self.ERROR_expected_int_value_in_stmt()
@@ -2861,7 +2865,7 @@ class SyntaxAnalyzer:
 
 
     def array1D_iden_rec(self, arr_dec_rec_temp_n = []):
-        '''<array1D_iden_rec> → , Identifier [<int_val>] <array1D_iden_rec> | λ'''
+        '''<array1D_iden_rec> → , Identifier [<arith_exp>] <array1D_iden_rec> | λ'''
         print("(parser) entered production: \"array1D_iden_rec\"")
         if self.currToken:
             self.match(",")
@@ -2941,7 +2945,7 @@ class SyntaxAnalyzer:
             return node_arr_dec(const_b, dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, None)
 
     def array2D_iden_rec(self, arr_dec_rec_temp_n = []):
-            '''<array2D_iden_rec> → , Identifier [<int_val>] [<int_val>] <array2D_iden_rec> | λ'''
+            '''<array2D_iden_rec> → , Identifier [<arith_exp>] [<arith_exp>] <array2D_iden_rec> | λ'''
             print("(parser) entered production: \"array2D_iden_rec\"")
             if self.currToken:
 

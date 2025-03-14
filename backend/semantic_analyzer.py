@@ -197,7 +197,7 @@ class SemanticAnalyzer:
                 f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
             )
         elif isinstance(err_n, node_iden):
-            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"])
+            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"]) + 1
             full_message = (
                 f"Semantic Error ({err_n.id_t['tokenLine']}, {col}): {msg}"
             )
@@ -458,12 +458,12 @@ class SemanticAnalyzer:
             
             class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"]
             
-            err_n_class_inst = ErrorNode(class_inst_cont.class_id_n.id_t["tokenLine"], class_inst_cont.class_id_n.id_t["tokenCol"] - len(class_inst_cont.class_id_n.id_t["tokenName"]) - 1)
+            
             if constructor_call_id != class_id:
-                self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", err_n_class_inst)
+                self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
             
             if not class_constructor_info:
-                self.logError(f"Class '{class_id}' has no defined constructor function.",node.class_id_n)
+                self.logError(f"Class '{class_id}' has no defined constructor function.", class_inst_cont.class_id_n)
         
             self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
 
