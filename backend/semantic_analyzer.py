@@ -884,8 +884,10 @@ class SemanticAnalyzer:
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", arr_node.id_n)
 
         value_type, value, _ = self.visit_node(node.value_n)
-        if value_type[1] != arr_dtype:
-            self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
+        err_n = ErrorNode(node.id_arr_n.id_t["tokenLine"], node.id_arr_n.id_t["tokenCol"] - len(node.id_arr_n.id_t["tokenName"]) - 1)
+        self.check_type_and_range("attribute array", arr_dtype, value_type, value, node.id_n, err_n = err_n)
+        # if value_type[1] != arr_dtype:
+        #     self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
 
         # Update the array value in the symbol table (for code generation purposes)
         # if arr_dim == 1:
@@ -986,9 +988,13 @@ class SemanticAnalyzer:
             if idx2_val is not None and (idx2_val < 0 or (att_info["arr_info"]["size2"] is not None and idx2_val >= att_info["arr_info"]["size2"])):
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
 
-        value_type, value, err_n = self.visit_node(node.value_n)
-        if value_type[1] != att_arr_dtype:
-            self.logError(f"Type Mismatch: expected '{att_arr_dtype}' for array '{att_name}' but found '{value_type[1]}' instead.", err_n)
+        value_type, value, _ = self.visit_node(node.value_n)
+        err_n = ErrorNode(node.class_arr_n.att_id_n.id_t["tokenLine"], node.class_arr_n.att_id_n.id_t["tokenCol"] - len(node.class_arr_n.att_id_n.id_t["tokenName"]) - 1)
+        self.check_type_and_range("attribute array", att_info["dtype"], value_type, value, node.class_arr_n.att_id_n, err_n = err_n)
+
+        # value_type, value, err_n = self.visit_node(node.value_n)
+        # if value_type[1] != att_arr_dtype:
+        #     self.logError(f"Type Mismatch: expected '{att_arr_dtype}' for array '{att_name}' but found '{value_type[1]}' instead.", err_n)
 
         # Update the array value in the symbol table (for code generation purposes)
         # if arr_dim == 1:
