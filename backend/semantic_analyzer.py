@@ -541,8 +541,8 @@ class SemanticAnalyzer:
 
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
-                if idx_type[1] not in ['int', 'long']:
-                    self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.', err_n)
+                if idx_type[1] not in ['int']:
+                    self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', err_n)
                 if idx_val < 0:
                         self.logError("String index cannot be negative.", err_n)
                 if idx_val >= len(arr_sym["value"]):
@@ -553,8 +553,8 @@ class SemanticAnalyzer:
 
         
         
-        if idx_type[1] not in ['int', 'long']:
-            self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.', err_n)
+        if idx_type[1] not in ['int']:
+            self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', err_n)
         if idx_val < 0:
                 self.logError(f"Array index for '{class_elem}' cannot be negative.", err_n)
         if idx_val >= arr_sym["arr_info"]["size1"]:
@@ -566,8 +566,8 @@ class SemanticAnalyzer:
                     self.logError("String indexing is not allowed for array elements.", err_n)
                 self.logError(f'Array \'{class_elem}\' is 1-dimensional but accessed with 2 indices.', err_n)
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
-            if idx2_type[1] not in ['int', 'long']:
-                self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.', err_n)
+            if idx2_type[1] not in ['int']:
+                self.logError(f'Type mismatch: expected whole positive integer but got {idx2_type[1]}.', err_n)
             if idx2_val < 0:
                 self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
             if idx2_val >= arr_sym["arr_info"]["size2"]:
@@ -654,8 +654,8 @@ class SemanticAnalyzer:
 
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
-                if idx_type[1] not in ['int', 'long']:
-                    self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.', idx_err)
+                if idx_type[1] not in ['int']:
+                    self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', idx_err)
                 if idx_val < 0:
                         self.logError("String index cannot be negative.", idx_err)
                 if idx_val >= len(arr_sym["value"]):
@@ -665,8 +665,8 @@ class SemanticAnalyzer:
                 self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' is not an array.', arr_id_err)
 
     
-        if idx_type[1] not in ['int', 'long']:
-            self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.'. idx_err)
+        if idx_type[1] not in ['int']:
+            self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.'. idx_err)
         if idx_val < 0:
                 self.logError("Array index cannot be negative.", idx_err)
         if idx_val >= arr_sym["arr_info"]["size1"]:
@@ -679,8 +679,8 @@ class SemanticAnalyzer:
                     self.logError("String indexing is not allowed for array elements.", idx2_err)
                 self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.', idx2_err)
             
-            if idx2_type[1] not in ['int', 'long']:
-                self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.', idx2_err)
+            if idx2_type[1] not in ['int']:
+                self.logError(f'Type mismatch: expected whole positive integer but got {idx2_type[1]}.', idx2_err)
             
             if idx2_val < 0:
                 self.logError("Array index cannot be negative.", idx2_err)
@@ -1314,15 +1314,15 @@ class SemanticAnalyzer:
 
         size_1_type, size_1, _ = self.visit_node(node.size1_n)
 
-        if size_1_type[1] not in ['int', 'long']:
-            self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
+        if size_1_type[1] not in ['int']:
+            self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
         
         if size_1 < 1:
             self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
         size_2_type, size_2, _ = self.visit_node(node.size2_n) if node.size2_n else (None, None, None)
 
-        if size_2_type and size_2_type[1] not in ['int', 'long']:
-            self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
+        if size_2_type and size_2_type[1] not in ['int']:
+            self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
         print(size_2 and size_2 < 1)
         
         try:
@@ -1426,14 +1426,14 @@ class SemanticAnalyzer:
             
             size_1_type, size_1, _ = self.visit_node(arrdec_node.size1_n)
             
-            if size_1_type[1] not in ['int', 'long']:
-                self.logError(f"Type mismatch: expected whole number (integer, long) for array 1st Dimension size, but got '{size_1_type[1]}'.", arrdec_node.id_n)
+            if size_1_type[1] not in ['int']:
+                self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", arrdec_node.id_n)
             if size_1 < 1:
                 self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 1st Dimension size less than 1.", arrdec_node.id_n)
             size_2_type, size_2, _ = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None, None)
             
-            if size_2_type and size_2_type[1] not in ['int', 'long']:
-                self.logError(f"Type mismatch: expected whole number (integer, long) for array 2nd Dimension size, but got '{size_2_type[1]}'.", arrdec_node.id_n)
+            if size_2_type and size_2_type[1] not in ['int']:
+                self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", arrdec_node.id_n)
             
             if size_2 and size_2 < 1:
                 self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 2nd Dimension size less than 1.", arrdec_node.id_n)
