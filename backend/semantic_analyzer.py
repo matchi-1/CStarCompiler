@@ -219,13 +219,13 @@ class SemanticAnalyzer:
     def visit_program_node(self, node):
         #PLACEHOLDER! the real thing would iterate through      
         #self.visit_node(node.program_structure_stmts[2])
-
+        self.has_main = False
+        
         for statement in node.program_structure_stmts:
             if type(statement).__name__ == "node_body":
+                self.has_main = True
                 self.current_function_name = "main"
                 self.function_return_stack.append("void")
-                #if not statement:
-                #    self.logError(f"Function '{self.current_function_name}' must have a return statement.", statement.id_n)
 
                 self.count_return = 0
                 has_return = self.check_return_in_body(statement)
@@ -240,8 +240,13 @@ class SemanticAnalyzer:
                 self.function_return_stack.pop()
                 print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
                 self.current_function_name = None
+            
             self.visit_node(statement)
-    
+        
+        if not self.has_main:
+            self.current_function_name = "main"
+            self.logError(f"Function '{self.current_function_name}' must have a return statement.")
+
     #body PLACEHOLDER
     def visit_node_body(self, node):
         self.enter_scope(type(node).__name__)
