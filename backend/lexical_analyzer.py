@@ -1784,10 +1784,10 @@ class LexicalAnalyzer:
         """
         print('(dbg) currToken ', currToken)
         print('(dbg) ERROR msg currCol ', currCol)
-        errorMsg = f'Lexical Error ({currLine}, {currCol - len(currToken)}): {errorType} {currToken}\n'
+        errorMsg = f'Lexical Error ({currLine}, {currCol - 1}): {errorType} {currToken}\n'
         errorMsg += str(lineContent )+ '\n'
         print(f'(dbg) ERROR lineContent |{lineContent}')
-        errorMsg += '_' * (currCol - len(currToken) - 2 - leadingSpaces) + '^\n'
+        errorMsg += '_' * (currCol - 2 - leadingSpaces) + '^\n'
         if additionalInfo:
             errorMsg += additionalInfo
         print("(debug) ", errorMsg)
