@@ -881,6 +881,10 @@ class SyntaxAnalyzer:
         else:
             self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead reached EOF.")
 
+    def ERROR_inc_dec_objects(self):
+        self.logError(f"Cstar doesn't allow incrementing or decrementing object attributes.")
+
+
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
@@ -1861,6 +1865,9 @@ class SyntaxAnalyzer:
                     self.ERROR_inc_dec_not_int()
                 else:
                     self.ERROR_expected_token("Identifier")
+            
+            if self.currToken and self.currToken["tokenType"] == ".":
+                self.ERROR_inc_dec_objects()
             else:
                 print(f"RETURNED FROM VALUE CHAIN: {node_un_op(left_t, node_iden(temp_id))}")
                 return node_un_op(left_t, node_iden(temp_id))
