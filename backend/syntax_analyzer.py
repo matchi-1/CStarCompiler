@@ -22,7 +22,7 @@ PREDICT_SETS = {
     "rel_operator" : ["==", "!=", "<", "<=", ">", ">="],
     "logic_operator" : ["&&", "||"],
     "iden_mods" : ["(", "[", "."],  # TO ADD 
-    "int_val" : ["whole_lit", "Identifier", "-", "(", "in"],
+    "int_val" : ["++", "--", "whole_lit", "Identifier", "-", "(", "in"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "bool_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", ",", ";"],
