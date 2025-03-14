@@ -361,7 +361,7 @@ class SemanticAnalyzer:
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
-                    arr_val = None if not arr_dtype else self.default_vals[arr_dtype[1]]
+                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]]
                     print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
