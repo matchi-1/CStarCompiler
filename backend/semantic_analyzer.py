@@ -868,24 +868,28 @@ class SemanticAnalyzer:
         elif arr_dim == 2 and not arr_node.idx2_n:
             self.logError(f"Array '{arr_name}' is 2-dimensional but accessed with 1 index.", arr_node.id_n)
 
-        idx1_type, idx1_val, _ = self.visit_node(arr_node.idx_n)
+        idx1_type, idx1_val, idx_err = self.visit_node(arr_node.idx_n)
         if idx1_type[1] not in ['int', 'long']:
-            self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", arr_node.id_n)
+            self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", idx_err)
 
         if idx1_val is not None and (idx1_val < 0 or (arr_symbol["arr_info"]["size1"] is not None and idx1_val >= arr_symbol["arr_info"]["size1"])):  # code gen    
-            self.logError(f"Array index '{idx1_val}' out of bounds for array '{arr_name}'.", arr_node.id_n)
+            self.logError(f"Array index '{idx1_val}' out of bounds for array '{arr_name}'.", idx_err)
 
+        idx2_val = None
         if arr_dim == 2:
             idx2_type, idx2_val = self.visit_node(arr_node.idx2_n)
             if idx2_type[1] not in ['int', 'long']:
-                self.logError(f"Array index must be an integer, but found '{idx2_type[1]}'.", arr_node.id_n)
+                self.logError(f"Array index must be an integer, but found '{idx2_type[1]}'.", idx_err)
 
             if idx2_val is not None and (idx2_val < 0 or (arr_symbol["arr_info"]["size2"] is not None and idx2_val >= arr_symbol["arr_info"]["size2"])):
-                self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", arr_node.id_n)
+                self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", idx_err)
 
-        value_type, value, _ = self.visit_node(node.value_n)
-        if value_type[1] != arr_dtype:
-            self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
+        value_type, value, val_err_n = self.visit_node(node.value_n)
+
+        # check value to be assigned to array element
+        self.check_type_and_range("array", arr_symbol["dtype"], value_type, value, arr_node.id_n, idx1_val, idx2_val, err_n = val_err_n)
+        # if value_type[1] != arr_dtype:
+        #     self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
 
         # Update the array value in the symbol table (for code generation purposes)
         # if arr_dim == 1:
