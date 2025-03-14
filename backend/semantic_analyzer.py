@@ -1007,7 +1007,7 @@ class SemanticAnalyzer:
         if not func_symbol:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
         if func_symbol["dtype"][0] != 'func':
-            self.logError(f"Symbol '{func_name}' is not a function.")
+            self.logError(f"Symbol '{func_name}' is not a function.", node.id_n)
         
         self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
         #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
