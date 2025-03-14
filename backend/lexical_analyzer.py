@@ -49,9 +49,8 @@ class LexicalAnalyzer:
     plus_delim = list(set(arithmetic_delim + ['\"', '/', '-']))
     great_less_delim = list(set(arithmetic_delim + ['/', '+', '-']))
     great_delim = great_less_delim + [';']
-    equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '!','{']))
+    equal_delim = list(set(arithmetic_delim + ['\"', '/', '!', '!','{', '+', '-']))
     in_delim = newline_delim + ['<', '/']
-    this_delim = newline_delim + ['.', '/']
     void_delim = newline + whitespace + ['/']
     decrement_delim = alphabetic_chars + whitespace + newline + [';', ')', '/', '+', '*', '%', '(', ']', ',']
     subtract_assign_delim = list(set(arithmetic_delim + ['/','+','-']))
@@ -105,7 +104,7 @@ class LexicalAnalyzer:
                     case ',':  currState = 'COMMA_CHECK'
                     case '.':  currState = 'DOT_CHECK'
                     case '/':  currState = 'SLASH_CHECK'
-                    case '?':  currState = 'QUESTION_CHECK'
+                    # case '?':  currState = 'QUESTION_CHECK'
                     case ':':  currState = 'COLON_CHECK'
                     case '[':  currState = 'OPEN_BRACKET_CHECK'
                     case ']':  currState = 'CLOSING_BRACKET_CHECK'
@@ -592,22 +591,22 @@ class LexicalAnalyzer:
             
             case 's123':
                 match currChar:
-                    case 'h':  currState = 's124'
+                    # case 'h':  currState = 's124'
                     case 'r':  currState = 's128'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
         
-            case 's124':
-                match currChar:
-                    case 'i':  currState = 's125'
-                    case 'ANY':  currState = 'DEFINED'
-                    case _:   currState = 'UNDEFINED'
+            # case 's124':
+            #     match currChar:
+            #         case 'i':  currState = 's125'
+            #         case 'ANY':  currState = 'DEFINED'
+            #         case _:   currState = 'UNDEFINED'
 
-            case 's125':
-                match currChar:
-                    case 's':  currState = 'THIS_CHECK'
-                    case 'ANY':  currState = 'DEFINED'
-                    case _:   currState = 'UNDEFINED'
+            # case 's125':
+            #     match currChar:
+            #         case 's':  currState = 'THIS_CHECK'
+            #         case 'ANY':  currState = 'DEFINED'
+            #         case _:   currState = 'UNDEFINED'
 
             case 's128':
                 match currChar:
@@ -1042,13 +1041,13 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # ? symbol
-                    case 'QUESTION_CHECK':
-                        expected = ['alphanum', '(', '/', '\"'] + self.newline
-                        if (code[i] in self.question_delim):
-                            add_token(currToken, '?', currLine, currCol)
-                        else:
-                            currToken += code[i]
-                            add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
+                    # case 'QUESTION_CHECK':
+                    #     expected = ['alphanum', '(', '/', '\"'] + self.newline
+                    #     if (code[i] in self.question_delim):
+                    #         add_token(currToken, '?', currLine, currCol)
+                    #     else:
+                    #         currToken += code[i]
+                    #         add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # : symbol
                     case 'COLON_CHECK':
                         expected = ['alphanum', '(', ' ', '/'] + self.newline
@@ -1224,18 +1223,18 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # this statement
-                    case 'THIS_CHECK':
-                        expected = self.this_delim
-                        if (code[i] in self.this_delim):
-                            add_token(currToken, 'this', currLine, currCol)
-                        elif (code[i] in self.alphanum + ['_']):
-                            currToken += code[i]
-                            currState ='s215'
-                            print('(dbg) now in state 215')
-                            continue
-                        else:
-                            currToken += code[i]
-                            add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
+                    # case 'THIS_CHECK':
+                    #     expected = self.this_delim
+                    #     if (code[i] in self.this_delim):
+                    #         add_token(currToken, 'this', currLine, currCol)
+                    #     elif (code[i] in self.alphanum + ['_']):
+                    #         currToken += code[i]
+                    #         currState ='s215'
+                    #         print('(dbg) now in state 215')
+                    #         continue
+                    #     else:
+                    #         currToken += code[i]
+                    #         add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # this statement
                     case 'TRUE_CHECK':
                         expected = self.nbl_delim
