@@ -427,8 +427,9 @@ class SemanticAnalyzer:
         
         if class_inst_cont:
             constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
+            
             check_scope_class = self.curr_scope
-            while not check_scope_class.get(class_id):
+            while not check_scope_class.get(class_id, False):
                 check_scope_class = check_scope_class.parent
             
             class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"]
@@ -462,8 +463,11 @@ class SemanticAnalyzer:
         if obj_info.get("dtype")[0] != 'object':
             self.logError(f"Symbol '{obj_name}' not an object instance.", node.obj_id_n)
 
+        check_scope_class = self.curr_scope
+        while not check_scope_class.get(obj_info["dtype"][1], False):
+            check_scope_class = check_scope_class.parent
 
-        class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
+        class_info = check_scope_class.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
         class_info_no_privates = {k: v for k, v in class_info.items() if not v["priv"]}
 
         if class_info_no_privates.get(class_elem) and class_info_no_privates.get(class_elem)["dtype"][0] == 'func':
@@ -495,7 +499,10 @@ class SemanticAnalyzer:
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
-        class_info = self.curr_scope.parent.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
+        check_scope_class = self.curr_scope
+        while not check_scope_class.get(obj_info["dtype"][1], False):
+            check_scope_class = check_scope_class.parent
+        class_info = check_scope_class.get(obj_info["dtype"][1])["class_info"]["class_body_content"]
         class_info_no_privates = {k: v for k, v in class_info.items() if not v["priv"]}
 
         if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
