@@ -1174,7 +1174,7 @@ class SemanticAnalyzer:
     
     # var / arr dec helper function for type and range checking
     def check_type_and_range(self, dec_type, dtype, val_type, value, id_n = None, index_1D = None, index_2D = None, err_n = None):
-        id = id_n.id_t["tokenName"]
+        id = id_n.id_t["tokenName"] if id_n else ''
         print("PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: " + dec_type)
         print("PRINT >>>>>>>>>>>>>>>>> DTYPE: " + str(dtype))
         print("PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: " + str(val_type))
@@ -1985,7 +1985,7 @@ class SemanticAnalyzer:
                     param_type, param_value, err_n  = self.visit_node(param_node)
 
                 
-                    if not self._validate_format_specifier(specifier, param_type[1]):
+                    if not self._validate_format_specifier(specifier, param_type[1], param_value) :
                         # err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
                         print("ERERRRRRRRRRRRRRRRR err_n: " + str(err_n))
                         self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
@@ -2004,17 +2004,20 @@ class SemanticAnalyzer:
         return re.findall(r'%[sdf]|%l[df]', format_string or "")  # matches %s, %d, %f, %ld, %lf
                                                         #or statement so that we dont throw an exeption on None returns
 
-    def _validate_format_specifier(self, specifier, param_type):
+    def _validate_format_specifier(self, specifier, param_type, val):
         if specifier == "%s":
             return param_type == "string"
         elif specifier == "%d":
             return param_type == "int"
         elif specifier == "%ld":
-            return param_type == "long"
+            return param_type in ['int', 'long']
         elif specifier == "%f":
+            if param_type == 'int':
+                self.check_type_and_range('Format specifier', (None, 'float'), (None, 'int'), val)
+                return True
             return param_type == "float"
         elif specifier == "%lf":
-            return param_type == "double"
+            return param_type in ['float', 'double']
         else:
             return False
     # def visit_node_output(self, node):
