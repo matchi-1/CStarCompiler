@@ -884,9 +884,10 @@ class SemanticAnalyzer:
             if idx2_val is not None and (idx2_val < 0 or (arr_symbol["arr_info"]["size2"] is not None and idx2_val >= arr_symbol["arr_info"]["size2"])):
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", idx_err)
 
-        value_type, value, _ = self.visit_node(node.value_n)
-        err_n = ErrorNode(node.id_arr_n.id_t["tokenLine"], node.id_arr_n.id_t["tokenCol"] - len(node.id_arr_n.id_t["tokenName"]) - 1)
-        self.check_type_and_range("attribute array", arr_dtype, value_type, value, node.id_n, err_n = err_n)
+        value_type, value, val_err_n = self.visit_node(node.value_n)
+
+        # check value to be assigned to array element
+        self.check_type_and_range("array", arr_symbol["dtype"], value_type, value, arr_node.id_n, idx1_val, idx2_val, err_n = val_err_n)
         # if value_type[1] != arr_dtype:
         #     self.logError(f"Type Mismatch: expected '{arr_dtype}' for array '{arr_name}' but found '{value_type[1]}'.", node.id_arr_n.id_n)
 
