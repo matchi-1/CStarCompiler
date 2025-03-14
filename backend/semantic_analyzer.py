@@ -562,8 +562,10 @@ class SemanticAnalyzer:
         idx2_val = None
         if node.idx2_n:
             if arr_sym["arr_info"]["dimension"] == 1:
+                if dtype == "string":
+                    self.logError("String indexing is not allowed for array elements.", err_n)
                 self.logError(f'Array \'{class_elem}\' is 1-dimensional but accessed with 2 indices.', err_n)
-            idx2_type, idx2_val = self.visit_node(node.idx2_n)
+            idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
             if idx2_type[1] not in ['int', 'long']:
                 self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx2_type[1]}.', err_n)
             if idx2_val < 0:
@@ -673,6 +675,8 @@ class SemanticAnalyzer:
         if node.idx2_n:
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
             if arr_sym["arr_info"]["dimension"] == 1:
+                if dtype == 'string':
+                    self.logError("String indexing is not allowed for array elements.", idx2_err)
                 self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.', idx2_err)
             
             if idx2_type[1] not in ['int', 'long']:
@@ -864,6 +868,8 @@ class SemanticAnalyzer:
 
         
         if arr_dim == 1 and arr_node.idx2_n:
+            if arr_dtype == 'string':
+                self.logError(f"String indexing is not allowed for array elements.", arr_node.id_n)
             self.logError(f"Array '{arr_name}' is 1-dimensional but accessed with 2 indices.", arr_node.id_n)
         elif arr_dim == 2 and not arr_node.idx2_n:
             self.logError(f"Array '{arr_name}' is 2-dimensional but accessed with 1 index.", arr_node.id_n)
@@ -961,7 +967,7 @@ class SemanticAnalyzer:
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
 
         if att_info["dtype"][0] != 'arr' :      
-            if att_info["type"][1] == 'string':
+            if att_info["dtype"][1] == 'string':
                 self.logError(f"Strings are not mutable by index.", node.class_arr_n.att_id_n)
             else:
                 self.logError(f"Class element '{att_name}' cannot be indexed because it is not an array.", node.class_arr_n.att_id_n)
@@ -976,6 +982,8 @@ class SemanticAnalyzer:
         att_arr_idx2 = node.class_arr_n.idx2_n
 
         if att_arr_dim == 1 and att_arr_idx2:
+            if att_info["dtype"][1] == "string":
+                self.logError(f"String indexing is not allowed for array elements.", node.class_arr_n.att_id_n)
             self.logError(f"Array attribute '{att_name}' is 1-dimensional but accessed with 2 indices.", node.class_arr_n.att_id_n)
         elif att_arr_dim == 2 and not att_arr_idx2:
             self.logError(f"Array attribute '{att_name}' is 2-dimensional but accessed with 1 index.", node.class_arr_n.att_id_n)
