@@ -1961,7 +1961,19 @@ class SemanticAnalyzer:
         if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
             self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
             return None
-        
+        if node.prompt_n is not None:
+            prompt_type, prompt_value, prompt_err = self.visit_node(node.prompt_n)
+            if prompt_type[0] in ["arr", "object", "class"]:
+                if prompt_type[0] == "arr":
+                    self.logError(f"Symbol '{node.prompt_n}' is an array, try accessing its elements instead.", prompt_err)
+                elif prompt_type[0] == "object":
+                    self.logError(f"Symbol '{node.prompt_n}' is an object, try accessing its attributes instead.", prompt_err)
+                else:
+                    self.logError(f"Symbol '{node.prompt_n}' is a class and cannot be used as a prompt.", prompt_err)
+
+            if prompt_type is None or prompt_type[1] != 'string':
+                self.logError(f"The first parameter of an input statement must be of type 'string', but found '{prompt_type[1]}' instead.", prompt_err)
+                return None
         if node.count_n is not None:
             count_type, count_value, count_err = self.visit_node(node.count_n)
 
