@@ -197,7 +197,7 @@ class SemanticAnalyzer:
                 f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
             )
         elif isinstance(err_n, node_iden):
-            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"]) - 1
+            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"])
             full_message = (
                 f"Semantic Error ({err_n.id_t['tokenLine']}, {col}): {msg}"
             )
@@ -836,46 +836,8 @@ class SemanticAnalyzer:
         #if dtype != val_type[1]:
         #    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
         
-        match(dtype):
-            case "int":
-                if val_type[1] not in ["string", "bool"]:
-                    if val > self.MAX_INT or val < self.MIN_INT:
-                        self.logError(f"Value '{val}' is out of 'int' range for variable '{iden_name}'.", val_err)
-                
-                if val_type and dtype != val_type[1]:    
-                    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", val_err)   
-    
-            case "long":
-                if val_type[1] not in ["string", "bool"]:
-                    if val > self.MAX_LONG or val < self.MIN_LONG:
-                        self.logError(f"Value '{val}' is out of 'long' range for variable '{iden_name}'.", val_err)
-                
-                if val_type and dtype != val_type[1]:
-                    if val_type[1] != "int":
-                        self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", val_err)
-    
-            case "float":
-                if val_type[1] not in ["string", "bool"]:
-                    if val > self.MAX_FLOAT or val < self.MIN_FLOAT:
-                        self.logError(f"Value '{val}' is out of 'float' range for variable '{iden_name}'.", val_err)
-                
-                if val_type and dtype != val_type[1]:
-                    if val_type[1] != "int":
-                        self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", val_err)
-
-            case "double":
-                if val_type[1] not in ["string", "bool"]:
-                    if val > self.MAX_DOUBLE or val < self.MIN_DOUBLE:
-                        self.logError(f"Value '{val}' is out of 'double' range for variable '{iden_name}'.", val_err)
-                
-                if val_type and dtype != val_type[1]:
-                    if val_type[1] not in ["int", "float", "long"]:
-                        self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", val_err)
-
-            case _:
-                if val_type and dtype != val_type[1]:
-                    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'.", val_err)
-
+        self.check_type_and_range("variable", iden_symbol["dtype"], val_type, val, node.id_n, err_n = val_err)
+        
         self.curr_scope.set(iden_name, val, dtype=('var', f'{dtype}'))
 
 
@@ -954,7 +916,7 @@ class SemanticAnalyzer:
 
 
         dtype = att_info["dtype"][1]
-        val_type, val = self.visit_node(value)
+        val_type, val, err_n = self.visit_node(value)
         print(f">>>>>>>>>>>>>>>>dtype: {dtype}, val_type: {val_type}, val: {val}")
 
 
@@ -1009,7 +971,7 @@ class SemanticAnalyzer:
         elif att_arr_dim == 2 and not att_arr_idx2:
             self.logError(f"Array attribute '{att_name}' is 2-dimensional but accessed with 1 index.", node.class_arr_n.att_id_n)
 
-        idx1_type, idx1_val = self.visit_node(att_arr_idx1)
+        idx1_type, idx1_val, err_n = self.visit_node(att_arr_idx1)
         if idx1_type[1] not in ['int', 'long']:
             self.logError(f"Array index must be an integer, but found a '{idx1_type[1]}' instead.", node.class_arr_n.att_id_n)
 
@@ -1271,7 +1233,7 @@ class SemanticAnalyzer:
 
     #node_var_dec
     def visit_node_vardec(self, node, priv = False):
-        err_n = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"]) - 1)
+        err_n = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"]) )
 
         if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
             self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
@@ -1485,7 +1447,7 @@ class SemanticAnalyzer:
                 var_name= node.right_n.id_t["tokenName"]
             else:
                 err_n =left_err
-            self.logError(f"Direct operations on entire arrays are not allowed. Access individual elements of array '{var_name}' or use vectorized computations.", err_n)
+            self.logError(f"Direct operations on entire arrays are not allowed. Access individual elements of array '{var_name}'.", err_n)
 
         
         elif left_type[0] == 'object' or right_type[0] == 'object':
@@ -1981,57 +1943,59 @@ class SemanticAnalyzer:
         # if not print_params_n:
         #     self.logError("Output statement requires at least one parameter (format string).")
         #     return None
-        first_param = print_params_n[0]
-        first_param_type, first_param_val, err_n = self.visit_node(first_param)
-        formatted_output = ""
+        if len(print_params_n) != 0:
+            first_param = print_params_n[0]
+            first_param_type, first_param_val, err_n = self.visit_node(first_param)
+            formatted_output = ""
 
-        if first_param_type is None or first_param_type[1] != "string":
-           # self.logError("First parameter in output statement must be a string (format string).", first_param)
-            if len(print_params_n) > 1:
-                self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
-            formatted_output = str(first_param_val)
+            if first_param_type is None or first_param_type[1] != "string":
+            # self.logError("First parameter in output statement must be a string (format string).", first_param)
+                if len(print_params_n) > 1:
+                    self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
+                formatted_output = str(first_param_val)
 
-        # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
-        for param in print_params_n:
-            param_type, param_value, err_n = self.visit_node(param)
-            for i, param in enumerate(print_params_n):
-                param_type, param_value, err_n  = self.visit_node(param)
-                # entire arrays and objects are not allowed as direct output
-                if param_type[0] == 'arr':
-                    self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", err_n)
-                    return None
-                elif param_type[0] == 'object':
-                    self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", err_n)
-                    return None
-                formatted_output += str(param_value)
-        
-            # return None
-        else:
-            format_specifiers = self._extract_format_specifiers(str(first_param_val))
+            # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
+            for param in print_params_n:
+                param_type, param_value, err_n = self.visit_node(param)
+                for i, param in enumerate(print_params_n):
+                    param_type, param_value, err_n  = self.visit_node(param)
+                    # entire arrays and objects are not allowed as direct output
+                    if param_type[0] == 'arr':
+                        self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", err_n)
+                        return None
+                    elif param_type[0] == 'object':
+                        self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", err_n)
+                        return None
+                    formatted_output += str(param_value)
             
-            if len(format_specifiers) != len(print_params_n) - 1:
-                if not format_specifiers:
-                    self.logError(f"String '{first_param_val}' does not contain any format specifiers, no parameters can follow it.", err_n)
-                else:
-                    self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", err_n)
-                    return None
+                # return None
+            else:
+                format_specifiers = self._extract_format_specifiers(str(first_param_val))
+                
+                if len(format_specifiers) != len(print_params_n) - 1:
+                    if not format_specifiers:
+                        self.logError(f"String '{first_param_val}' does not contain any format specifiers, no parameters can follow it.", err_n)
+                    else:
+                        self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", err_n)
+                        return None
 
-            formatted_output = first_param_val
-            for i, specifier in enumerate(format_specifiers):
-                param_node = print_params_n[i + 1] 
-                param_type, param_value, err_n  = self.visit_node(param_node)
+                formatted_output = first_param_val
+                for i, specifier in enumerate(format_specifiers):
+                    param_node = print_params_n[i + 1] 
+                    param_type, param_value, err_n  = self.visit_node(param_node)
 
-            
-                if not self._validate_format_specifier(specifier, param_type[1]):
-                    err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
-                    self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
-                    return None
-                formatted_output = formatted_output.replace(specifier, str(param_value), 1)
+                
+                    if not self._validate_format_specifier(specifier, param_type[1]):
+                        # err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
+                        print("ERERRRRRRRRRRRRRRRR err_n: " + str(err_n))
+                        self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
+                        return None
+                    formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
-        if print_stmts_n == "println":
-            print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
-        else:
-            print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+            if print_stmts_n == "println":
+                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+            else:
+                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
 
         return None
 

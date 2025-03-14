@@ -1636,7 +1636,8 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
             # end of delim checking if statement
-    #---SPECIAL STATES---
+            
+            #---SPECIAL STATES---
             #identifier state
             if (currState == 's215'):
                 print('(dbg) in identifier check state now')
