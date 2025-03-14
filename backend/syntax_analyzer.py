@@ -740,9 +740,10 @@ class SyntaxAnalyzer:
             tokenName = "<EOF>"
         else:
             # Use current token's details
-            currLine = self.currToken["tokenLine"] -1
-            currCol = self.currToken["tokenCol"]-1
             tokenName = self.currToken["tokenName"]
+            currLine = self.currToken["tokenLine"] -1
+            currCol = self.currToken["tokenCol"] - len(tokenName) - 1
+            
 
         # full error message
         full_message = (
