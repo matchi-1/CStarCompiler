@@ -1991,7 +1991,7 @@ class LexicalAnalyzer:
         return self.generateError(errorType, currToken[:-1], currLine, currCol, lineContent, leadingSpaces, additionalInfo)
 
     def missingNumError(self, currToken, currLine, currCol, lineContent, leadingSpaces):
-        errorType = "Fractional literal must have a fractional part consisting of digits"
+        errorType = "Fractional literal must have a fractional part consisting of at least one digit: "
         return self.generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
     def idenFirstError(self, currToken, currLine, currCol, lineContent, leadingSpaces):
