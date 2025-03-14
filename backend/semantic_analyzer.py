@@ -203,7 +203,7 @@ class SemanticAnalyzer:
             )
         else:
             full_message = (
-                f"Semantic Error (#todo line nums): {msg}"
+                f"Semantic Error: {msg}"
             )
         self.errors.append(full_message)
         #print(full_message)
@@ -221,6 +221,25 @@ class SemanticAnalyzer:
         #self.visit_node(node.program_structure_stmts[2])
 
         for statement in node.program_structure_stmts:
+            if type(statement).__name__ == "node_body":
+                self.current_function_name = "main"
+                self.function_return_stack.append("void")
+                #if not statement:
+                #    self.logError(f"Function '{self.current_function_name}' must have a return statement.", statement.id_n)
+
+                self.count_return = 0
+                has_return = self.check_return_in_body(statement)
+                if not has_return:
+                    if self.count_return:
+                        self.logError(f"Function '{self.current_function_name}' must have a return statement in all possible code paths.")
+                    else:
+                        self.logError(f"Function '{self.current_function_name}' must have a return statement.")
+                    
+                self.visit_node(statement)
+
+                self.function_return_stack.pop()
+                print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+                self.current_function_name = None
             self.visit_node(statement)
     
     #body PLACEHOLDER
