@@ -775,7 +775,7 @@ class SyntaxAnalyzer:
             self.logError(f"Unexpected EOF: Expected '{expected_token}', but reached EOF.")
         else:
             self.logError(
-                f"Unexpected token '{self.currToken['tokenName']}'. Expected {expected_token}."
+                f"Unexpected token '{self.currToken['tokenName']}'. Expected '{expected_token}'."
             )
 
     # If no main function was found throughout the whole program
@@ -838,14 +838,14 @@ class SyntaxAnalyzer:
             f"Encountered: '{current_value}'."
         )
 
-    def ERROR_main_void_return(self):
-        if not self.currToken:
-            self.logError("Expected ';' to terminate the return statement, but reached end of file. Use 'return;' to exit the main function successfully.")
-        elif self.currToken["tokenType"] != ";":
-            self.logError(f"Expected ';' to terminate the return statement, but found '{self.currToken['tokenName']}' instead. Use 'return;' to exit the main function successfully.")
+    # def ERROR_main_void_return(self):
+    #     if not self.currToken:
+    #         self.logError("Expected ';' to terminate the return statement, but reached end of file. Use 'return;' to exit the main function successfully.")
+    #     elif self.currToken["tokenType"] != ";":
+    #         self.logError(f"Expected ';' to terminate the return statement, but found '{self.currToken['tokenName']}' instead. Use 'return;' to exit the main function successfully.")
 
-    def ERROR_main_missing_return(self):
-        self.logError("Missing return statement in main function. Use 'return;' to exit the main function successfully.")
+    # def ERROR_main_missing_return(self):
+    #     self.logError("Missing return statement in main function. Use 'return;' to exit the main function successfully.")
 
     def ERROR_array_as_param_no_val(self):
         if self.currToken:
@@ -920,14 +920,14 @@ class SyntaxAnalyzer:
                     print("(parser) production: \"main_body\" detected")
                     program_stmts.append(self.body(["}"], True)) # isVoid = True here
 
-                    if not self.match("return") and not self.hasMainReturn:
-                        self.ERROR_main_missing_return()
+                    # if not self.match("return") and not self.hasMainReturn:
+                    #     self.ERROR_main_missing_return()
 
                     # if not self.currToken or self.currToken["tokenType"] != ";" and not self.hasMainReturn:
                     #     self.ERROR_main_void_return()
                     
-                    if not self.match(";") and not self.hasMainReturn:
-                        self.ERROR_main_void_return()  # prolly wont throw this error bc return is now in body
+                    # if not self.match(";") and not self.hasMainReturn:
+                    #     self.ERROR_main_void_return()  # prolly wont throw this error bc return is now in body
 
                     if not self.match("}"):
                         self.ERROR_unclosed_curly_braces()
@@ -2255,7 +2255,7 @@ class SyntaxAnalyzer:
                 self.logError("Non-Void functions must return a value.")
             
             elif isVoid and self.currToken["tokenType"] != ";":
-                self.logError(f"Void functions cannot return a value. Return statements must be terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else "EOF"}'.")        
+                self.logError(f"Void functions cannot return a value. Return statements in void functionts must be immediately terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else "EOF"}'.")        
         if not isVoid:
             ret_value_n = self.value([";"])
 
