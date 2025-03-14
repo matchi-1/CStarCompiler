@@ -46,6 +46,7 @@ PREDICT_SETS = {
     "case_value": ["whole_lit", "string_lit", "-"],
     "input_params": ["string_lit"],
     "var_dec_cont" : ["=", ",", ";", "["],
+    "params_dec" : ["bool", "string", "int", "long", "double", "float", "Identifier", ")"],
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]   #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -1341,6 +1342,7 @@ class SyntaxAnalyzer:
                 else:
                     self.logError("Expected Identifier for function declaration.")
                 self.match("(", False)
+                self.matchPredictSet("params_dec", False)
                 if not self.hasMainFunction:
                     return self.params_dec_start(void_t, id_temp_n, isVoid)
                 else:
@@ -1421,6 +1423,7 @@ class SyntaxAnalyzer:
         if not self.hasMainFunction:
             print(f"(parser) production: \"params_dec_start\" detected , isVoid = {isVoid}")
             self.match("(")
+            self.matchPredictSet("params_dec", False)
             params_n = self.params_dec([])
             if not self.match(")", True):
                 self.ERROR_unclosed_parentheses()
@@ -1507,14 +1510,15 @@ class SyntaxAnalyzer:
                 params_dec_n = []
                 code_block_n = []
                 print("(parser) production: \"constructor_dec\" detected")
-                if self.currToken["tokenName"] != self.classNames[-1]: 
-                    self.logError("Constructors must have the same name as its class.") 
-                    #TODO: maybe fix error message here, just a placeholder
+                
 
                 class_id_n = node_iden(self.match("Identifier", False))
                 
                 self.match("(", False)
                 params_dec_n = self.params_dec([])
+
+                self.matchPredictSet("params_dec", False)
+
                 if not self.match(")"):
                     self.ERROR_unclosed_parentheses()
 
@@ -1611,7 +1615,7 @@ class SyntaxAnalyzer:
                 self.func_arg_rec(func_arg_n)
         else:
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                self.logError(f"Unexpected token: '{self.currToken["tokenName"]}'. Function call arguments cannot accept declarations.")
+                self.logError(f"Unexpected token: '{self.currToken["tokenName"]}'. Function call arguments cannot accept declarations.\nExpected {PREDICT_SETS["value"]+[")"]}")
             elif self.currToken and self.currToken["tokenType"] != ")":
                 self.ERROR_expected_token(PREDICT_SETS["value"]+[")"])
             else: 
