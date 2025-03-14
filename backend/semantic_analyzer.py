@@ -1951,7 +1951,7 @@ class SemanticAnalyzer:
         err_n = ErrorNode(node.in_stmt_t["tokenLine"], node.in_stmt_t["tokenCol"] - len(node.in_stmt_t["tokenName"]) - 1)
 
         if not hasattr(node, 'type_t'):
-            self.logError("Input node is missing the 'type_t' attribute.", node)
+            self.logError("Input node is missing the 'type_t' attribute.", err_n)
             return None
 
         expected_dtype = node.type_t["tokenName"] 
@@ -1959,9 +1959,49 @@ class SemanticAnalyzer:
         # print(f"(semantic)(dbg) Expected Data Type: {expected_dtype}")
 
         if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
-            self.logError(f"Unsupported data type for input: {expected_dtype}", node)
+            self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
             return None
-        value = self.default_vals[expected_dtype]
+        
+        if node.count_n is not None:
+            count_type, count_value, count_err = self.visit_node(node.count_n)
+
+            if count_type is None or count_type[1] not in ["int", "long"]:
+                self.logError("The second parameter must be an integer.", count_err)
+                return None
+
+            if count_value <= 0:
+                self.logError("The second parameter must be a non-zero, positive integer.", count_err)
+                return None
+
+            if hasattr(node.count_n, 'var_name'):
+                var_name = node.count_n.var_name
+                var_type = self.get_variable_type(var_name)  
+
+                if var_type not in ["int", "long"]:
+                    self.logError(f"The variable '{var_name}' used as the second parameter must be an integer.", count_err)
+                    return None
+
+        input_length_value = self.default_vals[expected_dtype]
+        try:
+            if expected_dtype == "int":
+                value = int(input_length_value)  
+            elif expected_dtype == "long":
+                value = int(input_length_value)  
+            elif expected_dtype == "float":
+                value = float(input_length_value) 
+            elif expected_dtype == "double":
+                value = float(input_length_value)  
+            elif expected_dtype == "string":
+                value = str(input_length_value)  
+            elif expected_dtype == "bool":
+                value = bool(input_length_value)  
+            else:
+                self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
+                return None
+        except ValueError:
+            self.logError(f"Cannot convert input '{value}' to '{expected_dtype}'.", err_n)
+            return None
+        
         print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), value)}")
         return (('lit', expected_dtype), value, err_n)
     
