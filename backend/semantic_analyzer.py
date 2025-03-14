@@ -962,12 +962,16 @@ class SemanticAnalyzer:
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
 
         if att_info["dtype"][0] != 'arr' :      
-            self.logError(f"Class element '{att_name}' cannot be indexed because it is not an array.", node.class_arr_n.att_id_n)
+            if att_info["type"][1] == 'string':
+                self.logError(f"Strings are not mutable by index.", node.class_arr_n.att_id_n)
+            else:
+                self.logError(f"Class element '{att_name}' cannot be indexed because it is not an array.", node.class_arr_n.att_id_n)
 
         if att_info["const"]:
             self.logError(f"Array attribute '{att_name}' is a constant and cannot be reassigned.", node.class_arr_n.att_id_n)
 
         att_arr_dtype = att_info["dtype"][1]
+        
         att_arr_dim = att_info["arr_info"]["dimension"]
         att_arr_idx1 = node.class_arr_n.idx_n
         att_arr_idx2 = node.class_arr_n.idx2_n
