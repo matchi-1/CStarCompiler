@@ -1745,7 +1745,7 @@ class SemanticAnalyzer:
         match node.right_t["tokenName"]:
             case '++':
                 print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
-                left_sym = self.curr_scope.get(node.left_n.id_t["tokenName"])
+                left_sym = self.curr_scope.get(node.id_left_n.id_t["tokenName"])
                 if left_sym["const"]:
                     self.logError("Constant symbols cannot be modified.", left_err)
                 if left_type[1] not in ["int", "long"]:
@@ -1760,7 +1760,7 @@ class SemanticAnalyzer:
                 # return (left_type, None)
             case '--':
                 print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
-                left_sym = self.curr_scope.get(node.left_n.id_t["tokenName"])
+                left_sym = self.curr_scope.get(node.id_left_n.id_t["tokenName"])
                 if left_sym["const"]:
                     self.logError("Constant symbols cannot be modified.", left_err)
                 if left_type[1] not in ["int", "long"]:
@@ -1783,7 +1783,7 @@ class SemanticAnalyzer:
 
         match node.left_t["tokenName"]:
             case '++':
-                right_sym = self.curr_scope.get(node.id_right_n.id_t["tokenName"])
+                right_sym = self.curr_scope.get(node.iden_n.id_t["tokenName"])
                 if right_sym["const"]:
                     self.logError("Constant symbols cannot be modified.", right_err)
                 if right_type[1] not in ["int", "long"]:
@@ -1797,7 +1797,7 @@ class SemanticAnalyzer:
                 return (right_type, right_val + 1, left_err)
                 # return (right_type, None)
             case '--':
-                right_sym = self.curr_scope.get(node.id_right_n.id_t["tokenName"])
+                right_sym = self.curr_scope.get(node.iden_n.id_t["tokenName"])
                 if right_sym["const"]:
                     self.logError("Constant symbols cannot be modified.", right_err)
                 if right_type[1] not in ["int", "long"]:
