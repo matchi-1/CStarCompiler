@@ -1092,19 +1092,20 @@ class SemanticAnalyzer:
                 print(">>>>>>>>>>>>>>>>>>>>>> arg_value_flag: " + str(arg_arr_att_flag))
                 print(">>>>>>>>>>>>>>>>>>>>>> node type: " + str(type(arg_node).__name__))
 
-                self.visit_node(arg_node)
+                arg_val_type, arg_val, arg_err_n = self.visit_node(arg_node)
 
                 if param_type["dtype"][0] == "var":
                     if arg_val_type[0] != "lit" or arg_arr_att_flag:  # values and vars are treated the sme type
                         if arg_val_type[0] == 'arr' : # value  vs  array 
                             if not arg_arr_att_flag: # value  vs  array as a whole
-                                self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype'][1]}' but found an array of type '{arg_val_type[1]}'.", node_id)
+                                self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype'][1]}' but found an array of type '{arg_val_type[1]}'.", arg_err_n)
 
                         elif arg_val_type[0] == 'object': # value  vs  object
-                            self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype'][1]}' but found an object of class '{arg_val_type[1]}'.", node_id)
+                            self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected a value of type '{param_type['dtype'][1]}' but found an object of class '{arg_val_type[1]}'.", arg_err_n)
                    
                     if param_type["dtype"][1] != arg_val_type[1]: # value vs value but not correct dtype
-                        self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype'][1]}' but found '{arg_val_type[1]}'.", node_id)
+                        self.check_type_and_range(f"parameter {i+1} of {call_string} call '{node_id.id_t['tokenName']}' ", param_type["dtype"], arg_val_type, arg_val, None, err_n = arg_err_n)
+                        #self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected '{param_type['dtype'][1]}' but found '{arg_val_type[1]}'.", arg_err_n)
                 
                 elif param_type["dtype"][0] == "arr":
                     if arg_arr_att_flag and arg_sym["arr_info"]["dimension"] == 2: # array with 2 dimensions and the array value in 1d is trying to be accessed and passed
@@ -1212,41 +1213,41 @@ class SemanticAnalyzer:
             case "int":
                 if val_type[1] not in ["string", "bool"]:
                     if value > self.MAX_INT or value < self.MIN_INT:
-                       self.logError(f"Value '{value}' is out of 'int' range for {dec_type} '{id}'{index if index else ""}.", err_n)
-                
+                          self.logError(f"Value '{value}' is out of 'int' range for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ''}.", err_n)
+             
                 if val_type and dtype[1] != val_type[1]:    
-                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'." , err_n)
+                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""} but found '{val_type[1]}'." , err_n)
 
             case "long":
                 if val_type[1] not in ["string", "bool"]:
                     if value > self.MAX_LONG or value < self.MIN_LONG:
-                        self.logError(f"Value '{value}' is out of 'long' range for {dec_type} '{id}'{index if index else ""}.", err_n)
+                        self.logError(f"Value '{value}' is out of 'long' range for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""}.", err_n)
                 
                 if val_type and dtype[1] != val_type[1]:
                     if val_type[1] != "int":
-                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'.", err_n)
+                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""} but found '{val_type[1]}'.", err_n)
 
             case "float":
                 if val_type[1] not in ["string", "bool"]:
                     if value > self.MAX_FLOAT or value < self.MIN_FLOAT:
-                        self.logError(f"Value '{value}' is out of 'float' range for {dec_type} '{id}'{index if index else ""}.", err_n)
+                        self.logError(f"Value '{value}' is out of 'float' range for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""}.", err_n)
                 
                 if val_type and dtype[1] != val_type[1]:
                     if val_type[1] != "int":
-                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'.", err_n)
+                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""} but found '{val_type[1]}'.", err_n)
 
             case "double":
                 if val_type[1] not in ["string", "bool"]:
                     if value > self.MAX_DOUBLE or value < self.MIN_DOUBLE:
-                        self.logError(f"Value '{value}' is out of 'double' range for {dec_type} '{id}'{index if index else ""}.", err_n)
+                        self.logError(f"Value '{value}' is out of 'double' range for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""}.", err_n)
                 
                 if val_type and dtype[1] != val_type[1]:
                     if val_type[1] not in ["int", "float", "long"]:
-                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'.", err_n)
+                        self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""} but found '{val_type[1]}'.", err_n)
 
             case _:
                 if val_type and dtype[1] != val_type[1]:
-                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} '{id}'{index if index else ""} but found '{val_type[1]}'.", err_n) 
+                    self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""} but found '{val_type[1]}'.", err_n) 
 
     #node_var_dec
     def visit_node_vardec(self, node, priv = False):
