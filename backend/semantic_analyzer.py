@@ -1988,10 +1988,21 @@ class SemanticAnalyzer:
         if node.count_n is not None:
             count_type, count_value, count_err = self.visit_node(node.count_n)
 
-            if count_type is None or count_type[1] != 'int' or count_value <= 0:
-                self.logError("The second parameter must be of type 'int' and has a non-zero, positive value.", count_err)
-                return None
+            if count_type[0] in ["arr", "object", "class"]:
+                if count_type[0] == "arr":
+                    self.logError(f"Symbol '{node.count_n}' is an array, try accessing its elements instead.", count_err)
+                elif count_type[0] == "object":
+                    self.logError(f"Symbol '{node.count_n}' is an object, try accessing its attributes instead.", count_err)
+                else:
+                    self.logError(f"Symbol '{node.count_n}' is a class and cannot be used as a prompt.", count_err)
 
+
+
+            if count_type is None or count_type[1] != 'int':
+                self.logError(f"The second parameter must be of type 'int' and has a non-zero, positive value. Found type '{count_type[1]}' instead.", count_err)
+                return None
+            if count_value <= 0:
+                self.logError(f"Integer parameter of input statement must be greater than 0, but found '{count_value}' instead.", count_err)
             if hasattr(node.count_n, 'var_name'):
                 var_name = node.count_n.var_name
                 var_type = self.get_variable_type(var_name)  
