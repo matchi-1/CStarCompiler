@@ -1597,6 +1597,15 @@ class SemanticAnalyzer:
     def visit_node_un_op(self, node):
         right_type, right_val, right_err = self.visit_node(node.id_right_n)
         left_err = ErrorNode(node.left_t["tokenLine"], node.left_t["tokenCol"] - len(node.left_t["tokenName"])-1)
+        match right_type[0]:
+                    case 'arr':
+                        self.logError("Arrays cannot be used as operands.", right_err)
+                    case 'class':
+                        self.logError("Class delarations cannot be used as operands.", right_err)
+                    case 'object':
+                        self.logError("Objects cannot be used as operands.", right_err)
+                    case 'func':
+                        self.logError("Functions must be called before being used as operands.", right_err)
         match node.left_t["tokenName"]:
             case '!':
                 if right_type[1] != 'bool':
@@ -1745,6 +1754,16 @@ class SemanticAnalyzer:
         iden_name = node.id_left_n.id_t["tokenName"]
         if not self.curr_scope.get(iden_name):
             self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", node.id_left_n, left_err)
+
+        match left_type[0]:
+                    case 'arr':
+                        self.logError("Arrays cannot be used as operands.", left_err)
+                    case 'class':
+                        self.logError("Class delarations cannot be used as operands.", left_err)
+                    case 'object':
+                        self.logError("Objects cannot be used as operands.", left_err)
+                    case 'func':
+                        self.logError("Functions must be called before being used as operands.", left_err)
         
         match node.right_t["tokenName"]:
             case '++':
@@ -1784,6 +1803,16 @@ class SemanticAnalyzer:
 
         if not self.curr_scope.get(iden_name):
             self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", right_err)
+
+        match right_type[0]:
+                    case 'arr':
+                        self.logError("Arrays cannot be used as operands.", right_err)
+                    case 'class':
+                        self.logError("Class delarations cannot be used as operands.", right_err)
+                    case 'object':
+                        self.logError("Objects cannot be used as operands.", right_err)
+                    case 'func':
+                        self.logError("Functions must be called before being used as operands.", right_err)
 
         match node.left_t["tokenName"]:
             case '++':
