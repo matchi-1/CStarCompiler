@@ -1211,7 +1211,7 @@ class SemanticAnalyzer:
         return (class_info[class_elem]["dtype"], val, node.obj_id_n)
     
     # var / arr dec helper function for type and range checking
-    def check_type_and_range(self, dec_type, dtype, val_type, id_n, value, index_1D = None, index_2D = None, err_n = None):
+    def check_type_and_range(self, dec_type, dtype, val_type, value, id_n = None, index_1D = None, index_2D = None, err_n = None):
         id = id_n.id_t["tokenName"]
         print("PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: " + dec_type)
         print("PRINT >>>>>>>>>>>>>>>>> DTYPE: " + str(dtype))
@@ -1295,7 +1295,7 @@ class SemanticAnalyzer:
             
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
-        self.check_type_and_range("variable", dtype, val_type, node.id_n, value, err_n = err_n)
+        self.check_type_and_range("variable", dtype, val_type, value, node.id_n, err_n = err_n)
 
         class_return = []
         class_return.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
@@ -1382,7 +1382,7 @@ class SemanticAnalyzer:
                     # if val_type[1] != node.dtype_t["tokenName"]:
                     #     self.logError(f"Array contents of '{id}' can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}'.", node.id_n)
                     
-                    self.check_type_and_range("array", dtype, val_type, node.id_n, val, index_1D, err_n = err_n)
+                    self.check_type_and_range("array", dtype, val_type, val, node.id_n, index_1D, err_n = err_n)
 
                     arr_vals.append(val)
                 
@@ -1409,7 +1409,7 @@ class SemanticAnalyzer:
                     # if val_type[1] != node.dtype_t["tokenName"]:
                     #     self.logError(f"Array contents of '{id}'  can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}.", node.id_n)
                     
-                    self.check_type_and_range("array", dtype, val_type, node.id_n, val, index_1D, index_2D, err_n = err_n)
+                    self.check_type_and_range("array", dtype, val_type, val, node.id_n, index_1D, index_2D, err_n = err_n)
 
                     temp_arr.append(val)
                 
