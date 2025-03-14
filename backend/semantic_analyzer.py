@@ -1463,14 +1463,17 @@ class SemanticAnalyzer:
                 err_n =left_err
             self.logError(f"Direct operations on entire arrays are not allowed. Access individual elements of array '{var_name}' or use vectorized computations.", err_n)
 
+        
         elif left_type[0] == 'object' or right_type[0] == 'object':
-            var_name = node.left_n.id_t["tokenName"]
+            var_name  = ""
             if left_type[0] == 'object' and right_type[0] == 'object':
                 err_n = left_err
+                var_name= node.left_n.id_t["tokenName"]
             elif right_type[0] == 'object':
                 err_n = right_err
                 var_name= node.right_n.id_t["tokenName"]
             else:
+                var_name= node.left_n.id_t["tokenName"]
                 err_n =left_err
             self.logError(f"Direct operations on entire objects are not allowed. Access specific properties of object '{var_name}' instead.", err_n)
 
