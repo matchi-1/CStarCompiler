@@ -875,9 +875,9 @@ class SyntaxAnalyzer:
 
     def ERROR_expected_int_value_in_stmt(self):
         if self.currToken:
-            self.logError(f"'in' statement character limit parameter must be of \"int\" type. Instead got '{self.currToken['tokenName']}'.")
+            self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead got '{self.currToken['tokenName']}'.")
         else:
-            self.logError(f"'in' statement character limit parameter must be of \"int\" type. Instead reached EOF.")
+            self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead reached EOF.")
 
     #-------------------- PARSER START --------------------
     def parse(self):
@@ -1507,7 +1507,9 @@ class SyntaxAnalyzer:
                 params_dec_n = []
                 code_block_n = []
                 print("(parser) production: \"constructor_dec\" detected")
-                
+                if self.currToken["tokenName"] != self.classNames[-1]: 
+                    self.logError("Constructors must have the same name as its class.") 
+                    #TODO: maybe fix error message here, just a placeholder
 
                 class_id_n = node_iden(self.match("Identifier", False))
                 

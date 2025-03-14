@@ -1965,12 +1965,8 @@ class SemanticAnalyzer:
         if node.count_n is not None:
             count_type, count_value, count_err = self.visit_node(node.count_n)
 
-            if count_type is None or count_type[1] not in ["int", "long"]:
-                self.logError("The second parameter must be an integer.", count_err)
-                return None
-
-            if count_value <= 0:
-                self.logError("The second parameter must be a non-zero, positive integer.", count_err)
+            if count_type is None or count_type[1] != 'int' or count_value <= 0:
+                self.logError("The second parameter must be of type 'int' and has a non-zero, positive value.", count_err)
                 return None
 
             if hasattr(node.count_n, 'var_name'):
