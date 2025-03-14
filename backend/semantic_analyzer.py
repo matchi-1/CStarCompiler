@@ -1289,7 +1289,9 @@ class SemanticAnalyzer:
         default_val = self.default_vals[dtype[1]]
 
         if not val_type and not value:
-            val_type = ('lit', f'{dtype[1]}')
+            if const:
+                self.logError("Constant variable declarations must always be initialized with a value.", err_n)
+            val_type = ('lit', f'{dtype[1]}')   
             value = default_val
             
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
@@ -1304,6 +1306,8 @@ class SemanticAnalyzer:
             
             if self.curr_scope.get(dec_node.id_n.id_t["tokenName"], False):
                 self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
+            if const and not dec_node.value_n:
+                self.logError("Constant variable declarations must always be initialized with a value.", err_n)
             class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_node.value_n if dec_node.value_n != None else default_val, dtype=dtype, priv = priv, const=const))
 
         return class_return
@@ -1313,7 +1317,7 @@ class SemanticAnalyzer:
         print(f'\n(semantic)(dbg) VISITING {type(node).__name__}!!')
         print(f'!!NODE!!: {node}!!')
         id = node.id_n.id_t["tokenName"]
-
+        const = node.const_b
         if self.curr_scope.get(id, checkParent=False):
             self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
 
@@ -1351,6 +1355,8 @@ class SemanticAnalyzer:
         
         if node.arr_dec_cont_n:
             if type(node.arr_dec_cont_n[0]).__name__ == "node_arr_dec_rec":
+                if const:
+                    self.logError("Constant array declarations must be initialized with values.", node.id_n)
                 arr_rec = node.arr_dec_cont_n
                 #print(f'##########################arr_rec@!!@!@!@: {arr_rec} size_1: {size_1} dim = {dim}')
                 values_list = []
@@ -1362,6 +1368,8 @@ class SemanticAnalyzer:
                 values_list = node.arr_dec_cont_n
         
         else:
+            if const:
+                self.logError("Constant array declarations must be initialized with values.", node.id_n)
             values_list = []
             for i in range(size_1):
                 values_list.append(base_val)
