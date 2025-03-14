@@ -965,7 +965,7 @@ class SemanticAnalyzer:
         if att_info["const"]:
             self.logError(f"Array attribute '{att_name}' is a constant and cannot be reassigned.", node.class_arr_n.att_id_n)
 
-        att_arr_dtype = att_info["dtype"][1]
+        att_arr_dtype = att_info["dtype"]
         
         att_arr_dim = att_info["arr_info"]["dimension"]
         att_arr_idx1 = node.class_arr_n.idx_n
@@ -983,8 +983,8 @@ class SemanticAnalyzer:
         if idx1_val is not None and (idx1_val < 0 or (att_info["arr_info"]["size1"] is not None and idx1_val >= att_info["arr_info"]["size1"])):  # code gen    
             self.logError(f"Array index '{idx1_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
 
-        if att_arr_dtype == 2:
-            idx2_type, idx2_val = self.visit_node(att_arr_idx2)
+        if att_arr_dim == 2:
+            idx2_type, idx2_val, err_n = self.visit_node(att_arr_idx2)
             if idx2_type[1] not in ['int', 'long']:
                 self.logError(f"Array index must be an integer, but found a '{idx2_type[1]}' instead.", node.class_arr_n.att_id_n)
 
