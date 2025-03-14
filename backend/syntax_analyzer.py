@@ -735,14 +735,15 @@ class SyntaxAnalyzer:
         if not self.currToken:
             # If the current token is None, use the last valid token for line/column info
             currToken = self.tokens[self.currToken_index - 1]
-            currLine = currToken["tokenLine"] - 1
-            currCol = currToken["tokenCol"] - 1
+            currLine = currToken["tokenLine"] 
+            currCol = currToken["tokenCol"] 
             tokenName = "<EOF>"
         else:
             # Use current token's details
-            currLine = self.currToken["tokenLine"] -1
-            currCol = self.currToken["tokenCol"]-1
             tokenName = self.currToken["tokenName"]
+            currLine = self.currToken["tokenLine"] -1
+            currCol = self.currToken["tokenCol"] - len(tokenName) - 1
+            
 
         # full error message
         full_message = (
@@ -2214,7 +2215,7 @@ class SyntaxAnalyzer:
         else_chain_n = None
 
         self.match("if", False)
-        if not self.match("("):
+        if not self.match("(", False):
             self.ERROR_missing_condition("if")
         condition_n = self.condition("if",[")"])
         if not self.match(")"): 
@@ -2395,7 +2396,7 @@ class SyntaxAnalyzer:
         
             self.match("switch", False)
 
-            if not self.match("("):
+            if not self.match("(", False):
                 self.ERROR_missing_condition("switch")
             
             ## TODO: FIX!!!!!
@@ -2575,7 +2576,7 @@ class SyntaxAnalyzer:
             ctrl_stmt_body_temp_n = None
             self.match("while", False)
             
-            if not self.match("("):
+            if not self.match("(", False):
                 self.ERROR_missing_condition("while")
 
             condition_temp_n = self.condition("while",[")"])
@@ -2619,7 +2620,7 @@ class SyntaxAnalyzer:
                 self.logError("'do' statement must include 'while' condition after '}'.")
             
             ## CONTINUE
-            if not self.match("("):
+            if not self.match("(", False):
                 self.ERROR_missing_condition("do-while")
             condition_temp_n = self.condition("do-while",[")"])
             if not self.match(")"):
