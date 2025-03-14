@@ -556,7 +556,7 @@ class SemanticAnalyzer:
         if idx_type[1] not in ['int', 'long']:
             self.logError(f'Type mismatch: expected whole number (integer, long) but got {idx_type[1]}.', err_n)
         if idx_val < 0:
-                self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
+                self.logError(f"Array index for '{class_elem}' cannot be negative.", err_n)
         if idx_val >= arr_sym["arr_info"]["size1"]:
             self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', err_n)
         idx2_val = None
@@ -873,16 +873,20 @@ class SemanticAnalyzer:
             self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", idx_err)
 
         if idx1_val is not None and (idx1_val < 0 or (arr_symbol["arr_info"]["size1"] is not None and idx1_val >= arr_symbol["arr_info"]["size1"])):  # code gen    
+            if idx1_val < 0:
+                self.logError(f"Array index for '{arr_name}' cannot be negative.", idx_err) 
             self.logError(f"Array index '{idx1_val}' out of bounds for array '{arr_name}'.", idx_err)
 
         idx2_val = None
         if arr_dim == 2:
-            idx2_type, idx2_val = self.visit_node(arr_node.idx2_n)
+            idx2_type, idx2_val, idx2_err = self.visit_node(arr_node.idx2_n)
             if idx2_type[1] not in ['int', 'long']:
-                self.logError(f"Array index must be an integer, but found '{idx2_type[1]}'.", idx_err)
+                self.logError(f"Array index must be an integer, but found '{idx2_type[1]}'.", idx2_err)
 
             if idx2_val is not None and (idx2_val < 0 or (arr_symbol["arr_info"]["size2"] is not None and idx2_val >= arr_symbol["arr_info"]["size2"])):
-                self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", idx_err)
+                if idx2_val < 0:
+                    self.logError(f"Array index for '{arr_name}' cannot be negative.", idx_err)  
+                self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", idx2_err)
 
         value_type, value, val_err_n = self.visit_node(node.value_n)
 
@@ -923,7 +927,7 @@ class SemanticAnalyzer:
         val_type, val, err_n = self.visit_node(value)
         print(f">>>>>>>>>>>>>>>>dtype: {dtype}, val_type: {val_type}, val: {val}")
 
-        self.check_type_and_range("variable", dtype, val_type, val, node.class_att_n.att_id_n, err_n = err_n)
+        self.check_type_and_range("attribute variable", dtype, val_type, val, node.class_att_n.att_id_n, err_n = err_n)
 
         #if dtype != val_type[1]:
         #    self.logError(f"Type Mismatch: expected '{dtype}' for attribute '{att_name}' but found '{val_type[1]}'", node.class_att_n.att_id_n)
@@ -976,24 +980,28 @@ class SemanticAnalyzer:
         elif att_arr_dim == 2 and not att_arr_idx2:
             self.logError(f"Array attribute '{att_name}' is 2-dimensional but accessed with 1 index.", node.class_arr_n.att_id_n)
 
-        idx1_type, idx1_val, err_n = self.visit_node(att_arr_idx1)
+        idx1_type, idx1_val, idx1_err = self.visit_node(att_arr_idx1)
         if idx1_type[1] not in ['int', 'long']:
-            self.logError(f"Array index must be an integer, but found a '{idx1_type[1]}' instead.", node.class_arr_n.att_id_n)
+            self.logError(f"Array index must be an integer, but found a '{idx1_type[1]}' instead.", idx1_err)
 
         if idx1_val is not None and (idx1_val < 0 or (att_info["arr_info"]["size1"] is not None and idx1_val >= att_info["arr_info"]["size1"])):  # code gen    
-            self.logError(f"Array index '{idx1_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
+            if idx1_val < 0:
+                self.logError(f"Array index for '{att_name}' cannot be negative.", err_n)   
+            self.logError(f"Array index '{idx1_val}' out of bounds for array '{att_name}'.", idx1_err)
 
-        if att_arr_dim == 2:
-            idx2_type, idx2_val, err_n = self.visit_node(att_arr_idx2)
+        if att_arr_dtype == 2:
+            idx2_type, idx2_val, idx2_err = self.visit_node(att_arr_idx2)
             if idx2_type[1] not in ['int', 'long']:
-                self.logError(f"Array index must be an integer, but found a '{idx2_type[1]}' instead.", node.class_arr_n.att_id_n)
+                self.logError(f"Array index must be an integer, but found a '{idx2_type[1]}' instead.", idx2_err)
 
             if idx2_val is not None and (idx2_val < 0 or (att_info["arr_info"]["size2"] is not None and idx2_val >= att_info["arr_info"]["size2"])):
+                if idx2_val < 0:
+                    self.logError(f"Array index for '{att_name}' cannot be negative.", idx2_err)    
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
 
-        value_type, value, _ = self.visit_node(node.value_n)
+        value_type, value, value_err = self.visit_node(node.value_n)
         err_n = ErrorNode(node.class_arr_n.att_id_n.id_t["tokenLine"], node.class_arr_n.att_id_n.id_t["tokenCol"] - len(node.class_arr_n.att_id_n.id_t["tokenName"]) - 1)
-        self.check_type_and_range("attribute array", att_info["dtype"], value_type, value, node.class_arr_n.att_id_n, err_n = err_n)
+        self.check_type_and_range("attribute array", att_info["dtype"], value_type, value, node.class_arr_n.att_id_n, err_n = value_err)
 
         # value_type, value, err_n = self.visit_node(node.value_n)
         # if value_type[1] != att_arr_dtype:
