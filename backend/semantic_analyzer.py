@@ -290,24 +290,20 @@ class SemanticAnalyzer:
                         self.logError(f"Constructors cannot take an object instance of their own class as parameters. Parameter '{class_name} {param.id_n.id_t["tokenName"]}' not allowed for constructor definition for class '{className}'. ", err_n)
                     if not self.curr_scope.get(class_name):
                         self.logError(f"Class '{class_name}' definition not found for parameter '{class_name} {param.id_n.id_t["tokenName"]}' on constructor definition for class '{className}'.", err_n)
-                        param_types.append({
-                            "type": "object",
-                            "dtype": class_name,
-                            "class_name": class_name
-                        })  
+                    param_types.append({
+                        "dtype": ("object", class_name),
+                    })  
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     param_types.append({
-                        "type": "arr",
-                        "dtype": param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types
+                        "dtype": ("arr", param.dtype_t["tokenName"] if param.dtype_t else None),  # for any types
                         "dimension": param.arrdim_i if param.arrdim_i else None # for any dimensions
                     })  
 
                 elif type(param).__name__ == "node_funcpar_var":
                     param_types.append({
-                        "type": "var",
-                        "dtype": param.dtype_t["tokenName"]
-                    })  
+                        "dtype": ("var", param.dtype_t["tokenName"])
+                    }) 
 
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
@@ -330,15 +326,18 @@ class SemanticAnalyzer:
 
                 # Handle different parameter types properly
                 if type(param).__name__ == "node_funcpar_class":
-                    class_name = param.class_id_n.id_t["tokenName"]
-                    self.curr_scope.set_class(param_name, class_info={"classname": class_name})
+                    class_name = ('object', param.class_id_n.id_t["tokenName"])
+                    class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
+                    class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
+                    print(f">>>>>>>>>>>>>SET OBJ (CONSTRUCTOR): {self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)}")
+
 
                 elif type(param).__name__ == "node_funcpar_arr":
-                    arr_dtype = param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types -- std lib Carray
+                    arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
                     arr_val = None if not arr_dtype else self.default_vals[arr_dtype[1]]
-                    self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
+                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
@@ -347,21 +346,12 @@ class SemanticAnalyzer:
 
         # Visit function body
         if node.code_block_n:
-            #print(f"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$${node.code_block_n}")
             self.visit_node(node.code_block_n)
 
-        # has_return = any(self.visit_node(stmt) for stmt in node.body_n)
-
-        # # If function is non-void, ensure at least one return exists
-        # if return_type != "void" and not has_return:
-        #     self.logError(f"Function '{func_name}' must return a value of type '{return_type}'.", node.id_n)
-
-        #self.exit_scope(type(node).__name__)
 
         print(f"\n(semantic)(dbg) EXITING scope Constructor for class '{className}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
-
 
         return constructorInfo
 
@@ -379,8 +369,6 @@ class SemanticAnalyzer:
             print(f"\n(semantic)(dbg) ENTERING scope 'Class: {className}'")
             self.curr_scope = SymbolTable(self.curr_scope)
 
-            
-
             for class_body_stmt_n in class_body_stmt:
                 priv = class_body_stmt_n.is_private_b
                 vardec_n = class_body_stmt_n.vardec_n
@@ -393,6 +381,8 @@ class SemanticAnalyzer:
 
                 elif type(vardec_n).__name__ == "node_arr_dec":
                     class_content.append(self.visit_node_arr_dec(vardec_n, priv))
+                
+                else: self.logError(f"Invalid class body statement: {type(vardec_n).__name__}.", vardec_n)  
 
             
             if parent_node.constructor_dec_n: constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n, className)
@@ -691,7 +681,7 @@ class SemanticAnalyzer:
                 if type(param).__name__ == "node_funcpar_class":
                     class_name = param.class_id_n.id_t["tokenName"]
                     if not self.curr_scope.get(class_name):
-                        self.logError(f"Class '{class_name}' hasn't been declared yet.", param.class_id_n)
+                        self.logError(f"Class '{class_name}' definition not found for parameter '{class_name} {param.id_n.id_t["tokenName"]}' on function '{func_name}' declaration.", param.class_id_n)
                     param_types.append({
                         "dtype": ("object", class_name),
                     })  
