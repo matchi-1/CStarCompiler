@@ -735,13 +735,13 @@ class SyntaxAnalyzer:
         if not self.currToken:
             # If the current token is None, use the last valid token for line/column info
             currToken = self.tokens[self.currToken_index - 1]
-            currLine = currToken["tokenLine"]
-            currCol = currToken["tokenCol"]
+            currLine = currToken["tokenLine"] - 1
+            currCol = currToken["tokenCol"] - 1
             tokenName = "<EOF>"
         else:
             # Use current token's details
-            currLine = self.currToken["tokenLine"]
-            currCol = self.currToken["tokenCol"]
+            currLine = self.currToken["tokenLine"] -1
+            currCol = self.currToken["tokenCol"]-1
             tokenName = self.currToken["tokenName"]
 
         # full error message
@@ -1253,7 +1253,7 @@ class SyntaxAnalyzer:
                     
             else:
                  self.logError(
-                    f"Expected a standard library (Cstring or Carray), found '{self.currToken['tokenName']}'"
+                    f"Expected a standard library (Cstring or Carray), found '{self.currToken['tokenName']}'."
                     if self.currToken else "Expected a standard library (Cstring or Carray), but reached EOF instead.")
 
             if not self.match(">"):
