@@ -44,7 +44,8 @@ PREDICT_SETS = {
     "assign_func_method_mods_cont": ["[", "("],
     "inc_arg_post": ["++", "--"],
     "case_value": ["whole_lit", "string_lit", "-"],
-    "input_params": ["string_lit"]
+    "input_params": ["string_lit"],
+    "var_dec_cont" : ["=", ",", ";", "["],
 }
 PREDICT_SETS["body"] = PREDICT_SETS["code_block"] + ["return"]   #bruh
 PREDICT_SETS["ctrl_stmt_body"] = PREDICT_SETS["ctrl_stmt_body"] + PREDICT_SETS["body"] #bruh pt.2
@@ -741,7 +742,7 @@ class SyntaxAnalyzer:
         else:
             # Use current token's details
             tokenName = self.currToken["tokenName"]
-            currLine = self.currToken["tokenLine"] -1
+            currLine = self.currToken["tokenLine"] 
             currCol = self.currToken["tokenCol"] - len(tokenName) - 1
             
 
@@ -755,7 +756,6 @@ class SyntaxAnalyzer:
         raise SyntaxError(full_message)
     
         # TODO: add error highlighter per line of code like  ______ ^
-
 
 
     # -------- Error-specific methods --------
@@ -772,7 +772,7 @@ class SyntaxAnalyzer:
     # Handles unexpected tokens when expecting a specific type.
     def ERROR_expected_token(self, expected_token):
         if self.currToken is None:
-            self.logError(f"Unexpected EOF: Expected {expected_token}, but reached EOF.")
+            self.logError(f"Unexpected EOF: Expected '{expected_token}', but reached EOF.")
         else:
             self.logError(
                 f"Unexpected token '{self.currToken['tokenName']}'. Expected {expected_token}."
@@ -820,13 +820,13 @@ class SyntaxAnalyzer:
 
 
     def ERROR_missing_condition(self, condType):
-        self.logError(f"Expected condition after '{condType}' statement")
+        self.logError(f"Expected condition after '{condType}' statement.")
 
     def ERROR_invalid_condition(self, condType):
-        self.logError(f"Invalid condition for '{condType}' statement")
+        self.logError(f"Invalid condition for '{condType}' statement.")
 
     def ERROR_empty_condition(self, condType):
-        self.logError(f"Condition cannot be empty for '{condType}' statement")
+        self.logError(f"Condition cannot be empty for '{condType}' statement.")
 
     def ERROR_expected_num_value(self):
         self.logError(f"Expected numerical value. Found '{self.currToken["tokenType"] if self.currToken else "EOF"}' instead.")
@@ -1391,9 +1391,11 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_square_bracket()
                 return self.var_id_arr1D(dtype_temp_t, id_temp_n, size1_temp_n, const_b)
 
-            else:
+            elif self.currToken["tokenType"] in PREDICT_SETS["var_dec_cont"]:
                 value_temp_n = self.var_init()
                 idec_rec_temp_n = self.var_iden_rec(node_idec_rec_stmt)
+            else:
+                self.ERROR_expected_token(PREDICT_SETS["var_dec_cont"])
         
         # none arr var dec
         if value_temp_n or idec_rec_temp_n:
