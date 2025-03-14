@@ -739,11 +739,17 @@ class SyntaxAnalyzer:
             currLine = currToken["tokenLine"] 
             currCol = currToken["tokenCol"] 
             tokenName = "<EOF>"
+            print(">>>>>>>> LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
+            print(">>>>>>>> LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
+            print(">>>>>>>> LOG ERROR CURRENT TOKEN: " + str(self.currToken))
         else:
             # Use current token's details
             tokenName = self.currToken["tokenName"]
             currLine = self.currToken["tokenLine"] 
-            currCol = self.currToken["tokenCol"] - len(tokenName) - 1
+            currCol = self.currToken["tokenCol"] - len(tokenName) + 1
+            print("!!!!!!!!! LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
+            print("!!!!!!!!! LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
+            print("!!!!!!!!! LOG ERROR CURRENT TOKEN: " + str(self.currToken))
             
 
         # full error message

@@ -819,7 +819,7 @@ class LexicalAnalyzer:
         # Helper function inside lexer to add a token(set its properties), append to token list, and reset current token and state
         def add_token(name, type, line, column): # alex: added line and column for syntax error tracing
             nonlocal currToken, currState, currLine, currCol # use nonlocal keyword to access currToken, currState
-            token = Token(name, type, line, column) 
+            token = Token(name, type, line, column - 2) 
             tokens.append(token)
             currToken = ''
             currState = 's0'
