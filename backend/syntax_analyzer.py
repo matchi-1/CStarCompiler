@@ -965,6 +965,8 @@ class SyntaxAnalyzer:
                 dtype_t = self.data_type()
                 iden_temp_n = node_iden(self.match("Identifier",False))
                 vardec_cont_n = self.var_dec_cont(dtype_t, iden_temp_n, const_b)
+                if self.currToken["tokenType"] not in ['=', ',', ';']:
+                    self.ERROR_expected_token(['=', ',', ';'])
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
 
@@ -1400,7 +1402,8 @@ class SyntaxAnalyzer:
         # none arr var dec
         if value_temp_n or idec_rec_temp_n:
             vardec_cont_temp_n = node_vardec_cont(value_temp_n, idec_rec_temp_n)
-
+        
+        print("(parser) exited production: \"var_dec_cont\"")
         return node_vardec(const_b, dtype_temp_t, id_temp_n, vardec_cont_temp_n)
         # return node_vardec_cont(value_temp_n, idec_rec_temp_n)
 
@@ -1657,7 +1660,7 @@ class SyntaxAnalyzer:
             self.ERROR_expected_operator()
     
     def value(self, stopChars):
-        # print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
+        print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         return self.logic_exp(stopChars)
 
     def logic_exp(self, stopChars):
@@ -1823,6 +1826,7 @@ class SyntaxAnalyzer:
                 else:
                     self.ERROR_expected_token("Identifier")
             else:
+                print(f"RETURNED FROM VALUE CHAIN: {node_un_op(left_t, node_iden(temp_id))}")
                 return node_un_op(left_t, node_iden(temp_id))
         elif self.currToken and self.currToken["tokenType"] == "++":
             left_t = self.match("++")
@@ -1836,6 +1840,7 @@ class SyntaxAnalyzer:
                 else:
                     self.ERROR_expected_token("Identifier")
             else:
+                print(f"RETURNED FROM VALUE CHAIN: {node_un_op(left_t, node_iden(temp_id))}")
                 return node_un_op(left_t, node_iden(temp_id))
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
             temp_id = self.match("Identifier")
@@ -1843,8 +1848,9 @@ class SyntaxAnalyzer:
             # print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:
                 temp_node = self.mods_post_op(node_iden(temp_id))
+            print(f"RETURNED FROM VALUE CHAIN: {temp_node}")
             return temp_node
-
+        print(f"RETURNED FROM VALUE CHAIN: {is_valid_value}")
         return is_valid_value
 
     def mods_post_op(self, temp_id):
@@ -2779,6 +2785,7 @@ class SyntaxAnalyzer:
                 value_temp_n = self.value(PREDICT_SETS["var_init"])
                 if not value_temp_n:
                     self.logError("Invalid value for variable declaration.")
+                print("(parser) exited production: \"var_init\"")
                 return value_temp_n
         print("(parser) exited production: \"var_init\"")
         return None
@@ -2800,6 +2807,7 @@ class SyntaxAnalyzer:
                         self.var_iden_rec(idec_rec_stmt_n)
                 else:
                     self.ERROR_expected_token("Identifier")
+                print("(parser) exited production: \"var_iden_rec\"")
                 return idec_rec_stmt_n
             
         print("(parser) exited production: \"var_iden_rec\"")
