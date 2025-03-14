@@ -205,7 +205,8 @@ class node_pre_un_op:
         return f'node_pre_un_op: (unary_op: {self.left_t["tokenName"]}, id_n: {self.iden_n})'
 
 class node_input:
-    def __init__(self, type_t, prompt_n = None, count_n = None):
+    def __init__(self, in_stmt_t, type_t, prompt_n = None, count_n = None):
+        self.in_stmt_t = in_stmt_t
         self.type_t = type_t
         self.prompt_n = prompt_n
         self.count_n = count_n
@@ -2720,7 +2721,7 @@ class SyntaxAnalyzer:
         '''<input> → in<data_type>(<input_params>)'''
         
         if self.currToken:
-            self.match("in", False)
+            in_stmt = self.match("in", False)
             self.match("<", False)
 
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
@@ -2730,12 +2731,12 @@ class SyntaxAnalyzer:
             
             if not self.match(">"):
                 self.ERROR_unclosed_angled_bracket()
-            node_temp = node_input(type_t)
+            node_temp = node_input(in_stmt, type_t)
             self.match("(", False)
 
             if self.currToken and self.currToken["tokenType"] != ")":
                 if self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
-                    node_temp = self.input_params(type_t)
+                    node_temp = self.input_params(in_stmt, type_t)
                 else:  # semantic check if string or syntax error
                     self.logError("Expected a valid value of type \"string\" for an input function's first parameter.")
 
@@ -2748,7 +2749,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"input\"")
         return node_temp
 
-    def input_params(self, type_t):
+    def input_params(self, in_stmt, type_t):
         print("(parser) entered production: \"input_params\"")
         """<input_params> → <value> <in_param_two> | λ"""
         count_n = None
@@ -2759,7 +2760,7 @@ class SyntaxAnalyzer:
                 count_n = self.in_param_two()
         
         print("(parser) exited production: \"input_params\"")
-        return node_input(type_t, prompt_n, count_n)
+        return node_input(in_stmt, type_t, prompt_n, count_n)
 
     def in_param_two(self):
         print("(parser) entered production: \"in_param_two\"")

@@ -1929,6 +1929,9 @@ class SemanticAnalyzer:
            
     #     return (expected_dtype, value)
     def visit_node_input(self, node):
+
+        err_n = ErrorNode(node.in_stmt_t["tokenLine"], node.in_stmt_t["tokenCol"] - len(node.in_stmt_t["tokenName"]) - 1)
+
         if not hasattr(node, 'type_t'):
             self.logError("Input node is missing the 'type_t' attribute.", node)
             return None
@@ -1942,7 +1945,7 @@ class SemanticAnalyzer:
             return None
         value = self.default_vals[expected_dtype]
         print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), value)}")
-        return (('lit', expected_dtype), value, None)
+        return (('lit', expected_dtype), value, err_n)
     
     def visit_node_output(self, node):
         print_stmts_n = node.print_stmts_n 
