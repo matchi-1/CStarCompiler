@@ -1507,12 +1507,10 @@ class SyntaxAnalyzer:
                 params_dec_n = []
                 code_block_n = []
                 print("(parser) production: \"constructor_dec\" detected")
-                if self.currToken["tokenName"] != self.classNames[-1]: 
-                    self.logError("Constructors must have the same name as its class.") 
-                    #TODO: maybe fix error message here, just a placeholder
+                
 
                 class_id_n = node_iden(self.match("Identifier", False))
-                self.classNames.pop()
+                
                 self.match("(", False)
                 params_dec_n = self.params_dec([])
                 if not self.match(")"):
@@ -1524,9 +1522,16 @@ class SyntaxAnalyzer:
                 if self.currToken and self.currToken["tokenType"] == "return":
                     self.logError(f"Constructors cannot have return statements. Expected {PREDICT_SETS['code_block']} or '}}'. ")
 
-
                 if not self.match("}"):
                     self.ERROR_unclosed_curly_braces()
+
+                if class_id_n.id_t["tokenName"] != self.classNames[-1]: 
+                    error_msg = f"Semantic Error ({class_id_n.id_t["tokenLine"]}, {class_id_n.id_t["tokenCol"] - len(class_id_n.id_t["tokenName"]) + 1}): Constructors must have the same name as its class."
+                    self.errors.append(error_msg)
+                    raise SyntaxError(error_msg)
+                    #TODO: maybe fix error message here, just a placeholder
+                else: self.classNames.pop()
+                
 
                 print("(parser) production: \"constructor_dec\" exited!!!!!")
                 return node_constructor_dec(class_id_n, params_dec_n, code_block_n)
