@@ -322,7 +322,7 @@ class SemanticAnalyzer:
         if node.params_n:
             for param in node.params_n:
                 param_name = param.id_n.id_t["tokenName"]
-                err_n = ErrorNode(node.param.id_n.id_t["tokenLine"], param.param.id_n.id_t["tokenCol"] - len(param.param.id_n.id_t["tokenName"]) - 1)
+                err_n = ErrorNode(param.id_n.id_t["tokenLine"], param.id_n.id_t["tokenCol"] - len(param.id_n.id_t["tokenName"]) - 1)
 
                 # Check if parameter name is duplicated
                 if self.curr_scope.get(param_name, checkParent=False):
@@ -336,12 +336,14 @@ class SemanticAnalyzer:
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = param.dtype_t["tokenName"] if param.dtype_t else None,  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
-
-                    self.curr_scope.set_array(param_name, value=None, dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
+                    print(arr_dtype)
+                    arr_val = None if not arr_dtype else self.default_vals[arr_dtype[1]]
+                    self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim}, const=False)
 
                 elif type(param).__name__ == "node_funcpar_var":
-                    var_dtype = param.dtype_t["tokenName"]
-                    self.curr_scope.set(param_name, value=None, dtype=var_dtype, const=False)
+                    var_dtype = ('var', param.dtype_t["tokenName"])
+                    print(f"{var_dtype}")
+                    print(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
 
         # Visit function body
         if node.code_block_n:
@@ -435,7 +437,12 @@ class SemanticAnalyzer:
         
         if class_inst_cont:
             constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
-            class_constructor_info = self.curr_scope.parent.get(class_id)["class_info"]["constructor_dec"]
+            check_scope_class = self.curr_scope
+            while not check_scope_class.get(class_id):
+                check_scope_class = check_scope_class.parent
+            
+            class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"]
+            
             err_n_class_inst = ErrorNode(class_inst_cont.class_id_n.id_t["tokenLine"], class_inst_cont.class_id_n.id_t["tokenCol"] - len(class_inst_cont.class_id_n.id_t["tokenName"]) - 1)
             if constructor_call_id != class_id:
                 self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", err_n_class_inst)
