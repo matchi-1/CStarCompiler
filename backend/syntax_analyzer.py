@@ -740,7 +740,7 @@ class SyntaxAnalyzer:
             # If the current token is None, use the last valid token for line/column info
             currToken = self.tokens[self.currToken_index - 1]
             currLine = currToken["tokenLine"] 
-            currCol = currToken["tokenCol"] 
+            currCol = currToken["tokenCol"] + 1
             tokenName = "<EOF>"
             print(">>>>>>>> LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
             print(">>>>>>>> LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
@@ -978,8 +978,8 @@ class SyntaxAnalyzer:
                 dtype_t = self.data_type()
                 iden_temp_n = node_iden(self.match("Identifier",False))
                 vardec_cont_n = self.var_dec_cont(dtype_t, iden_temp_n, const_b)
-                if self.currToken["tokenType"] not in ['=', ',', ';']:
-                    self.ERROR_expected_token(['=', ',', ';'])
+                # if self.currToken["tokenType"] not in ['=', ',', ';']:
+                #     self.ERROR_expected_token(['=', ',', ';'])
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
 
