@@ -22,7 +22,7 @@ PREDICT_SETS = {
     "rel_operator" : ["==", "!=", "<", "<=", ">", ">="],
     "logic_operator" : ["&&", "||"],
     "iden_mods" : ["(", "[", "."],  # TO ADD 
-    "arith_exp" : [ "-", "(", "bool_lit", "whole_lit", "frac_lit", "string_lit", "in", "--," "++", "Identifier"],
+    "arith_exp" : [ "-", "(", "bool_lit", "whole_lit", "frac_lit", "string_lit", "in", "--", "++", "Identifier"],
     "lit_type": ["whole_lit", "frac_lit", "string_lit", "bool_lit"],
     "assign_operator" : ["=", "+=", "-=", "*=", "/=", "%="],
     "var_init": ["=", ",", ";"],
@@ -740,7 +740,7 @@ class SyntaxAnalyzer:
             # If the current token is None, use the last valid token for line/column info
             currToken = self.tokens[self.currToken_index - 1]
             currLine = currToken["tokenLine"] 
-            currCol = currToken["tokenCol"] 
+            currCol = currToken["tokenCol"] + 1
             tokenName = "<EOF>"
             print(">>>>>>>> LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
             print(">>>>>>>> LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
@@ -881,6 +881,10 @@ class SyntaxAnalyzer:
         else:
             self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead reached EOF.")
 
+    def ERROR_inc_dec_objects(self):
+        self.logError(f"Cstar doesn't allow incrementing or decrementing object attributes.")
+
+
     #-------------------- PARSER START --------------------
     def parse(self):
         try:
@@ -974,8 +978,8 @@ class SyntaxAnalyzer:
                 dtype_t = self.data_type()
                 iden_temp_n = node_iden(self.match("Identifier",False))
                 vardec_cont_n = self.var_dec_cont(dtype_t, iden_temp_n, const_b)
-                if self.currToken["tokenType"] not in ['=', ',', ';']:
-                    self.ERROR_expected_token(['=', ',', ';'])
+                # if self.currToken["tokenType"] not in ['=', ',', ';']:
+                #     self.ERROR_expected_token(['=', ',', ';'])
                 if not self.match(";"):
                     self.ERROR_terminating_token(";")
 
@@ -1861,6 +1865,9 @@ class SyntaxAnalyzer:
                     self.ERROR_inc_dec_not_int()
                 else:
                     self.ERROR_expected_token("Identifier")
+            
+            if self.currToken and self.currToken["tokenType"] == ".":
+                self.ERROR_inc_dec_objects()
             else:
                 print(f"RETURNED FROM VALUE CHAIN: {node_un_op(left_t, node_iden(temp_id))}")
                 return node_un_op(left_t, node_iden(temp_id))

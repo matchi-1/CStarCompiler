@@ -75,9 +75,10 @@ class SymbolTable:
             self.parent.print_symbol_tree(indent + 1)  # Move up the tree
 
 class ErrorNode:
-    def __init__(self, line, startCol):
+    def __init__(self, line, startCol, id_t = None):
         self.line = line
         self.startCol = startCol
+        self.id_t = id_t
 
 class SemanticAnalyzer:
 
@@ -360,7 +361,7 @@ class SemanticAnalyzer:
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
-                    arr_val = None if not arr_dtype else self.default_vals[arr_dtype[1]]
+                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]]
                     print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
@@ -616,7 +617,7 @@ class SemanticAnalyzer:
     
     def visit_node_iden(self, node):
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
-        err_n = ErrorNode(node.id_t["tokenLine"], node.id_t["tokenCol"] - len(node.id_t["tokenName"]) - 1)
+        err_n = ErrorNode(node.id_t["tokenLine"], node.id_t["tokenCol"] - len(node.id_t["tokenName"]) - 1, node.id_t)
         if not iden_symbol:
             self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", err_n)
         else:
@@ -635,11 +636,7 @@ class SemanticAnalyzer:
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
                 case 'class':
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
-                case 'arr':
-                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
-                case 'object':
-                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
-  
+                
             print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
             return (iden_symbol.get("dtype", None), iden_symbol.get("value", None), err_n)
             # return (('var', iden_symbol["dtype"][1]), None)
@@ -697,6 +694,7 @@ class SemanticAnalyzer:
                 print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), arr_sym["value"][idx_val], arr_id_err)}")
                 return (('arr', dtype), arr_sym["value"][idx_val], arr_id_err)
         
+        print(f"{arr_sym}")
         print(f"RETURNED FROM node_arr_idx: {('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err}")
         
         return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
@@ -782,7 +780,7 @@ class SemanticAnalyzer:
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
-                    arr_val = None if not arr_dtype else self.default_vals[arr_dtype[1]]
+                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]]
                     print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
@@ -1220,15 +1218,15 @@ class SemanticAnalyzer:
                 index += f"[{index_2D}]"
         
         print("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
-        # match val_type[0]:
-        #     case 'func':
-        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
-        #     case 'class':
-        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
-        #     case 'arr':
-        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
-        #     case 'object':
-        #         self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
+        match val_type[0]:
+            case 'func':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
+            case 'class':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
+            case 'arr':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
+            case 'object':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
   
         match dtype[1]:
             case "int":
@@ -1291,7 +1289,9 @@ class SemanticAnalyzer:
         default_val = self.default_vals[dtype[1]]
 
         if not val_type and not value:
-            val_type = ('lit', f'{dtype[1]}')
+            if const:
+                self.logError("Constant variable declarations must always be initialized with a value.", err_n)
+            val_type = ('lit', f'{dtype[1]}')   
             value = default_val
             
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
@@ -1316,7 +1316,9 @@ class SemanticAnalyzer:
             #print(f"!!!!!!!!!!!!!!!!!!!!decNODE VAL: {dec_node.value_n.val_t["tokenType"] if dec_node.value_n != None else default_val}")
             if self.curr_scope.get(dec_node.id_n.id_t["tokenName"], False):
                 self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
-            class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_value if dec_value else default_val, dtype=dtype, priv = priv, const=const))
+            if const and not dec_node.value_n:
+                self.logError("Constant variable declarations must always be initialized with a value.", err_n)
+            class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_node.value_n if dec_node.value_n != None else default_val, dtype=dtype, priv = priv, const=const))
 
         return class_return
 
@@ -1325,7 +1327,7 @@ class SemanticAnalyzer:
         print(f'\n(semantic)(dbg) VISITING {type(node).__name__}!!')
         print(f'!!NODE!!: {node}!!')
         id = node.id_n.id_t["tokenName"]
-
+        const = node.const_b
         if self.curr_scope.get(id, checkParent=False):
             self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
 
@@ -1363,6 +1365,8 @@ class SemanticAnalyzer:
         
         if node.arr_dec_cont_n:
             if type(node.arr_dec_cont_n[0]).__name__ == "node_arr_dec_rec":
+                if const:
+                    self.logError("Constant array declarations must be initialized with values.", node.id_n)
                 arr_rec = node.arr_dec_cont_n
                 #print(f'##########################arr_rec@!!@!@!@: {arr_rec} size_1: {size_1} dim = {dim}')
                 values_list = []
@@ -1374,6 +1378,8 @@ class SemanticAnalyzer:
                 values_list = node.arr_dec_cont_n
         
         else:
+            if const:
+                self.logError("Constant array declarations must be initialized with values.", node.id_n)
             values_list = []
             for i in range(size_1):
                 values_list.append(base_val)
@@ -2002,10 +2008,21 @@ class SemanticAnalyzer:
         if node.count_n is not None:
             count_type, count_value, count_err = self.visit_node(node.count_n)
 
-            if count_type is None or count_type[1] != 'int' or count_value <= 0:
-                self.logError("The second parameter must be of type 'int' and has a non-zero, positive value.", count_err)
+            if count_type[0] in ["arr", "object", "class"]:
+                if count_type[0] == "arr":
+                    self.logError(f"Symbol '{node.count_n}' is an array, try accessing its elements instead.", count_err)
+                elif count_type[0] == "object":
+                    self.logError(f"Symbol '{node.count_n}' is an object, try accessing its attributes instead.", count_err)
+                else:
+                    self.logError(f"Symbol '{node.count_n}' is a class and cannot be used as a prompt.", count_err)
+
+
+
+            if count_type is None or count_type[1] != 'int':
+                self.logError(f"The second parameter must be of type 'int' and has a non-zero, positive value. Found type '{count_type[1]}' instead.", count_err)
                 return None
-            
+            if count_value <= 0:
+                self.logError(f"Integer parameter of input statement must be greater than 0, but found '{count_value}' instead.", count_err)
             if hasattr(node.count_n, 'var_name'):
                 var_name = node.count_n.var_name
                 var_type = self.get_variable_type(var_name)  
