@@ -1302,11 +1302,21 @@ class SemanticAnalyzer:
         class_return.append(self.curr_scope.set(id, value, dtype=dtype, priv = priv, const=const))
 
         for dec_node in idec_rec or []:
-            err_n = ErrorNode(dec_node.id_n.id_t["tokenLine"], dec_node.id_n.id_t["tokenCol"] - len(dec_node.id_n.id_t["tokenName"]) - 1)
+            dec_value = None
+            decval_type = None
             
+            if dec_node.value_n:
+                decval_type, dec_value, err_n = self.visit_node(dec_node.value_n)
+
+            if not decval_type and not dec_value:
+                decval_type = ('lit', f'{dtype[1]}')
+                dec_value = default_val
+            self.check_type_and_range("variable", dtype, decval_type, dec_value, dec_node.id_n, err_n = err_n)
+
+            #print(f"!!!!!!!!!!!!!!!!!!!!decNODE VAL: {dec_node.value_n.val_t["tokenType"] if dec_node.value_n != None else default_val}")
             if self.curr_scope.get(dec_node.id_n.id_t["tokenName"], False):
                 self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
-            class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_node.value_n if dec_node.value_n != None else default_val, dtype=dtype, priv = priv, const=const))
+            class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_value if dec_value else default_val, dtype=dtype, priv = priv, const=const))
 
         return class_return
 
@@ -1473,6 +1483,7 @@ class SemanticAnalyzer:
         left_type, left_val, left_err = self.visit_node(node.left_n)
         right_type, right_val, right_err = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
+
 
         if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
             self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.", left_err)
@@ -1987,13 +1998,14 @@ class SemanticAnalyzer:
             if prompt_type is None or prompt_type[1] != 'string':
                 self.logError(f"The first parameter of an input statement must be of type 'string', but found '{prompt_type[1]}' instead.", prompt_err)
                 return None
+            
         if node.count_n is not None:
             count_type, count_value, count_err = self.visit_node(node.count_n)
 
             if count_type is None or count_type[1] != 'int' or count_value <= 0:
                 self.logError("The second parameter must be of type 'int' and has a non-zero, positive value.", count_err)
                 return None
-
+            
             if hasattr(node.count_n, 'var_name'):
                 var_name = node.count_n.var_name
                 var_type = self.get_variable_type(var_name)  
