@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/Terminal.css';
 
-const Terminal = () => {
-  const [logs, setLogs] = useState([]);
+const Terminal = ({ logs = [] }) => {
   const terminalRef = useRef();
   const [inputText, setInputText] = useState('');
+  const [logs, setLogs] = useState([]);
 
-
-  // sample logs from backend (replace with socket events later)
+  /*// sample logs from backend (replace with socket events later)
   useEffect(() => {
     setLogs([
       { type: 'output', value: 'Hello world!' },
@@ -15,7 +14,7 @@ const Terminal = () => {
       { type: 'output', value: 'Hello world!' },
       { type: 'input_request', prompt: 'Enter your nameeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee:' },
     ]);
-  }, []);
+  }, []);*/
 
   const handleUserInput = (userInput) => {
     setLogs((prevLogs) => {

@@ -120,6 +120,7 @@ class SemanticAnalyzer:
         self.loop_depth = 0
         self.switch_depth = 0
         self.function_return_stack = []
+        self.output = []  # <== NEW: collect all print outputs here
 
     def enter_scope(self, nodeName):
         print(F'\n(semantic)(dbg) ENTERING scope {nodeName}')
@@ -2113,8 +2114,10 @@ class SemanticAnalyzer:
 
             if print_stmts_n == "println":
                 print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+                self.output.append(formatted_output + "\n")
             else:
                 print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+                self.output.append(formatted_output)
 
         return None
 

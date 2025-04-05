@@ -33,6 +33,7 @@ const CompilerPage = () => {
   const [errorLogs, setErrors] = useState([]);
   const editorRef = useRef();
   const editorContainerRef = useRef();
+  const [logs, setLogs] = useState([]);
 
   useEffect(() => {     //search for Hello world.cstr then set it as active initial tab
     const fetchData = async () => {
@@ -462,11 +463,18 @@ const toggleFiles = () => {
       body: JSON.stringify({ code }),
     };
     const response = await fetch('http://127.0.0.1:5000/api/compile', params);
-    const { tokens, errors } = await response.json();  // Destructuring response from backend
+    const { tokens, errors, output } = await response.json();  // Destructuring response from backend
     
     console.log("errors: " + errors)
+    console.log("output: ", output);
     console.log("clicked run button")
-    //setErrors([...errorLogs, ...errors]);
+
+    // combined logs for terminal
+    const errorLogs = errors.map(err => ({ type: 'error', value: err }));
+    const outputLogs = output.map(out => ({ type: 'output', value: out }));
+
+    setLogs([...outputLogs, ...errorLogs]);  // You can also reverse the order if needed
+
     setErrors(errors);
     setTokens(tokens);
   }
@@ -575,7 +583,7 @@ const toggleFiles = () => {
             </div>
             
           </div>
-          <Terminal logs={errorLogs} />
+          <Terminal logs={logs} />
         </div>
         <div className="right-segment">
             <AnalyzerSegment tokens={tokens} />
