@@ -464,7 +464,7 @@ const toggleFiles = () => {
     const response = await fetch('http://127.0.0.1:5000/api/compile', params);
     const { tokens, errors } = await response.json();  // Destructuring response from backend
     
-    console.log("syntax errors: " + errors)
+    console.log("errors: " + errors)
     console.log("clicked run button")
     //setErrors([...errorLogs, ...errors]);
     setErrors(errors);

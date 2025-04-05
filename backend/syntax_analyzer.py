@@ -60,7 +60,7 @@ PREDICT_SETS["class_as_func_post"] = PREDICT_SETS["class_as_func_post"] + PREDIC
 #    - for general errors: use matchPredictSet( for general errors (like may unexpected token for a specific part of the grammar, this method will generate the general error na)
 #    - for custom errors: just use " in PREDICT_SETS["<non_terminal>"]  "  this will return true/false then use a custom error nalang sa else
 
-# note: not every prod have to use predict sets cos some of em just branch to 1 token
+# note: not every prod has to use predict sets cos some of em just branch to 1 token
 
 #---------------FOR CHECKNG DTYPE------------
 MIN_INT = -2147483648
@@ -749,7 +749,7 @@ class SyntaxAnalyzer:
             # Use current token's details
             tokenName = self.currToken["tokenName"]
             currLine = self.currToken["tokenLine"] 
-            currCol = self.currToken["tokenCol"] - len(tokenName) + 1
+            currCol = self.currToken["tokenCol"] - len(tokenName) + 2
             print("!!!!!!!!! LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
             print("!!!!!!!!! LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
             print("!!!!!!!!! LOG ERROR CURRENT TOKEN: " + str(self.currToken))

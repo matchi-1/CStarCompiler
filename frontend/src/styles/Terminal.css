@@ -159,3 +159,65 @@ tr:hover {
     background-color: var(--body-blue);
 }
 
+
+
+/* terminal styling for input and output */
+
+
+.terminal-cont {
+    color: var(--font-lightBlue);
+    padding: 1rem;
+    font-family: "Consolas", monospace;
+    max-height: 20rem;
+    overflow-y: auto;
+    overflow-x: auto; /* enable horizontal scroll for whole terminal */
+    white-space: nowrap;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.85rem;
+  }
+  
+  /* individual terminal lines */
+  .terminal-line {
+    display: flex;
+    align-items: center;
+    font-family: "Consolas", monospace;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+  }
+  
+  /* log types */
+  .terminal-line.error {
+    color: #ff8d8d;
+  }
+  
+  /* input container for ghost sizing */
+  .input-wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+  
+  /* hidden ghost that mirrors text */
+  .ghost {
+    visibility: hidden;
+    white-space: pre;
+    font-family: "Consolas", monospace;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* actual input */
+  .terminal-input {
+    background: transparent;
+    color: rgb(255, 234, 193);
+    border: none;
+    outline: none;
+    font-family: "Consolas", monospace;
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: pre;
+    width: 100%;
+  }
+  
