@@ -75,8 +75,6 @@ def compile_code():
             if "Semantic analysis completed successfully. No Semantic Errors found." not in semanErrs:
                 # remove parsing success message since there's a semantic error
                 errors.remove("Parsing completed successfully. No Syntax Errors found.")
-                output_strings = []
-            
             
             # NEW: collect outputs from semantic phase
             output_strings = seman_analyzer.output
@@ -108,20 +106,6 @@ def compile_code():
     #     print(e)
 
     return jsonify(response)
-
-
-@app.route('/api/submit-input', methods=['POST'])
-def submit_input():
-    user_input = request.json.get('user_input')  # User input from frontend
-    input_request = request.json.get('input_request')  # Current input request
-    
-    # Process the input
-    seman_analyzer = current_seman_analyzer
-    result = seman_analyzer.process_input(user_input)
-
-    return jsonify(result)
-
-
 
 if __name__ == '__main__':
     app.run(debug=True) 
