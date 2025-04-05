@@ -189,6 +189,12 @@ tr:hover {
   /* log types */
   .terminal-line.error {
     color: #ff8d8d;
+    margin-bottom: 1.80rem;
+    margin-top: 1.80rem;
+  }
+
+  .terminal-line:first-child {
+    margin-top: 0rem;
   }
   
   /* input container for ghost sizing */
