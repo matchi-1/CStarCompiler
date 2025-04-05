@@ -41,40 +41,37 @@ const Terminal = ({ logs: initialLogs = [] }) => {
             </div>
 
             <div className="terminal-body">
-                <div className="table-container">
-                    <div className="table-wrapper">
-                        <div className="terminal-cont" ref={terminalRef}>
-                            {internalLogs.map((log, index) => (
-                                <div key={index} className={`terminal-line ${log.type}`}>
-                                    {log.type === 'input_request' ? (
-                                        <>
-                                            <span className="prompt">{log.prompt}</span>
-                                            <div className="input-wrapper">
-                                                <span className="ghost">{inputText || ' '}</span>
-                                                <input
-                                                    type="text"
-                                                    className="terminal-input"
-                                                    value={inputText}
-                                                    onChange={(e) => setInputText(e.target.value)}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            handleUserInput(inputText);
-                                                            setInputText('');
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <span>
-                                            {log.type === 'error' && <span className="error-marker">|</span>} {/* error messages */}
-                                            {log.value}
-                                        </span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
+                <div className="logs-container">
+                    <div className="terminal-cont" ref={terminalRef}>
+                        {internalLogs.map((log, index) => (
+                            <div key={index} className={`terminal-line ${log.type}`}>
+                                {log.type === 'input_request' ? (
+                                    <>
+                                        <span className="prompt">{log.prompt}</span>
+                                        <div className="input-wrapper">
+                                            <span className="ghost">{inputText || ' '}</span>
+                                            <input
+                                                type="text"
+                                                className="terminal-input"
+                                                value={inputText}
+                                                onChange={(e) => setInputText(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleUserInput(inputText);
+                                                        setInputText('');
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <span>
+                                        {log.type === 'error' && <span className="error-marker">|ERROR|</span>} {/* error messages */}
+                                        {log.value}
+                                    </span>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
