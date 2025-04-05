@@ -66,7 +66,10 @@ const Terminal = ({ logs: initialLogs = [] }) => {
                                             </div>
                                         </>
                                     ) : (
-                                        <span>{log.value}</span>
+                                        <span>
+                                            {log.type === 'error' && <span className="error-marker">|</span>} {/* error messages */}
+                                            {log.value}
+                                        </span>
                                     )}
                                 </div>
                             ))}

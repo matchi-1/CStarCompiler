@@ -171,7 +171,7 @@ tr:hover {
     max-height: 20rem;
     overflow-y: auto;
     overflow-x: auto; /* enable horizontal scroll for whole terminal */
-    white-space: nowrap;
+    white-space: pre-wrap;
     width: 100%;
     box-sizing: border-box;
     font-size: 0.85rem;
@@ -183,7 +183,7 @@ tr:hover {
     align-items: center;
     font-family: "Consolas", monospace;
     margin-bottom: 0.25rem;
-    white-space: nowrap;
+    white-space: pre-wrap; /* allow wrapping of long lines */
   }
   
   /* log types */
@@ -219,5 +219,10 @@ tr:hover {
     left: 0;
     white-space: pre;
     width: 100%;
+  }
+  
+  .error-marker {
+    color: #ff8d8d;
+    font-weight: bold;
   }
   
