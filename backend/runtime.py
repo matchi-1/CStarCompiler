@@ -124,6 +124,9 @@ class Runtime:
         self.switch_depth = 0
         self.function_return_stack = []
         self.output = []  # <== NEW: collect all print outputs here
+        self.label_counter = 0
+        self.temp_counter = 0
+        self.current_switch_end = None
 
     def enter_scope(self, nodeName):
         print(F'\n(semantic)(dbg) ENTERING scope {nodeName}')
@@ -213,6 +216,24 @@ class Runtime:
         self.errors.append(full_message)
         #print(full_message)
         raise SyntaxError(full_message)
+    
+    def new_label(self, prefix):
+        """Generate a unique label"""
+        self.label_counter += 1
+        return f"{prefix}_{self.label_counter}"
+    
+    def allocate_temp(self):
+        """Allocate a temporary variable"""
+        self.temp_counter += 1
+        return f"temp_{self.temp_counter}"
+    
+    def free_temp(self, temp_var):
+        """Mark temporary variable as available"""
+        pass  
+    
+    def emit(self, code):
+        """Output generated code"""
+        print(code)  
 
 
 
@@ -2359,6 +2380,44 @@ class Runtime:
         if switch_type[1] not in ["string", "int", "long"]:
             self.logError("Invalid data type for 'switch' value. Expected: 'string', 'int', 'long' data types.", err_n)
         
+        #initial code gen
+        previous_switch_end = self.current_switch_end
+        end_label = self.new_label("switch_end")
+        self.current_switch_end = end_label
+
+        self.emit(f" ; Switch expression evaluation ")
+        self.visit_node(node.value_n)
+        temp_var = self.allocate_temp()
+        self.emit(f"store {temp_var} ; Store switch value")
+
+        case_labels = []
+        for case_stmt in node.case_n.case_stmt_n:
+            case_label = self.new_label(f"case_{case_stmt.case_value_n}")
+            next_case_label = self.new_label("next_case")
+            case_labels.append(case_label)
+            
+            self.emit(f"{case_label}:")
+            self.emit(f"load {temp_var}")
+            self.visit_node(case_stmt.case_value_n) 
+            self.emit(f"cmp ; Compare with switch value")
+            self.emit(f"jne {next_case_label} ; Jump if not equal")
+            
+            if case_stmt.ctrl_stmt_body_n:
+                self.visit_node(case_stmt.ctrl_stmt_body_n)
+            
+            self.emit(f"jmp {end_label}")
+            self.emit(f"{next_case_label}:")
+        
+        default_label = self.new_label("switch_default")
+        self.emit(f"{default_label}:")
+        if node.default_n and node.default_n.ctrl_stmt_body_n:
+            self.visit_node(node.default_n.ctrl_stmt_body_n)
+        
+        self.emit(f"{end_label}:")
+        self.free_temp(temp_var)
+        
+        self.current_switch_end = previous_switch_end
+
         # CASE
         case_n = node.case_n
         case_value_list = []
