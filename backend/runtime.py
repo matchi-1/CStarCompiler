@@ -851,7 +851,7 @@ class Runtime:
         
         self.check_type_and_range("variable", iden_symbol["dtype"], val_type, val, node.id_n, err_n = val_err)
         
-        self.curr_scope.set(iden_name, val, dtype=('var', f'{dtype}'))
+        #self.curr_scope.set(iden_name, val, dtype=('var', f'{dtype}'))
         check_scope = self.curr_scope
         while not check_scope.get(iden_name, False):
             check_scope = check_scope.parent
