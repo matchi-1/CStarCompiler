@@ -2454,34 +2454,27 @@ class Runtime:
 
         # CASE
         case_n = node.case_n
-        case_value_list = []
+        case_matched = False
 
         for case_stmt in case_n.case_stmt_n:
 
             self.enter_scope(case_stmt)
-            case_type, case_val, err_n = self.visit_node(case_stmt.case_value_n)
+            _, case_val, err_n = self.visit_node(case_stmt.case_value_n)
 
-            if case_val in case_value_list:
-                self.logError(f"'switch' statement already contains case value '{case_val}'.", err_n)
+            print(f"(runtime)(dbg) EVALUATING CASE VALUE: '{case_val}'")
+            if switch_val == case_val:
+                if case_stmt.ctrl_stmt_body_n:
+                    print(f"(runtime)(dbg) TRAVERSING 'case_body'")
+                    self.visit_node(case_stmt.ctrl_stmt_body_n)
+                case_matched = True
+                break
             
-            if case_type[1] != switch_type[1]:
-                if (switch_type[1] != "long") and (case_type[1] != "int"):
-                    self.logError(f"'switch' value and 'case' value must be of the same data type. Expected: '{switch_type[1]}' data type for case value, but got '{case_type[1]}'.", err_n)
-
-            case_value_list.append(case_val)
-            print(f"(semantic)(dbg) FOUND CASE VALUE: '{case_val}'")
-
-            if case_stmt.ctrl_stmt_body_n:
-                self.visit_node(case_stmt.ctrl_stmt_body_n)
-
-            print(f"(semantic)(dbg) FOUND 'case_body'")
             self.exit_scope(case_stmt)
             
-        
         # DEFAULT
         default_stmt = node.default_n
 
-        if default_stmt:
+        if default_stmt and not case_matched:
             self.enter_scope(default_stmt)
             
             if default_stmt.ctrl_stmt_body_n:
