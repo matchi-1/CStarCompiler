@@ -4,6 +4,7 @@ import '../styles/Terminal.css';
 
 const socket = io("http://localhost:5000");
 
+
 const Terminal = ({ logs: initialLogs = [] }) => {
     const terminalRef = useRef();
     const [inputText, setInputText] = useState('');
@@ -21,6 +22,10 @@ const Terminal = ({ logs: initialLogs = [] }) => {
         }
     }, [initialLogs]);
 
+    socket.on('connect', () => {
+        console.log('Connected to backend!');
+    });
+
     // socket setup
     useEffect(() => {
         const handlePrintOutput = (data) => {
@@ -28,6 +33,8 @@ const Terminal = ({ logs: initialLogs = [] }) => {
         };
 
         const handleRequestInput = (data) => {
+            console.log("Received input request:", data);
+            alert(`Received input request: ${data.prompt}`); // Trigger alert here
             setLogs(prev => [...prev, { type: 'input_request', prompt: data.prompt }]);
         };
 
@@ -39,10 +46,6 @@ const Terminal = ({ logs: initialLogs = [] }) => {
             setLogs(prev => [...prev, { type: 'output', value: "[Loop Finished]" }]);
         };
 
-        socket.on("print_output", handlePrintOutput);
-        socket.on("request_input", handleRequestInput);
-        socket.on("error", handleError); // TODO: setup socket for runtime errors too
-        socket.on("done", handleDone);
 
         return () => {
             socket.off("print_output", handlePrintOutput);
@@ -53,6 +56,7 @@ const Terminal = ({ logs: initialLogs = [] }) => {
     }, []);
 
     const handleUserInput = (userInput) => {
+        console.log("Emitting user response:", userInput);
         setLogs(prevLogs => {
             const updatedLogs = [...prevLogs];
             const lastIndex = updatedLogs.length - 1;
@@ -108,7 +112,7 @@ const Terminal = ({ logs: initialLogs = [] }) => {
                                     </>
                                 ) : (
                                     <span>
-                                        {log.type === 'error' && <span className="error-marker">|ERROR|</span>}
+                                        {log.type === 'error' && <span className="error-marker">|ERROR| </span>}
                                         {log.value}
                                     </span>
                                 )}

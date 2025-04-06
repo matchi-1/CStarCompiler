@@ -13,6 +13,7 @@ commands = [
 
 class wait_flag_container:
     wait = False
+    
 
 def run_loop(socketio: SocketIO):
     user_response = {}

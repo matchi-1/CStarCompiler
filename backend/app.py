@@ -1,38 +1,23 @@
-# <> ------------------------------------- | WEBSOCKET TEST |
+# <> ------------------------------------- | WEBSOCKET TEST | AA
 import eventlet
 eventlet.monkey_patch()
 from flask_socketio import SocketIO
-from inoutTest import run_loop, wait_flag_container
-# <> ------------------------------------- | WEBSOCKET TEST |
+#from inoutTest import run_loop, wait_flag_container
+
+# <> ------------------------------------- | WEBSOCKET TEST | AA
 
 from flask import Flask, json, jsonify, request
 from flask_cors import CORS
 import lexical_analyzer, syntax_analyzer, semantic_analyzer, runtime
 
-
-
 app = Flask(__name__)
 CORS(app)  # cross-origin requests
 
 
-# <> ------------------------------------- | WEBSOCKET TEST |
+# <> ------------------------------------- | WEBSOCKET TEST | BB
 app.config["SECRET_KEY"] = "secret"
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# get loop logic from separate module
-loop_func, user_response, clear_wait = run_loop(socketio)
-
-@socketio.on("connect")
-def on_connect():
-    print("Client connected")
-    wait_flag_container.wait = False
-    socketio.start_background_task(loop_func)
-
-@socketio.on("user_response")
-def on_user_response(data):
-    print("Received from frontend:", data)
-    user_response["value"] = data["response"]
-    wait_flag_container.wait = False  # Clear flag to continue
 
 # @app.route("/start")
 # def start():
@@ -40,7 +25,7 @@ def on_user_response(data):
 #     socketio.start_background_task(loop_func)
 #     return {"status": "Loop started"}
 
-# <> ------------------------------------- | WEBSOCKET TEST |
+# <> ------------------------------------- | WEBSOCKET TEST | BB
 
     
 #---INSTANTIATE LEXER---
@@ -122,4 +107,4 @@ def compile_code():
 
 if __name__ == '__main__':
     #app.run(debug=True) 
-    socketio.run(app, debug=True) # <> ------------------------------------- | WEBSOCKET TEST |
+    socketio.run(app, debug=True) # <> ------------------------------------- | WEBSOCKET TEST | CC

@@ -548,7 +548,7 @@ const toggleFiles = () => {
             <div className="monaco-editor-wrapper">
               <div
                 className="monaco-editor-container"
-                ref={editorContainerRef} // Attach ref to the editor container
+                ref={editorContainerRef} 
               >
               
                 <MonacoEditor
@@ -563,7 +563,7 @@ const toggleFiles = () => {
                     minimap: {
                       enabled: false,
                     },
-                    autoClosingBrackets: true,  // Disable autoClosingBrackets
+                    autoClosingBrackets: true,  
                     autoClosingQuotes: true
                   }}
                 />

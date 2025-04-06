@@ -1,5 +1,33 @@
+import eventlet
 from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal
+from flask_socketio import SocketIO
+from app import socketio
+
+# global user response and wait flag
+user_response = {}
+
+class wait_flag_container:
+    wait = False
+
+@socketio.on("connect")
+def on_connect():
+    print("Client connected")
+    wait_flag_container.wait = False
+
+@socketio.on("user_response")
+def on_user_response(data):
+    print("Received from frontend:", data)
+    handle_user_response(data)  
+
+# function to handle user responses
+def handle_user_response(data):
+    global user_response
+    print(f"DEBUG: Handling user response - data: {data}")  
+    user_response["value"] = data.get("response")
+    print(f"DEBUG: Setting user_response to: {user_response}")  
+    wait_flag_container.wait = False
+    print("User response handled:", data)
 
 class SymbolTable:
     def __init__(self, parent=None):
@@ -115,6 +143,7 @@ class Runtime:
         except SyntaxError as e:
             print (e)
 
+        # remove error list here in the future
         return self.errors
 
     def __init__(self):
@@ -2186,6 +2215,22 @@ class Runtime:
                 if var_type not in ["int", "long"]:
                     self.logError(f"The variable '{var_name}' used as the second parameter must be an integer.", count_err)
                     return None
+
+        # >>>> GET INPUT FROM USER FROM FRONTEND
+        print(">>>> START GET INPUT FROM USER")
+        print(">>>> EMIT REQUEST INPUT")
+        socketio.emit('request_input', { "type": "input_request", "prompt": prompt_value })
+
+        print(">>>> WAITING INPUT FROM FRONTEND.....")
+        wait_flag_container.wait = True  # Set the shared wait flag
+
+        # wait for input from frontend
+        while wait_flag_container.wait:
+            eventlet.sleep(0.1) 
+
+        print(">>>> DONEEE WAITING INPUT FROM FRONTEND.....")
+        raw_input_val = user_response.get("value", "")
+        print(">>>> User entered:", raw_input_val)
 
         input_length_value = self.default_vals[expected_dtype]
         try:
