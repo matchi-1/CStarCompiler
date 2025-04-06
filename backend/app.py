@@ -1,9 +1,47 @@
+# <> ------------------------------------- | WEBSOCKET TEST |
+import eventlet
+eventlet.monkey_patch()
+from flask_socketio import SocketIO
+from inoutTest import run_loop, wait_flag_container
+# <> ------------------------------------- | WEBSOCKET TEST |
+
 from flask import Flask, json, jsonify, request
 from flask_cors import CORS
 import lexical_analyzer, syntax_analyzer, semantic_analyzer, runtime
 
+
+
 app = Flask(__name__)
 CORS(app)  # cross-origin requests
+
+
+# <> ------------------------------------- | WEBSOCKET TEST |
+app.config["SECRET_KEY"] = "secret"
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# get loop logic from separate module
+loop_func, user_response, clear_wait = run_loop(socketio)
+
+@socketio.on("connect")
+def on_connect():
+    print("Client connected")
+    wait_flag_container.wait = False
+    socketio.start_background_task(loop_func)
+
+@socketio.on("user_response")
+def on_user_response(data):
+    print("Received from frontend:", data)
+    user_response["value"] = data["response"]
+    wait_flag_container.wait = False  # Clear flag to continue
+
+# @app.route("/start")
+# def start():
+#     wait_flag_container.wait = False
+#     socketio.start_background_task(loop_func)
+#     return {"status": "Loop started"}
+
+# <> ------------------------------------- | WEBSOCKET TEST |
+
     
 #---INSTANTIATE LEXER---
 lexer = lexical_analyzer.LexicalAnalyzer()
@@ -15,39 +53,6 @@ tokens = []
 def hello():
     return jsonify({'message': 'Hello from Flask!'})
 
-# @app.route('/api/compile', methods=['POST'])
-# def compile_code():
-#     global tokens
-#     #empty out token list every time lexer is called
-#     tokens.clear()
-#     data = request.json
-#     code = data.get('code', '')
-#     code += '\n'
-    
-#     lexer_results = lexer.scan(code)  # Returns [tokens, errors]
-#     tokens, errors = lexer_results  # Unpack the results
-
-#     # # Calls syntax analyzer
-#     # try:
-#     #     analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)
-#     #     errors += analyzer.parse()    # comment out to just test for lexer
-#     # except SyntaxError as e:
-#     #     print(e)
-
-
-#     # Convert Token objects to dictionaries
-#     tokens_dict = [token.to_dict() for token in tokens]
-#     #print(tokens_dict) #for testing
-
-#     # Create a JSON-serializable response
-#     response = {
-#         "tokens": tokens_dict or [],  # should not send out None/null 
-#         "errors": errors or []        
-#     }
-
-#     # print json output
-#     # print('\n\n', json.dumps(response, indent=2))
-#     return jsonify(response)
 
 @app.route('/api/compile', methods=['POST'])
 def compile_code():
@@ -82,7 +87,6 @@ def compile_code():
 
                 if "Runtime success. No Runtime Errors found." not in runtimeErrs:
                     # remove parsing success message since there's a semantic error
-                    errors.remove("Semantic analysis completed successfully. No Semantic Errors found.")
                     errors.remove("Parsing completed successfully. No Syntax Errors found.")
             
             # NEW: collect outputs from semantic phase
@@ -117,4 +121,5 @@ def compile_code():
     return jsonify(response)
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    #app.run(debug=True) 
+    socketio.run(app, debug=True) # <> ------------------------------------- | WEBSOCKET TEST |

@@ -433,25 +433,6 @@ const toggleFiles = () => {
     })
   };
 
-  // useEffect(() => {
-  //   const fetchTokens = async () => {
-  //     const params = {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({ code }),
-  //     };
-  //     const response = await fetch('http://127.0.0.1:5000/api/compile', params);
-  //     const { tokens, errors } = await response.json();  // Destructuring response from backend
-  //     setTokens(tokens);
-  //     setErrors(errors);
-  //   };
-
-  //   const fetchTimer = setTimeout(fetchTokens, 50);
-  //   return () => clearTimeout(fetchTimer);
-  // }, [code]);
-
   const callCompiler = async () => {
     setErrors([]);
 
@@ -590,7 +571,7 @@ const toggleFiles = () => {
             </div>
             
           </div>
-          <Terminal logs={logs} />
+          <Terminal logs={logs}/> {/*  <Terminal {logs={logs}} />   */}
         </div>
         <div className="right-segment">
             <AnalyzerSegment tokens={tokens} />

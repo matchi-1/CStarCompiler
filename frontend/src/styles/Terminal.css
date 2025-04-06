@@ -161,8 +161,8 @@
   /* log types */
   .terminal-line.error {
     color: #ff8d8d;
-    padding-bottom: 1rem;
-    padding-top: 1rem;
+    padding-bottom: 0.75rem;
+    padding-top: 0.5rem;
   }
 
   .terminal-line:first-child {
