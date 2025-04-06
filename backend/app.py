@@ -1,6 +1,6 @@
 from flask import Flask, json, jsonify, request
 from flask_cors import CORS
-import lexical_analyzer, syntax_analyzer, semantic_analyzer
+import lexical_analyzer, syntax_analyzer, semantic_analyzer, runtime
 
 app = Flask(__name__)
 CORS(app)  # cross-origin requests
@@ -75,6 +75,14 @@ def compile_code():
             if "Semantic analysis completed successfully. No Semantic Errors found." not in semanErrs:
                 # remove parsing success message since there's a semantic error
                 errors.remove("Parsing completed successfully. No Syntax Errors found.")
+            else:
+                runtime_res = runtime.Runtime()
+                runtimeErrs = runtime_res.interpret(parseTree)
+                errors += runtimeErrs
+
+                if "Runtime success. No Runtime Errors found." not in runtimeErrs:
+                    # remove parsing success message since there's a semantic error
+                    errors.remove("Parsing completed successfully. No Syntax Errors found.")
             
             # NEW: collect outputs from semantic phase
             output_strings = seman_analyzer.output

@@ -80,7 +80,7 @@ class ErrorNode:
         self.startCol = startCol
         self.id_t = id_t
 
-class SemanticAnalyzer:
+class Runtime:
 
     numtypes = ['int', 'long', 'float', 'double']
     default_vals = {
@@ -106,8 +106,8 @@ class SemanticAnalyzer:
     def interpret(self, node):
         try:
             self.visit_node(node)
-            self.errors.append("Semantic analysis completed successfully. No Semantic Errors found.")
-            print("Semantic checking completed successfully. No Semantic Errors found.")
+            self.errors.append("Runtime success. No Runtime Errors found.")
+            print("Runtime success. No Runtime Errors found.")
 
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
