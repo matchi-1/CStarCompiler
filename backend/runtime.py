@@ -2404,10 +2404,11 @@ class Runtime:
             print(f"CONDITION was found from: {type(node).__name__}")
             if node.body_n:
                 self.visit_node(node.body_n)
-
-        # ELSE CHAIN
-        if node.else_chain_n:
-            self.visit_node(node.else_chain_n)
+            return True
+        else:
+            # ELSE CHAIN
+            if node.else_chain_n:
+                self.visit_node(node.else_chain_n)
 
         self.exit_scope(type(node).__name__)
         return
@@ -2421,8 +2422,9 @@ class Runtime:
             chain_type = type(chain_stmt).__name__
 
             print(f"CHAAAAAAAAINNNNNNNN TYPE: {chain_type}")
-            self.visit_node(chain_stmt)
-
+            if self.visit_node(chain_stmt) == True:
+                break
+        
         self.exit_scope(type(node).__name__)
         return
 
