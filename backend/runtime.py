@@ -2239,70 +2239,70 @@ class Runtime:
         print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), value)}")
         return (('lit', expected_dtype), value, err_n)
     
-    # def visit_node_output(self, node):
-    #     print_stmts_n = node.print_stmts_n 
-    #     print_params_n = node.print_params_n  
+    def visit_node_output(self, node):
+        print_stmts_n = node.print_stmts_n 
+        print_params_n = node.print_params_n  
 
-    #     # if not print_params_n:
-    #     #     self.logError("Output statement requires at least one parameter (format string).")
-    #     #     return None
-    #     if len(print_params_n) != 0:
-    #         first_param = print_params_n[0]
-    #         first_param_type, first_param_val, err_n = self.visit_node(first_param)
-    #         formatted_output = ""
+        # if not print_params_n:
+        #     self.logError("Output statement requires at least one parameter (format string).")
+        #     return None
+        if len(print_params_n) != 0:
+            first_param = print_params_n[0]
+            first_param_type, first_param_val, err_n = self.visit_node(first_param)
+            formatted_output = ""
 
-    #         if first_param_type is None or first_param_type[1] != "string":
-    #         # self.logError("First parameter in output statement must be a string (format string).", first_param)
-    #             if len(print_params_n) > 1:
-    #                 self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
-    #             formatted_output = str(first_param_val)
+            if first_param_type is None or first_param_type[1] != "string":
+            # self.logError("First parameter in output statement must be a string (format string).", first_param)
+                if len(print_params_n) > 1:
+                    self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
+                formatted_output = str(first_param_val)
 
-    #         # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
-    #         for param in print_params_n:
-    #             param_type, param_value, err_n = self.visit_node(param)
-    #             for i, param in enumerate(print_params_n):
-    #                 param_type, param_value, err_n  = self.visit_node(param)
-    #                 # entire arrays and objects are not allowed as direct output
-    #                 if param_type[0] == 'arr':
-    #                     self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", err_n)
-    #                     return None
-    #                 elif param_type[0] == 'object':
-    #                     self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", err_n)
-    #                     return None
-    #                 formatted_output += str(param_value)
+            # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
+            for param in print_params_n:
+                param_type, param_value, err_n = self.visit_node(param)
+                for i, param in enumerate(print_params_n):
+                    param_type, param_value, err_n  = self.visit_node(param)
+                    # entire arrays and objects are not allowed as direct output
+                    if param_type[0] == 'arr':
+                        self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", err_n)
+                        return None
+                    elif param_type[0] == 'object':
+                        self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", err_n)
+                        return None
+                    formatted_output += str(param_value)
             
-    #             # return None
-    #         else:
-    #             format_specifiers = self._extract_format_specifiers(str(first_param_val))
+                # return None
+            else:
+                format_specifiers = self._extract_format_specifiers(str(first_param_val))
                 
-    #             if len(format_specifiers) != len(print_params_n) - 1:
-    #                 if not format_specifiers:
-    #                     self.logError(f"String '{first_param_val}' does not contain any format specifiers, no parameters can follow it.", err_n)
-    #                 else:
-    #                     self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", err_n)
-    #                     return None
+                if len(format_specifiers) != len(print_params_n) - 1:
+                    if not format_specifiers:
+                        self.logError(f"String '{first_param_val}' does not contain any format specifiers, no parameters can follow it.", err_n)
+                    else:
+                        self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", err_n)
+                        return None
 
-    #             formatted_output = first_param_val
-    #             for i, specifier in enumerate(format_specifiers):
-    #                 param_node = print_params_n[i + 1] 
-    #                 param_type, param_value, err_n  = self.visit_node(param_node)
+                formatted_output = first_param_val
+                for i, specifier in enumerate(format_specifiers):
+                    param_node = print_params_n[i + 1] 
+                    param_type, param_value, err_n  = self.visit_node(param_node)
 
                 
-    #                 if not self._validate_format_specifier(specifier, param_type[1], param_value) :
-    #                     # err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
-    #                     print("ERERRRRRRRRRRRRRRRR err_n: " + str(err_n))
-    #                     self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
-    #                     return None
-    #                 formatted_output = formatted_output.replace(specifier, str(param_value), 1)
+                    if not self._validate_format_specifier(specifier, param_type[1], param_value) :
+                        # err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
+                        print("ERERRRRRRRRRRRRRRRR err_n: " + str(err_n))
+                        self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
+                        return None
+                    formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
-    #         if print_stmts_n == "println":
-    #             print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
-    #             self.output.append(str(formatted_output) + "\n")
-    #         else:
-    #             print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
-    #             self.output.append(formatted_output)
+            if print_stmts_n == "println":
+                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+                self.output.append(str(formatted_output) + "\n")
+            else:
+                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+                self.output.append(formatted_output)
 
-    #     return None
+        return None
 
     def _extract_format_specifiers(self, format_string):
         import re
