@@ -82,6 +82,7 @@ def compile_code():
 
                 if "Runtime success. No Runtime Errors found." not in runtimeErrs:
                     # remove parsing success message since there's a semantic error
+                    errors.remove("Semantic analysis completed successfully. No Semantic Errors found.")
                     errors.remove("Parsing completed successfully. No Syntax Errors found.")
             
             # NEW: collect outputs from semantic phase
