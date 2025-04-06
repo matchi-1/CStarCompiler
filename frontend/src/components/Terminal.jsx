@@ -1,33 +1,76 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { io } from 'socket.io-client';
 import '../styles/Terminal.css';
+
+const socket = io("http://localhost:5000");
 
 const Terminal = ({ logs: initialLogs = [] }) => {
     const terminalRef = useRef();
     const [inputText, setInputText] = useState('');
-    const [internalLogs, setInternalLogs] = useState(initialLogs);
+    const [logs, setLogs] = useState(initialLogs);
 
+    // auto-scroll to bottom on update
     useEffect(() => {
-        setInternalLogs(initialLogs);  // update when parent sends new logs
+        terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
+    }, [logs]);
+
+    // push initial logs (this would be errors from lexer, parser, seman)
+    useEffect(() => {
+        if (initialLogs.length > 0) {
+            setLogs(initialLogs);
+        }
     }, [initialLogs]);
 
+    // socket setup
+    useEffect(() => {
+        const handlePrintOutput = (data) => {
+            setLogs(prev => [...prev, { type: 'output', value: data.value }]);
+        };
+
+        const handleRequestInput = (data) => {
+            setLogs(prev => [...prev, { type: 'input_request', prompt: data.prompt }]);
+        };
+
+        const handleError = (data) => {
+            setLogs(prev => [...prev, { type: 'error', value: data.message }]);
+        };
+
+        const handleDone = () => {
+            setLogs(prev => [...prev, { type: 'output', value: "[Loop Finished]" }]);
+        };
+
+        socket.on("print_output", handlePrintOutput);
+        socket.on("request_input", handleRequestInput);
+        socket.on("error", handleError); // TODO: setup socket for runtime errors too
+        socket.on("done", handleDone);
+
+        return () => {
+            socket.off("print_output", handlePrintOutput);
+            socket.off("request_input", handleRequestInput);
+            socket.off("error", handleError);
+            socket.off("done", handleDone);
+        };
+    }, []);
+
     const handleUserInput = (userInput) => {
-        setInternalLogs((prevLogs) => {
+        setLogs(prevLogs => {
             const updatedLogs = [...prevLogs];
             const lastIndex = updatedLogs.length - 1;
 
             if (updatedLogs[lastIndex]?.type === 'input_request') {
-                const promptText = updatedLogs[lastIndex].prompt;
+                const prompt = updatedLogs[lastIndex].prompt;
                 updatedLogs[lastIndex] = {
                     type: 'output',
-                    value: `${promptText} ${userInput}`
+                    value: `${prompt} ${userInput}`
                 };
             }
 
-            // send to backend later ?
             return updatedLogs;
         });
-    };
 
+        socket.emit("user_response", { response: userInput });
+        setInputText('');
+    };
 
     return (
         <div className="terminal">
@@ -43,7 +86,7 @@ const Terminal = ({ logs: initialLogs = [] }) => {
             <div className="terminal-body">
                 <div className="logs-container">
                     <div className="terminal-cont" ref={terminalRef}>
-                        {internalLogs.map((log, index) => (
+                        {logs.map((log, index) => (
                             <div key={index} className={`terminal-line ${log.type}`}>
                                 {log.type === 'input_request' ? (
                                     <>
@@ -58,7 +101,6 @@ const Terminal = ({ logs: initialLogs = [] }) => {
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'Enter') {
                                                         handleUserInput(inputText);
-                                                        setInputText('');
                                                     }
                                                 }}
                                             />
@@ -66,7 +108,7 @@ const Terminal = ({ logs: initialLogs = [] }) => {
                                     </>
                                 ) : (
                                     <span>
-                                        {log.type === 'error' && <span className="error-marker">|ERROR|</span>} {/* error messages */}
+                                        {log.type === 'error' && <span className="error-marker">|ERROR|</span>}
                                         {log.value}
                                     </span>
                                 )}

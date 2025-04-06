@@ -2,12 +2,13 @@ import eventlet
 from flask_socketio import SocketIO
 
 commands = [
-    {"output": "just print this in frontend"},
-    {"output": "just print this in frontend"},
-    {"input": "this is a prompt, enter number 1: "},
-    {"output": "just print this in frontend"},
-    {"output": "just print this in frontend"},
-    {"input": "Enter number 2: "}
+    # {"output": "sample output 1"},
+    # {"output": "hello  this is cecilia agatha tolentino the cecestr cat"},
+    # {"input": "this is a prompt, enter number 1: "},
+    # {"output": "cece again"},
+    # {"output": "i ate sock"},
+    # {"input": "Enter number how many cats u like (1 and its cece): "},
+    # {"output": "i ate sock"},
 ]
 
 class wait_flag_container:
@@ -20,7 +21,7 @@ def run_loop(socketio: SocketIO):
         for item in commands:
             if "input" in item:
                 wait_flag_container.wait = True
-                socketio.emit('request_input', {"prompt": item["input"]})
+                socketio.emit('request_input', { "type": "input_request", "prompt": item["input"] })
 
                 while wait_flag_container.wait:
                     eventlet.sleep(0.1)
@@ -28,9 +29,9 @@ def run_loop(socketio: SocketIO):
                 print("User entered:", user_response["value"])
 
             elif "output" in item:
-                socketio.emit('print_output', {"text": item["output"]})
+                socketio.emit('print_output', { "type": "output", "value": item["output"] })
                 eventlet.sleep(0.1)
 
-        socketio.emit("done", {"msg": "Done looping."})
+        socketio.emit("done", { "type": "output", "value": "[Loop Finished]" })
 
     return loop, user_response, lambda: setattr(wait_flag_container, "wait", False)
