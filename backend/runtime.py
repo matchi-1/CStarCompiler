@@ -2038,31 +2038,23 @@ class Runtime:
 
         loop_count = 0
 
-        statements_n = node_loop.ctrl_stmt_body_n.statements_n
+        statements_n = node_loop.ctrl_stmt_body_n.statements_n if node_loop.ctrl_stmt_body_n else []
 
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
             self.visit_node(node_loop.init_arg_n)
-            
-            
-            self.visit_node(node_loop.condition_n.condition_value_n)
-            print(f"CONDITION was found from: {loop_name} \n")
-            #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
-            
-            #self.visit_node(node_loop .inc_arg_n, funcExpectedVal=False) 
-            # self.visit_node(node_loop.ctrl_stmt_body_n)
 
-            #theres prolly a better place for this somewer else:
-            
+            #self.visit_node(node_loop.condition_n.condition_value_n)
+            #print(f"CONDITION was found from: {loop_name} \n")
 
+            #handle for loops
             while True:
                 if loop_count > self.MAX_LOOP_COUNT:
                     self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
                     break
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-                if val == False:
-                    break
+                if val == False: break
 
                 break_outer = False
 
@@ -2076,28 +2068,19 @@ class Runtime:
 
                 self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
-                if break_outer:
-                    break
+                if break_outer: break
 
                 loop_count += 1
 
 
-
         elif loop_name == 'node_while' or loop_name == 'node_do':
-            self.visit_node(node_loop.condition_n)
-            print(f"CONDITION was found from: {loop_name}")
-            #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
-            
-            # self.visit_node(node_loop.ctrl_stmt_body_n)
-
             while True:
                 if loop_count > self.MAX_LOOP_COUNT:
-                    self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
+                    self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-                if val == False:
-                    break
+                if val == False: break
 
                 break_outer = False
 
@@ -2106,11 +2089,10 @@ class Runtime:
                         break_outer = True
                         break
                     elif type(statement).__name__ == 'node_continue_stmt':
-                        break  # Break from `for`, `while` will loop again
+                        break  
                     self.visit_node(statement)
                 
-                if break_outer:
-                    break
+                if break_outer:break
 
                 loop_count += 1
 
@@ -2131,8 +2113,7 @@ class Runtime:
                     self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
                     break
                 
-                if loop_count > repeat_val:
-                    break
+                if loop_count > repeat_val: break
 
                 break_outer = False
 
@@ -2144,64 +2125,13 @@ class Runtime:
                         break  # Break from `for`, `while` will loop again
                     self.visit_node(statement)
                 
-                if break_outer:
-                    break
+                if break_outer: break
 
                 loop_count += 1
 
         self.loop_depth -= 1
         self.exit_scope(loop_name)
 
-    # input
-    # def visit_node_input(self, node):
-    #     expected_dtype = node.type_t["tokenName"]
-    #     prompt_n = node.prompt_n
-    #     count_n = node.count_n
-
-    #     promp_text = ""
-    #     if prompt_n:
-    #         promp_type, promp_text = self.visit_node(prompt_n)
-    #         if promp_type != "string":
-    #             print("(semantic)(dbg) ERROR: Prompt must be a string")
-    #             return None
-    #     if count_n:
-    #         count_type, count = self.visit_node(count_n)
-    #         if count_type not in ["int", "long"]:
-    #             print("(semantic)(dbg) ERROR: Count must be an integer or long")
-    #             return None
-    #         if count <= 0:
-    #             print("(semantic)(dbg) ERROR: Count must be greater than 0")
-    #             return None
-            
-    #     user_input = input(promp_text)
-
-    #     try:
-    #         if expected_dtype == 'int':
-    #             value = int(user_input) 
-    #         elif expected_dtype == 'long':
-    #             value = int(user_input)
-    #         elif expected_dtype == 'float':
-    #             value = Decimal(user_input)
-    #         elif expected_dtype == 'double':
-    #             value = Decimal(`user_input)
-    #         elif expected_dtype == 'string':
-    #             value = user_input
-    #         elif expected_dtype == 'bool':
-    #             value = user_input.lower() == 'true'
-    #         else:
-    #             print("(semantic)(dbg) ERROR: Unsupported data type for input")
-    #             return None
-    #     except ValueError:
-    #         print("(semantic)(dbg) ERROR: Input does not match expected data type")
-    #         return None
-        
-    #     if count_n:
-    #        _, count = self.visit_node(count_n) 
-    #        if not isinstance(count, int) or count <= 0:
-    #            print("(semantic)(dbg) ERROR: Invalid count for input")
-    #            return None
-           
-    #     return (expected_dtype, value)
     def visit_node_input(self, node):
 
         err_n = ErrorNode(node.in_stmt_t["tokenLine"], node.in_stmt_t["tokenCol"] - len(node.in_stmt_t["tokenName"]) - 1)
@@ -2342,7 +2272,11 @@ class Runtime:
                 self.output.append(str(formatted_output) + "\n")
             else:
                 print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
-                self.output.append(formatted_output)
+                if self.output:     #placholder, just so it doesnt \n on the terminal, 
+                                    #should be changed when the way outputs r handled changes
+                    self.output[-1] += formatted_output
+                else:
+                    self.output.append(formatted_output)
 
         return None
 
