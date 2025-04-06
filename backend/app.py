@@ -89,8 +89,8 @@ def compile_code():
                     # remove parsing success message since there's a semantic error
                     errors.remove("Parsing completed successfully. No Syntax Errors found.")
             
-            # NEW: collect outputs from semantic phase
-            output_strings = seman_analyzer.output
+                # NEW: collect outputs from semantic phase
+                output_strings = runtime_res.output
         else:
             output_strings = []
 
