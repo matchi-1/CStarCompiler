@@ -534,7 +534,8 @@ class node_loop_stmt:
     def __init__(self, loop_stmt_n):
         self.loop_stmt_n = loop_stmt_n
     def __repr__(self):
-        return f"\nnode_loop_stmt -> {self.loop_stmt_n}\n"
+        # return f"\nnode_loop_stmt -> {self.loop_stmt_n}\n"
+        return f"\n{self.loop_stmt_n}\n"
 
 class node_forloop:
     def __init__(self, init_arg_n, condition_n, inc_arg_n, ctrl_stmt_body_n):

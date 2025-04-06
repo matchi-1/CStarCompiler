@@ -470,9 +470,16 @@ const toggleFiles = () => {
     console.log("clicked run button")
 
     // combined logs for terminal
-    const errorLogs = errors.map(err => ({ type: 'error', value: err }));
+    const excludedMessages = [
+      // "Parsing completed successfully. No Syntax Errors found.",
+      // "Semantic analysis completed successfully. No Semantic Errors found."
+    ];
+    
+    const errorLogs = errors
+      .filter(err => !excludedMessages.includes(err))
+      .map(err => ({ type: 'error', value: err }));
     const outputLogs = output.map(out => ({ type: 'output', value: out }));
-
+    
     setLogs([...outputLogs, ...errorLogs]);  // You can also reverse the order if needed
 
     setErrors(errors);
