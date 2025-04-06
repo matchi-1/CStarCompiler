@@ -246,7 +246,7 @@ class SemanticAnalyzer:
                 print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
                 self.current_function_name = None
             
-            self.visit_node(statement)
+            else: self.visit_node(statement)
         
         if not self.has_main:
             self.current_function_name = "main"
@@ -1908,11 +1908,11 @@ class SemanticAnalyzer:
             self.visit_node(node_loop.init_arg_n)
             
             # theres prolly a more efficient way of doing this cos
-            _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-            print(f"CONDITION was found from: {loop_name} \n VALUEEEE: {val} ")
+            self.visit_node(node_loop.condition_n.condition_value_n)
+            print(f"CONDITION was found from: {loop_name} \n")
             #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
             
-            #self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
+            #self.visit_node(node_loop .inc_arg_n, funcExpectedVal=False) 
             # self.visit_node(node_loop.ctrl_stmt_body_n)
 
             #theres prolly a better place for this somewer else:
