@@ -459,7 +459,7 @@ const toggleFiles = () => {
     const errorLogs = errors
       .filter(err => !excludedMessages.includes(err))
       .map(err => ({ type: 'error', value: err }));
-    const outputLogs = output.map(out => ({ type: 'output', value: out }));
+    const outputLogs = output.map(out => ({ type: 'output', value: out.replace(/\\n/g, '\n') }));
     
     setLogs([...outputLogs, ...errorLogs]);  // You can also reverse the order if needed
 
