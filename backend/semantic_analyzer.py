@@ -2086,9 +2086,8 @@ class SemanticAnalyzer:
                 if loop_count > self.MAX_LOOP_COUNT:    #TODO: make this a constant
                     self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
                     break
-                #not efficient, needs refactoring
-                _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-                if val == False:
+                
+                if loop_count > repeat_val:
                     break
 
                 break_outer = False
@@ -2108,6 +2107,8 @@ class SemanticAnalyzer:
 
         self.loop_depth -= 1
         self.exit_scope(loop_name)
+
+    
 
     # input
     # def visit_node_input(self, node):
@@ -2296,7 +2297,7 @@ class SemanticAnalyzer:
 
             if print_stmts_n == "println":
                 print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
-                self.output.append(formatted_output + "\n")
+                self.output.append(str(formatted_output) + "\n")
             else:
                 print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
                 self.output.append(formatted_output)
