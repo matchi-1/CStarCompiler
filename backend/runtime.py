@@ -111,7 +111,7 @@ class Runtime:
 
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
-            print('-----------AST-----------------\n\t\t', node)
+            #print('-----------AST-----------------\n\t\t', node)
         except SyntaxError as e:
             print (e)
 
@@ -2031,129 +2031,126 @@ class Runtime:
 
 
 
-    # def visit_node_loop_stmt(self, node):
-    #     node_loop = node.loop_stmt_n
-    #     loop_name = type(node_loop).__name__
-    #     self.loop_depth += 1
+    def visit_node_loop_stmt(self, node):
+        node_loop = node.loop_stmt_n
+        loop_name = type(node_loop).__name__
+        self.loop_depth += 1
 
-    #     loop_count = 0
+        loop_count = 0
 
-    #     statements_n = node_loop.ctrl_stmt_body_n.statements_n
+        statements_n = node_loop.ctrl_stmt_body_n.statements_n
 
-    #     self.enter_scope(loop_name)
-    #     if loop_name == 'node_forloop':    
-    #         self.visit_node(node_loop.init_arg_n)
+        self.enter_scope(loop_name)
+        if loop_name == 'node_forloop':    
+            self.visit_node(node_loop.init_arg_n)
             
-    #         # theres prolly a more efficient way of doing this cos
-    #         _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-    #         print(f"CONDITION was found from: {loop_name} \n VALUEEEE: {val} ")
-    #         #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
             
-    #         #self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
-    #         # self.visit_node(node_loop.ctrl_stmt_body_n)
+            self.visit_node(node_loop.condition_n.condition_value_n)
+            print(f"CONDITION was found from: {loop_name} \n")
+            #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
+            
+            #self.visit_node(node_loop .inc_arg_n, funcExpectedVal=False) 
+            # self.visit_node(node_loop.ctrl_stmt_body_n)
 
-    #         #theres prolly a better place for this somewer else:
+            #theres prolly a better place for this somewer else:
             
 
-    #         while True:
-    #             if loop_count > self.MAX_LOOP_COUNT:    #TODO: make this a constant
-    #                 self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
-    #                 break
-    #             #not efficient, needs refactoring
-    #             _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-    #             if val == False:
-    #                 break
+            while True:
+                if loop_count > self.MAX_LOOP_COUNT:
+                    self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
+                    break
+                #not efficient, needs refactoring
+                _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
+                if val == False:
+                    break
 
-    #             break_outer = False
+                break_outer = False
 
-    #             for statement in statements_n:
-    #                 if type(statement).__name__ == 'node_break_stmt':
-    #                     break_outer = True
-    #                     break
-    #                 elif type(statement).__name__ == 'node_continue_stmt':
-    #                     break  # Break from `for`, `while` will loop again
-    #                 self.visit_node(statement)
+                for statement in statements_n:
+                    if type(statement).__name__ == 'node_break_stmt':
+                        break_outer = True
+                        break
+                    elif type(statement).__name__ == 'node_continue_stmt':
+                        break  # Break from `for`, `while` will loop again
+                    self.visit_node(statement)
 
-    #             self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
+                self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
-    #             if break_outer:
-    #                 break
+                if break_outer:
+                    break
 
-    #             loop_count += 1
+                loop_count += 1
 
 
 
-    #     elif loop_name == 'node_while' or loop_name == 'node_do':
-    #         self.visit_node(node_loop.condition_n)
-    #         print(f"CONDITION was found from: {loop_name}")
-    #         #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
+        elif loop_name == 'node_while' or loop_name == 'node_do':
+            self.visit_node(node_loop.condition_n)
+            print(f"CONDITION was found from: {loop_name}")
+            #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
             
-    #         # self.visit_node(node_loop.ctrl_stmt_body_n)
+            # self.visit_node(node_loop.ctrl_stmt_body_n)
 
-    #         while True:
-    #             if loop_count > self.MAX_LOOP_COUNT:    #TODO: make this a constant
-    #                 self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
-    #                 break
-    #             #not efficient, needs refactoring
-    #             _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-    #             if val == False:
-    #                 break
+            while True:
+                if loop_count > self.MAX_LOOP_COUNT:
+                    self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
+                    break
+                #not efficient, needs refactoring
+                _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
+                if val == False:
+                    break
 
-    #             break_outer = False
+                break_outer = False
 
-    #             for statement in statements_n:
-    #                 if type(statement).__name__ == 'node_break_stmt':
-    #                     break_outer = True
-    #                     break
-    #                 elif type(statement).__name__ == 'node_continue_stmt':
-    #                     break  # Break from `for`, `while` will loop again
-    #                 self.visit_node(statement)
+                for statement in statements_n:
+                    if type(statement).__name__ == 'node_break_stmt':
+                        break_outer = True
+                        break
+                    elif type(statement).__name__ == 'node_continue_stmt':
+                        break  # Break from `for`, `while` will loop again
+                    self.visit_node(statement)
                 
-    #             if break_outer:
-    #                 break
+                if break_outer:
+                    break
 
-    #             loop_count += 1
+                loop_count += 1
 
+        elif loop_name == 'node_repeat':
+            repeat_type, repeat_val, err_n = self.visit_node(node_loop.repeat_value_n)
             
-
-    #     elif loop_name == 'node_repeat':
-    #         repeat_type, repeat_val, err_n = self.visit_node(node_loop.repeat_value_n)
+            if repeat_type[1] not in ['int', 'long']:
+                self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_type[1]}' instead.", err_n)
             
-    #         if repeat_type[1] not in ['int', 'long']:
-    #             self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_type[1]}' instead.", err_n)
+            if repeat_val < 0:
+                self.logError(f"Invalid value for repeat statement. Expected positive 'int' or 'long' values, but found '{repeat_val}' instead.", err_n)
             
-    #         if repeat_val < 0:
-    #             self.logError(f"Invalid value for repeat statement. Expected positive 'int' or 'long' values, but found '{repeat_val}' instead.", err_n)
-            
-    #         print(f"(semantic)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_type}, {repeat_val}")
-    #         # self.visit_node(node_loop.ctrl_stmt_body_n)
+            print(f"(semantic)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_type}, {repeat_val}")
+            # self.visit_node(node_loop.ctrl_stmt_body_n)
 
-    #         while True:
-    #             if loop_count > self.MAX_LOOP_COUNT:    #TODO: make this a constant
-    #                 self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
-    #                 break
-    #             #not efficient, needs refactoring
-    #             _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-    #             if val == False:
-    #                 break
-
-    #             break_outer = False
-
-    #             for statement in statements_n:
-    #                 if type(statement).__name__ == 'node_break_stmt':
-    #                     break_outer = True
-    #                     break
-    #                 elif type(statement).__name__ == 'node_continue_stmt':
-    #                     break  # Break from `for`, `while` will loop again
-    #                 self.visit_node(statement)
+            while True:
+                if loop_count > self.MAX_LOOP_COUNT:   
+                    self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
+                    break
                 
-    #             if break_outer:
-    #                 break
+                if loop_count > repeat_val:
+                    break
 
-    #             loop_count += 1
+                break_outer = False
 
-    #     self.loop_depth -= 1
-    #     self.exit_scope(loop_name)
+                for statement in statements_n:
+                    if type(statement).__name__ == 'node_break_stmt':
+                        break_outer = True
+                        break
+                    elif type(statement).__name__ == 'node_continue_stmt':
+                        break  # Break from `for`, `while` will loop again
+                    self.visit_node(statement)
+                
+                if break_outer:
+                    break
+
+                loop_count += 1
+
+        self.loop_depth -= 1
+        self.exit_scope(loop_name)
 
     # input
     # def visit_node_input(self, node):
