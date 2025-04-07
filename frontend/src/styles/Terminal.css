@@ -155,6 +155,7 @@
     font-family: "Consolas", monospace;
     padding-bottom: 0.25rem;
     white-space: pre-wrap; /* allow wrapping of long lines */
+    /*border: 1px solid red;*/
   }
   
   /* log types */
