@@ -2288,38 +2288,37 @@ class Runtime:
         # # >>>> GET INPUT FROM USER FROM FRONTEND
         print(">>>> START GET INPUT FROM USER")
         print(">>>> EMIT REQUEST INPUT")
-        socketio.emit('request_input', { "type": "input_request", "prompt": prompt_value })
-
         print(">>>> WAITING INPUT FROM FRONTEND.....")
+        global wait_flag, user_response
         wait_flag = True  # set the shared wait flag
+        socketio.emit('request_input', { "type": "input_request", "prompt": prompt_value })
 
         # wait for input from frontend
         while wait_flag:
             eventlet.sleep(0.1) 
 
         print(">>>> DONEEE WAITING INPUT FROM FRONTEND.....")
-        raw_input_val = user_response.get("value", "")
+        raw_input_val = user_response.get("response", "")
         print(">>>> User entered:", raw_input_val)
 
-        input_length_value = raw_input_val
         try:
             if expected_dtype == "int":
-                value = int(input_length_value)  
+                value = int(raw_input_val)  
             elif expected_dtype == "long":
-                value = int(input_length_value)  
+                value = int(raw_input_val)  
             elif expected_dtype == "float":
-                value = float(input_length_value) 
+                value = float(raw_input_val) 
             elif expected_dtype == "double":
-                value = float(input_length_value)  
+                value = float(raw_input_val)  
             elif expected_dtype == "string":
-                value = str(input_length_value)  
+                value = str(raw_input_val)  
             elif expected_dtype == "bool":
-                value = bool(input_length_value)  
+                value = bool(raw_input_val)  
             else:
                 self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
                 return None
         except ValueError:
-            self.logError(f"Cannot convert input '{value}' to '{expected_dtype}'.", err_n)
+            self.logError(f"Cannot convert input '{raw_input_val}' to '{expected_dtype}'.", err_n)
             return None
         
         print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), value)}")
