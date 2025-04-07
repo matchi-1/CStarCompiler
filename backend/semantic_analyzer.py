@@ -855,6 +855,29 @@ class SemanticAnalyzer:
         #    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
         
         self.check_type_and_range("variable", iden_symbol["dtype"], val_type, val, node.id_n, err_n = val_err)
+        check_scope = self.curr_scope
+        while not check_scope.get(iden_name, False):
+            check_scope = check_scope.parent
+        
+        match assign_op:
+            case "=":
+                check_scope.syms[iden_name]["value"] = val
+            case "+=":
+                check_scope.syms[iden_name]["value"] += val
+            case "-=":
+                check_scope.syms[iden_name]["value"] -= val
+            case "*=":
+                check_scope.syms[iden_name]["value"] *= val
+            case "/=":
+                check_scope.syms[iden_name]["value"] /= val
+            case "%=":
+                if val == 0:
+                    self.logError("Modulo by 0 is not allowed.", val_err)
+                if iden_symbol["dtype"][1] not in ["int", "long"] or val_type[1] not in ["int", "long"]:
+                    self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err)
+                if iden_symbol["dtype"][1] == "int" and val_type[1] == "long":
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {iden_symbol["dtype"][1]} and {val_type[1]}.", val_err)
+                check_scope.syms[iden_name]["value"] %= val
 
     def visit_node_assign_stmt_array_elem(self, node): 
         # visit_node_assign_stmt_object_att_arr REFERENCES THIS, CHANGE BOTH FUNCS WHEN U CHANGE THIS ONE THANK U

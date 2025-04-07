@@ -920,6 +920,7 @@ class Runtime:
         dtype = iden_symbol["dtype"][1]
         val_type, val, val_err = self.visit_node(value)
         print(f" ------------------------------------------->{val_type[1]}")
+        print(f" ------------------------------------------->{val}")
         #if dtype != val_type[1]:
         #    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
         
