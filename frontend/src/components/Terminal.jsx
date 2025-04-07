@@ -9,6 +9,14 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
     const [inputText, setInputText] = useState('');
     const [logs, setLogs] = useState([]);
 
+    const parseEscapeSequences = (str) => {
+        return str
+            .replace(/\\t/g, '\t')  // \t to tab
+            .replace(/\\b/g, '\b')  // \b to backspace
+            .replace(/\\"/g, '"')   // \\" to "
+            .replace(/\\\\/g, '\\'); // \\ to backslash
+    };
+
     useEffect(() => {
         if (clearLogs) {
             setLogs([]);
@@ -40,24 +48,24 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
 
         const handlePrintOutput = (data) => {
             console.log("Received output string to be displayed:", data);
-            setLogs(prev => [...prev, { type: 'output', value: data.value }]);
+            setLogs(prev => [...prev, { type: 'output', value: data.value.toString() }]);
         };
 
         const handleRequestInput = (data) => {
             console.log("Received input request:", data);
-            setLogs(prev => [...prev, { type: 'input_request', prompt: data.prompt }]);
+            setLogs(prev => [...prev, { type: 'input_request', prompt: data.prompt.toString() }]);
         };
 
         const handleError = (data) => {
             console.log("Received runtime error:", data);
-            setLogs(prev => [...prev, { type: 'error', value: data.value }]);
+            setLogs(prev => [...prev, { type: 'error', value: data.value.toString() }]);
             if (onExecutionComplete) {
                 onExecutionComplete(); // notify parent that execution is done
             }
         };
 
         const handleDone = (data) => {
-            setLogs(prev => [...prev, { type: 'output', value: data.value }]);
+            setLogs(prev => [...prev, { type: 'success', value: data.value.toString() }]);
             if (onExecutionComplete) {
                 onExecutionComplete(); // notify parent that execution is done
             }
@@ -146,7 +154,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                                 ) : (
                                     <span>
                                         {log.type === 'error' && <span className="error-marker">|ERROR| </span>}
-                                        {log.value ? log.value : log}  {/* value only exists in non-analysis errors */}
+                                        {log.value ? parseEscapeSequences(log.value) : parseEscapeSequences(log)}  {/* value only exists in non-analysis errors */}
                                     </span>
                                 )}
                             </div>

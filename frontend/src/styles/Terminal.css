@@ -152,7 +152,6 @@
   /* individual terminal lines */
   .terminal-line {
     display: flex;
-    align-items: center;
     font-family: "Consolas", monospace;
     padding-bottom: 0.25rem;
     white-space: pre-wrap; /* allow wrapping of long lines */
@@ -161,6 +160,12 @@
   /* log types */
   .terminal-line.error {
     color: #ff8d8d;
+    padding-bottom: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  .terminal-line.success {
+    color: #6f91ef;
     padding-bottom: 0.75rem;
     padding-top: 0.5rem;
   }

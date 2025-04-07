@@ -171,8 +171,7 @@ class Runtime:
             print (e)
 
         # done runtime
-
-        socketio.emit("done", { "type": "output", "value": "[Finished execution with no errors.]" })
+        socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
 
         # remove error list here in the future
         return self.errors
