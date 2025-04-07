@@ -104,8 +104,8 @@ class SymbolTable:
             self.parent.print_symbol_tree(indent + 1)  # Move up the tree
 
 class FuncSymbolTable(SymbolTable):
-    # list of dictionaries. key = alias in func, value = name in symbol table
-    visible_symbols = [] 
+    # dictionary. key = alias in func, value = name in symbol table
+    visible_symbols = {}
 
     def get(self, sym_name, checkParent = True):
         sym = self.syms.get(sym_name, None)
@@ -120,7 +120,6 @@ class FuncSymbolTable(SymbolTable):
                 while curr_parent.parent:
                     curr_parent = curr_parent.parent
                 sym = curr_parent.get(sym_name, None)
-        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAA',sym)
         return sym
 class ErrorNode:
     def __init__(self, line, startCol, id_t = None):
@@ -713,7 +712,6 @@ class Runtime:
         dtype = arr_sym["dtype"][1]
 
         idx_type, idx_val, idx_err = self.visit_node(node.idx_n)
-
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int']:
@@ -731,8 +729,10 @@ class Runtime:
             self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.'. idx_err)
         if idx_val < 0:
                 self.logError("Array index cannot be negative.", idx_err)
-        if idx_val >= arr_sym["arr_info"]["size1"]:
+        if idx_val >= arr_sym["arr_info"]["size1"] and arr_sym["arr_info"]["size1"] != 0:
             self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', idx_err)
+        if arr_sym["arr_info"]["size1"] == 0:
+            idx_val = 0
         idx2_val = None
         if node.idx2_n:
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
@@ -747,19 +747,22 @@ class Runtime:
             if idx2_val < 0:
                 self.logError("Array index cannot be negative.", idx2_err)
             
-            if idx2_val >= arr_sym["arr_info"]["size2"]:
+            if idx2_val >= arr_sym["arr_info"]["size2"] and arr_sym["arr_info"]["size2"] != 0:
                 self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', idx2_err)
+
+            if arr_sym["arr_info"]["size2"] == 0:
+                idx2_val = 0
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
                 print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), arr_sym["value"][idx_val], arr_id_err)}")
                 return (('arr', dtype), arr_sym["value"][idx_val], arr_id_err)
+            
+        
         
         print(f"{arr_sym}")
         print(f"RETURNED FROM node_arr_idx: {('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err}")
-        
         return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
-    #cont...
 
     def visit_node_func_dec(self, node, priv = False):
         func_name = node.id_n.id_t["tokenName"]
@@ -844,8 +847,8 @@ class Runtime:
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
-                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]]
-                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
+                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]] 
+                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 0, "size2": 0 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
@@ -1239,7 +1242,7 @@ class Runtime:
                 dtype, val, _ = self.visit_node(arg_n)
                 lit_details.append((func_symbol["param_names"][i], val, dtype)) 
             elif nodeName == 'node_iden':
-                sym_details[func_symbol["param_names"][i]] = (arg_n.id_t, self.curr_scope.get(arg_n.id_t["tokenName"]))
+                sym_details[func_symbol["param_names"][i]] = (arg_n.id_t["tokenName"], self.curr_scope.get(arg_n.id_t["tokenName"]))
                     
         self.enter_func_scope(func_name)
         for detail in lit_details:
@@ -1249,12 +1252,11 @@ class Runtime:
             if sym_details[param][1]["dtype"][0] == 'var':
                 self.curr_scope.set(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"])
             elif sym_details[param][1]["dtype"][0] in ['arr', 'object']:
-                self.curr_scope.visible_symbols.append(param, sym_details[param][0])
+                self.curr_scope.visible_symbols[param] = sym_details[param][0]
 
 
         print(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
         ret_type, ret_val, _ = self.visit_node_body(func_symbol["value"], evaluation=True)
-        print('AAAAAAAAAAAAAAAAAAAAAAAAAAA', ret_val)
         self.exit_scope(func_name)
         return ret_val
         

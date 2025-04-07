@@ -709,7 +709,6 @@ class SemanticAnalyzer:
         print('AAAAAAAAAAAAAAA', arr_sym["value"])
         print('aaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAA', idx_val)
         return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
-    #cont...
 
     def visit_node_func_dec(self, node, priv = False):
         func_name = node.id_n.id_t["tokenName"]
