@@ -656,7 +656,6 @@ class SemanticAnalyzer:
         dtype = arr_sym["dtype"][1]
 
         idx_type, idx_val, idx_err = self.visit_node(node.idx_n)
-
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int']:
@@ -674,8 +673,10 @@ class SemanticAnalyzer:
             self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.'. idx_err)
         if idx_val < 0:
                 self.logError("Array index cannot be negative.", idx_err)
-        if idx_val >= arr_sym["arr_info"]["size1"]:
+        if idx_val >= arr_sym["arr_info"]["size1"] and arr_sym["arr_info"]["size1"] != 0:
             self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', idx_err)
+        if arr_sym["arr_info"]["size1"] == 0:
+            idx_val = 0
         idx2_val = None
         if node.idx2_n:
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
@@ -690,17 +691,23 @@ class SemanticAnalyzer:
             if idx2_val < 0:
                 self.logError("Array index cannot be negative.", idx2_err)
             
-            if idx2_val >= arr_sym["arr_info"]["size2"]:
+            if idx2_val >= arr_sym["arr_info"]["size2"] and arr_sym["arr_info"]["size2"] != 0:
                 self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', idx2_err)
+
+            if arr_sym["arr_info"]["size2"] == 0:
+                idx2_val = 0
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
                 print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), arr_sym["value"][idx_val], arr_id_err)}")
                 return (('arr', dtype), arr_sym["value"][idx_val], arr_id_err)
+            
+        
         
         print(f"{arr_sym}")
         print(f"RETURNED FROM node_arr_idx: {('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err}")
-        
+        print('AAAAAAAAAAAAAAA', arr_sym["value"])
+        print('aaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAA', idx_val)
         return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
     #cont...
 
@@ -784,8 +791,9 @@ class SemanticAnalyzer:
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
-                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]]
-                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
+                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]] 
+                    print('AAAAAAAAAAAAAAAAAAAAAAAARRVAL', arr_val)
+                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 0, "size2": 0 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])

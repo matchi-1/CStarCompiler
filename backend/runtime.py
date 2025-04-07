@@ -76,14 +76,15 @@ class SymbolTable:
         self.syms[sym_name] = sym_content
         return {sym_name: sym_content}
 
-    def set_function(self, sym_name, return_type, param_types, priv=False, isStd_lib=False):
+    def set_function(self, sym_name, return_type, param_types, param_names, value, priv=False, isStd_lib=False):
         # sym_content = self._create_symbol_entry(value=None, dtype=return_type, priv=priv, const=const)
         #removed const from functions, prolly not needed (????)
         sym_content = {}
-        sym_content["value"] = None #prolly needed in the future when we implement returning actual value
+        sym_content["value"] = value # body node to be visited
         sym_content["dtype"] = return_type
         sym_content["priv"] = priv
         sym_content["params"] = param_types 
+        sym_content["param_names"] = param_names
         sym_content["isStd_lib"] = isStd_lib 
         self.syms[sym_name] = sym_content
         return {sym_name: sym_content}
@@ -102,6 +103,25 @@ class SymbolTable:
         if self.parent:
             self.parent.print_symbol_tree(indent + 1)  # Move up the tree
 
+class FuncSymbolTable(SymbolTable):
+    # list of dictionaries. key = alias in func, value = name in symbol table
+    visible_symbols = [] 
+
+    def get(self, sym_name, checkParent = True):
+        sym = self.syms.get(sym_name, None)
+        if not sym and checkParent:
+            #check if in visible symbols
+            if sym_name in self.visible_symbols and self.parent:
+                sym = self.parent.get(self.visible_symbols[sym_name])
+            else:
+                #check if in global
+                curr_parent = self.parent
+                # find global scope
+                while curr_parent.parent:
+                    curr_parent = curr_parent.parent
+                sym = curr_parent.get(sym_name, None)
+        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAA',sym)
+        return sym
 class ErrorNode:
     def __init__(self, line, startCol, id_t = None):
         self.line = line
@@ -156,11 +176,15 @@ class Runtime:
 
 
     def enter_scope(self, nodeName):
-        print(F'\n(semantic)(dbg) ENTERING scope {nodeName}')
+        print(F'\n(runtime)(dbg) ENTERING scope {nodeName}')
         self.curr_scope = SymbolTable(self.curr_scope)
+
+    def enter_func_scope(self, nodeName):
+        print(f'(runtime)(dbg) Entering function {nodeName}\'s scope' )
+        self.curr_scope = FuncSymbolTable(self.curr_scope)
     
     def exit_scope(self, nodeName):
-        print(F'\n(semantic)(dbg) EXITING scope {nodeName}, table: ')
+        print(F'\n(runtime)(dbg) EXITING scope {nodeName}, table: ')
         #print table dbg
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
@@ -172,9 +196,9 @@ class Runtime:
         if visit_func is None:
             if nodeName == 'node_imports_list':
                 print()
-            else: print(f"\n(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
+            else: print(f"\n(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
-            print(f'\n(semantic)(dbg) VISITING {nodeName}!!')
+            print(f'\n(runtime)(dbg) VISITING {nodeName}!!')
             print(f'!!NODE!!: {node}!!')
             if nodeName in ['node_func_call', 'node_class_method_call']:
                 return visit_func(node, expected_val=funcExpectedVal)
@@ -229,16 +253,16 @@ class Runtime:
     def logError(self, msg, err_n = None): 
         if isinstance(err_n, ErrorNode):
             full_message = (
-                f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
+                f"Runtime Error ({err_n.line}, {err_n.startCol}): {msg}"
             )
         elif isinstance(err_n, node_iden):
             col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"]) + 1
             full_message = (
-                f"Semantic Error ({err_n.id_t['tokenLine']}, {col}): {msg}"
+                f"Runtime Error ({err_n.id_t['tokenLine']}, {col}): {msg}"
             )
         else:
             full_message = (
-                f"Semantic Error: {msg}"
+                f"Runtime Error: {msg}"
             )
         self.errors.append(full_message)
         #print(full_message)
@@ -274,7 +298,7 @@ class Runtime:
                 self.visit_node(statement)
 
                 self.function_return_stack.pop()
-                print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+                print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
                 self.current_function_name = None
             
             else: self.visit_node(statement)
@@ -284,7 +308,7 @@ class Runtime:
             self.logError(f"Function '{self.current_function_name}' must have a return statement.")
 
     #body PLACEHOLDER
-    def visit_node_body(self, node):
+    def visit_node_body(self, node, evaluation=False):
         self.enter_scope(type(node).__name__)
         # PLACEHOLDER! idk if it's correct
 
@@ -292,10 +316,15 @@ class Runtime:
             self.visit_node(node.body_codeblock_n)
         
         if node.return_stmt_n:
+            if evaluation:
+                self.exit_scope(type(node).__name__)
+                return self.visit_node_return_eval(node.return_stmt_n)
             self.visit_node(node.return_stmt_n)
         
         self.exit_scope(type(node).__name__)
         
+    def visit_node_return_eval(self, node):
+        return self.visit_node(node.ret_value_n)
 
     #code_block PLACEHODLER
     def visit_node_code_block(self, node):
@@ -303,11 +332,8 @@ class Runtime:
         for statement in node.code_block_statement_n:
             #print("++++ CODE BLOCK STATEMENT: " + str(statement))
             self.visit_node(statement, funcExpectedVal=False)
-            print("\n(semantic)(dbg) CURRENT LOCAL SCOPE TABLE: ")
+            print("\n(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: ")
             self.print_symbols(self.curr_scope.syms, indent=2)
-        
-        
-        
 
     def visit_node_program_constructs(self, node):
         self.enter_scope(type(node).__name__)
@@ -316,7 +342,7 @@ class Runtime:
             if global_declarations:
                 self.visit_node(global_declarations)
 
-        print("\n(semantic)(dbg) DONE VISITNG scope 'node_program_constructs', GLOBAL TABLE: ")
+        print("\n(runtime)(dbg) DONE VISITNG scope 'node_program_constructs', GLOBAL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
 
         
@@ -371,7 +397,7 @@ class Runtime:
         constructorInfo = self.curr_scope.set_constructor(className, param_types)
 
         #self.enter_scope(type(node).__name__)
-        print(f"\n(semantic)(dbg) ENTERING scope Constructor for class '{className}'")
+        print(f"\n(runtime)(dbg) ENTERING scope Constructor for class '{className}'")
         self.curr_scope = SymbolTable(self.curr_scope)
 
         # Add parameters to new function scope
@@ -409,7 +435,7 @@ class Runtime:
             self.visit_node(node.code_block_n)
 
 
-        print(f"\n(semantic)(dbg) EXITING scope Constructor for class '{className}', SYMBOL TABLE: ")
+        print(f"\n(runtime)(dbg) EXITING scope Constructor for class '{className}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
 
@@ -417,7 +443,7 @@ class Runtime:
 
 
     def visit_node_class_body(self, node, className, parent_node):
-        print(f'\n(semantic)(dbg) VISITING {type(node).__name__}!!')
+        print(f'\n(runtime)(dbg) VISITING {type(node).__name__}!!')
 
         class_content = []
         constructor_info = None
@@ -426,7 +452,7 @@ class Runtime:
             class_body_stmt = node.class_body_stmt_n
         
             #self.enter_scope(type(node).__name__)
-            print(f"\n(semantic)(dbg) ENTERING scope 'Class: {className}'")
+            print(f"\n(runtime)(dbg) ENTERING scope 'Class: {className}'")
             self.curr_scope = SymbolTable(self.curr_scope)
 
             for class_body_stmt_n in class_body_stmt:
@@ -453,7 +479,7 @@ class Runtime:
         if parent_node.constructor_dec_n and not node.class_body_stmt_n: 
             constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n, className)
         
-        print(f"\n(semantic)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
+        print(f"\n(runtime)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
         if node.class_body_stmt_n: self.print_symbols(child_sym, indent=2)
         else: self.print_symbols(self.curr_scope.syms, indent=2)
 
@@ -540,7 +566,7 @@ class Runtime:
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
             self.logError(f"Element '{class_elem}' is a private element within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
 
-        print(f"(semantic)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
+        print(f"(runtime)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
         return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"], node.obj_id_n)  
 
     def visit_node_class_arr_idx(self, node):
@@ -747,7 +773,8 @@ class Runtime:
         
         # Store func params into function signature in symbol table
         param_types = []
-
+        # Store param names for evaluation
+        param_names = []
         if node.params_n: # if params_n isn't None
             for param in node.params_n:
                 if type(param).__name__ == "node_funcpar_class":
@@ -768,6 +795,7 @@ class Runtime:
                     param_types.append({
                         "dtype": ("var", param.dtype_t["tokenName"])
                     })  
+                param_names.append(param.id_n.id_t["tokenName"])
         
         self.current_function_name = func_name
         # sample parameter format
@@ -779,12 +807,13 @@ class Runtime:
 
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
+        param_names = param_names if param_names else None
         print(f">>param types : {param_types}")
         print(f">>>>>>>>>>> {func_name} IS FUNC STD LIB? " + str(node.is_std_lib))
 
         classReturn = []
         # Store function in symbol table. (for classes only) also returns the resulting dict
-        classReturn.append(self.curr_scope.set_function(func_name, return_type, param_types, priv, isStd_lib = node.is_std_lib))
+        classReturn.append(self.curr_scope.set_function(func_name, return_type, param_types, param_names, node.body_n, priv, isStd_lib = node.is_std_lib))
         #add actual value param in da future
 
         #print(f"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{classReturn}")
@@ -792,7 +821,7 @@ class Runtime:
 
         # Enter function scope
         #self.enter_scope(type(node).__name__)
-        print(f"\n(semantic)(dbg) ENTERING scope 'Function: {func_name}'")
+        print(f"\n(runtime)(dbg) ENTERING scope 'Function: {func_name}'")
         self.curr_scope = SymbolTable(self.curr_scope)
         # Add parameters to new function scope
         if node.params_n:
@@ -841,12 +870,12 @@ class Runtime:
             self.visit_node(node.body_n)
 
             self.function_return_stack.pop()
-            print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+            print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
             self.current_function_name = None
  
 
         # Exit function scope, back to program constructs
-        print(f"\n(semantic)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
+        print(f"\n(runtime)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
         return classReturn
@@ -1068,7 +1097,7 @@ class Runtime:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {val_type[1]}.", err_n)
                 check_scope.syms[att_name]["value"] %= value
 
-        print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
+        print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
         
     def visit_node_assign_stmt_object_att_arr(self, node): # # iden.iden[1][2] = val
@@ -1082,7 +1111,7 @@ class Runtime:
                     # self.att_id_n     #iden
                     # self.idx_n        #1stD
                     # self.idx2_n       #2ndD
-        print('\n(semantic)(dbg) VISITING node_class_att!!')
+        print('\n(runtime)(dbg) VISITING node_class_att!!')
         print(f'!!NODE!!: {node.class_arr_n}!!')
         self.visit_node_class_att(node.class_arr_n)
 
@@ -1194,13 +1223,46 @@ class Runtime:
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type}.", err_n)
                     check_scope.syms[att_name]["value"][idx1_val][idx2_val] %= value
 
-        print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
+        print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
+
+    # func call evaluation
+    def evaluate_func(self, func_name, args_list):
+        print(f'\n(runtime)(dbg) Now evaluating funtion {func_name}\n')
+        func_symbol = self.curr_scope.get(func_name)
+
+        #populate symbol table with arguments
+        lit_details = []
+        sym_details = {}
+        for i, arg_n in enumerate(args_list):
+            nodeName = type(arg_n).__name__
+            if nodeName in ['node_num', 'node_str', 'node_bool']:
+                dtype, val, _ = self.visit_node(arg_n)
+                lit_details.append((func_symbol["param_names"][i], val, dtype)) 
+            elif nodeName == 'node_iden':
+                sym_details[func_symbol["param_names"][i]] = (arg_n.id_t, self.curr_scope.get(arg_n.id_t["tokenName"]))
+                    
+        self.enter_func_scope(func_name)
+        for detail in lit_details:
+            self.curr_scope.set(detail[0], detail[1], detail[2])
+        for param in sym_details:
+            # self.curr_scope.set(param, sym_details[param]["value"], sym_details[param]["dtype"])
+            if sym_details[param][1]["dtype"][0] == 'var':
+                self.curr_scope.set(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"])
+            elif sym_details[param][1]["dtype"][0] in ['arr', 'object']:
+                self.curr_scope.visible_symbols.append(param, sym_details[param][0])
 
 
+        print(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
+        ret_type, ret_val, _ = self.visit_node_body(func_symbol["value"], evaluation=True)
+        print('AAAAAAAAAAAAAAAAAAAAAAAAAAA', ret_val)
+        self.exit_scope(func_name)
+        return ret_val
+        
     
     # func calls
     def visit_node_func_call(self, node, expected_val):
         func_name = node.id_n.id_t["tokenName"]
+        print(f'\n(runtime)(dbg) Visiting node_func_call for {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
         if not func_symbol:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
@@ -1215,7 +1277,7 @@ class Runtime:
             if expected_val:
                 self.logError(f"Function '{func_name}' is void and cannot return any value, it cannot be used as a value.", node.id_n)
         else:
-            val = self.default_vals[func_symbol["dtype"][1]]
+            val = self.evaluate_func(func_name, node.args_n)
 
 
         print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
@@ -1223,7 +1285,7 @@ class Runtime:
 
     
     def check_function_params(self, func_symbol, args, node_id, call_string):
-        print(f"(semantic)(dbg) CHECKING PARAMS from {call_string}!!")
+        print(f"(runtime)(dbg) CHECKING PARAMS from {call_string}!!")
         """
         Checks params vs args -- used for func calls / method calls / constructors.
         params:
@@ -1334,7 +1396,7 @@ class Runtime:
             if args:
                 self.logError(f"{call_string.capitalize()} call '{node_id.id_t['tokenName']}' requires 0 parameters but got {len(args)}.", node_id)
 
-        print(f"(semantic)(dbg) FINISHED CHECKING PARAMS from {call_string}!!!!!")
+        print(f"(runtime)(dbg) FINISHED CHECKING PARAMS from {call_string}!!!!!")
     
     
     def visit_node_class_method_call(self,node, expected_val):
@@ -1453,7 +1515,7 @@ class Runtime:
         if node.vardec_cont_n:
             if node.vardec_cont_n.value_n:
                 val_type, value, err_n = self.visit_node(node.vardec_cont_n.value_n)
-            if val_type: print('(semantic)(dbg) dec valtype: ', val_type)
+            if val_type: print('(runtime)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
 
         default_val = self.default_vals[dtype[1]]
@@ -1494,7 +1556,7 @@ class Runtime:
 
     #array declaration
     def visit_node_arr_dec(self, node, priv = False):
-        print(f'\n(semantic)(dbg) VISITING {type(node).__name__}!!')
+        print(f'\n(runtime)(dbg) VISITING {type(node).__name__}!!')
         print(f'!!NODE!!: {node}!!')
         id = node.id_n.id_t["tokenName"]
         const = node.const_b
@@ -1717,7 +1779,7 @@ class Runtime:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '/':
                 if right_val == 0: #todo
-                    # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
+                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
                     self.logError("Division by 0 is not allowed.", right_err)
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, int(left_val / right_val), left_err)
@@ -2134,7 +2196,7 @@ class Runtime:
             if repeat_val < 0:
                 self.logError(f"Invalid value for repeat statement. Expected positive 'int' or 'long' values, but found '{repeat_val}' instead.", err_n)
             
-            print(f"(semantic)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_type}, {repeat_val}")
+            print(f"(runtime)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_type}, {repeat_val}")
             # self.visit_node(node_loop.ctrl_stmt_body_n)
 
             while True:
@@ -2171,7 +2233,7 @@ class Runtime:
 
         expected_dtype = node.type_t["tokenName"] 
 
-        # print(f"(semantic)(dbg) Expected Data Type: {expected_dtype}")
+        # print(f"(runtime)(dbg) Expected Data Type: {expected_dtype}")
 
         if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
             self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
@@ -2313,10 +2375,10 @@ class Runtime:
                     formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
             if print_stmts_n == "println":
-                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+                print(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
                 self.output.append(str(formatted_output) + "\n")
             else:
-                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+                print(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
                 if self.output:     #placholder, just so it doesnt \n on the terminal, 
                                     #should be changed when the way outputs r handled changes
                     self.output[-1] += formatted_output
@@ -2383,7 +2445,7 @@ class Runtime:
     #         elif isinstance(stmt, node_code_block):  
     #             self.visit_code_block(stmt, isVoid)
     #         else:
-    #             print("(semantic)(dbg) ERROR: Unrecognized statement type inside code block.")
+    #             print("(runtime)(dbg) ERROR: Unrecognized statement type inside code block.")
         
     #     self.exit_scope()
     
@@ -2400,14 +2462,14 @@ class Runtime:
                 # exit out of loop
             
             elif ctrl_stmt == "node_continue_stmt":
-                print("(semantic)(dbg) FOUND 'continue' !!!")
+                print("(runtime)(dbg) FOUND 'continue' !!!")
                 continue
                 # loop count +1
             
             else:
                 self.visit_node(statement)
 
-        print("(semantic)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
+        print("(runtime)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
         self.exit_scope(type(node).__name__)
         return
     
@@ -2524,7 +2586,7 @@ class Runtime:
             
             if default_stmt.ctrl_stmt_body_n:
                 self.visit_node(default_stmt.ctrl_stmt_body_n)
-                print(f"(semantic)(dbg) FOUND 'default_body'")
+                print(f"(runtime)(dbg) FOUND 'default_body'")
 
             self.exit_scope(default_stmt)
 
@@ -2603,7 +2665,7 @@ class Runtime:
                     self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.", err_n)
 
     def check_return_in_body(self, node):
-        print(f"(semantic)(dbg) Checking return in {type(node).__name__}")
+        print(f"(runtime)(dbg) Checking return in {type(node).__name__}")
 
         if node is None:
             return False
@@ -2618,7 +2680,7 @@ class Runtime:
             return any(self.check_return_in_body(stmt) for stmt in node.statements_n)
 
         if isinstance(node, node_if_stmt):
-            print(f"(semantic)(dbg) Checking return in IF statement")
+            print(f"(runtime)(dbg) Checking return in IF statement")
 
             has_return_in_if = self.check_return_in_body(node.body_n)
             has_return_in_else = False
@@ -2626,7 +2688,7 @@ class Runtime:
             if node.else_chain_n:
                 has_return_in_else = self.check_return_in_body(node.else_chain_n)
 
-            print(f"(semantic)(dbg) has_return_in_if={has_return_in_if}, has_return_in_else={has_return_in_else}")
+            print(f"(runtime)(dbg) has_return_in_if={has_return_in_if}, has_return_in_else={has_return_in_else}")
 
             return has_return_in_if and has_return_in_else 
 
@@ -2640,14 +2702,14 @@ class Runtime:
             return self.check_return_in_body(node.loop_stmt_n.ctrl_stmt_body_n)
 
         if isinstance(node, node_switch_stmt):
-            print(f"(semantic)(dbg) Checking return in SWITCH statement")
+            print(f"(runtime)(dbg) Checking return in SWITCH statement")
 
             case_returns = [self.check_return_in_body(case) for case in node.case_n.case_stmt_n]
 
             has_default = node.default_n is not None
             has_return_in_default = self.check_return_in_body(node.default_n) if has_default else False
 
-            print(f"(semantic)(dbg) Switch case returns: {case_returns}, has_default={has_default}, has_return_in_default={has_return_in_default}")
+            print(f"(runtime)(dbg) Switch case returns: {case_returns}, has_default={has_default}, has_return_in_default={has_return_in_default}")
 
             if not all(case_returns) or (has_default and not has_return_in_default):
                 return False
@@ -2661,7 +2723,7 @@ class Runtime:
             return self.check_return_in_body(node.ctrl_stmt_body_n)
 
         if isinstance(node, node_return_block):
-            print(f"(semantic)(dbg) Found return statement")
+            print(f"(runtime)(dbg) Found return statement")
             self.count_return += 1
             return True
 
