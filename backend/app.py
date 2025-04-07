@@ -60,7 +60,7 @@ def compile_code():
         parseErrs, parseTree = syn_analyzer.parse()
         errors += parseErrs  # comment out to just test for lexer
 
-        if "Parsing completed successfully. No Syntax Errors found." in parseErrs:
+        if "Parsing completed successfully. No Syntax Errors found." in parseErrs:   # parsing success
             seman_analyzer = semantic_analyzer.SemanticAnalyzer()
             semanErrs = seman_analyzer.interpret(parseTree)  # comment/uncomment for testing
             errors += semanErrs
@@ -68,14 +68,15 @@ def compile_code():
             if "Semantic analysis completed successfully. No Semantic Errors found." not in semanErrs:
                 # remove parsing success message since there's a semantic error
                 errors.remove("Parsing completed successfully. No Syntax Errors found.")
-            else:
+            else:     # semantic success
                 runtime_res = runtime.Runtime()
                 runtimeErrs = runtime_res.interpret(parseTree)
                 errors += runtimeErrs
 
-                if "Runtime success. No Runtime Errors found." not in runtimeErrs:
-                    # remove parsing success message since there's a semantic error
+                if "Runtime success. No Runtime Errors found."  in runtimeErrs:  # remove all error messages if runtime success -- runtime success message will be a websocket event
                     errors.remove("Parsing completed successfully. No Syntax Errors found.")
+                    errors.remove("Semantic analysis completed successfully. No Semantic Errors found.")
+                    errors.remove("Runtime success. No Runtime Errors found.")
             
                 
 

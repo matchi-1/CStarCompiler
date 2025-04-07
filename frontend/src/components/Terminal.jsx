@@ -4,35 +4,35 @@ import '../styles/Terminal.css';
 
 const socket = io("http://localhost:5000");
 
-const Terminal = ({ logs: initialLogs = [] }) => {
+const Terminal = ({ logs: initialLogs = [], clearLogs }) => {
     const terminalRef = useRef();
     const [inputText, setInputText] = useState('');
-    const [logs, setLogs] = useState(initialLogs); // Initialize logs state with initialLogs
+    const [logs, setLogs] = useState([]);
+    const [hasStarted, setHasStarted] = useState(false); // track whether we already did the "no initial logs" flow
 
-    const parseEscapeSequences = (str) => {
-        return str
-            .replace(/\\t/g, '\t')  // \t to tab
-            .replace(/\\b/g, '\b')  // \b to backspace
-            .replace(/\\"/g, '"')   // \\" to "
-            .replace(/\\\\/g, '\\'); // \\ to backslash
-    };
-
-    // auto-scroll to bottom on update
+    // scroll on log update
     useEffect(() => {
         terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
     }, [logs]);
 
+    // handle initialLogs scenario once
     useEffect(() => {
-        console.log("ALL logs:", logs);
-        // Initialize logs with the provided initial logs
-        setLogs(prevLogs => [...initialLogs, ...prevLogs]);
-    }, [initialLogs]);
+        if (initialLogs.length > 0) {
+            setLogs(initialLogs);  // only set once if initialLogs is provided
+        } else if (!hasStarted) {
+            // case: no initial logs and we haven't started backend connection
+            setLogs([]); // clear logs
+            setHasStarted(true); // ensure we don’t do this again
+        }
+    }, [initialLogs, hasStarted]);
 
-    // socket setup
+    // socket setup after logs are cleared and we're in "live mode"
     useEffect(() => {
-        socket.on('connect', () => {
+        if (!hasStarted) return;
+
+        const connectHandler = () => {
             console.log('Connected to backend!');
-        });
+        };
 
         const handlePrintOutput = (data) => {
             console.log("Received output string to be displayed:", data);
@@ -48,26 +48,28 @@ const Terminal = ({ logs: initialLogs = [] }) => {
             setLogs(prev => [...prev, { type: 'error', value: data.message }]);
         };
 
-        const handleDone = () => {
-            setLogs(prev => [...prev, { type: 'output', value: "[Loop Finished]" }]);
+        const handleDone = (data) => {
+            setLogs(prev => [...prev, { type: 'output', value: data.value }]);
         };
 
+        socket.on('connect', connectHandler);
         socket.on('request_input', handleRequestInput);
         socket.on("print_output", handlePrintOutput);
+        socket.on("done", handleDone);
+        socket.on("error", handleError);
 
         return () => {
+            socket.off('connect', connectHandler);
             socket.off("print_output", handlePrintOutput);
             socket.off("request_input", handleRequestInput);
             socket.off("error", handleError);
             socket.off("done", handleDone);
-            socket.off('connect');
         };
-    }, []);
+    }, [hasStarted]); // only set up socket if we've entered "live mode"
 
     const handleUserInput = (userInput) => {
         console.log("Emitting user response:", userInput);
 
-        // Update logs to include user input as a separate entry
         setLogs(prevLogs => {
             const updatedLogs = [...prevLogs];
             const lastIndex = updatedLogs.length - 1;
@@ -92,6 +94,8 @@ const Terminal = ({ logs: initialLogs = [] }) => {
         socket.emit("user_response", { response: userInput });
         setInputText('');
     };
+
+
 
     return (
         <div className="terminal">

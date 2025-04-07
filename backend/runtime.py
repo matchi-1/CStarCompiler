@@ -164,6 +164,9 @@ class Runtime:
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
             #print('-----------AST-----------------\n\t\t', node)
+            
+            # done runtime
+            socketio.emit("done", { "type": "output", "value": "[Finished execution with no errors.]" })
         except SyntaxError as e:
             print (e)
 

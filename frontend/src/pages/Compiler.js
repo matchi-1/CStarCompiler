@@ -34,6 +34,7 @@ const CompilerPage = () => {
   const editorRef = useRef();
   const editorContainerRef = useRef();
   const [logs, setLogs] = useState([]);
+  const [clearLogs, setClearLogs] = useState(false);
 
   useEffect(() => {     //search for Hello world.cstr then set it as active initial tab
     const fetchData = async () => {
@@ -435,6 +436,7 @@ const toggleFiles = () => {
 
   const callCompiler = async () => {
     setErrors([]);
+    setClearLogs(true);
 
     const params = {
       method: 'POST',
@@ -460,11 +462,11 @@ const toggleFiles = () => {
     //   .map(err => ({ type: 'error', value: err }));
     // const outputLogs = output.map(out => ({ type: 'output', value: out.replace(/\\n/g, '\n') }));
     
-    setLogs(errors);  // You can also reverse the order if needed
+    setLogs(errors);  
     setTokens(tokens);
   }
 
-  // Cleanup ResizeObserver on unmount
+  // cleanup ResizeObserver on unmount
   useEffect(() => {
     return () => {
       if (resizeObserver.current) {
@@ -568,7 +570,7 @@ const toggleFiles = () => {
             </div>
             
           </div>
-          <Terminal logs={logs}/> {/*  <Terminal {logs={logs}} />   */}
+          <Terminal logs={logs} clearLogs={clearLogs} />
         </div>
         <div className="right-segment">
             <AnalyzerSegment tokens={tokens} />
