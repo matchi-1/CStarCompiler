@@ -2128,12 +2128,12 @@ class SemanticAnalyzer:
                         return None
                     formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
-            if print_stmts_n == "println":
-                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
-                self.output.append(str(formatted_output) + "\n")
-            else:
-                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
-                self.output.append(formatted_output)
+            # if print_stmts_n == "println":
+            #     print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+            #     self.output.append(str(formatted_output) + "\n")
+            # else:
+            #     print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+            #     self.output.append(formatted_output)
 
         return None
 

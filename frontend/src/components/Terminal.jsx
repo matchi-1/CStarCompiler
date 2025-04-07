@@ -10,18 +10,11 @@ const Terminal = ({ logs: initialLogs = [] }) => {
     const [inputText, setInputText] = useState('');
     const [logs, setLogs] = useState(initialLogs);
 
+
     // auto-scroll to bottom on update
     useEffect(() => {
         terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
     }, [logs]);
-
-    // push initial logs (this would be errors from lexer, parser, seman)
-    useEffect(() => {
-        if (initialLogs.length > 0) {
-            setLogs(initialLogs);
-        }
-    }, [initialLogs]);
-
 
 
     // socket setup
@@ -31,8 +24,8 @@ const Terminal = ({ logs: initialLogs = [] }) => {
             console.log('Connected to backend!');
         });
 
-
         const handlePrintOutput = (data) => {
+            console.log("Received output string to be displayed:", data);
             setLogs(prev => [...prev, { type: 'output', value: data.value }]);
         };
 
@@ -50,6 +43,7 @@ const Terminal = ({ logs: initialLogs = [] }) => {
         };
 
         socket.on('request_input', handleRequestInput);
+        socket.on("print_output", handlePrintOutput);
 
 
         return () => {

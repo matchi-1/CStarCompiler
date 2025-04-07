@@ -2380,16 +2380,20 @@ class Runtime:
                         return None
                     formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
-            if print_stmts_n == "println":
-                print(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
-                self.output.append(str(formatted_output) + "\n")
-            else:
-                print(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
-                if self.output:     #placholder, just so it doesnt \n on the terminal, 
-                                    #should be changed when the way outputs r handled changes
-                    self.output[-1] += formatted_output
-                else:
-                    self.output.append(formatted_output)
+            
+            socketio.emit('print_output', { "type": "output", "value": formatted_output })
+            eventlet.sleep(0.1)
+
+            # if print_stmts_n == "println":
+            #     print(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+            #     self.output.append(str(formatted_output) + "\n")
+            # else:
+            #     print(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+            #     if self.output:     #placholder, just so it doesnt \n on the terminal, 
+            #                         #should be changed when the way outputs r handled changes
+            #         self.output[-1] += formatted_output
+            #     else:
+            #         self.output.append(formatted_output)
 
         return None
 
