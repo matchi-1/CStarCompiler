@@ -121,8 +121,9 @@ class FuncSymbolTable(SymbolTable):
             else:
                 #check if in global
                 curr_parent = self.parent
+
                 # find global scope
-                while curr_parent.parent:
+                while curr_parent.parent and not curr_parent.get(sym_name, None):
                     curr_parent = curr_parent.parent
                 sym = curr_parent.get(sym_name, None)
         return sym
@@ -329,7 +330,7 @@ class Runtime:
         
         if node.return_stmt_n:
             if evaluation:
-                self.exit_scope(type(node).__name__)
+                #self.exit_scope(type(node).__name__)
                 return self.visit_node_return_eval(node.return_stmt_n)
             self.visit_node(node.return_stmt_n)
         
@@ -2334,6 +2335,7 @@ class Runtime:
         return (('lit', expected_dtype), value, err_n)
     
     def visit_node_output(self, node):
+        print(f'\n(runtime)(dbg) Visiting node_output\n')
         print_stmts_n = node.print_stmts_n 
         print_params_n = node.print_params_n  
 

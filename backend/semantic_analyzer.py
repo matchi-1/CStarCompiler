@@ -833,6 +833,7 @@ class SemanticAnalyzer:
         value = node.value_n
         iden_name = iden.id_t["tokenName"]
         iden_symbol = self.curr_scope.get(iden_name)
+        assign_op = node.op_t["tokenName"]
 
         id_err = ErrorNode(iden.id_t["tokenLine"], iden.id_t["tokenCol"] - len(iden.id_t["tokenName"]) - 1)
         if not iden_symbol: self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", id_err)
@@ -1060,6 +1061,7 @@ class SemanticAnalyzer:
     # func calls
     def visit_node_func_call(self, node, expected_val):
         func_name = node.id_n.id_t["tokenName"]
+        print(f'\n(semantic)(dbg) Visiting node_func_call for {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
         if not func_symbol:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
