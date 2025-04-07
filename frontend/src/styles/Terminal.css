@@ -197,7 +197,8 @@
   /* actual input */
   .terminal-input {
     background: transparent;
-    color: rgb(255, 234, 193);
+    background-color: #172343;
+    color: rgb(234, 184, 78);
     border: none;
     outline: none;
     font-family: "Consolas", monospace;
@@ -205,6 +206,7 @@
     top: 0;
     left: 0;
     white-space: pre;
+    min-width: 1rem;
     width: 100%;
   }
   

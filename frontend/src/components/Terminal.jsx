@@ -153,7 +153,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                             <div key={index} className={`terminal-line ${log.type}`} style={{ display: 'block' }}>
                                 {log.type === 'input_request' ? (
                                     <>
-                                        <span className="prompt">{log.prompt}</span>
+                                        <span className="prompt">{parseEscapeSequences(log.prompt)}</span>
                                         <div className="input-wrapper">
                                             <span className="ghost">{inputText || ' '}</span>
                                             <input
@@ -171,7 +171,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                                     </>
                                 ) : log.type === 'user_input' ? (
                                     <span className="user-input-text">
-                                        <span className="prompt">{log.prompt}</span>
+                                        <span className="prompt">{parseEscapeSequences(log.prompt)}</span>
                                         {log.value}
                                     </span>
                                 ) : (
