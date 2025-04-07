@@ -18,6 +18,8 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
     // scroll on log update
     useEffect(() => {
         terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
+
+        console.log("current logs on logs change:", logs);
     }, [logs]);
 
     // effect for handling changes in initialLogs
@@ -47,7 +49,11 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
         };
 
         const handleError = (data) => {
-            setLogs(prev => [...prev, { type: 'error', value: data.message }]);
+            console.log("Received runtime error:", data);
+            setLogs(prev => [...prev, { type: 'error', value: data.value }]);
+            if (onExecutionComplete) {
+                onExecutionComplete(); // notify parent that execution is done
+            }
         };
 
         const handleDone = (data) => {

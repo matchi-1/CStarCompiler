@@ -165,10 +165,14 @@ class Runtime:
             self.print_symbols(self.curr_scope.syms, indent=2)
             #print('-----------AST-----------------\n\t\t', node)
             
-            # done runtime
-            socketio.emit("done", { "type": "output", "value": "[Finished execution with no errors.]" })
+            
+        
         except SyntaxError as e:
             print (e)
+
+        # done runtime
+
+        socketio.emit("done", { "type": "output", "value": "[Finished execution with no errors.]" })
 
         # remove error list here in the future
         return self.errors
@@ -273,6 +277,8 @@ class Runtime:
             )
         self.errors.append(full_message)
         #print(full_message)
+        socketio.emit('error', { "type": "error", "value": full_message })
+        eventlet.sleep(0.1)
         raise SyntaxError(full_message)
     
 

@@ -71,18 +71,21 @@ def compile_code():
             else:     # semantic success
                 runtime_res = runtime.Runtime()
                 runtimeErrs = runtime_res.interpret(parseTree)
-                errors += runtimeErrs
-
-                if "Runtime success. No Runtime Errors found."  in runtimeErrs:  # remove all error messages if runtime success -- runtime success message will be a websocket event
-                    errors.remove("Parsing completed successfully. No Syntax Errors found.")
-                    errors.remove("Semantic analysis completed successfully. No Semantic Errors found.")
-                    errors.remove("Runtime success. No Runtime Errors found.")
-            
-                
-
+                # errors += runtimeErrs
 
     except SyntaxError as e:
         print(e)
+
+    # handle this better next time and the ones above ^
+    messages_to_remove = [
+        "Parsing completed successfully. No Syntax Errors found.",
+        "Semantic analysis completed successfully. No Semantic Errors found.",
+        "Runtime success. No Runtime Errors found."
+    ]
+
+    for msg in messages_to_remove:
+        if msg in errors:
+            errors.remove(msg)
 
     # convert Token objects to dictionaries
     tokens_dict = [token.to_dict() for token in tokens]
