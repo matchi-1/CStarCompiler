@@ -77,10 +77,7 @@ def compile_code():
                     # remove parsing success message since there's a semantic error
                     errors.remove("Parsing completed successfully. No Syntax Errors found.")
             
-                # NEW: collect outputs from semantic phase
-                output_strings = runtime_res.output
-        else:
-            output_strings = []
+                
 
 
     except SyntaxError as e:
@@ -92,8 +89,8 @@ def compile_code():
     # create a JSON-serializable response
     response = {
         "tokens": tokens_dict or [],  # should not send out None/null 
-        "errors": errors or [],      
-        "output": output_strings or []  # NEW: output strings from println/print
+        "errors": errors or [], 
+        # "output": output_strings or []  # NEW: output strings from println/print
     }
 
     # print json output

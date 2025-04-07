@@ -444,26 +444,23 @@ const toggleFiles = () => {
       body: JSON.stringify({ code }),
     };
     const response = await fetch('http://127.0.0.1:5000/api/compile', params);
-    const { tokens, errors, output } = await response.json();  // Destructuring response from backend
+    const { tokens, errors } = await response.json();  // Destructuring response from backend
     
     console.log("errors: " + errors)
-    console.log("output: ", output);
     console.log("clicked run button")
 
-    // combined logs for terminal
-    const excludedMessages = [
-      // "Parsing completed successfully. No Syntax Errors found.",
-      // "Semantic analysis completed successfully. No Semantic Errors found."
-    ];
+    // // combined logs for terminal
+    // const excludedMessages = [
+    //   // "Parsing completed successfully. No Syntax Errors found.",
+    //   // "Semantic analysis completed successfully. No Semantic Errors found."
+    // ];
     
-    const errorLogs = errors
-      .filter(err => !excludedMessages.includes(err))
-      .map(err => ({ type: 'error', value: err }));
-    const outputLogs = output.map(out => ({ type: 'output', value: out.replace(/\\n/g, '\n') }));
+    // const errorLogs = errors
+    //   .filter(err => !excludedMessages.includes(err))
+    //   .map(err => ({ type: 'error', value: err }));
+    // const outputLogs = output.map(out => ({ type: 'output', value: out.replace(/\\n/g, '\n') }));
     
-    setLogs([...outputLogs, ...errorLogs]);  // You can also reverse the order if needed
-
-    setErrors(errors);
+    setLogs(errors);  // You can also reverse the order if needed
     setTokens(tokens);
   }
 

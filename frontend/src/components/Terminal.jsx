@@ -4,22 +4,32 @@ import '../styles/Terminal.css';
 
 const socket = io("http://localhost:5000");
 
-
 const Terminal = ({ logs: initialLogs = [] }) => {
     const terminalRef = useRef();
     const [inputText, setInputText] = useState('');
-    const [logs, setLogs] = useState(initialLogs);
+    const [logs, setLogs] = useState(initialLogs); // Initialize logs state with initialLogs
 
+    const parseEscapeSequences = (str) => {
+        return str
+            .replace(/\\t/g, '\t')  // \t to tab
+            .replace(/\\b/g, '\b')  // \b to backspace
+            .replace(/\\"/g, '"')   // \\" to "
+            .replace(/\\\\/g, '\\'); // \\ to backslash
+    };
 
     // auto-scroll to bottom on update
     useEffect(() => {
         terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
     }, [logs]);
 
+    useEffect(() => {
+        console.log("ALL logs:", logs);
+        // Initialize logs with the provided initial logs
+        setLogs(prevLogs => [...initialLogs, ...prevLogs]);
+    }, [initialLogs]);
 
     // socket setup
     useEffect(() => {
-
         socket.on('connect', () => {
             console.log('Connected to backend!');
         });
@@ -45,7 +55,6 @@ const Terminal = ({ logs: initialLogs = [] }) => {
         socket.on('request_input', handleRequestInput);
         socket.on("print_output", handlePrintOutput);
 
-
         return () => {
             socket.off("print_output", handlePrintOutput);
             socket.off("request_input", handleRequestInput);
@@ -57,16 +66,24 @@ const Terminal = ({ logs: initialLogs = [] }) => {
 
     const handleUserInput = (userInput) => {
         console.log("Emitting user response:", userInput);
+
+        // Update logs to include user input as a separate entry
         setLogs(prevLogs => {
             const updatedLogs = [...prevLogs];
             const lastIndex = updatedLogs.length - 1;
 
             if (updatedLogs[lastIndex]?.type === 'input_request') {
                 const prompt = updatedLogs[lastIndex].prompt;
+
                 updatedLogs[lastIndex] = {
                     type: 'output',
-                    value: `${prompt} ${userInput}`
+                    value: `${prompt}`
                 };
+
+                updatedLogs.push({
+                    type: 'user_input',
+                    value: userInput,
+                });
             }
 
             return updatedLogs;
@@ -90,8 +107,8 @@ const Terminal = ({ logs: initialLogs = [] }) => {
             <div className="terminal-body">
                 <div className="logs-container">
                     <div className="terminal-cont" ref={terminalRef}>
-                        {logs.map((log, index) => (
-                            <div key={index} className={`terminal-line ${log.type}`}>
+                        {logs && Array.isArray(logs) && logs.map((log, index) => (
+                            <div key={index} className={`terminal-line ${log.type}`} style={{ display: 'inline-block' }}>
                                 {log.type === 'input_request' ? (
                                     <>
                                         <span className="prompt">{log.prompt}</span>
@@ -110,10 +127,12 @@ const Terminal = ({ logs: initialLogs = [] }) => {
                                             />
                                         </div>
                                     </>
+                                ) : log.type === 'user_input' ? (
+                                    <span className="user-input-text">{log.value}</span>
                                 ) : (
                                     <span>
                                         {log.type === 'error' && <span className="error-marker">|ERROR| </span>}
-                                        {log.value}
+                                        {log.value ? log.value : log}  {/* value only exists in non-analysis errors */}
                                     </span>
                                 )}
                             </div>
