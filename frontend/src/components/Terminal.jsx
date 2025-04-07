@@ -4,31 +4,34 @@ import '../styles/Terminal.css';
 
 const socket = io("http://localhost:5000");
 
-const Terminal = ({ logs: initialLogs = [], clearLogs }) => {
+const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) => {
     const terminalRef = useRef();
     const [inputText, setInputText] = useState('');
     const [logs, setLogs] = useState([]);
-    const [hasStarted, setHasStarted] = useState(false); // track whether we already did the "no initial logs" flow
+
+    useEffect(() => {
+        if (clearLogs) {
+            setLogs([]);
+        }
+    }, [clearLogs]);
 
     // scroll on log update
     useEffect(() => {
         terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
     }, [logs]);
 
-    // handle initialLogs scenario once
+    // effect for handling changes in initialLogs
     useEffect(() => {
-        if (initialLogs.length > 0) {
-            setLogs(initialLogs);  // only set once if initialLogs is provided
-        } else if (!hasStarted) {
-            // case: no initial logs and we haven't started backend connection
-            setLogs([]); // clear logs
-            setHasStarted(true); // ensure we don’t do this again
-        }
-    }, [initialLogs, hasStarted]);
+        console.log("initialLogs:", initialLogs);
+        console.log("all logs:", logs);
 
-    // socket setup after logs are cleared and we're in "live mode"
+        if (initialLogs.length > 0) {
+            setLogs(initialLogs);
+        }
+    }, [initialLogs]);
+
+    // socket listeners
     useEffect(() => {
-        if (!hasStarted) return;
 
         const connectHandler = () => {
             console.log('Connected to backend!');
@@ -50,22 +53,28 @@ const Terminal = ({ logs: initialLogs = [], clearLogs }) => {
 
         const handleDone = (data) => {
             setLogs(prev => [...prev, { type: 'output', value: data.value }]);
+            if (onExecutionComplete) {
+                onExecutionComplete(); // notify parent that execution is done
+            }
         };
 
         socket.on('connect', connectHandler);
         socket.on('request_input', handleRequestInput);
-        socket.on("print_output", handlePrintOutput);
-        socket.on("done", handleDone);
-        socket.on("error", handleError);
+        socket.on('print_output', handlePrintOutput);
+        socket.on('done', handleDone);
+        socket.on('error', handleError);
 
         return () => {
             socket.off('connect', connectHandler);
-            socket.off("print_output", handlePrintOutput);
-            socket.off("request_input", handleRequestInput);
-            socket.off("error", handleError);
-            socket.off("done", handleDone);
+            socket.off('request_input', handleRequestInput);
+            socket.off('print_output', handlePrintOutput);
+            socket.off('done', handleDone);
+            socket.off('error', handleError);
         };
-    }, [hasStarted]); // only set up socket if we've entered "live mode"
+
+
+
+    }, []);
 
     const handleUserInput = (userInput) => {
         console.log("Emitting user response:", userInput);
@@ -94,8 +103,6 @@ const Terminal = ({ logs: initialLogs = [], clearLogs }) => {
         socket.emit("user_response", { response: userInput });
         setInputText('');
     };
-
-
 
     return (
         <div className="terminal">

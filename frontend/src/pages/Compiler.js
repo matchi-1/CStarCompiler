@@ -466,6 +466,10 @@ const toggleFiles = () => {
     setTokens(tokens);
   }
 
+  const handleExecutionComplete = () => {
+    setClearLogs(false);
+  };
+
   // cleanup ResizeObserver on unmount
   useEffect(() => {
     return () => {
@@ -570,7 +574,11 @@ const toggleFiles = () => {
             </div>
             
           </div>
-          <Terminal logs={logs} clearLogs={clearLogs} />
+          <Terminal 
+            logs={logs} 
+            clearLogs={clearLogs}
+            onExecutionComplete={handleExecutionComplete}
+          />
         </div>
         <div className="right-segment">
             <AnalyzerSegment tokens={tokens} />
