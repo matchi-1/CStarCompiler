@@ -23,11 +23,10 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
     // effect for handling changes in initialLogs
     useEffect(() => {
         console.log("initialLogs:", initialLogs);
-        console.log("all logs:", logs);
-
         if (initialLogs.length > 0) {
             setLogs(initialLogs);
         }
+        console.log("all logs:", logs);
     }, [initialLogs]);
 
     // socket listeners
@@ -71,8 +70,6 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
             socket.off('done', handleDone);
             socket.off('error', handleError);
         };
-
-
 
     }, []);
 

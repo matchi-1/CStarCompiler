@@ -464,6 +464,10 @@ const toggleFiles = () => {
     
     setLogs(errors);  
     setTokens(tokens);
+
+    if (errors.length > 0) {
+      handleExecutionComplete();
+    }
   }
 
   const handleExecutionComplete = () => {
