@@ -3,6 +3,7 @@ import eventlet
 eventlet.monkey_patch()
 from flask_socketio import SocketIO
 #from inoutTest import run_loop, wait_flag_container
+from runtime import setup_runtime
 
 # <> ------------------------------------- | WEBSOCKET TEST | AA
 
@@ -18,6 +19,8 @@ CORS(app)  # cross-origin requests
 app.config["SECRET_KEY"] = "secret"
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# Inject socketio to runtime
+setup_runtime(socketio)
 
 # @app.route("/start")
 # def start():

@@ -2,23 +2,27 @@ import eventlet
 from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal
 from flask_socketio import SocketIO
-from app import socketio
 
-# global user response and wait flag
+socketio = None  # global holder
 user_response = {}
+wait_flag = False
 
-class wait_flag_container:
-    wait = False
+def setup_runtime(sio_instance):
+    global socketio
+    socketio = sio_instance
 
-@socketio.on("connect")
-def on_connect():
-    print("Client connected")
-    wait_flag_container.wait = False
+    # event handlers here
+    @socketio.on("connect")
+    def on_connect():
+        print("Client connected")
 
-@socketio.on("user_response")
-def on_user_response(data):
-    print("Received from frontend:", data)
-    handle_user_response(data)  
+    @socketio.on("user_response")
+    def on_user_response(data):
+        global user_response, wait_flag
+        print("Received user input:", data)
+        user_response = data
+        wait_flag = False
+
 
 # function to handle user responses
 def handle_user_response(data):
@@ -26,14 +30,15 @@ def handle_user_response(data):
     print(f"DEBUG: Handling user response - data: {data}")  
     user_response["value"] = data.get("response")
     print(f"DEBUG: Setting user_response to: {user_response}")  
-    wait_flag_container.wait = False
+    wait_flag = False
     print("User response handled:", data)
+
+
 
 class SymbolTable:
     def __init__(self, parent=None):
         self.syms = {} #key: string val: dict
         self.parent = parent
-
 
     def get(self, sym_name, checkParent = True):
         sym = self.syms.get(sym_name, None)
@@ -2280,23 +2285,23 @@ class Runtime:
                     self.logError(f"The variable '{var_name}' used as the second parameter must be an integer.", count_err)
                     return None
 
-        # >>>> GET INPUT FROM USER FROM FRONTEND
+        # # >>>> GET INPUT FROM USER FROM FRONTEND
         print(">>>> START GET INPUT FROM USER")
         print(">>>> EMIT REQUEST INPUT")
         socketio.emit('request_input', { "type": "input_request", "prompt": prompt_value })
 
         print(">>>> WAITING INPUT FROM FRONTEND.....")
-        wait_flag_container.wait = True  # Set the shared wait flag
+        wait_flag = True  # set the shared wait flag
 
         # wait for input from frontend
-        while wait_flag_container.wait:
+        while wait_flag:
             eventlet.sleep(0.1) 
 
         print(">>>> DONEEE WAITING INPUT FROM FRONTEND.....")
         raw_input_val = user_response.get("value", "")
         print(">>>> User entered:", raw_input_val)
 
-        input_length_value = self.default_vals[expected_dtype]
+        input_length_value = raw_input_val
         try:
             if expected_dtype == "int":
                 value = int(input_length_value)  

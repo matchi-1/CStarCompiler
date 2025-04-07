@@ -22,19 +22,22 @@ const Terminal = ({ logs: initialLogs = [] }) => {
         }
     }, [initialLogs]);
 
-    socket.on('connect', () => {
-        console.log('Connected to backend!');
-    });
+
 
     // socket setup
     useEffect(() => {
+
+        socket.on('connect', () => {
+            console.log('Connected to backend!');
+        });
+
+
         const handlePrintOutput = (data) => {
             setLogs(prev => [...prev, { type: 'output', value: data.value }]);
         };
 
         const handleRequestInput = (data) => {
             console.log("Received input request:", data);
-            alert(`Received input request: ${data.prompt}`); // Trigger alert here
             setLogs(prev => [...prev, { type: 'input_request', prompt: data.prompt }]);
         };
 
@@ -46,12 +49,15 @@ const Terminal = ({ logs: initialLogs = [] }) => {
             setLogs(prev => [...prev, { type: 'output', value: "[Loop Finished]" }]);
         };
 
+        socket.on('request_input', handleRequestInput);
+
 
         return () => {
             socket.off("print_output", handlePrintOutput);
             socket.off("request_input", handleRequestInput);
             socket.off("error", handleError);
             socket.off("done", handleDone);
+            socket.off('connect');
         };
     }, []);
 
