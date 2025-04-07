@@ -9,6 +9,12 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
     const [inputText, setInputText] = useState('');
     const [logs, setLogs] = useState([]);
 
+    const formattedInitialLogs = initialLogs.map(log => ({
+        type: 'error',
+        value: log
+    }));
+
+
     const parseEscapeSequences = (str) => {
         return str
             .replace(/\\n/g, '\n')  // \n to newline
@@ -57,7 +63,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
     useEffect(() => {
         console.log("initialLogs:", initialLogs);
         if (initialLogs.length > 0) {
-            setLogs(initialLogs);
+            setLogs(formattedInitialLogs);
         }
         console.log("all logs:", logs);
     }, [initialLogs]);
