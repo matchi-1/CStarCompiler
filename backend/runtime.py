@@ -200,7 +200,7 @@ class Runtime:
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.curr_scope = self.curr_scope.parent
 
-    def visit_node(self, node, funcExpectedVal = True):
+    def visit_node(self, node, funcExpectedVal = True, fromRetBlock = False):
         nodeName = type(node).__name__
         visit_func = getattr(self, f'visit_{nodeName}', None)  # Get the appropriate visit function, or None if it doesn't exist
 
@@ -213,6 +213,8 @@ class Runtime:
             print(f'!!NODE!!: {node}!!')
             if nodeName in ['node_func_call', 'node_class_method_call']:
                 return visit_func(node, expected_val=funcExpectedVal)
+            elif nodeName in ['node_bi_op']:
+                return visit_func(node, fromRetBlock=fromRetBlock)
             return visit_func(node)
         
     def print_symbols(self, d, indent=2):
@@ -1734,12 +1736,11 @@ class Runtime:
         return classReturn
 
     # binary and unary operations
-    def visit_node_bi_op(self, node):
+    def visit_node_bi_op(self, node, fromRetBlock=False):
         
         left_type, left_val, left_err = self.visit_node(node.left_n)
         right_type, right_val, right_err = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
-
 
         if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
             self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.", left_err)
@@ -1783,6 +1784,8 @@ class Runtime:
                     else:
                         return (('lit', 'string'), (left_val or "") + (right_val or ""), left_err ) #or empty string for nontypes
                         # return (('lit', 'string'), None)
+                if fromRetBlock:
+                    return (dtype, self.default_vals[dtype[1]], left_err) 
                 elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, left_val + right_val, left_err)
                     # return (dtype, None)
@@ -1790,21 +1793,30 @@ class Runtime:
                      self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
 
             case '-':
+                if fromRetBlock:
+                    return (dtype, self.default_vals[dtype[1]], left_err) 
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, left_val - right_val, left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '/':
-                if right_val == 0: #todo
-                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
-                    self.logError("Division by 0 is not allowed.", right_err)
-                if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
+                print(f"search for me:")
+                if left_type[1] in self.numtypes and right_type[1] in self.numtypes and not fromRetBlock:
                     return (dtype, int(left_val / right_val), left_err)
                     # return (dtype, None)
+                if fromRetBlock:
+                    if right_type[0] == "lit" and right_val == 0:
+                        self.logError("Division by 0 is not allowed.", right_err)
+                    return (dtype, self.default_vals[dtype[1]], left_err)
+                elif right_val == 0: #todo
+                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
+                    self.logError("Division by 0 is not allowed.", right_err)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '*':
+                if fromRetBlock:
+                    return (dtype, self.default_vals[dtype[1]], left_err) 
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
                     return (dtype, left_val * right_val, left_err)
                     # return (dtype, None)
@@ -1814,6 +1826,8 @@ class Runtime:
                 if dtype[1] in ['float', 'double'] or right_type[1] in ['float', 'double']:
                     self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", left_err)
                 else:
+                    if fromRetBlock:
+                        return (dtype, self.default_vals[dtype[1]], left_err)
                     if right_val == 0: #todo err
                         self.logError("Modulo by 0 is not allowed.", right_err)
                     if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
@@ -2625,7 +2639,7 @@ class Runtime:
             expected_return_type = self.function_return_stack[-1]  
 
             if node.ret_value_n:
-                rettype, result, err_n = self.visit_node(node.ret_value_n)
+                rettype, result, err_n = self.visit_node(node.ret_value_n, fromRetBlock=True)
                 print(f"RETURN VALUE: {result}\n RETTYPE: {rettype}")
                 if rettype[0] == 'arr':
                     self.logError(f"Function '{self.current_function_name}' cannot return an array.", err_n)
@@ -2634,7 +2648,7 @@ class Runtime:
                     self.logError(f"Function '{self.current_function_name}' cannot return an object.", err_n)
 
                 #TODO: add class error
-                actual_return_type = self.visit_node(node.ret_value_n)[0][1]
+                actual_return_type = self.visit_node(node.ret_value_n, fromRetBlock=True)[0][1]
 
                 match(expected_return_type):
                     case "void":

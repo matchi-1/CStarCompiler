@@ -1693,11 +1693,11 @@ class SemanticAnalyzer:
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '/':
-                if right_val == 0: #todo
-                    # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
-                    self.logError("Division by 0 is not allowed.", right_err)
+                #if right_val == 0: #todo
+                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
+                #    self.logError("Division by 0 is not allowed.", right_err)
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, int(left_val / right_val), left_err)
+                    return (dtype, self.default_vals[dtype[1]], left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
