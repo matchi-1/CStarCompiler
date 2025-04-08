@@ -86,10 +86,10 @@ class SemanticAnalyzer:
     default_vals = {
         'string': '',
         'bool' : False,
-        'int' : 0,
-        'long' : 0,
-        'float' : Decimal(0.0),
-        'double' : Decimal(0.0)
+        'int' : 1,
+        'long' : 1,
+        'float' : Decimal(1.0),
+        'double' : Decimal(1.0)
     }
    
     MIN_INT =       -   2147483648
