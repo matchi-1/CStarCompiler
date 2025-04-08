@@ -1066,6 +1066,7 @@ class Runtime:
         att_name = node.class_att_n.att_id_n.id_t["tokenName"]
         value = node.value_n
         assign_op = node.op_t["tokenName"] 
+        
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}")
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
         #print(f"!!!!!!!!!!!!!found att_info for '{att_name}' in '{obj_name}': {att_info}")   

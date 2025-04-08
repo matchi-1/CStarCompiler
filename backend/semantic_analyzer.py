@@ -885,6 +885,7 @@ class SemanticAnalyzer:
         arr_node = node.id_arr_n   # current node
         arr_name = arr_node.id_n.id_t["tokenName"]
         arr_symbol = self.curr_scope.get(arr_name)  # reference node in sym table
+        assign_op = node.op_t["tokenName"]
 
         if not arr_symbol:
             self.logError(f"Array '{arr_name}' hasn't been declared yet.", arr_node.id_n)
@@ -941,6 +942,50 @@ class SemanticAnalyzer:
         #     arr_symbol["value"][idx1_val] = value
         # else:
         #     arr_symbol["value"][idx1_val][idx2_val] = value
+        check_scope = self.curr_scope
+        while not check_scope.get(arr_name, False):
+            check_scope = check_scope.parent
+        if arr_dim == 1:
+            match assign_op:
+                case "=":
+                    check_scope.syms[arr_name]["value"][idx1_val] = value
+                case "+=":
+                    check_scope.syms[arr_name]["value"][idx1_val] += value
+                case "-=":
+                    check_scope.syms[arr_name]["value"][idx1_val] -= value
+                case "*=":
+                    check_scope.syms[arr_name]["value"][idx1_val] *= value
+                case "/=":
+                    check_scope.syms[arr_name]["value"][idx1_val] /= value
+                case "%=":
+                    if value == 0:
+                        self.logError("Modulo by 0 is not allowed.", val_err_n)
+                    if arr_symbol["dtype"][1] not in ["int", "long"] or value_type[1] not in ["int", "long"]:
+                        self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err_n)
+                    if arr_symbol["dtype"][1] == "int" and value_type[1] == "long":
+                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {arr_symbol["dtype"][1]} and {value_type[1]}.", val_err_n)
+                    check_scope.syms[arr_name]["value"][idx1_val] %= value
+        else:
+            match assign_op:
+                case "=":
+                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] = value
+                case "+=":
+                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] += value
+                case "-=":
+                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] -= value
+                case "*=":
+                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] *= value
+                case "/=":
+                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] /= value
+                case "%=":
+                    if value == 0:
+                        self.logError("Modulo by 0 is not allowed.", val_err_n)
+                    if arr_symbol["dtype"][1] not in ["int", "long"] or value_type[1] not in ["int", "long"]:
+                        self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err_n)
+                    if arr_symbol["dtype"][1] == "int" and value_type[1] == "long":
+                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {arr_symbol["dtype"][1]} and {value_type[1]}.", val_err_n)
+                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] %= value
+
 
     def visit_node_assign_stmt_object_att(self,node):
         self.visit_node(node.class_att_n)
@@ -948,6 +993,7 @@ class SemanticAnalyzer:
         obj_name = node.class_att_n.obj_id_n.id_t["tokenName"]
         att_name = node.class_att_n.att_id_n.id_t["tokenName"]
         value = node.value_n
+        assign_op = node.op_t["tokenName"] 
 
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}")
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
@@ -975,6 +1021,29 @@ class SemanticAnalyzer:
         # self.curr_scope.set(att_name, val, dtype=dtype) #for code gen na e2 ryt
         #att_info["value"] = val
 
+        check_scope = self.curr_scope
+        while not check_scope.get(att_name, False):
+            check_scope = check_scope.parent
+        match assign_op:
+            case "=":
+                check_scope.syms[att_name]["value"] += value
+            case "+=":
+                check_scope.syms[att_name]["value"] += value
+            case "-=":
+                check_scope.syms[att_name]["value"] -= value
+            case "*=":
+                check_scope.syms[att_name]["value"] *= value
+            case "/=":
+                check_scope.syms[att_name]["value"] /= value
+            case "%=":
+                if value == 0:
+                    self.logError("Modulo by 0 is not allowed.", err_n)
+                if att_info["dtype"][1] not in ["int", "long"] or val_type[1] not in ["int", "long"]:
+                    self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
+                if att_info["dtype"][1] == "int" and val_type[1] == "long":
+                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {val_type[1]}.", err_n)
+                check_scope.syms[att_name]["value"] %= value
+
         print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
         
@@ -998,6 +1067,8 @@ class SemanticAnalyzer:
         att_name = node.class_arr_n.att_id_n.id_t["tokenName"]
         val_to_be_assigned = node.value_n
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
+        assign_op = node.op_t["tokenName"]
+        
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
 
         if att_info["dtype"][0] != 'arr' :      
@@ -1054,6 +1125,51 @@ class SemanticAnalyzer:
         #     arr_symbol["value"][idx1_val] = value
         # else:
         #     arr_symbol["value"][idx1_val][idx2_val] = value
+
+        check_scope = self.curr_scope
+        while not check_scope.get(att_name, False):
+            check_scope = check_scope.parent
+        if att_arr_dim == 1:
+            match assign_op:
+                case "=":
+                    check_scope.syms[att_name]["value"][idx1_val] = value
+                case "+=":
+                    check_scope.syms[att_name]["value"][idx1_val] += value
+                case "-=":
+                    check_scope.syms[att_name]["value"][idx1_val] -= value
+                case "*=":
+                    check_scope.syms[att_name]["value"][idx1_val] *= value
+                case "/=":
+                    check_scope.syms[att_name]["value"][idx1_val] /= value
+                case "%=":
+                    if value == 0:
+                        self.logError("Modulo by 0 is not allowed.", err_n)
+                    if att_info["dtype"][1] not in ["int", "long"] or value_type[1] not in ["int", "long"]:
+                        self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
+                    if att_info["dtype"][1] == "int" and value_type[1] == "long":
+                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type[1]}.", err_n)
+                    check_scope.syms[att_name]["value"][idx1_val] %= value
+        else:
+            match assign_op:
+                case "=":
+                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] = value
+                case "+=":
+                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] += value
+                case "-=":
+                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] -= value
+                case "*=":
+                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] *= value
+                case "/=":
+                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] /= value
+                case "%=":
+                    if value == 0:
+                        self.logError("Modulo by 0 is not allowed.", err_n)
+                    if att_info["dtype"][1] not in ["int", "long"] or value_type[1] not in ["int", "long"]:
+                        self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
+                    if att_info["dtype"][1] == "int" and value_type[1] == "long":
+                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type}.", err_n)
+                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] %= value
+
         print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
 
 
