@@ -2612,7 +2612,7 @@ class Runtime:
             if switch_val == case_val:
                 if case_stmt.ctrl_stmt_body_n:
                     print(f"(runtime)(dbg) TRAVERSING 'case_body'")
-                    self.visit_node(case_stmt.ctrl_stmt_body_n)
+                    self.visit_node(case_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
                 case_matched = True
                 break
             
@@ -2625,7 +2625,7 @@ class Runtime:
             self.enter_scope(default_stmt)
             
             if default_stmt.ctrl_stmt_body_n:
-                self.visit_node(default_stmt.ctrl_stmt_body_n)
+                self.visit_node(default_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
                 print(f"(runtime)(dbg) FOUND 'default_body'")
 
             self.exit_scope(default_stmt)

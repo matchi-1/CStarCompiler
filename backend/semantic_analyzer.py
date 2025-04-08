@@ -673,10 +673,8 @@ class SemanticAnalyzer:
             self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.'. idx_err)
         if idx_val < 0:
                 self.logError("Array index cannot be negative.", idx_err)
-        if idx_val >= arr_sym["arr_info"]["size1"] and arr_sym["arr_info"]["size1"] != 0:
+        if idx_val >= arr_sym["arr_info"]["size1"]:
             self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', idx_err)
-        if arr_sym["arr_info"]["size1"] == 0:
-            idx_val = 0
         idx2_val = None
         if node.idx2_n:
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
@@ -691,24 +689,19 @@ class SemanticAnalyzer:
             if idx2_val < 0:
                 self.logError("Array index cannot be negative.", idx2_err)
             
-            if idx2_val >= arr_sym["arr_info"]["size2"] and arr_sym["arr_info"]["size2"] != 0:
+            if idx2_val >= arr_sym["arr_info"]["size2"]:
                 self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', idx2_err)
-
-            if arr_sym["arr_info"]["size2"] == 0:
-                idx2_val = 0
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
                 print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), arr_sym["value"][idx_val], arr_id_err)}")
                 return (('arr', dtype), arr_sym["value"][idx_val], arr_id_err)
-            
-        
         
         print(f"{arr_sym}")
         print(f"RETURNED FROM node_arr_idx: {('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err}")
-        print('AAAAAAAAAAAAAAA', arr_sym["value"])
-        print('aaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAA', idx_val)
+        
         return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
+    #cont...
 
     def visit_node_func_dec(self, node, priv = False):
         func_name = node.id_n.id_t["tokenName"]
@@ -790,9 +783,8 @@ class SemanticAnalyzer:
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
-                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]] 
-                    print('AAAAAAAAAAAAAAAAAAAAAAAARRVAL', arr_val)
-                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 0, "size2": 0 if arr_dim == 2 else None}, const=False)}')
+                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]]
+                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
@@ -833,7 +825,6 @@ class SemanticAnalyzer:
         value = node.value_n
         iden_name = iden.id_t["tokenName"]
         iden_symbol = self.curr_scope.get(iden_name)
-        assign_op = node.op_t["tokenName"]
 
         id_err = ErrorNode(iden.id_t["tokenLine"], iden.id_t["tokenCol"] - len(iden.id_t["tokenName"]) - 1)
         if not iden_symbol: self.logError(f"Symbol '{iden_name}' hasn't been declared yet.", id_err)
@@ -856,36 +847,12 @@ class SemanticAnalyzer:
         #    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
         
         self.check_type_and_range("variable", iden_symbol["dtype"], val_type, val, node.id_n, err_n = val_err)
-        check_scope = self.curr_scope
-        while not check_scope.get(iden_name, False):
-            check_scope = check_scope.parent
-        
-        match assign_op:
-            case "=":
-                check_scope.syms[iden_name]["value"] = val
-            case "+=":
-                check_scope.syms[iden_name]["value"] += val
-            case "-=":
-                check_scope.syms[iden_name]["value"] -= val
-            case "*=":
-                check_scope.syms[iden_name]["value"] *= val
-            case "/=":
-                check_scope.syms[iden_name]["value"] /= val
-            case "%=":
-                if val == 0:
-                    self.logError("Modulo by 0 is not allowed.", val_err)
-                if iden_symbol["dtype"][1] not in ["int", "long"] or val_type[1] not in ["int", "long"]:
-                    self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err)
-                if iden_symbol["dtype"][1] == "int" and val_type[1] == "long":
-                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {iden_symbol["dtype"][1]} and {val_type[1]}.", val_err)
-                check_scope.syms[iden_name]["value"] %= val
 
     def visit_node_assign_stmt_array_elem(self, node): 
         # visit_node_assign_stmt_object_att_arr REFERENCES THIS, CHANGE BOTH FUNCS WHEN U CHANGE THIS ONE THANK U
         arr_node = node.id_arr_n   # current node
         arr_name = arr_node.id_n.id_t["tokenName"]
         arr_symbol = self.curr_scope.get(arr_name)  # reference node in sym table
-        assign_op = node.op_t["tokenName"]
 
         if not arr_symbol:
             self.logError(f"Array '{arr_name}' hasn't been declared yet.", arr_node.id_n)
@@ -942,50 +909,6 @@ class SemanticAnalyzer:
         #     arr_symbol["value"][idx1_val] = value
         # else:
         #     arr_symbol["value"][idx1_val][idx2_val] = value
-        check_scope = self.curr_scope
-        while not check_scope.get(arr_name, False):
-            check_scope = check_scope.parent
-        if arr_dim == 1:
-            match assign_op:
-                case "=":
-                    check_scope.syms[arr_name]["value"][idx1_val] = value
-                case "+=":
-                    check_scope.syms[arr_name]["value"][idx1_val] += value
-                case "-=":
-                    check_scope.syms[arr_name]["value"][idx1_val] -= value
-                case "*=":
-                    check_scope.syms[arr_name]["value"][idx1_val] *= value
-                case "/=":
-                    check_scope.syms[arr_name]["value"][idx1_val] /= value
-                case "%=":
-                    if value == 0:
-                        self.logError("Modulo by 0 is not allowed.", val_err_n)
-                    if arr_symbol["dtype"][1] not in ["int", "long"] or value_type[1] not in ["int", "long"]:
-                        self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err_n)
-                    if arr_symbol["dtype"][1] == "int" and value_type[1] == "long":
-                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {arr_symbol["dtype"][1]} and {value_type[1]}.", val_err_n)
-                    check_scope.syms[arr_name]["value"][idx1_val] %= value
-        else:
-            match assign_op:
-                case "=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] = value
-                case "+=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] += value
-                case "-=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] -= value
-                case "*=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] *= value
-                case "/=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] /= value
-                case "%=":
-                    if value == 0:
-                        self.logError("Modulo by 0 is not allowed.", val_err_n)
-                    if arr_symbol["dtype"][1] not in ["int", "long"] or value_type[1] not in ["int", "long"]:
-                        self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err_n)
-                    if arr_symbol["dtype"][1] == "int" and value_type[1] == "long":
-                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {arr_symbol["dtype"][1]} and {value_type[1]}.", val_err_n)
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] %= value
-
 
     def visit_node_assign_stmt_object_att(self,node):
         self.visit_node(node.class_att_n)
@@ -993,7 +916,6 @@ class SemanticAnalyzer:
         obj_name = node.class_att_n.obj_id_n.id_t["tokenName"]
         att_name = node.class_att_n.att_id_n.id_t["tokenName"]
         value = node.value_n
-        assign_op = node.op_t["tokenName"] 
 
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}")
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
@@ -1021,29 +943,6 @@ class SemanticAnalyzer:
         # self.curr_scope.set(att_name, val, dtype=dtype) #for code gen na e2 ryt
         #att_info["value"] = val
 
-        check_scope = self.curr_scope
-        while not check_scope.get(att_name, False):
-            check_scope = check_scope.parent
-        match assign_op:
-            case "=":
-                check_scope.syms[att_name]["value"] += value
-            case "+=":
-                check_scope.syms[att_name]["value"] += value
-            case "-=":
-                check_scope.syms[att_name]["value"] -= value
-            case "*=":
-                check_scope.syms[att_name]["value"] *= value
-            case "/=":
-                check_scope.syms[att_name]["value"] /= value
-            case "%=":
-                if value == 0:
-                    self.logError("Modulo by 0 is not allowed.", err_n)
-                if att_info["dtype"][1] not in ["int", "long"] or val_type[1] not in ["int", "long"]:
-                    self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
-                if att_info["dtype"][1] == "int" and val_type[1] == "long":
-                    self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {val_type[1]}.", err_n)
-                check_scope.syms[att_name]["value"] %= value
-
         print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
         
@@ -1067,8 +966,6 @@ class SemanticAnalyzer:
         att_name = node.class_arr_n.att_id_n.id_t["tokenName"]
         val_to_be_assigned = node.value_n
         att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
-        assign_op = node.op_t["tokenName"]
-        
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
 
         if att_info["dtype"][0] != 'arr' :      
@@ -1125,51 +1022,6 @@ class SemanticAnalyzer:
         #     arr_symbol["value"][idx1_val] = value
         # else:
         #     arr_symbol["value"][idx1_val][idx2_val] = value
-
-        check_scope = self.curr_scope
-        while not check_scope.get(att_name, False):
-            check_scope = check_scope.parent
-        if att_arr_dim == 1:
-            match assign_op:
-                case "=":
-                    check_scope.syms[att_name]["value"][idx1_val] = value
-                case "+=":
-                    check_scope.syms[att_name]["value"][idx1_val] += value
-                case "-=":
-                    check_scope.syms[att_name]["value"][idx1_val] -= value
-                case "*=":
-                    check_scope.syms[att_name]["value"][idx1_val] *= value
-                case "/=":
-                    check_scope.syms[att_name]["value"][idx1_val] /= value
-                case "%=":
-                    if value == 0:
-                        self.logError("Modulo by 0 is not allowed.", err_n)
-                    if att_info["dtype"][1] not in ["int", "long"] or value_type[1] not in ["int", "long"]:
-                        self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
-                    if att_info["dtype"][1] == "int" and value_type[1] == "long":
-                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type[1]}.", err_n)
-                    check_scope.syms[att_name]["value"][idx1_val] %= value
-        else:
-            match assign_op:
-                case "=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] = value
-                case "+=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] += value
-                case "-=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] -= value
-                case "*=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] *= value
-                case "/=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] /= value
-                case "%=":
-                    if value == 0:
-                        self.logError("Modulo by 0 is not allowed.", err_n)
-                    if att_info["dtype"][1] not in ["int", "long"] or value_type[1] not in ["int", "long"]:
-                        self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
-                    if att_info["dtype"][1] == "int" and value_type[1] == "long":
-                        self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type}.", err_n)
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] %= value
-
         print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
 
 
@@ -1177,7 +1029,6 @@ class SemanticAnalyzer:
     # func calls
     def visit_node_func_call(self, node, expected_val):
         func_name = node.id_n.id_t["tokenName"]
-        print(f'\n(semantic)(dbg) Visiting node_func_call for {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
         if not func_symbol:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
@@ -1195,7 +1046,7 @@ class SemanticAnalyzer:
             val = self.default_vals[func_symbol["dtype"][1]]
 
 
-        print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
+        print(f"RETURNED FROM FUNC_CALL:s {('lit', f'{func_symbol["dtype"][1]}'), val, node.id_n}")
         return (('lit', f'{func_symbol["dtype"][1]}'), val, node.id_n) 
 
     
@@ -1693,11 +1544,11 @@ class SemanticAnalyzer:
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '/':
-                #if right_val == 0: #todo
-                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
-                #    self.logError("Division by 0 is not allowed.", right_err)
+                if right_val == 0: #todo
+                    # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
+                    self.logError("Division by 0 is not allowed.", right_err)
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, self.default_vals[dtype[1]], left_err)
+                    return (dtype, int(left_val / right_val), left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
@@ -2269,12 +2120,12 @@ class SemanticAnalyzer:
                         return None
                     formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
-            # if print_stmts_n == "println":
-            #     print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
-            #     self.output.append(str(formatted_output) + "\n")
-            # else:
-            #     print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
-            #     self.output.append(formatted_output)
+            if print_stmts_n == "println":
+                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+                self.output.append(str(formatted_output) + "\n")
+            else:
+                print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+                self.output.append(formatted_output)
 
         return None
 
@@ -2445,7 +2296,7 @@ class SemanticAnalyzer:
             print(f"(semantic)(dbg) FOUND CASE VALUE: '{case_val}'")
 
             if case_stmt.ctrl_stmt_body_n:
-                self.visit_node(case_stmt.ctrl_stmt_body_n)
+                self.visit_node(case_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
 
             print(f"(semantic)(dbg) FOUND 'case_body'")
             self.exit_scope(case_stmt)
@@ -2458,7 +2309,7 @@ class SemanticAnalyzer:
             self.enter_scope(default_stmt)
             
             if default_stmt.ctrl_stmt_body_n:
-                self.visit_node(default_stmt.ctrl_stmt_body_n)
+                self.visit_node(default_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
                 print(f"(semantic)(dbg) FOUND 'default_body'")
 
             self.exit_scope(default_stmt)
@@ -2596,7 +2447,7 @@ class SemanticAnalyzer:
 
         if isinstance(node, node_return_block):
             print(f"(semantic)(dbg) Found return statement")
-            self.count_return += 1
+            self.count_return += 1  
             return True
 
         return False
