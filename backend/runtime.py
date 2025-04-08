@@ -1275,7 +1275,11 @@ class Runtime:
 
 
         print(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
-        ret_type, ret_val, _ = self.visit_node_body(func_symbol["value"], evaluation=True)
+        body_ret = self.visit_node_body(func_symbol["value"], evaluation=True)
+        ret_type = None
+        ret_val = None
+        if body_ret:
+            ret_type, ret_val, _ = body_ret
         self.exit_scope(func_name)
         return ret_val
         
@@ -1297,6 +1301,7 @@ class Runtime:
         if func_symbol["dtype"][1] == 'void':
             if expected_val:
                 self.logError(f"Function '{func_name}' is void and cannot return any value, it cannot be used as a value.", node.id_n)
+            self.evaluate_func(func_name, node.args_n)
         else:
             val = self.evaluate_func(func_name, node.args_n)
 
