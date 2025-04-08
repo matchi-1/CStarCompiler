@@ -332,8 +332,9 @@ class Runtime:
         
         if node.return_stmt_n:
             if evaluation:
-                #self.exit_scope(type(node).__name__)
-                return self.visit_node_return_eval(node.return_stmt_n)
+                ret_val = self.visit_node_return_eval(node.return_stmt_n)
+                self.exit_scope(type(node).__name__)
+                return ret_val
             self.visit_node(node.return_stmt_n)
         
         self.exit_scope(type(node).__name__)
