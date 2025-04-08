@@ -2363,7 +2363,7 @@ class SemanticAnalyzer:
                 continue
             
             else:
-                self.visit_node(statement)
+                self.visit_node(statement, funcExpectedVal=False)
 
         print("(semantic)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
         self.exit_scope(type(node).__name__)

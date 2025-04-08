@@ -2502,7 +2502,7 @@ class Runtime:
                 # loop count +1
             
             else:
-                self.visit_node(statement)
+                self.visit_node(statement, funcExpectedVal=False)
 
         print("(runtime)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
         self.exit_scope(type(node).__name__)
