@@ -2372,6 +2372,38 @@ class Runtime:
         print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), value)}")
         return (('lit', expected_dtype), value, err_n)
     
+       
+    def handle_backspace_escapes(self, s):
+        result = []
+        i = 0
+
+        while i < len(s):
+            if s[i] == '\\':
+                # lookahead for known escape sequences
+                if i + 1 < len(s):
+                    esc = s[i + 1]
+
+                    if esc == 'b':
+                        # perform backspace — remove previous full item from result
+                        if result:
+                            result.pop()
+                        i += 2
+                        continue
+
+                    elif esc in ['n', 't', '\\', '"', "'"]:
+                        # treat the escape sequence as one unit
+                        result.append('\\' + esc)
+                        i += 2
+                        continue
+
+            # if not part of escape, just add normal character
+            result.append(s[i])
+            i += 1
+
+        # render escape sequences like \n, \t, etc.
+        final_str = ''.join(result)
+        return final_str.encode('utf-8').decode('unicode_escape')
+
     def visit_node_output(self, node):
         print(f'\n(runtime)(dbg) Visiting node_output\n')
         print_stmts_n = node.print_stmts_n 
@@ -2438,11 +2470,13 @@ class Runtime:
             #         self.output[-1] += formatted_output
             #     else:
             #         self.output.append(formatted_output)
-
+            formatted_output = self.handle_backspace_escapes(formatted_output)
+            
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
             #eventlet.sleep(0.1)
 
         return None
+ 
 
     def _extract_format_specifiers(self, format_string):
         import re

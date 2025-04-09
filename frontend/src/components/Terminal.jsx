@@ -17,7 +17,6 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
 
     const parseEscapeSequences = (str, isOutput = false) => {
         let formattedStr = str.replace(/\\t/g, '\t')  // \t to tab
-            .replace(/\\b/g, '\b')  // \b to backspace
             .replace(/\\"/g, '"')   // \\" to "
             .replace(/\\\\/g, '\\'); // \\ to backslash
 
