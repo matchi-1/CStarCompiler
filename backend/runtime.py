@@ -124,12 +124,32 @@ class FuncSymbolTable(SymbolTable):
             else:
                 #check if in global
                 if checkParent:
+                    print('\n\n\n\n\n')
+                    #check scopes
                     curr_parent = self.parent
-
-                    # find global scope
-                    while curr_parent.parent and not curr_parent.get(sym_name, None):
+                    while type(curr_parent) is not FuncSymbolTable and sym_name not in curr_parent.syms:
                         curr_parent = curr_parent.parent
-                    sym = curr_parent.get(sym_name, None)
+                    
+                    if sym_name in curr_parent.syms:
+                        sym = curr_parent.syms[sym_name]
+                    else:
+                        #check params
+                        curr_parent = curr_parent.parent
+                        if sym_name in curr_parent.syms:
+                            sym = curr_parent.syms[sym_name]
+                        else:
+                            # find global scope
+                            while curr_parent.parent:
+                                print('moving on to upper scope..')
+                                print(curr_parent.syms)
+                                print('\n\n')
+                                curr_parent = curr_parent.parent
+                                print('upper scope now')
+                                print(curr_parent.syms)
+                                print('\n\n')
+                            print('AAAAAAAAAAAA PARENTS SYMS', curr_parent.syms)
+                            self.print_symbol_tree(2)
+                            sym = curr_parent.get(sym_name, None)
         return sym
 class ErrorNode:
     def __init__(self, line, startCol, id_t = None):
@@ -159,6 +179,8 @@ class Runtime:
     MAX_DOUBLE =        9999999999999999000
 
     MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
+
+    RETURN_PROMISES = []
 
     def interpret(self, node):
         try:
@@ -328,36 +350,39 @@ class Runtime:
             self.logError(f"Function '{self.current_function_name}' must have a return statement.")
 
     #body PLACEHOLDER
-    def visit_node_body(self, node, evaluation=False):
+    def visit_node_body(self, node):
         self.enter_scope(type(node).__name__)
         # PLACEHOLDER! idk if it's correct
-
+        ret_val = None
         if node.body_codeblock_n:
-            self.visit_node(node.body_codeblock_n)
+            ret_val = self.visit_node(node.body_codeblock_n)
+            print('AAAAAAAAAAAAAAAA BODY RET', ret_val)
         
         if node.return_stmt_n:
-            if evaluation:
-                ret_val = self.visit_node_return_eval(node.return_stmt_n)
-                self.exit_scope(type(node).__name__)
-                return ret_val
-            self.visit_node(node.return_stmt_n)
+            ret_val = self.visit_node(node.return_stmt_n)
+            
         
         self.exit_scope(type(node).__name__)
+        return ret_val
         
-    def visit_node_return_eval(self, node):
-        return self.visit_node(node.ret_value_n)
-
     #code_block PLACEHODLER
     def visit_node_code_block(self, node):
         # PLACEHODLER!! idk if correct
         for statement in node.code_block_statement_n:
             #print("++++ CODE BLOCK STATEMENT: " + str(statement))
-            self.visit_node(statement, funcExpectedVal=False)
+            ret_val = self.visit_node(statement, funcExpectedVal=False)
+            if type(statement) is node_if_stmt:
+                ret_val = ret_val[1]
+            print('AAAAAAAAAAA CODE BLOCK RET', ret_val)
+            print('AAAAAAA RETURN PROMISES', self.RETURN_PROMISES)
             print("\n(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: ")
             self.print_symbols(self.curr_scope.syms, indent=2)
+            if self.RETURN_PROMISES:
+                return ret_val
+        return None
 
     def visit_node_program_constructs(self, node):
-        self.enter_scope(type(node).__name__)
+        # self.enter_scope(type(node).__name__)
         
         for global_declarations in node.program_constructs_statement_n:
             if global_declarations:
@@ -880,23 +905,23 @@ class Runtime:
         # Visit function body
         if not node.is_std_lib:
             self.current_function_name = func_name
-            self.function_return_stack.append(return_type[1])
-            if not node.body_n:
-                self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
+            # self.function_return_stack.append(return_type[1])
+            # if not node.body_n:
+            #     self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
 
-            self.count_return = 0
-            has_return = self.check_return_in_body(node.body_n)
-            if not has_return:
-                if self.count_return:
-                    self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
-                else:
-                    self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
+            # self.count_return = 0
+            # has_return = self.check_return_in_body(node.body_n)
+            # if not has_return:
+            #     if self.count_return:
+            #         self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
+            #     else:
+            #         self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
                 
             # no need to visit during runtime
             # self.visit_node(node.body_n)
 
-            self.function_return_stack.pop()
-            print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+            # self.function_return_stack.pop()
+            #print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
             self.current_function_name = None
  
 
@@ -1281,36 +1306,39 @@ class Runtime:
         if not func_symbol:
             func_symbol = method_symbol
         print(f"FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {func_symbol}")
-        
+                
         #populate symbol table with arguments
         lit_details = []
         sym_details = {}
         for i, arg_n in enumerate(args_list):
             nodeName = type(arg_n).__name__
-            if nodeName in ['node_num', 'node_str', 'node_bool']:
+            if nodeName != 'node_iden':
                 dtype, val, _ = self.visit_node(arg_n)
                 lit_details.append((func_symbol["param_names"][i], val, dtype)) 
-            elif nodeName == 'node_iden':
+            else:
                 sym_details[func_symbol["param_names"][i]] = (arg_n.id_t["tokenName"], self.curr_scope.get(arg_n.id_t["tokenName"]))
-                    
+        print('AAAAAAAAAAAAAAAAAAAAAAAAA\n', sym_details)
         self.enter_func_scope(func_name)
         for detail in lit_details:
             self.curr_scope.set(detail[0], detail[1], detail[2])
         for param in sym_details:
             # self.curr_scope.set(param, sym_details[param]["value"], sym_details[param]["dtype"])
-            if sym_details[param][1]["dtype"][0] == 'var':
+            if sym_details[param][1]["dtype"][0] not in ['arr', 'object']:
                 self.curr_scope.set(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"])
-            elif sym_details[param][1]["dtype"][0] in ['arr', 'object']:
+            else:
                 self.curr_scope.visible_symbols[param] = sym_details[param][0]
-
+        self.curr_scope.set_function(func_name, func_symbol["dtype"], func_symbol["params"], func_symbol["param_names"], func_symbol["value"], priv=func_symbol["priv"], isStd_lib=func_symbol["isStd_lib"])
+        print(f'ABOUT TO ENTER {func_name} BODY WITH SYMBOL TABLE:')
+        self.print_symbols(self.curr_scope.syms, indent=2)
 
         print(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
-        body_ret = self.visit_node_body(func_symbol["value"], evaluation=True)
+        body_ret = self.visit_node_body(func_symbol["value"])
         ret_type = None
         ret_val = None
         if body_ret:
             ret_type, ret_val, _ = body_ret
         self.exit_scope(func_name)
+        print('AAAAAAAAAAAAAAAAAAAAAA EVAL RET', ret_val)
         return ret_val
         
     
@@ -1327,6 +1355,8 @@ class Runtime:
         self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
         #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
         #temp vals
+        print('(runtime)(dbg) Done checking, back in visit func_call now')
+        print('(runtime)(dbg)', node.args_n)
         val = None
         if func_symbol["dtype"][1] == 'void':
             if expected_val:
@@ -1337,6 +1367,7 @@ class Runtime:
 
 
         print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
+        self.RETURN_PROMISES.pop()
         return (('lit', f'{func_symbol["dtype"][1]}'), val, node.id_n) 
 
     
@@ -1769,7 +1800,7 @@ class Runtime:
             #print(f"_____________________________{arrdec_vals}")
 
             classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
-        
+            
         return classReturn
 
     # binary and unary operations
@@ -1824,6 +1855,7 @@ class Runtime:
                 if fromRetBlock:
                     return (dtype, self.default_vals[dtype[1]], left_err) 
                 elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
+                    print('AAAAAAAAA BI OP', left_val, right_val)
                     return (dtype, left_val + right_val, left_err)
                     # return (dtype, None)
                 else:
@@ -2217,7 +2249,7 @@ class Runtime:
                 break_outer = False
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n)
+                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
@@ -2243,7 +2275,7 @@ class Runtime:
                 if val == False: break
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n)
+                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
@@ -2271,7 +2303,7 @@ class Runtime:
                 if loop_count > repeat_val: break
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n)
+                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
@@ -2530,10 +2562,11 @@ class Runtime:
                 # loop count +1
             
             elif not (self.break_continue_check == "node_break_stmt" or self.break_continue_check == "node_continue_stmt"): 
-                self.visit_node(statement, funcExpectedVal=False)
+                ret_val = self.visit_node(statement, funcExpectedVal=False)
 
         print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
         self.exit_scope(type(node).__name__)
+        return ret_val
         #return break_continue_check
     
     def visit_node_condition_value(self, node):
@@ -2544,44 +2577,51 @@ class Runtime:
 
     def visit_node_if_stmt(self, node):
         self.enter_scope(type(node).__name__)
-        
+        ret_val = None
+        cond = False
         # IF BLOCK
         if self.visit_node(node.condition_n) == True:
             print(f"CONDITION was found from: {type(node).__name__}")
             if node.body_n:
-                self.visit_node(node.body_n)
-            return True
+                ret_val = self.visit_node(node.body_n)
+            cond = True
         else:
             # ELSE CHAIN
             if node.else_chain_n:
-                self.visit_node(node.else_chain_n)
+                ret_val = self.visit_node(node.else_chain_n)
 
         self.exit_scope(type(node).__name__)
+        print('AAAAAAAAAAAA IF RET', ret_val)
+        return (cond, ret_val)
         #if break_continue_check: return break_continue_check
     
     def visit_node_else_chain(self, node):
         self.enter_scope(type(node).__name__)
 
         else_chain_n = node.else_chain_n
-
+        print('AAA ELSE CHAIN LIST', else_chain_n)
         for chain_stmt in else_chain_n:
             chain_type = type(chain_stmt).__name__
 
             print(f"CHAAAAAAAAINNNNNNNN TYPE: {chain_type}")
-            if self.visit_node(chain_stmt) == True:
+            visit_vals = self.visit_node(chain_stmt)
+            if visit_vals[0] == True:
                 break
         
         self.exit_scope(type(node).__name__)
-        return
+        print('AAAAAAAAAAAAA ELSE CHAIN RET', visit_vals[1])
+        print('AAAAAAA ELSE RETURN PROMISES', self.    RETURN_PROMISES)
+        return visit_vals[1]
 
     def visit_node_else_stmt(self, node):
         self.enter_scope(type(node).__name__)
 
         if node.body_n:
-            self.visit_node(node.body_n)
+            ret_val = self.visit_node(node.body_n)
+            print('AAAAAAAAAAAAAAA ELSE RET', ret_val)
 
         self.exit_scope(type(node).__name__)
-        return
+        return (False, ret_val)
     
     def visit_node_switch_stmt(self, node):
         self.enter_scope(type(node).__name__)
@@ -2627,31 +2667,49 @@ class Runtime:
         case_matched = False
 
         for case_stmt in case_n.case_stmt_n:
-
-            self.enter_scope(case_stmt)
+            #self.enter_scope(case_stmt)
+            #self.break_continue_check = None
             _, case_val, err_n = self.visit_node(case_stmt.case_value_n)
-
             print(f"(runtime)(dbg) EVALUATING CASE VALUE: '{case_val}'")
+            _, switch_val, _ = self.visit_node(node.value_n)
+            
             if switch_val == case_val:
+                print(f"(runtime)(dbg) 'case_value' MATCHED: {case_val}")
+                #self.enter_scope(case_stmt)
+
                 if case_stmt.ctrl_stmt_body_n:
                     print(f"(runtime)(dbg) TRAVERSING 'case_body'")
+                    self.break_continue_check = None
                     self.visit_node(case_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
-                case_matched = True
-                break
-            
-            self.exit_scope(case_stmt)
-            
+                    #self.visit_node(case_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
+                    
+                    if self.break_continue_check == 'node_break_stmt': 
+                        self.break_continue_check = None
+                        case_matched = True
+                        print(f"(runtime)(dbg) 'case_body' BREAKED")
+                        #self.exit_scope(case_stmt)
+                        break
+                    elif self.break_continue_check == 'node_continue_stmt': 
+                        print(f"(runtime)(dbg) 'case_body' CONTINUED")
+                        case_matched = True
+                        break
+                    else: 
+                        self.break_continue_check = None
+                        print(f"(runtime)(dbg) 'case_body' FALLTHROUGH")
+                        #self.exit_scope(case_stmt)
+                        continue
+            #self.exit_scope(case_stmt)
         # DEFAULT
         default_stmt = node.default_n
 
         if default_stmt and not case_matched:
-            self.enter_scope(default_stmt)
+            #self.enter_scope(default_stmt)
             
             if default_stmt.ctrl_stmt_body_n:
                 self.visit_node(default_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
                 print(f"(runtime)(dbg) FOUND 'default_body'")
 
-            self.exit_scope(default_stmt)
+           # self.exit_scope(default_stmt)
 
 
         self.switch_depth -= 1
@@ -2659,73 +2717,74 @@ class Runtime:
         return
     
     def visit_node_return_block(self, node):
-
         print("ENTERED RETURN BLOCK")
+        self.RETURN_PROMISES.append(True)
+        return self.visit_node(node.ret_value_n)
 
-        if self.function_return_stack:
+        # if self.function_return_stack:
 
-            # Get current function return type
-            expected_return_type = self.function_return_stack[-1]  
+        #     # Get current function return type
+        #     expected_return_type = self.function_return_stack[-1]  
 
-            if node.ret_value_n:
-                rettype, result, err_n = self.visit_node(node.ret_value_n, fromRetBlock=True)
-                print(f"RETURN VALUE: {result}\n RETTYPE: {rettype}")
-                if rettype[0] == 'arr':
-                    self.logError(f"Function '{self.current_function_name}' cannot return an array.", err_n)
+        #     if node.ret_value_n:
+        #         rettype, result, err_n = self.visit_node(node.ret_value_n, fromRetBlock=True)
+        #         print(f"RETURN VALUE: {result}\n RETTYPE: {rettype}")
+        #         if rettype[0] == 'arr':
+        #             self.logError(f"Function '{self.current_function_name}' cannot return an array.", err_n)
                 
-                if rettype[0] == 'object':
-                    self.logError(f"Function '{self.current_function_name}' cannot return an object.", err_n)
+        #         if rettype[0] == 'object':
+        #             self.logError(f"Function '{self.current_function_name}' cannot return an object.", err_n)
 
-                #TODO: add class error
-                actual_return_type = self.visit_node(node.ret_value_n, fromRetBlock=True)[0][1]
+        #         #TODO: add class error
+        #         actual_return_type = self.visit_node(node.ret_value_n, fromRetBlock=True)[0][1]
 
-                match(expected_return_type):
-                    case "void":
-                        self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.", err_n)
+        #         match(expected_return_type):
+        #             case "void":
+        #                 self.logError(f"Function '{self.current_function_name}' is void and cannot return a value.", err_n)
                     
-                    case "int":
-                        if actual_return_type not in ["string", "bool"]:
-                            if result > self.MAX_INT or result < self.MIN_INT:
-                               self.logError(f"Value '{result}' is out of 'int' range for 'return' value.", err_n)
+        #             case "int":
+        #                 if actual_return_type not in ["string", "bool"]:
+        #                     if result > self.MAX_INT or result < self.MIN_INT:
+        #                        self.logError(f"Value '{result}' is out of 'int' range for 'return' value.", err_n)
                         
-                        if expected_return_type != actual_return_type:    
-                            self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)  
+        #                 if expected_return_type != actual_return_type:    
+        #                     self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)  
             
-                    case "long":
-                        if actual_return_type not in ["string", "bool"]:
-                            if result > self.MAX_LONG or result < self.MIN_LONG:
-                                self.logError(f"Value '{result}' is out of 'long' range for 'return' value.", err_n)
+        #             case "long":
+        #                 if actual_return_type not in ["string", "bool"]:
+        #                     if result > self.MAX_LONG or result < self.MIN_LONG:
+        #                         self.logError(f"Value '{result}' is out of 'long' range for 'return' value.", err_n)
                         
-                        if expected_return_type != actual_return_type:
-                            if actual_return_type != "int":
-                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
+        #                 if expected_return_type != actual_return_type:
+        #                     if actual_return_type != "int":
+        #                         self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
             
-                    case "float":
-                        if actual_return_type not in ["string", "bool"]:
-                            if result > self.MAX_FLOAT or result < self.MIN_FLOAT:
-                                self.logError(f"Value '{result}' is out of 'float' range for 'return' value.", err_n)
+        #             case "float":
+        #                 if actual_return_type not in ["string", "bool"]:
+        #                     if result > self.MAX_FLOAT or result < self.MIN_FLOAT:
+        #                         self.logError(f"Value '{result}' is out of 'float' range for 'return' value.", err_n)
                         
-                        if expected_return_type != actual_return_type:
-                            if actual_return_type != "int":
-                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
+        #                 if expected_return_type != actual_return_type:
+        #                     if actual_return_type != "int":
+        #                         self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
 
-                    case "double":
-                        if actual_return_type not in ["string", "bool"]:
-                            if result > self.MAX_DOUBLE or result < self.MIN_DOUBLE:
-                                self.logError(f"Value '{result}' is out of 'double' range for 'return' value.", err_n)
+        #             case "double":
+        #                 if actual_return_type not in ["string", "bool"]:
+        #                     if result > self.MAX_DOUBLE or result < self.MIN_DOUBLE:
+        #                         self.logError(f"Value '{result}' is out of 'double' range for 'return' value.", err_n)
                         
-                        if expected_return_type != actual_return_type:
-                            if actual_return_type not in ["int", "float", "long"]:
-                                self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
+        #                 if expected_return_type != actual_return_type:
+        #                     if actual_return_type not in ["int", "float", "long"]:
+        #                         self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
 
-                    case _:
-                        if expected_return_type != actual_return_type:
-                            self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
+        #             case _:
+        #                 if expected_return_type != actual_return_type:
+        #                     self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got '{actual_return_type}'.", err_n)
 
-                return result
-            else:
-                if expected_return_type != "void":
-                    self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.", err_n)
+        #         return result
+        #     else:
+        #         if expected_return_type != "void":
+        #             self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.", err_n)
 
     def check_return_in_body(self, node):
         print(f"(runtime)(dbg) Checking return in {type(node).__name__}")
