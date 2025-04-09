@@ -107,10 +107,13 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                 const updatedLogs = [...prevLogs];
 
                 parts.forEach((part, index) => {
+                    // check if the current part is the last one
                     const isLast = index === parts.length - 1;
 
-                    if (isLast) {
+                    // if the part is not an empty string, process it
+                    if (part !== '') {
                         const last = updatedLogs[updatedLogs.length - 1];
+
                         if (last && last.type === 'output') {
                             // clone and replace to avoid mutation
                             const newLast = { ...last, value: last.value + part };
@@ -118,13 +121,14 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                         } else {
                             updatedLogs.push({ type: 'output', value: part });
                         }
-                    } else {
-                        if (part !== '') {
-                            updatedLogs.push({ type: 'output', value: part });
-                        }
+                    }
+
+                    // always add a newline marker after the part (except for the last part)
+                    if (!isLast || part === '') {
                         updatedLogs.push({ type: 'output', value: '' }); // newline marker
                     }
                 });
+
 
                 return updatedLogs;
             });
