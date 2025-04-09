@@ -6,12 +6,12 @@ from flask_socketio import SocketIO
 socketio = None  # global holder
 user_response = {}
 wait_flag = False
+terminate_program = False
 
 def setup_runtime(sio_instance):
     global socketio
     socketio = sio_instance
 
-    # event handlers here
     @socketio.on("connect")
     def on_connect():
         print("Client connected")
@@ -22,6 +22,22 @@ def setup_runtime(sio_instance):
         print("Received user input:", data)
         user_response = data
         wait_flag = False
+
+    @socketio.on("terminate_runtime")
+    def on_terminating_runtime():
+        global terminate_program, wait_flag
+        wait_flag = False
+        terminate_program = True
+        
+
+def checkTerminate():
+    global terminate_program
+    if terminate_program:
+        terminate_program = False
+        socketio.emit("done", { "type": "success", "value": "[Program terminated by the user.]" })
+        raise SyntaxError("Program terminated by the user.")
+        
+
 
 
 # function to handle user responses
@@ -180,10 +196,11 @@ class Runtime:
 
     MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
 
-    RETURN_PROMISES = []
+    RETURN_PROMISES = list()
 
     def interpret(self, node):
         try:
+            self.RETURN_PROMISES.clear()
             self.visit_node(node)
             self.errors.append("Runtime success. No Runtime Errors found.")
             print("Runtime success. No Runtime Errors found.")
@@ -191,16 +208,22 @@ class Runtime:
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
             #print('-----------AST-----------------\n\t\t', node)
+<<<<<<< HEAD
             #print('-----------OUTPUT--------------\n\t\t', self.output)
             
             
             
+=======
+            print('-----------OUTPUT--------------\n\t\t', self.output)  
+>>>>>>> a20578edf8455ca2b0bca525e5b0155127656287
         
         except SyntaxError as e:
             print (e)
 
         # remove error list here in the future
-        socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
+        global terminate_program
+        if not terminate_program:
+            socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
         return self.errors
 
     def __init__(self):
@@ -227,9 +250,12 @@ class Runtime:
         self.curr_scope = self.curr_scope.parent
 
     def visit_node(self, node, funcExpectedVal = True, fromRetBlock = False):
+        # check if program is being terminated by user
+        checkTerminate()
+
         nodeName = type(node).__name__
         visit_func = getattr(self, f'visit_{nodeName}', None)  # Get the appropriate visit function, or None if it doesn't exist
-
+        
         if visit_func is None:
             if nodeName == 'node_imports_list':
                 print()
@@ -2389,6 +2415,9 @@ class Runtime:
         # wait for input from frontend
         while wait_flag:
             eventlet.sleep(0.1) 
+        
+        # check if program is being terminated by user
+        checkTerminate()
 
         print(">>>> DONEEE WAITING INPUT FROM FRONTEND.....")
         raw_input_val = user_response.get("response", "")
@@ -2519,7 +2548,7 @@ class Runtime:
             #     else:
             #         self.output.append(formatted_output)
             formatted_output = self.handle_backspace_escapes(formatted_output)
-            
+            print('(runtime)(OUTPUT) printing: ', formatted_output)
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
             #eventlet.sleep(0.1)
 
