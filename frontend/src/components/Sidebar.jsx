@@ -14,9 +14,9 @@ const Sidebar = ({ toggleFiles }) => {
 
       <div
         className="sidebar-item"
-        onClick={() => alert('Terminal clicked')} 
+        onClick={() => alert('Terminal clicked')}
       >
-        <img src="/assets/terminal.png" alt="Terminal" />
+        {/*<img src="/assets/terminal.png" alt="Terminal" />*/}
       </div>
     </div>
   );

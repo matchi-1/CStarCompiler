@@ -28,6 +28,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
 
     // clear logs when clearLogs prop osci
     useEffect(() => {
+        console.log(">>>>> [from terminal.jsx] PROGRAM STILL RUNNING? " + clearLogs)
         if (clearLogs) {
             setLogs([]);
         }
@@ -64,7 +65,6 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
 
             // if there's no newline, append directly to the last log
             if (!value.includes('\n')) {
-                console.log("ENTERED value doesnt include new line: " + value)
                 setLogs(prevLogs => {
                     const updatedLogs = [...prevLogs];
                     const last = updatedLogs[updatedLogs.length - 1];

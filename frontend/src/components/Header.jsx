@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import '../styles/Header.css';
 
-const Header = ({ editorRef, fileData, activeTab, clickHandler }) => {
+const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExecutionComplete }) => {
+
+  useEffect(() => {
+    console.log(">>>>> [from header.jsx] PROGRAM STILL RUNNING? " + clearLogs)
+  }, [clearLogs]);
+
   // Undo functionality
   const handleUndo = () => {
     if (editorRef.current) {
@@ -49,13 +54,17 @@ const Header = ({ editorRef, fileData, activeTab, clickHandler }) => {
           <p>Download</p>
         </div>
       </div>
-      
+
       <div className='header-btns'>
-        <div className='img-btn-wrapper' onClick={clickHandler}>
-          <img src="/assets/run-btn.png" alt="run-btn"/>
+        <div className={`img-btn-wrapper ${clearLogs ? 'disabled' : ''}`} onClick={clickHandler}>
+          <img src="/assets/run-btn.png" alt="run-btn" />
+        </div>
+
+        <div className='stop-btn-wrapper' onClick={clickHandler}>
+          <img src="/assets/stop-btn.png" alt="stop-btn" />
         </div>
       </div>
-      
+
     </div>
   );
 };

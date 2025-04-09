@@ -435,6 +435,7 @@ const toggleFiles = () => {
   };
 
   const callCompiler = async () => {
+    console.log("----------------COMPILER RUN BUTTON CLICKED---------------");
     setErrors([]);
     setClearLogs(true);
 
@@ -472,6 +473,7 @@ const toggleFiles = () => {
 
   const handleExecutionComplete = () => {
     setClearLogs(false);
+    console.log(">>>>> [from compiler.js] PROGRAM STILL RUNNING? " + clearLogs)
   };
 
   // cleanup ResizeObserver on unmount
@@ -534,7 +536,8 @@ const toggleFiles = () => {
             setValue={setValue}
             editorRef={editorRef} 
             clickHandler = {callCompiler}
-            
+            onExecutionComplete={handleExecutionComplete}
+            clearLogs={clearLogs}
             />
             <FileTabs 
             openTabs={openTabs} 
