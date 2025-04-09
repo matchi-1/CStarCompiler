@@ -48,14 +48,15 @@ class SymbolTable:
         self.syms[sym_name] = sym_content
         return {sym_name: sym_content}
 
-    def set_function(self, sym_name, return_type, param_types, priv=False, isStd_lib=False):
+    def set_function(self, sym_name, return_type, param_types, param_names, value, priv=False, isStd_lib=False):
         # sym_content = self._create_symbol_entry(value=None, dtype=return_type, priv=priv, const=const)
         #removed const from functions, prolly not needed (????)
         sym_content = {}
-        sym_content["value"] = None #prolly needed in the future when we implement returning actual value
+        sym_content["value"] = value # body node to be visited
         sym_content["dtype"] = return_type
         sym_content["priv"] = priv
         sym_content["params"] = param_types 
+        sym_content["param_names"] = param_names
         sym_content["isStd_lib"] = isStd_lib 
         self.syms[sym_name] = sym_content
         return {sym_name: sym_content}
@@ -100,6 +101,8 @@ class SemanticAnalyzer:
     MAX_FLOAT =         999999990
     MIN_DOUBLE =    -   9999999999999999000
     MAX_DOUBLE =        9999999999999999000
+    
+    GLOBAL_DECS = None
 
     MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
 
@@ -115,7 +118,7 @@ class SemanticAnalyzer:
         except SyntaxError as e:
             print (e)
 
-        return self.errors
+        return (self.errors, self.GLOBAL_DECS, self.FUNCTION_RET_STACK)
 
     def __init__(self):
         self.curr_scope = SymbolTable()
@@ -228,6 +231,8 @@ class SemanticAnalyzer:
         
         for statement in node.program_structure_stmts:
             if type(statement).__name__ == "node_body":
+                self.GLOBAL_DECS = self.curr_scope #to return to app.py
+                self.FUNCTION_RET_STACK = self.function_return_stack
                 self.has_main = True
                 self.current_function_name = "main"
                 self.function_return_stack.append("void")
@@ -715,7 +720,8 @@ class SemanticAnalyzer:
         
         # Store func params into function signature in symbol table
         param_types = []
-
+        # Store param names for evaluation
+        param_names = []
         if node.params_n: # if params_n isn't None
             for param in node.params_n:
                 if type(param).__name__ == "node_funcpar_class":
@@ -736,6 +742,7 @@ class SemanticAnalyzer:
                     param_types.append({
                         "dtype": ("var", param.dtype_t["tokenName"])
                     })  
+                param_names.append(param.id_n.id_t["tokenName"])
         
         self.current_function_name = func_name
         # sample parameter format
@@ -747,12 +754,13 @@ class SemanticAnalyzer:
 
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
+        param_names = param_names if param_names else None
         print(f">>param types : {param_types}")
         print(f">>>>>>>>>>> {func_name} IS FUNC STD LIB? " + str(node.is_std_lib))
 
         classReturn = []
         # Store function in symbol table. (for classes only) also returns the resulting dict
-        classReturn.append(self.curr_scope.set_function(func_name, return_type, param_types, priv, isStd_lib = node.is_std_lib))
+        classReturn.append(self.curr_scope.set_function(func_name, return_type, param_types, param_names, node.body_n, priv, isStd_lib = node.is_std_lib))
         #add actual value param in da future
 
         #print(f"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{classReturn}")
@@ -784,7 +792,7 @@ class SemanticAnalyzer:
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
                     arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]]
-                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
+                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 0, "size2": 0 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
