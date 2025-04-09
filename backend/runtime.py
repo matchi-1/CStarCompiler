@@ -112,20 +112,24 @@ class FuncSymbolTable(SymbolTable):
     # dictionary. key = alias in func, value = name in symbol table
     visible_symbols = {}
 
+    def getCaller(self, sym_name):
+        return (self.parent, self.visible_symbols[sym_name])
+
     def get(self, sym_name, checkParent = True):
         sym = self.syms.get(sym_name, None)
-        if not sym and checkParent:
+        if not sym:
             #check if in visible symbols
             if sym_name in self.visible_symbols and self.parent:
                 sym = self.parent.get(self.visible_symbols[sym_name])
             else:
                 #check if in global
-                curr_parent = self.parent
+                if checkParent:
+                    curr_parent = self.parent
 
-                # find global scope
-                while curr_parent.parent and not curr_parent.get(sym_name, None):
-                    curr_parent = curr_parent.parent
-                sym = curr_parent.get(sym_name, None)
+                    # find global scope
+                    while curr_parent.parent and not curr_parent.get(sym_name, None):
+                        curr_parent = curr_parent.parent
+                    sym = curr_parent.get(sym_name, None)
         return sym
 class ErrorNode:
     def __init__(self, line, startCol, id_t = None):
@@ -165,7 +169,6 @@ class Runtime:
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
             #print('-----------AST-----------------\n\t\t', node)
-            print('-----------OUTPUT--------------\n\t\t', self.output)
             
             
         
@@ -185,7 +188,7 @@ class Runtime:
         self.switch_depth = 0
         self.function_return_stack = []
         self.output = []  # <== NEW: collect all print outputs here
-        self.break_continue_check = None
+
 
     def enter_scope(self, nodeName):
         print(F'\n(runtime)(dbg) ENTERING scope {nodeName}')
@@ -211,7 +214,7 @@ class Runtime:
             else: print(f"\n(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
             print(f'\n(runtime)(dbg) VISITING {nodeName}!!')
-            #print(f'!!NODE!!: {node}!!')
+            print(f'!!NODE!!: {node}!!')
             if nodeName in ['node_func_call', 'node_class_method_call']:
                 return visit_func(node, expected_val=funcExpectedVal)
             elif nodeName in ['node_bi_op']:
@@ -888,7 +891,8 @@ class Runtime:
                 else:
                     self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
                 
-            self.visit_node(node.body_n)
+            # no need to visit during runtime
+            # self.visit_node(node.body_n)
 
             self.function_return_stack.pop()
             print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
@@ -1021,6 +1025,9 @@ class Runtime:
         check_scope = self.curr_scope
         while not check_scope.get(arr_name, False):
             check_scope = check_scope.parent
+
+        if type(check_scope) is FuncSymbolTable:
+            check_scope, arr_name = check_scope.getCaller(arr_name)
         if arr_dim == 1:
             match assign_op:
                 case "=":
@@ -1100,6 +1107,7 @@ class Runtime:
         check_scope = self.curr_scope
         while not check_scope.get(att_name, False):
             check_scope = check_scope.parent
+
         match assign_op:
             case "=":
                 check_scope.syms[att_name]["value"] += value
@@ -1205,6 +1213,7 @@ class Runtime:
         check_scope = self.curr_scope
         while not check_scope.get(att_name, False):
             check_scope = check_scope.parent
+
         if att_arr_dim == 1:
             match assign_op:
                 case "=":
@@ -1478,8 +1487,8 @@ class Runtime:
         
         print("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
         match val_type[0]:
-            # case 'func':
-            #     self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
+            case 'func':
+                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
             case 'class':
                 self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
             case 'arr':
@@ -2168,6 +2177,8 @@ class Runtime:
 
         loop_count = 0
 
+        statements_n = node_loop.ctrl_stmt_body_n.statements_n if node_loop.ctrl_stmt_body_n else []
+
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
             self.visit_node(node_loop.init_arg_n)
@@ -2185,20 +2196,18 @@ class Runtime:
                 if val == False: break
 
                 break_outer = False
-                
-                self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n)
-        
-                if self.break_continue_check:
-                    if self.break_continue_check == 'node_break_stmt':
-                        # break_outer = True
+
+                for statement in statements_n:
+                    if type(statement).__name__ == 'node_break_stmt':
+                        break_outer = True
                         break
-                    # elif self.break_continue_check == 'node_continue_stmt':
-                    #     continue   
+                    elif type(statement).__name__ == 'node_continue_stmt':
+                        break  # Break from `for`, `while` will loop again
+                    self.visit_node(statement)
 
                 self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
-                #if break_outer: break
+                if break_outer: break
 
                 loop_count += 1
 
@@ -2214,18 +2223,15 @@ class Runtime:
 
                 break_outer = False
 
-                break_continue_check = self.visit_node(node_loop.ctrl_stmt_body_n)
-
-                if break_continue_check:
-                    if break_continue_check == 'node_break_stmt':
+                for statement in statements_n:
+                    if type(statement).__name__ == 'node_break_stmt':
                         break_outer = True
                         break
-                    elif break_continue_check == 'node_continue_stmt':
-                        break   
-
-                self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
+                    elif type(statement).__name__ == 'node_continue_stmt':
+                        break  
+                    self.visit_node(statement)
                 
-                if break_outer: break
+                if break_outer:break
 
                 loop_count += 1
 
@@ -2250,16 +2256,13 @@ class Runtime:
 
                 break_outer = False
 
-                break_continue_check = self.visit_node(node_loop.ctrl_stmt_body_n)
-
-                if break_continue_check:
-                    if break_continue_check == 'node_break_stmt':
+                for statement in statements_n:
+                    if type(statement).__name__ == 'node_break_stmt':
                         break_outer = True
                         break
-                    elif break_continue_check == 'node_continue_stmt':
-                        break   
-
-                self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
+                    elif type(statement).__name__ == 'node_continue_stmt':
+                        break  # Break from `for`, `while` will loop again
+                    self.visit_node(statement)
                 
                 if break_outer: break
 
@@ -2406,7 +2409,7 @@ class Runtime:
                         self.logError(f"Number of format specifiers ({len(format_specifiers)}) does not match number of parameters ({len(print_params_n) - 1}).", err_n)
                         return None
 
-                formatted_output = first_param_val
+                formatted_output = str(first_param_val)
                 for i, specifier in enumerate(format_specifiers):
                     param_node = print_params_n[i + 1] 
                     param_type, param_value, err_n  = self.visit_node(param_node)
@@ -2428,9 +2431,9 @@ class Runtime:
             #         self.output[-1] += formatted_output
             #     else:
             #         self.output.append(formatted_output)
-            print("PRINTING: " +  formatted_output)
+
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
-            # eventlet.sleep(0.1)
+            eventlet.sleep(0.1)
 
         return None
 
@@ -2500,29 +2503,25 @@ class Runtime:
     def visit_node_ctrl_stmt_body(self, node):
         self.enter_scope(type(node).__name__)
         statements_n = node.statements_n
+        
         for statement in statements_n:
             ctrl_stmt = type(statement).__name__
 
             if ctrl_stmt == "node_break_stmt":
                 print("(runtime)(dbg) FOUND 'break' !!!")
-                self.break_continue_check =  "node_break_stmt"
-                break
-                #return break_continue_check
                 # exit out of loop
             
             elif ctrl_stmt == "node_continue_stmt":
                 print("(runtime)(dbg) FOUND 'continue' !!!")
-                self.break_continue_check =  "node_continue_stmt"
-                break
-                #return break_continue_check
+                continue
                 # loop count +1
             
             else:
                 self.visit_node(statement, funcExpectedVal=False)
 
-        print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
+        print("(runtime)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
         self.exit_scope(type(node).__name__)
-        #return break_continue_check
+        return
     
     def visit_node_condition_value(self, node):
         _, value, _ = self.visit_node(node.condition_value_n)
@@ -2532,7 +2531,7 @@ class Runtime:
 
     def visit_node_if_stmt(self, node):
         self.enter_scope(type(node).__name__)
-        
+
         # IF BLOCK
         if self.visit_node(node.condition_n) == True:
             print(f"CONDITION was found from: {type(node).__name__}")
@@ -2545,7 +2544,7 @@ class Runtime:
                 self.visit_node(node.else_chain_n)
 
         self.exit_scope(type(node).__name__)
-        #if break_continue_check: return break_continue_check
+        return
     
     def visit_node_else_chain(self, node):
         self.enter_scope(type(node).__name__)
