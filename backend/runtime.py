@@ -880,23 +880,23 @@ class Runtime:
         # Visit function body
         if not node.is_std_lib:
             self.current_function_name = func_name
-            self.function_return_stack.append(return_type[1])
-            if not node.body_n:
-                self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
+            # self.function_return_stack.append(return_type[1])
+            # if not node.body_n:
+            #     self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
 
-            self.count_return = 0
-            has_return = self.check_return_in_body(node.body_n)
-            if not has_return:
-                if self.count_return:
-                    self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
-                else:
-                    self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
+            # self.count_return = 0
+            # has_return = self.check_return_in_body(node.body_n)
+            # if not has_return:
+            #     if self.count_return:
+            #         self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
+            #     else:
+            #         self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
                 
             # no need to visit during runtime
             # self.visit_node(node.body_n)
 
-            self.function_return_stack.pop()
-            print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+            # self.function_return_stack.pop()
+            #print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
             self.current_function_name = None
  
 
@@ -2213,7 +2213,7 @@ class Runtime:
                 break_outer = False
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n)
+                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
@@ -2239,7 +2239,7 @@ class Runtime:
                 if val == False: break
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n)
+                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
@@ -2267,7 +2267,7 @@ class Runtime:
                 if loop_count > repeat_val: break
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n)
+                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
@@ -2623,31 +2623,49 @@ class Runtime:
         case_matched = False
 
         for case_stmt in case_n.case_stmt_n:
-
-            self.enter_scope(case_stmt)
+            #self.enter_scope(case_stmt)
+            #self.break_continue_check = None
             _, case_val, err_n = self.visit_node(case_stmt.case_value_n)
-
             print(f"(runtime)(dbg) EVALUATING CASE VALUE: '{case_val}'")
+            _, switch_val, _ = self.visit_node(node.value_n)
+            
             if switch_val == case_val:
+                print(f"(runtime)(dbg) 'case_value' MATCHED: {case_val}")
+                #self.enter_scope(case_stmt)
+
                 if case_stmt.ctrl_stmt_body_n:
                     print(f"(runtime)(dbg) TRAVERSING 'case_body'")
+                    self.break_continue_check = None
                     self.visit_node(case_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
-                case_matched = True
-                break
-            
-            self.exit_scope(case_stmt)
-            
+                    #self.visit_node(case_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
+                    
+                    if self.break_continue_check == 'node_break_stmt': 
+                        self.break_continue_check = None
+                        case_matched = True
+                        print(f"(runtime)(dbg) 'case_body' BREAKED")
+                        #self.exit_scope(case_stmt)
+                        break
+                    elif self.break_continue_check == 'node_continue_stmt': 
+                        print(f"(runtime)(dbg) 'case_body' CONTINUED")
+                        case_matched = True
+                        break
+                    else: 
+                        self.break_continue_check = None
+                        print(f"(runtime)(dbg) 'case_body' FALLTHROUGH")
+                        #self.exit_scope(case_stmt)
+                        continue
+            #self.exit_scope(case_stmt)
         # DEFAULT
         default_stmt = node.default_n
 
         if default_stmt and not case_matched:
-            self.enter_scope(default_stmt)
+            #self.enter_scope(default_stmt)
             
             if default_stmt.ctrl_stmt_body_n:
                 self.visit_node(default_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
                 print(f"(runtime)(dbg) FOUND 'default_body'")
 
-            self.exit_scope(default_stmt)
+           # self.exit_scope(default_stmt)
 
 
         self.switch_depth -= 1
