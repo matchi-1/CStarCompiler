@@ -155,13 +155,14 @@
     font-family: "Consolas", monospace;
     padding-bottom: 0.25rem;
     white-space: pre-wrap; /* allow wrapping of long lines */
+    min-height: 0.5rem;
     /*border: 1px solid red;*/
   }
   
   /* log types */
   .terminal-line.error {
     color: #ff8d8d;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
     padding-top: 0.5rem;
   }
 

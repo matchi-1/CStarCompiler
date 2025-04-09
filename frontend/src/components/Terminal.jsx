@@ -24,25 +24,6 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
             .replace(/\\\\/g, '\\'); // \\ to backslash
     };
 
-    // const groupLogsForDisplay = (logs) => {
-    //     const groups = [];
-    //     let currentOutputGroup = '';
-
-    //     logs.forEach((log) => {
-    //         if (log.type === 'output') {
-    //             currentOutputGroup += parseEscapeSequences(log.value);
-    //         } else {
-    //             groups.push(currentOutputGroup);
-    //             groups.push(log);
-    //             currentOutputGroup = '';
-    //         }
-    //     });
-
-    //     return groups;
-    // };
-
-    // const groupedLogs = groupLogsForDisplay(logs);
-
     // clear logs when clearLogs prop osci
     useEffect(() => {
         if (clearLogs) {
@@ -107,13 +88,10 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                 const updatedLogs = [...prevLogs];
 
                 parts.forEach((part, index) => {
-                    // check if the current part is the last one
                     const isLast = index === parts.length - 1;
 
-                    // if the part is not an empty string, process it
-                    if (part !== '') {
+                    if (isLast) {
                         const last = updatedLogs[updatedLogs.length - 1];
-
                         if (last && last.type === 'output') {
                             // clone and replace to avoid mutation
                             const newLast = { ...last, value: last.value + part };
@@ -121,14 +99,21 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                         } else {
                             updatedLogs.push({ type: 'output', value: part });
                         }
-                    }
+                    } else {
+                        if (part !== '') {
+                            const last = updatedLogs[updatedLogs.length - 1];
+                            if (last && last.type === 'output') {
 
-                    // always add a newline marker after the part (except for the last part)
-                    if (!isLast || part === '') {
+                                // clone and replace to avoid mutation
+                                const newLast = { ...last, value: last.value + part };
+                                updatedLogs[updatedLogs.length - 1] = newLast;
+                            } else {
+                                updatedLogs.push({ type: 'output', value: part });
+                            }
+                        }
                         updatedLogs.push({ type: 'output', value: '' }); // newline marker
                     }
                 });
-
 
                 return updatedLogs;
             });
