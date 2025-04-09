@@ -2260,13 +2260,14 @@ class Runtime:
 
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
-            if node_loop.inig_arg_n: self.visit_node(node_loop.init_arg_n)
+            if node_loop.init_arg_n: self.visit_node(node_loop.init_arg_n)
 
             #self.visit_node(node_loop.condition_n.condition_value_n)
             #print(f"CONDITION was found from: {loop_name} \n")
 
             #handle for loops
             while True:
+                checkTerminate()
                 if loop_count > self.MAX_LOOP_COUNT:
                     self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
@@ -2295,6 +2296,7 @@ class Runtime:
 
         elif loop_name == 'node_while' or loop_name == 'node_do':
             while True:
+                checkTerminate()
                 if loop_count > self.MAX_LOOP_COUNT:
                     self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
@@ -2324,6 +2326,7 @@ class Runtime:
             # self.visit_node(node_loop.ctrl_stmt_body_n)
 
             while True:
+                checkTerminate()
                 if loop_count > self.MAX_LOOP_COUNT:
                     self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
@@ -2543,7 +2546,7 @@ class Runtime:
             formatted_output = self.handle_backspace_escapes(formatted_output)
             print('(runtime)(OUTPUT) printing: ', formatted_output)
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
-            #eventlet.sleep(0.1)
+            # eventlet.sleep(0.1)
 
         return None
  
