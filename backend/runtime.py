@@ -6,12 +6,12 @@ from flask_socketio import SocketIO
 socketio = None  # global holder
 user_response = {}
 wait_flag = False
+terminate_program = False
 
 def setup_runtime(sio_instance):
     global socketio
     socketio = sio_instance
 
-    # event handlers here
     @socketio.on("connect")
     def on_connect():
         print("Client connected")
@@ -22,6 +22,22 @@ def setup_runtime(sio_instance):
         print("Received user input:", data)
         user_response = data
         wait_flag = False
+
+    @socketio.on("terminate_runtime")
+    def on_terminating_runtime():
+        global terminate_program, wait_flag
+        wait_flag = False
+        terminate_program = True
+        
+
+def checkTerminate():
+    global terminate_program
+    if terminate_program:
+        terminate_program = False
+        socketio.emit("done", { "type": "success", "value": "[Program terminated by the user.]" })
+        raise SyntaxError("Program terminated by the user.")
+        
+
 
 
 # function to handle user responses
@@ -192,16 +208,15 @@ class Runtime:
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
             #print('-----------AST-----------------\n\t\t', node)
-            print('-----------OUTPUT--------------\n\t\t', self.output)
-            
-            
-            
+            print('-----------OUTPUT--------------\n\t\t', self.output)  
         
         except SyntaxError as e:
             print (e)
 
         # remove error list here in the future
-        socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
+        global terminate_program
+        if not terminate_program:
+            socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
         return self.errors
 
     def __init__(self):
@@ -228,9 +243,12 @@ class Runtime:
         self.curr_scope = self.curr_scope.parent
 
     def visit_node(self, node, funcExpectedVal = True, fromRetBlock = False):
+        # check if program is being terminated by user
+        checkTerminate()
+
         nodeName = type(node).__name__
         visit_func = getattr(self, f'visit_{nodeName}', None)  # Get the appropriate visit function, or None if it doesn't exist
-
+        
         if visit_func is None:
             if nodeName == 'node_imports_list':
                 print()
@@ -2390,6 +2408,9 @@ class Runtime:
         # wait for input from frontend
         while wait_flag:
             eventlet.sleep(0.1) 
+        
+        # check if program is being terminated by user
+        checkTerminate()
 
         print(">>>> DONEEE WAITING INPUT FROM FRONTEND.....")
         raw_input_val = user_response.get("response", "")

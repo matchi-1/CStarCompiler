@@ -1,7 +1,17 @@
 import React, { useEffect } from 'react';
 import '../styles/Header.css';
+import { io } from 'socket.io-client';
+
+const socket = io("http://localhost:5000");
 
 const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExecutionComplete }) => {
+
+  const handleTerminate = () => {
+    console.log("Terminating program...");
+    socket.emit("terminate_runtime");
+    onExecutionComplete()
+  };
+
 
   useEffect(() => {
     console.log(">>>>> [from header.jsx] PROGRAM STILL RUNNING? " + clearLogs)
@@ -60,7 +70,7 @@ const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExe
           <img src="/assets/run-btn.png" alt="run-btn" />
         </div>
 
-        <div className={`stop-btn-wrapper ${!clearLogs ? 'disabled' : ''}`} onClick={clickHandler}>
+        <div className={`stop-btn-wrapper ${!clearLogs ? 'disabled' : ''}`} onClick={handleTerminate}>
           <img src="/assets/stop-btn.png" alt="stop-btn" />
         </div>
       </div>
