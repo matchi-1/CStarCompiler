@@ -1078,9 +1078,17 @@ class Runtime:
         att_name = node.class_att_n.att_id_n.id_t["tokenName"]
         value = node.value_n
         assign_op = node.op_t["tokenName"] 
+
+        check_scope = self.curr_scope
+        while not check_scope.get(obj_name, False):
+            check_scope = check_scope.parent
+
+        if type(check_scope) is FuncSymbolTable:
+            check_scope, obj_name = check_scope.getCaller(obj_name)
         
-        print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}")
-        att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
+        print(f"\nOBJ INFO: {check_scope.get(obj_name)} \n{obj_name}")
+        
+        att_info = check_scope.get(obj_name)["obj_info"].get(att_name)
         #print(f"!!!!!!!!!!!!!found att_info for '{att_name}' in '{obj_name}': {att_info}")   
 
         if att_info["dtype"][0] == 'var' and att_info["const"]:
@@ -1105,29 +1113,29 @@ class Runtime:
         # self.curr_scope.set(att_name, val, dtype=dtype) #for code gen na e2 ryt TODO
         #att_info["value"] = val
 
-        check_scope = self.curr_scope
-        while not check_scope.get(att_name, False):
-            check_scope = check_scope.parent
+        # check_scope = self.curr_scope
+        # while not check_scope.get(att_name, False):
+        #     check_scope = check_scope.parent
 
         match assign_op:
             case "=":
-                check_scope.syms[att_name]["value"] += value
+                check_scope.syms[obj_name]["obj_info"][att_name]["value"] = val
             case "+=":
-                check_scope.syms[att_name]["value"] += value
+                check_scope.syms[obj_name]["obj_info"][att_name]["value"] += val
             case "-=":
-                check_scope.syms[att_name]["value"] -= value
+                check_scope.syms[obj_name]["obj_info"][att_name]["value"] -= val
             case "*=":
-                check_scope.syms[att_name]["value"] *= value
+                check_scope.syms[obj_name]["obj_info"][att_name]["value"] *= val
             case "/=":
-                check_scope.syms[att_name]["value"] /= value
+                check_scope.syms[obj_name]["obj_info"][att_name]["value"] /= val
             case "%=":
-                if value == 0:
+                if val == 0:
                     self.logError("Modulo by 0 is not allowed.", err_n)
                 if att_info["dtype"][1] not in ["int", "long"] or val_type[1] not in ["int", "long"]:
                     self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
                 if att_info["dtype"][1] == "int" and val_type[1] == "long":
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {val_type[1]}.", err_n)
-                check_scope.syms[att_name]["value"] %= value
+                check_scope.syms[obj_name]["obj_info"][att_name]["value"] %= val
 
         print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
@@ -1151,7 +1159,15 @@ class Runtime:
         obj_name = node.class_arr_n.obj_id_n.id_t["tokenName"]
         att_name = node.class_arr_n.att_id_n.id_t["tokenName"]
         val_to_be_assigned = node.value_n
-        att_info = self.curr_scope.get(obj_name)["obj_info"].get(att_name)
+
+        check_scope = self.curr_scope
+        while not check_scope.get(obj_name, False):
+            check_scope = check_scope.parent
+
+        if type(check_scope) is FuncSymbolTable:
+            check_scope, obj_name = check_scope.getCaller(obj_name)
+
+        att_info = check_scope.get(obj_name)["obj_info"].get(att_name)
         assign_op = node.op_t["tokenName"]
 
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
@@ -1211,22 +1227,22 @@ class Runtime:
         # else:
         #     arr_symbol["value"][idx1_val][idx2_val] = value
 
-        check_scope = self.curr_scope
-        while not check_scope.get(att_name, False):
-            check_scope = check_scope.parent
+        # check_scope = self.curr_scope
+        # while not check_scope.get(att_name, False):
+        #     check_scope = check_scope.parent
 
         if att_arr_dim == 1:
             match assign_op:
                 case "=":
-                    check_scope.syms[att_name]["value"][idx1_val] = value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] = value
                 case "+=":
-                    check_scope.syms[att_name]["value"][idx1_val] += value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] += value
                 case "-=":
-                    check_scope.syms[att_name]["value"][idx1_val] -= value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] -= value
                 case "*=":
-                    check_scope.syms[att_name]["value"][idx1_val] *= value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] *= value
                 case "/=":
-                    check_scope.syms[att_name]["value"][idx1_val] /= value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] /= value
                 case "%=":
                     if value == 0:
                         self.logError("Modulo by 0 is not allowed.", err_n)
@@ -1234,19 +1250,19 @@ class Runtime:
                         self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
                     if att_info["dtype"][1] == "int" and value_type[1] == "long":
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type[1]}.", err_n)
-                    check_scope.syms[att_name]["value"][idx1_val] %= value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] %= value
         else:
             match assign_op:
                 case "=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] = value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] = value
                 case "+=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] += value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] += value
                 case "-=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] -= value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] -= value
                 case "*=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] *= value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] *= value
                 case "/=":
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] /= value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] /= value
                 case "%=":
                     if value == 0:
                         self.logError("Modulo by 0 is not allowed.", err_n)
@@ -1254,7 +1270,7 @@ class Runtime:
                         self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
                     if att_info["dtype"][1] == "int" and value_type[1] == "long":
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type}.", err_n)
-                    check_scope.syms[att_name]["value"][idx1_val][idx2_val] %= value
+                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] %= value
 
         print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
 
