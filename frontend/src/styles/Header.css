@@ -52,7 +52,7 @@
     
 }
 
-.img-btn-wrapper, .img-btn-wrapper.disabled, .stop-btn-wrapper{
+.img-btn-wrapper, .stop-btn-wrapper{
     position: relative;
     display: flex;
     justify-content: center;
@@ -68,7 +68,7 @@
     margin-right: 0.5rem;
 }
 
-.img-btn-wrapper.disabled {
+.img-btn-wrapper.disabled, .stop-btn-wrapper.disabled  {
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed;

@@ -192,7 +192,7 @@ class Runtime:
             self.print_symbols(self.curr_scope.syms, indent=2)
             #print('-----------AST-----------------\n\t\t', node)
             print('-----------OUTPUT--------------\n\t\t', self.output)
-            socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
+            
             
             
         
@@ -200,6 +200,7 @@ class Runtime:
             print (e)
 
         # remove error list here in the future
+        socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
         return self.errors
 
     def __init__(self):

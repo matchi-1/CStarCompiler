@@ -452,17 +452,6 @@ const toggleFiles = () => {
     console.log("errors: " + errors)
     console.log("clicked run button")
 
-    // // combined logs for terminal
-    // const excludedMessages = [
-    //   // "Parsing completed successfully. No Syntax Errors found.",
-    //   // "Semantic analysis completed successfully. No Semantic Errors found."
-    // ];
-    
-    // const errorLogs = errors
-    //   .filter(err => !excludedMessages.includes(err))
-    //   .map(err => ({ type: 'error', value: err }));
-    // const outputLogs = output.map(out => ({ type: 'output', value: out.replace(/\\n/g, '\n') }));
-    
     setLogs(errors);  
     setTokens(tokens);
 
@@ -488,7 +477,7 @@ const toggleFiles = () => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.ctrlKey && event.shiftKey && event.key === 'Enter') {
-        event.preventDefault(); // Prevent default action if needed
+        event.preventDefault(); 
         callCompiler();
       }
     };

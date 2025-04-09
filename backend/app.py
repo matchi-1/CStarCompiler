@@ -22,12 +22,6 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Inject socketio to runtime
 setup_runtime(socketio)
 
-# @app.route("/start")
-# def start():
-#     wait_flag_container.wait = False
-#     socketio.start_background_task(loop_func)
-#     return {"status": "Loop started"}
-
 # <> ------------------------------------- | WEBSOCKET TEST | BB
 
     
@@ -96,16 +90,6 @@ def compile_code():
         "errors": errors or [], 
         # "output": output_strings or []  # NEW: output strings from println/print
     }
-
-    # print json output
-    # print('\n\n', json.dumps(response, indent=2))
-    
-    #---SEMANTIC ANALYSIS---
-    # try:
-    #     seman = semantic_analyzer.SemanticAnalyzer()
-    #     seman.interpret(parseTree) #comment/uncomment for testing
-    # except SyntaxError as e:
-    #     print(e)
 
     return jsonify(response)
 

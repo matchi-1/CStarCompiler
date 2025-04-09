@@ -60,7 +60,7 @@ const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExe
           <img src="/assets/run-btn.png" alt="run-btn" />
         </div>
 
-        <div className='stop-btn-wrapper' onClick={clickHandler}>
+        <div className={`stop-btn-wrapper ${!clearLogs ? 'disabled' : ''}`} onClick={clickHandler}>
           <img src="/assets/stop-btn.png" alt="stop-btn" />
         </div>
       </div>
