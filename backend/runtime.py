@@ -168,7 +168,8 @@ class Runtime:
 
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
-            #print('-----------AST-----------------\n\t\t', node)
+            print('-----------AST-----------------\n\t\t', node)
+            print('-----------OUTPUT--------------\n\t\t', self.output)
             
             
         
@@ -188,7 +189,7 @@ class Runtime:
         self.switch_depth = 0
         self.function_return_stack = []
         self.output = []  # <== NEW: collect all print outputs here
-
+        self.break_continue_check = None
 
     def enter_scope(self, nodeName):
         print(F'\n(runtime)(dbg) ENTERING scope {nodeName}')
@@ -214,7 +215,7 @@ class Runtime:
             else: print(f"\n(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
             print(f'\n(runtime)(dbg) VISITING {nodeName}!!')
-            print(f'!!NODE!!: {node}!!')
+            #print(f'!!NODE!!: {node}!!')
             if nodeName in ['node_func_call', 'node_class_method_call']:
                 return visit_func(node, expected_val=funcExpectedVal)
             elif nodeName in ['node_bi_op']:
@@ -284,7 +285,7 @@ class Runtime:
         self.errors.append(full_message)
         #print(full_message)
         socketio.emit('error', { "type": "error", "value": full_message })
-        eventlet.sleep(0.1)
+        #eventlet.sleep(0.1)
         raise SyntaxError(full_message)
     
 
@@ -2177,8 +2178,6 @@ class Runtime:
 
         loop_count = 0
 
-        statements_n = node_loop.ctrl_stmt_body_n.statements_n if node_loop.ctrl_stmt_body_n else []
-
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
             self.visit_node(node_loop.init_arg_n)
@@ -2196,18 +2195,20 @@ class Runtime:
                 if val == False: break
 
                 break_outer = False
-
-                for statement in statements_n:
-                    if type(statement).__name__ == 'node_break_stmt':
-                        break_outer = True
+                
+                self.break_continue_check = None
+                self.visit_node(node_loop.ctrl_stmt_body_n)
+        
+                if self.break_continue_check:
+                    if self.break_continue_check == 'node_break_stmt':
+                        # break_outer = True
                         break
-                    elif type(statement).__name__ == 'node_continue_stmt':
-                        break  # Break from `for`, `while` will loop again
-                    self.visit_node(statement)
+                    # elif self.break_continue_check == 'node_continue_stmt':
+                    #     continue   
 
                 self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
-                if break_outer: break
+                #if break_outer: break
 
                 loop_count += 1
 
@@ -2223,15 +2224,18 @@ class Runtime:
 
                 break_outer = False
 
-                for statement in statements_n:
-                    if type(statement).__name__ == 'node_break_stmt':
+                break_continue_check = self.visit_node(node_loop.ctrl_stmt_body_n)
+
+                if break_continue_check:
+                    if break_continue_check == 'node_break_stmt':
                         break_outer = True
                         break
-                    elif type(statement).__name__ == 'node_continue_stmt':
-                        break  
-                    self.visit_node(statement)
+                    elif break_continue_check == 'node_continue_stmt':
+                        break   
+
+                self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
-                if break_outer:break
+                if break_outer: break
 
                 loop_count += 1
 
@@ -2256,13 +2260,16 @@ class Runtime:
 
                 break_outer = False
 
-                for statement in statements_n:
-                    if type(statement).__name__ == 'node_break_stmt':
+                break_continue_check = self.visit_node(node_loop.ctrl_stmt_body_n)
+
+                if break_continue_check:
+                    if break_continue_check == 'node_break_stmt':
                         break_outer = True
                         break
-                    elif type(statement).__name__ == 'node_continue_stmt':
-                        break  # Break from `for`, `while` will loop again
-                    self.visit_node(statement)
+                    elif break_continue_check == 'node_continue_stmt':
+                        break   
+
+                self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
                 if break_outer: break
 
@@ -2433,7 +2440,7 @@ class Runtime:
             #         self.output.append(formatted_output)
 
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
-            eventlet.sleep(0.1)
+            #eventlet.sleep(0.1)
 
         return None
 
@@ -2464,25 +2471,29 @@ class Runtime:
     def visit_node_ctrl_stmt_body(self, node):
         self.enter_scope(type(node).__name__)
         statements_n = node.statements_n
-        
         for statement in statements_n:
             ctrl_stmt = type(statement).__name__
 
             if ctrl_stmt == "node_break_stmt":
                 print("(runtime)(dbg) FOUND 'break' !!!")
+                self.break_continue_check =  "node_break_stmt"
+                break
+                #return break_continue_check
                 # exit out of loop
             
             elif ctrl_stmt == "node_continue_stmt":
                 print("(runtime)(dbg) FOUND 'continue' !!!")
-                continue
+                self.break_continue_check =  "node_continue_stmt"
+                break
+                #return break_continue_check
                 # loop count +1
             
             else:
                 self.visit_node(statement, funcExpectedVal=False)
 
-        print("(runtime)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
+        print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
         self.exit_scope(type(node).__name__)
-        return
+        #return break_continue_check
     
     def visit_node_condition_value(self, node):
         _, value, _ = self.visit_node(node.condition_value_n)
@@ -2492,12 +2503,13 @@ class Runtime:
 
     def visit_node_if_stmt(self, node):
         self.enter_scope(type(node).__name__)
-
+        
         # IF BLOCK
         if self.visit_node(node.condition_n) == True:
             print(f"CONDITION was found from: {type(node).__name__}")
             if node.body_n:
                 self.visit_node(node.body_n)
+                if self.break_continue_check == "node_break_stmt": return
             return True
         else:
             # ELSE CHAIN
@@ -2505,7 +2517,7 @@ class Runtime:
                 self.visit_node(node.else_chain_n)
 
         self.exit_scope(type(node).__name__)
-        return
+        #if break_continue_check: return break_continue_check
     
     def visit_node_else_chain(self, node):
         self.enter_scope(type(node).__name__)
