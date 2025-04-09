@@ -2188,7 +2188,7 @@ class Runtime:
             #handle for loops
             while True:
                 if loop_count > self.MAX_LOOP_COUNT:
-                    self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
+                    self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
@@ -2221,21 +2221,13 @@ class Runtime:
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
                 if val == False: break
-
-                break_outer = False
-
-                break_continue_check = self.visit_node(node_loop.ctrl_stmt_body_n)
-
-                if break_continue_check:
-                    if break_continue_check == 'node_break_stmt':
-                        break_outer = True
-                        break
-                    elif break_continue_check == 'node_continue_stmt':
-                        break   
-
-                self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
-                if break_outer: break
+                self.break_continue_check = None
+                self.visit_node(node_loop.ctrl_stmt_body_n)
+        
+                if self.break_continue_check:
+                    if self.break_continue_check == 'node_break_stmt':
+                        break
 
                 loop_count += 1
 
@@ -2252,26 +2244,18 @@ class Runtime:
             # self.visit_node(node_loop.ctrl_stmt_body_n)
 
             while True:
-                if loop_count > self.MAX_LOOP_COUNT:   
-                    self.logError("Maximum loop limit reached (1000).", node_loop.ctrl_stmt_body_n)
+                if loop_count > self.MAX_LOOP_COUNT:
+                    self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
-                
+        
                 if loop_count > repeat_val: break
-
-                break_outer = False
-
-                break_continue_check = self.visit_node(node_loop.ctrl_stmt_body_n)
-
-                if break_continue_check:
-                    if break_continue_check == 'node_break_stmt':
-                        break_outer = True
-                        break
-                    elif break_continue_check == 'node_continue_stmt':
-                        break   
-
-                self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
-                if break_outer: break
+                self.break_continue_check = None
+                self.visit_node(node_loop.ctrl_stmt_body_n)
+        
+                if self.break_continue_check:
+                    if self.break_continue_check == 'node_break_stmt':
+                        break
 
                 loop_count += 1
 
@@ -2488,7 +2472,7 @@ class Runtime:
                 #return break_continue_check
                 # loop count +1
             
-            else:
+            elif not (self.break_continue_check == "node_break_stmt" or self.break_continue_check == "node_continue_stmt"): 
                 self.visit_node(statement, funcExpectedVal=False)
 
         print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
@@ -2509,7 +2493,6 @@ class Runtime:
             print(f"CONDITION was found from: {type(node).__name__}")
             if node.body_n:
                 self.visit_node(node.body_n)
-                if self.break_continue_check == "node_break_stmt": return
             return True
         else:
             # ELSE CHAIN
