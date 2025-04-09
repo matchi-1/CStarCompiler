@@ -2279,7 +2279,7 @@ class Runtime:
         self.exit_scope(loop_name)
 
     def visit_node_input(self, node):
-
+        count_value = 0
         err_n = ErrorNode(node.in_stmt_t["tokenLine"], node.in_stmt_t["tokenCol"] - len(node.in_stmt_t["tokenName"]) - 1)
 
         if not hasattr(node, 'type_t'):
@@ -2351,17 +2351,17 @@ class Runtime:
 
         try:
             if expected_dtype == "int":
-                value = int(raw_input_val)  
+                strValue = int(raw_input_val)  
             elif expected_dtype == "long":
-                value = int(raw_input_val)  
+                strValue = int(raw_input_val)  
             elif expected_dtype == "float":
-                value = float(raw_input_val) 
+                strValue = float(raw_input_val) 
             elif expected_dtype == "double":
-                value = float(raw_input_val)  
+                strValue = float(raw_input_val)  
             elif expected_dtype == "string":
-                value = str(raw_input_val)  
+                strValue = str(raw_input_val)  
             elif expected_dtype == "bool":
-                value = bool(raw_input_val)  
+                strValue = bool(raw_input_val)  
             else:
                 self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
                 return None
@@ -2369,8 +2369,11 @@ class Runtime:
             self.logError(f"Cannot convert input '{raw_input_val}' to '{expected_dtype}'.", err_n)
             return None
         
-        print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), value)}")
-        return (('lit', expected_dtype), value, err_n)
+        # trim last n characters because of count limit
+        if count_value:
+            strValue = strValue[:(count_value)]
+        print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), strValue)}")
+        return (('lit', expected_dtype), strValue, err_n)
     
        
     def handle_backspace_escapes(self, s):

@@ -60,7 +60,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
         const handlePrintOutput = (data) => {
             console.log("Received output string to be displayed:", data);
 
-            const value = parseEscapeSequences(data.value.toString().replace(/\\n/g, '\n'), true); //parseEscapeSequences(data.value.toString());
+            const value = parseEscapeSequences(data.value.toString(), true); //parseEscapeSequences(data.value.toString());
 
             // if there's no newline, append directly to the last log
             if (!value.includes('\n')) {
