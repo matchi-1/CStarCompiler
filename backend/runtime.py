@@ -180,7 +180,7 @@ class Runtime:
 
     MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
 
-    MUST_RETURN = False
+    RETURN_PROMISES = []
 
     def interpret(self, node):
         try:
@@ -356,13 +356,13 @@ class Runtime:
         ret_val = None
         if node.body_codeblock_n:
             ret_val = self.visit_node(node.body_codeblock_n)
+            print('AAAAAAAAAAAAAAAA BODY RET', ret_val)
         
         if node.return_stmt_n:
             ret_val = self.visit_node(node.return_stmt_n)
             
         
         self.exit_scope(type(node).__name__)
-        print( 'NODY BO BODY RETURN RET VAL' , ret_val)
         return ret_val
         
     #code_block PLACEHODLER
@@ -373,13 +373,13 @@ class Runtime:
             ret_val = self.visit_node(statement, funcExpectedVal=False)
             if type(statement) is node_if_stmt:
                 ret_val = ret_val[1]
+            print('AAAAAAAAAAA CODE BLOCK RET', ret_val)
+            print('AAAAAAA RETURN PROMISES', self.RETURN_PROMISES)
             print("\n(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: ")
             self.print_symbols(self.curr_scope.syms, indent=2)
-            if self.MUST_RETURN:
-                self.MUST_RETURN = False
+            if self.RETURN_PROMISES:
                 return ret_val
-            else:
-                self.MUST_RETURN = False
+        return None
 
     def visit_node_program_constructs(self, node):
         # self.enter_scope(type(node).__name__)
@@ -1303,7 +1303,7 @@ class Runtime:
     def evaluate_func(self, func_name, args_list):
         print(f'\n(runtime)(dbg) Now evaluating funtion {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
-
+        
         #populate symbol table with arguments
         lit_details = []
         sym_details = {}
@@ -1335,6 +1335,7 @@ class Runtime:
         if body_ret:
             ret_type, ret_val, _ = body_ret
         self.exit_scope(func_name)
+        print('AAAAAAAAAAAAAAAAAAAAAA EVAL RET', ret_val)
         return ret_val
         
     
@@ -1363,6 +1364,7 @@ class Runtime:
 
 
         print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
+        self.RETURN_PROMISES.pop()
         return (('lit', f'{func_symbol["dtype"][1]}'), val, node.id_n) 
 
     
@@ -1849,6 +1851,7 @@ class Runtime:
                 if fromRetBlock:
                     return (dtype, self.default_vals[dtype[1]], left_err) 
                 elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
+                    print('AAAAAAAAA BI OP', left_val, right_val)
                     return (dtype, left_val + right_val, left_err)
                     # return (dtype, None)
                 else:
@@ -2584,6 +2587,7 @@ class Runtime:
                 ret_val = self.visit_node(node.else_chain_n)
 
         self.exit_scope(type(node).__name__)
+        print('AAAAAAAAAAAA IF RET', ret_val)
         return (cond, ret_val)
         #if break_continue_check: return break_continue_check
     
@@ -2591,7 +2595,7 @@ class Runtime:
         self.enter_scope(type(node).__name__)
 
         else_chain_n = node.else_chain_n
-
+        print('AAA ELSE CHAIN LIST', else_chain_n)
         for chain_stmt in else_chain_n:
             chain_type = type(chain_stmt).__name__
 
@@ -2601,6 +2605,8 @@ class Runtime:
                 break
         
         self.exit_scope(type(node).__name__)
+        print('AAAAAAAAAAAAA ELSE CHAIN RET', visit_vals[1])
+        print('AAAAAAA ELSE RETURN PROMISES', self.    RETURN_PROMISES)
         return visit_vals[1]
 
     def visit_node_else_stmt(self, node):
@@ -2608,6 +2614,7 @@ class Runtime:
 
         if node.body_n:
             ret_val = self.visit_node(node.body_n)
+            print('AAAAAAAAAAAAAAA ELSE RET', ret_val)
 
         self.exit_scope(type(node).__name__)
         return (False, ret_val)
@@ -2707,7 +2714,7 @@ class Runtime:
     
     def visit_node_return_block(self, node):
         print("ENTERED RETURN BLOCK")
-        self.MUST_RETURN = True
+        self.RETURN_PROMISES.append(True)
         return self.visit_node(node.ret_value_n)
 
         # if self.function_return_stack:
