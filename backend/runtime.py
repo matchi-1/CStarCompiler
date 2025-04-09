@@ -1,4 +1,4 @@
-import eventlet
+import eventlet, copy
 from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal
 from flask_socketio import SocketIO
@@ -191,7 +191,7 @@ class Runtime:
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
             #print('-----------AST-----------------\n\t\t', node)
-            print('-----------OUTPUT--------------\n\t\t', self.output)
+            #print('-----------OUTPUT--------------\n\t\t', self.output)
             
             
             
@@ -209,7 +209,7 @@ class Runtime:
         # self.loop_depth = 0
         # self.switch_depth = 0
         self.function_return_stack = []
-        self.output = []  # <== NEW: collect all print outputs here
+        #self.output = []  # <== NEW: collect all print outputs here
         self.break_continue_check = None
 
     def enter_scope(self, nodeName):
@@ -553,8 +553,8 @@ class Runtime:
 
         
         class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
-        print(class_elem_info)
-        for att_method, att_method_info in class_elem_info.items():
+        class_elem_obj = copy.deepcopy(class_elem_info)
+        for att_method, att_method_info in class_elem_obj.items():
             if type(att_method_info["value"]).__name__ == "node_input":
                 _, input_val, _ = self.visit_node(att_method_info["value"])
                 att_method_info["value"] = input_val
@@ -578,7 +578,7 @@ class Runtime:
             self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
 
             
-        self.curr_scope.set_obj(obj_id, None, dtype, class_elem_info)
+        self.curr_scope.set_obj(obj_id, None, dtype, class_elem_obj)
 
 
     def visit_node_class_att(self, node):   #iden.iden
