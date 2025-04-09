@@ -2,6 +2,7 @@ import eventlet
 from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal
 from flask_socketio import SocketIO
+import time
 
 socketio = None  # global holder
 user_response = {}
@@ -32,10 +33,13 @@ def setup_runtime(sio_instance):
 
 def checkTerminate():
     global terminate_program
-    if terminate_program:
-        terminate_program = False
-        socketio.emit("done", { "type": "success", "value": "[Program terminated by the user.]" })
-        raise SyntaxError("Program terminated by the user.")
+    try: 
+        if terminate_program:
+            terminate_program = False
+            socketio.emit("done", { "type": "success", "value": "[Program terminated by the user.]" })
+            raise SyntaxError("Program terminated by the user.")
+    except SyntaxError as e:
+            print (e)
         
 
 
@@ -199,6 +203,7 @@ class Runtime:
     RETURN_PROMISES = list()
 
     def interpret(self, node):
+        start_time = time.time()
         try:
             self.RETURN_PROMISES.clear()
             self.visit_node(node)
@@ -212,11 +217,11 @@ class Runtime:
         
         except SyntaxError as e:
             print (e)
-
+        end_time = time.time()
+        elapsed_time = end_time - start_time
         # remove error list here in the future
-        global terminate_program
-        if not terminate_program:
-            socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
+
+        socketio.emit("done", { "type": "success", "value": f"[Finished runtime execution. Total elapsed time: {"{:.2f}".format(elapsed_time)} seconds.]" })
         return self.errors
 
     def __init__(self):
@@ -325,7 +330,6 @@ class Runtime:
         self.errors.append(full_message)
         #print(full_message)
         socketio.emit('error', { "type": "error", "value": full_message })
-        #eventlet.sleep(0.1)
         raise SyntaxError(full_message)
     
 
@@ -2546,7 +2550,7 @@ class Runtime:
             formatted_output = self.handle_backspace_escapes(formatted_output)
             print('(runtime)(OUTPUT) printing: ', formatted_output)
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
-            # eventlet.sleep(0.1)
+            
 
         return None
  
