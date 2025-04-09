@@ -31,7 +31,6 @@ def run_loop(socketio: SocketIO):
 
             elif "output" in item:
                 socketio.emit('print_output', { "type": "output", "value": item["output"] })
-                eventlet.sleep(0.1)
 
         socketio.emit("done", { "type": "output", "value": "[Loop Finished]" })
 

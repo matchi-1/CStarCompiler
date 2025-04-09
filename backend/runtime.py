@@ -2421,9 +2421,9 @@ class Runtime:
             #         self.output[-1] += formatted_output
             #     else:
             #         self.output.append(formatted_output)
-
+            print("PRINTING: " +  formatted_output)
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
-            eventlet.sleep(0.1)
+            # eventlet.sleep(0.1)
 
         return None
 

@@ -952,7 +952,7 @@ class SyntaxAnalyzer:
                         currCol = self.currToken["tokenCol"]
 
                         print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
-                        self.errors.append(f"Warning at line {currLine}: Unreachable code detected.")
+                        self.logError(f"Unreachable code detected. Remove unreachable code to execute the program.")
                         break
             return program_node(program_stmts)
 

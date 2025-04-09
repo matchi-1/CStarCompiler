@@ -17,31 +17,31 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
 
     const parseEscapeSequences = (str) => {
         return str
-            .replace(/\\n/g, '\n')  // \n to newline
+            .replace(/\\n/g, '\n')
             .replace(/\\t/g, '\t')  // \t to tab
             .replace(/\\b/g, '\b')  // \b to backspace
             .replace(/\\"/g, '"')   // \\" to "
             .replace(/\\\\/g, '\\'); // \\ to backslash
     };
 
-    const groupLogsForDisplay = (logs) => {
-        const groups = [];
-        let currentOutputGroup = '';
+    // const groupLogsForDisplay = (logs) => {
+    //     const groups = [];
+    //     let currentOutputGroup = '';
 
-        logs.forEach((log) => {
-            if (log.type === 'output') {
-                currentOutputGroup += parseEscapeSequences(log.value);
-            } else {
-                groups.push(currentOutputGroup);
-                groups.push(log);
-                currentOutputGroup = '';
-            }
-        });
+    //     logs.forEach((log) => {
+    //         if (log.type === 'output') {
+    //             currentOutputGroup += parseEscapeSequences(log.value);
+    //         } else {
+    //             groups.push(currentOutputGroup);
+    //             groups.push(log);
+    //             currentOutputGroup = '';
+    //         }
+    //     });
 
-        return groups;
-    };
+    //     return groups;
+    // };
 
-    const groupedLogs = groupLogsForDisplay(logs);
+    // const groupedLogs = groupLogsForDisplay(logs);
 
     // clear logs when clearLogs prop osci
     useEffect(() => {
@@ -74,11 +74,64 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
         const connectHandler = () => {
             console.log('Connected to backend!');
         };
-
         const handlePrintOutput = (data) => {
             console.log("Received output string to be displayed:", data);
-            setLogs(prev => [...prev, { type: 'output', value: data.value.toString() }]);
+
+            const value = data.value.toString().replace(/\\n/g, '\n'); //parseEscapeSequences(data.value.toString());
+
+            // if there's no newline, append directly to the last log
+            if (!value.includes('\n')) {
+                console.log("ENTERED value doesnt include new line: " + value)
+                setLogs(prevLogs => {
+                    const updatedLogs = [...prevLogs];
+                    const last = updatedLogs[updatedLogs.length - 1];
+
+                    if (last && last.type === 'output') {
+                        // replace the last log entry with a new object
+                        const newLast = { ...last, value: last.value + value };
+                        updatedLogs[updatedLogs.length - 1] = newLast;
+                    } else {
+                        updatedLogs.push({ type: 'output', value });
+                    }
+
+                    return updatedLogs;
+                });
+                return;
+            }
+
+            // else, split and stream line-by-line
+            const parts = value.split('\n');
+            console.log("PARTS: " + parts)
+
+            setLogs(prevLogs => {
+                const updatedLogs = [...prevLogs];
+
+                parts.forEach((part, index) => {
+                    const isLast = index === parts.length - 1;
+
+                    if (isLast) {
+                        const last = updatedLogs[updatedLogs.length - 1];
+                        if (last && last.type === 'output') {
+                            // clone and replace to avoid mutation
+                            const newLast = { ...last, value: last.value + part };
+                            updatedLogs[updatedLogs.length - 1] = newLast;
+                        } else {
+                            updatedLogs.push({ type: 'output', value: part });
+                        }
+                    } else {
+                        if (part !== '') {
+                            updatedLogs.push({ type: 'output', value: part });
+                        }
+                        updatedLogs.push({ type: 'output', value: '' }); // newline marker
+                    }
+                });
+
+                return updatedLogs;
+            });
+
         };
+
+
 
         const handleRequestInput = (data) => {
             console.log("Received input request:", data);
@@ -155,39 +208,42 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
             <div className="terminal-body">
                 <div className="logs-container">
                     <div className="terminal-cont" ref={terminalRef}>
-                        {logs && Array.isArray(logs) && groupedLogs.map((log, index) => (
-                            <div key={index} className={`terminal-line ${log.type}`} style={{ display: 'block' }}>
-                                {log.type === 'input_request' ? (
-                                    <>
-                                        <span className="prompt">{parseEscapeSequences(log.prompt)}</span>
-                                        <div className="input-wrapper">
-                                            <span className="ghost">{inputText || ' '}</span>
-                                            <input
-                                                type="text"
-                                                className="terminal-input"
-                                                value={inputText}
-                                                onChange={(e) => setInputText(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                        handleUserInput(inputText);
-                                                    }
-                                                }}
-                                            />
-                                        </div>
-                                    </>
-                                ) : log.type === 'user_input' ? (
-                                    <span className="user-input-text">
-                                        <span className="prompt">{parseEscapeSequences(log.prompt)}</span>
-                                        {log.value}
-                                    </span>
-                                ) : (
-                                    <span>
-                                        {log.type === 'error' && <span className="error-marker">|ERROR| </span>}
-                                        {log.value ? log.value : log}
-                                    </span>
-                                )}
-                            </div>
-                        ))}
+                        {logs && Array.isArray(logs) && logs.map((log, index) => {
+                            return (
+                                <div key={index} className={`terminal-line ${log.type}`} style={{ display: 'block' }}>
+                                    {log.type === 'input_request' ? (
+                                        <>
+                                            <span className="prompt">{parseEscapeSequences(log.prompt)}</span>
+                                            <div className="input-wrapper">
+                                                <span className="ghost">{inputText || ' '}</span>
+                                                <input
+                                                    type="text"
+                                                    className="terminal-input"
+                                                    value={inputText}
+                                                    onChange={(e) => setInputText(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            handleUserInput(inputText);
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </>
+                                    ) : log.type === 'user_input' ? (
+                                        <span className="user-input-text">
+                                            <span className="prompt">{parseEscapeSequences(log.prompt)}</span>
+                                            {log.value}
+                                        </span>
+                                    ) : (
+                                        <span>
+                                            {log.type === 'error' && <span className="error-marker">|ERROR| </span>}
+                                            {log.value}
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
+
 
                     </div>
                 </div>
