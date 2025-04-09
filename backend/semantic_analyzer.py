@@ -637,7 +637,7 @@ class SemanticAnalyzer:
             # return (dtype, val)
             match iden_symbol["dtype"][0]:
                 case 'func':
-                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
+                    self.logError(f"Symbol '{node.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value. asdasdasdsa", err_n)
                 case 'class':
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
                 
@@ -1217,8 +1217,8 @@ class SemanticAnalyzer:
         
         print("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
         match val_type[0]:
-            case 'func':
-                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
+            # case 'func':
+            #     self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
             case 'class':
                 self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
             case 'arr':
