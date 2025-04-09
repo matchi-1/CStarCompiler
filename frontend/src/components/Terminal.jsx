@@ -136,6 +136,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
         };
 
         const handleDone = (data) => {
+            handleUserInput("");
             setLogs(prev => [...prev, { type: 'success', value: data.value.toString() }]);
             if (onExecutionComplete) {
                 onExecutionComplete(); // notify parent that execution is done
