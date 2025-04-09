@@ -190,7 +190,7 @@ class Runtime:
 
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
-            print('-----------AST-----------------\n\t\t', node)
+            #print('-----------AST-----------------\n\t\t', node)
             print('-----------OUTPUT--------------\n\t\t', self.output)
             socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
             
@@ -504,7 +504,7 @@ class Runtime:
                 vardec_n = class_body_stmt_n.vardec_n
                 
                 if type(vardec_n).__name__ == "node_vardec":
-                    class_content.append(self.visit_node_vardec(vardec_n, priv))
+                    class_content.append(self.visit_node_vardec(vardec_n, priv, True))
 
                 elif type(vardec_n).__name__ == "node_func_dec":
                     class_content.append(self.visit_node_func_dec(vardec_n, priv))
@@ -538,12 +538,11 @@ class Runtime:
         obj_id = node.obj_id_n.id_t["tokenName"]
         class_inst_cont = node.class_instcont_n
 
-        if self.curr_scope.get(obj_id, False):
-            self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", node.obj_id_n)
+        # if self.curr_scope.get(obj_id, False):
+        #     self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", node.obj_id_n)
 
-        if not self.curr_scope.get(class_id, checkParent=True):
-            self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
-
+        # if not self.curr_scope.get(class_id, checkParent=True):
+        #     self.logError(f"Class '{class_id}' definition not found.", node.class_id_n)
 
         dtype = ('object', class_id)
 
@@ -553,10 +552,14 @@ class Runtime:
 
         
         class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
-        
+        print(class_elem_info)
+        for att_method, att_method_info in class_elem_info.items():
+            if type(att_method_info["value"]).__name__ == "node_input":
+                _, input_val, _ = self.visit_node(att_method_info["value"])
+                att_method_info["value"] = input_val
         
         if class_inst_cont:
-            constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
+            #constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
             
             check_scope_class = self.curr_scope
             while not check_scope_class.get(class_id, False):
@@ -565,11 +568,11 @@ class Runtime:
             class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"]
             
             
-            if constructor_call_id != class_id:
-                self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
+            # if constructor_call_id != class_id:
+            #     self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
             
-            if not class_constructor_info:
-                self.logError(f"Class '{class_id}' has no defined constructor function.", class_inst_cont.class_id_n)
+            # if not class_constructor_info:
+            #     self.logError(f"Class '{class_id}' has no defined constructor function.", class_inst_cont.class_id_n)
         
             self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
 
@@ -1520,6 +1523,7 @@ class Runtime:
     
     # var / arr dec helper function for type and range checking
     def check_type_and_range(self, dec_type, dtype, val_type, value, id_n = None, index_1D = None, index_2D = None, err_n = None):
+        if type(value).__name__ == "node_input": return
         id = id_n.id_t["tokenName"] if id_n else ''
         print("PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: " + dec_type)
         print("PRINT >>>>>>>>>>>>>>>>> DTYPE: " + str(dtype))
@@ -1587,7 +1591,7 @@ class Runtime:
                     self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""} but found '{val_type[1]}'.", err_n) 
 
     #node_var_dec
-    def visit_node_vardec(self, node, priv = False):
+    def visit_node_vardec(self, node, priv = False, input_deactivator_for_classes_yes = False):
         err_n = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"]) )
 
         if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
@@ -1600,17 +1604,23 @@ class Runtime:
         idec_rec = None
         if node.vardec_cont_n:
             if node.vardec_cont_n.value_n:
-                val_type, value, err_n = self.visit_node(node.vardec_cont_n.value_n)
+                if input_deactivator_for_classes_yes and type(node.vardec_cont_n.value_n).__name__ == "node_input":
+                    value = node.vardec_cont_n.value_n
+                else:    
+                    val_type, value, err_n = self.visit_node(node.vardec_cont_n.value_n)
             if val_type: print('(runtime)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
 
         default_val = self.default_vals[dtype[1]]
 
-        if not val_type and not value:
-            if const:
-                self.logError("Constant variable declarations must always be initialized with a value.", err_n)
-            val_type = ('lit', f'{dtype[1]}')   
-            value = default_val
+        if not val_type:
+            if not value:
+                if const:
+                    self.logError("Constant variable declarations must always be initialized with a value.", err_n)
+                val_type = ('lit', f'{dtype[1]}')   
+                value = default_val
+            elif type(value).__name__ == "node_input":
+                val_type = ('lit', f'{dtype[1]}')
             
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
