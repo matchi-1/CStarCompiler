@@ -180,10 +180,11 @@ class Runtime:
 
     MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
 
-    RETURN_PROMISES = []
+    RETURN_PROMISES = list()
 
     def interpret(self, node):
         try:
+            self.RETURN_PROMISES.clear()
             self.visit_node(node)
             self.errors.append("Runtime success. No Runtime Errors found.")
             print("Runtime success. No Runtime Errors found.")
@@ -2519,7 +2520,7 @@ class Runtime:
             #     else:
             #         self.output.append(formatted_output)
             formatted_output = self.handle_backspace_escapes(formatted_output)
-            
+            print('(runtime)(OUTPUT) printing: ', formatted_output)
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
             #eventlet.sleep(0.1)
 
