@@ -207,8 +207,8 @@ class Runtime:
     def __init__(self):
         self.curr_scope = SymbolTable()
         self.errors = []
-        self.loop_depth = 0
-        self.switch_depth = 0
+        # self.loop_depth = 0
+        # self.switch_depth = 0
         self.function_return_stack = []
         self.output = []  # <== NEW: collect all print outputs here
         self.break_continue_check = None
@@ -329,13 +329,13 @@ class Runtime:
                 self.current_function_name = "main"
                 self.function_return_stack.append("void")
 
-                self.count_return = 0
-                has_return = self.check_return_in_body(statement)
-                if not has_return:
-                    if self.count_return:
-                        self.logError(f"Function '{self.current_function_name}' must have a return statement in all possible code paths.")
-                    else:
-                        self.logError(f"Function '{self.current_function_name}' must have a return statement.")
+                # self.count_return = 0
+                # has_return = self.check_return_in_body(statement)
+                # if not has_return:
+                #     if self.count_return:
+                #         self.logError(f"Function '{self.current_function_name}' must have a return statement in all possible code paths.")
+                #     else:
+                #         self.logError(f"Function '{self.current_function_name}' must have a return statement.")
                     
                 self.visit_node(statement)
 
@@ -874,54 +874,54 @@ class Runtime:
         print(f"\n(runtime)(dbg) ENTERING scope 'Function: {func_name}'")
         self.curr_scope = SymbolTable(self.curr_scope)
         # Add parameters to new function scope
-        if node.params_n:
-            for param in node.params_n:
-                param_name = param.id_n.id_t["tokenName"]
-                print(f"\n\nFOUND TYPE '{type(param).__name__}' FOR PARAM '{param_name}'")
+        # if node.params_n:
+        #     for param in node.params_n:
+        #         param_name = param.id_n.id_t["tokenName"]
+        #         print(f"\n\nFOUND TYPE '{type(param).__name__}' FOR PARAM '{param_name}'")
 
-                # Check if parameter name is duplicated
-                if self.curr_scope.get(param_name, checkParent=False):
-                    self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
+        #         # Check if parameter name is duplicated
+        #         if self.curr_scope.get(param_name, checkParent=False):
+        #             self.logError(f"Parameter '{param_name}' is already declared in function '{func_name}'.", param.id_n)
 
-                # Handle different parameter types properly
-                if type(param).__name__ == "node_funcpar_class":
-                    class_name = ('object', param.class_id_n.id_t["tokenName"])
-                    class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
-                    class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
-                    print(f">>>>>>>>>>>>>SET OBJ: {self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)}")
+        #         # Handle different parameter types properly
+        #         if type(param).__name__ == "node_funcpar_class":
+        #             class_name = ('object', param.class_id_n.id_t["tokenName"])
+        #             class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
+        #             class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
+        #             print(f">>>>>>>>>>>>>SET OBJ: {self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)}")
 
-                elif type(param).__name__ == "node_funcpar_arr":
-                    arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
-                    arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
-                    print(arr_dtype)
-                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]] 
-                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 0, "size2": 0 if arr_dim == 2 else None}, const=False)}')
+        #         elif type(param).__name__ == "node_funcpar_arr":
+        #             arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
+        #             arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
+        #             print(arr_dtype)
+        #             arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]] 
+        #             print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 0, "size2": 0 if arr_dim == 2 else None}, const=False)}')
 
-                elif type(param).__name__ == "node_funcpar_var":
-                    var_dtype = ('var', param.dtype_t["tokenName"])
-                    print(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
+        #         elif type(param).__name__ == "node_funcpar_var":
+        #             var_dtype = ('var', param.dtype_t["tokenName"])
+        #             print(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
 
         
         # Visit function body
         if not node.is_std_lib:
             self.current_function_name = func_name
-            # self.function_return_stack.append(return_type[1])
-            # if not node.body_n:
-            #     self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
+            self.function_return_stack.append(return_type[1])
+        #     # if not node.body_n:
+        #     #     self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
 
-            # self.count_return = 0
-            # has_return = self.check_return_in_body(node.body_n)
-            # if not has_return:
-            #     if self.count_return:
-            #         self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
-            #     else:
-            #         self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
+        #     # self.count_return = 0
+        #     # has_return = self.check_return_in_body(node.body_n)
+        #     # if not has_return:
+        #     #     if self.count_return:
+        #     #         self.logError(f"Function '{func_name}' must have a return statement in all possible code paths.", node.id_n)
+        #     #     else:
+        #     #         self.logError(f"Function '{func_name}' must have a return statement.", node.id_n)
                 
-            # no need to visit during runtime
-            # self.visit_node(node.body_n)
+        #     # no need to visit during runtime
+        #     # self.visit_node(node.body_n)
 
-            # self.function_return_stack.pop()
-            #print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+            self.function_return_stack.pop()
+            print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
             self.current_function_name = None
  
 
@@ -2226,13 +2226,13 @@ class Runtime:
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
         loop_name = type(node_loop).__name__
-        self.loop_depth += 1
+        # self.loop_depth += 1
 
         loop_count = 0
 
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
-            self.visit_node(node_loop.init_arg_n)
+            if node_loop.inig_arg_n: self.visit_node(node_loop.init_arg_n)
 
             #self.visit_node(node_loop.condition_n.condition_value_n)
             #print(f"CONDITION was found from: {loop_name} \n")
@@ -2258,7 +2258,7 @@ class Runtime:
                     # elif self.break_continue_check == 'node_continue_stmt':
                     #     continue   
 
-                self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
+                if node_loop.inc_arg_n: self.visit_node(node_loop.inc_arg_n, funcExpectedVal=False) 
                 
                 #if break_outer: break
 
@@ -2286,11 +2286,11 @@ class Runtime:
         elif loop_name == 'node_repeat':
             repeat_type, repeat_val, err_n = self.visit_node(node_loop.repeat_value_n)
             
-            if repeat_type[1] not in ['int', 'long']:
-                self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_type[1]}' instead.", err_n)
+            # if repeat_type[1] not in ['int', 'long']:
+            #     self.logError(f"Invalid data type for repeat value. Expected 'int' or 'long', but found '{repeat_type[1]}' instead.", err_n)
             
-            if repeat_val < 0:
-                self.logError(f"Invalid value for repeat statement. Expected positive 'int' or 'long' values, but found '{repeat_val}' instead.", err_n)
+            # if repeat_val < 0:
+            #     self.logError(f"Invalid value for repeat statement. Expected positive 'int' or 'long' values, but found '{repeat_val}' instead.", err_n)
             
             print(f"(runtime)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_type}, {repeat_val}")
             # self.visit_node(node_loop.ctrl_stmt_body_n)
@@ -2311,7 +2311,7 @@ class Runtime:
 
                 loop_count += 1
 
-        self.loop_depth -= 1
+        # self.loop_depth -= 1
         self.exit_scope(loop_name)
 
     def visit_node_input(self, node):
@@ -2789,64 +2789,67 @@ class Runtime:
     def check_return_in_body(self, node):
         print(f"(runtime)(dbg) Checking return in {type(node).__name__}")
 
-        if node is None:
-            return False
+    # def check_return_in_body(self, node):
+    #     print(f"(runtime)(dbg) Checking return in {type(node).__name__}")
 
-        if isinstance(node, node_body):
-            return self.check_return_in_body(node.body_codeblock_n) or self.check_return_in_body(node.return_stmt_n)
+    #     if node is None:
+    #         return False
 
-        if isinstance(node, node_code_block):
-            return any(self.check_return_in_body(stmt) for stmt in node.code_block_statement_n)
+    #     if isinstance(node, node_body):
+    #         return self.check_return_in_body(node.body_codeblock_n) or self.check_return_in_body(node.return_stmt_n)
 
-        if isinstance(node, node_ctrl_stmt_body):
-            return any(self.check_return_in_body(stmt) for stmt in node.statements_n)
+    #     if isinstance(node, node_code_block):
+    #         return any(self.check_return_in_body(stmt) for stmt in node.code_block_statement_n)
 
-        if isinstance(node, node_if_stmt):
-            print(f"(runtime)(dbg) Checking return in IF statement")
+    #     if isinstance(node, node_ctrl_stmt_body):
+    #         return any(self.check_return_in_body(stmt) for stmt in node.statements_n)
 
-            has_return_in_if = self.check_return_in_body(node.body_n)
-            has_return_in_else = False
+    #     if isinstance(node, node_if_stmt):
+    #         print(f"(runtime)(dbg) Checking return in IF statement")
 
-            if node.else_chain_n:
-                has_return_in_else = self.check_return_in_body(node.else_chain_n)
+    #         has_return_in_if = self.check_return_in_body(node.body_n)
+    #         has_return_in_else = False
 
-            print(f"(runtime)(dbg) has_return_in_if={has_return_in_if}, has_return_in_else={has_return_in_else}")
+    #         if node.else_chain_n:
+    #             has_return_in_else = self.check_return_in_body(node.else_chain_n)
 
-            return has_return_in_if and has_return_in_else 
+    #         print(f"(runtime)(dbg) has_return_in_if={has_return_in_if}, has_return_in_else={has_return_in_else}")
 
-        if isinstance(node, node_else_stmt):
-            return self.check_return_in_body(node.body_n)
+    #         return has_return_in_if and has_return_in_else 
 
-        if isinstance(node, node_else_chain):
-            return any(self.check_return_in_body(stmt) for stmt in node.else_chain_n)
+    #     if isinstance(node, node_else_stmt):
+    #         return self.check_return_in_body(node.body_n)
 
-        if isinstance(node, node_loop_stmt):
-            return self.check_return_in_body(node.loop_stmt_n.ctrl_stmt_body_n)
+    #     if isinstance(node, node_else_chain):
+    #         return any(self.check_return_in_body(stmt) for stmt in node.else_chain_n)
 
-        if isinstance(node, node_switch_stmt):
-            print(f"(runtime)(dbg) Checking return in SWITCH statement")
+    #     if isinstance(node, node_loop_stmt):
+    #         return self.check_return_in_body(node.loop_stmt_n.ctrl_stmt_body_n)
 
-            case_returns = [self.check_return_in_body(case) for case in node.case_n.case_stmt_n]
+    #     if isinstance(node, node_switch_stmt):
+    #         print(f"(runtime)(dbg) Checking return in SWITCH statement")
 
-            has_default = node.default_n is not None
-            has_return_in_default = self.check_return_in_body(node.default_n) if has_default else False
+    #         case_returns = [self.check_return_in_body(case) for case in node.case_n.case_stmt_n]
 
-            print(f"(runtime)(dbg) Switch case returns: {case_returns}, has_default={has_default}, has_return_in_default={has_return_in_default}")
+    #         has_default = node.default_n is not None
+    #         has_return_in_default = self.check_return_in_body(node.default_n) if has_default else False
 
-            if not all(case_returns) or (has_default and not has_return_in_default):
-                return False
+    #         print(f"(runtime)(dbg) Switch case returns: {case_returns}, has_default={has_default}, has_return_in_default={has_return_in_default}")
 
-            return True 
+    #         if not all(case_returns) or (has_default and not has_return_in_default):
+    #             return False
 
-        if isinstance(node, node_case_stmt):
-            return self.check_return_in_body(node.ctrl_stmt_body_n)
+    #         return True 
 
-        if isinstance(node, node_default_stmt):
-            return self.check_return_in_body(node.ctrl_stmt_body_n)
+    #     if isinstance(node, node_case_stmt):
+    #         return self.check_return_in_body(node.ctrl_stmt_body_n)
 
-        if isinstance(node, node_return_block):
-            print(f"(runtime)(dbg) Found return statement")
-            self.count_return += 1
-            return True
+    #     if isinstance(node, node_default_stmt):
+    #         return self.check_return_in_body(node.ctrl_stmt_body_n)
 
-        return False
+    #     if isinstance(node, node_return_block):
+    #         print(f"(runtime)(dbg) Found return statement")
+    #         self.count_return += 1
+    #         return True
+
+    #     return False
