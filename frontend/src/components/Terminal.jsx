@@ -15,13 +15,16 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
     }));
 
 
-    const parseEscapeSequences = (str) => {
-        return str
-            .replace(/\\n/g, '\n')
-            .replace(/\\t/g, '\t')  // \t to tab
+    const parseEscapeSequences = (str, isOutput = false) => {
+        let formattedStr = str.replace(/\\t/g, '\t')  // \t to tab
             .replace(/\\b/g, '\b')  // \b to backspace
             .replace(/\\"/g, '"')   // \\" to "
             .replace(/\\\\/g, '\\'); // \\ to backslash
+
+        if (!isOutput)
+            str.replace(/\\n/g, '\n')
+
+        return formattedStr
     };
 
     // clear logs when clearLogs prop osci
@@ -58,7 +61,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
         const handlePrintOutput = (data) => {
             console.log("Received output string to be displayed:", data);
 
-            const value = data.value.toString().replace(/\\n/g, '\n'); //parseEscapeSequences(data.value.toString());
+            const value = parseEscapeSequences(data.value.toString().replace(/\\n/g, '\n'), true); //parseEscapeSequences(data.value.toString());
 
             // if there's no newline, append directly to the last log
             if (!value.includes('\n')) {
@@ -82,7 +85,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
 
             // else, split and stream line-by-line
             const parts = value.split('\n');
-            console.log("PARTS: " + parts)
+            // console.log("PARTS: " + parts)
 
             setLogs(prevLogs => {
                 const updatedLogs = [...prevLogs];
@@ -119,8 +122,6 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
             });
 
         };
-
-
 
         const handleRequestInput = (data) => {
             console.log("Received input request:", data);
