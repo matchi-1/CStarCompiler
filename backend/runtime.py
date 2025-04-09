@@ -1904,15 +1904,15 @@ class Runtime:
             case '/':
                 print(f"search for me:")
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes and not fromRetBlock:
+                    if right_val == 0: #todo
+                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
+                        self.logError("Division by 0 is not allowed.", right_err)
                     return (dtype, int(left_val / right_val), left_err)
                     # return (dtype, None)
                 if fromRetBlock:
                     if right_type[0] == "lit" and right_val == 0:
                         self.logError("Division by 0 is not allowed.", right_err)
                     return (dtype, self.default_vals[dtype[1]], left_err)
-                elif right_val == 0: #todo
-                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
-                    self.logError("Division by 0 is not allowed.", right_err)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '*':
@@ -2663,7 +2663,7 @@ class Runtime:
     
     def visit_node_switch_stmt(self, node):
         self.enter_scope(type(node).__name__)
-        self.switch_depth += 1
+        # self.switch_depth += 1
         
         switch_type, switch_val, err_n = self.visit_node(node.value_n)
         if switch_type[1] not in ["string", "int", "long"]:
@@ -2750,7 +2750,7 @@ class Runtime:
            # self.exit_scope(default_stmt)
 
 
-        self.switch_depth -= 1
+        # self.switch_depth -= 1
         self.exit_scope(type(node).__name__)
         return
     
