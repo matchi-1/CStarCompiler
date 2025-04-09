@@ -1487,8 +1487,8 @@ class Runtime:
         
         print("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
         match val_type[0]:
-            case 'func':
-                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
+            # case 'func':
+            #     self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
             case 'class':
                 self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
             case 'arr':
@@ -2458,46 +2458,7 @@ class Runtime:
             return param_type in ['float', 'double']
         else:
             return False
-    # def visit_node_output(self, node):
-    #     print_stmts_n = node.print_stmts_n 
-    #     print_params_n = node.print_params_n  
 
-    #     if not print_params_n:
-    #         self.logError("Output statement requires at least one parameter.", node)
-    #         return None
-
-    #     first_param = print_params_n[0]
-    #     first_param_type, _ = self.visit_node(first_param)
-
-    #     # if first_param_type != "string":
-    #     #     self.logError("First parameter in output statement must be a string.", first_param)
-    #     #     return None
-    #     return None
-    
-    #code block
-    # def visit_code_block(self, node, isVoid=False):
-    #     statements_n = node.code_block_statement_n  
-    #     self.enter_scope()
-
-    #     for stmt in statements_n:
-    #         if isinstance(stmt, str):  
-    #             self.visit_ctrl_stmt(stmt)
-    #         elif isinstance(stmt, node_iden): 
-    #             self.visit_var_decl(stmt)
-    #         elif isinstance(stmt, node_pre_un_op):  
-    #             self.visit_pre_un_op(stmt)
-    #         elif isinstance(stmt, node_output):  
-    #             self.visit_output(stmt)
-    #         elif isinstance(stmt, node_conditional_stmt):  
-    #             self.visit_conditional_stmt(stmt)
-    #         elif isinstance(stmt, node_loop_stmt): 
-    #             self.visit_loop_stmt(stmt)
-    #         elif isinstance(stmt, node_code_block):  
-    #             self.visit_code_block(stmt, isVoid)
-    #         else:
-    #             print("(runtime)(dbg) ERROR: Unrecognized statement type inside code block.")
-        
-    #     self.exit_scope()
     
     # ALEX HERE
     def visit_node_ctrl_stmt_body(self, node):
