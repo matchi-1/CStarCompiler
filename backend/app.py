@@ -62,13 +62,14 @@ def compile_code():
 
         if "Parsing completed successfully. No Syntax Errors found." in parseErrs:   # parsing success
             seman_analyzer = semantic_analyzer.SemanticAnalyzer()
-            semanErrs, seman_scope, ret_stack = seman_analyzer.interpret(parseTree)  # comment/uncomment for testing
+            semanErrs = seman_analyzer.interpret(parseTree)  # comment/uncomment for testing
             errors += semanErrs
+
             if "Semantic analysis completed successfully. No Semantic Errors found." not in semanErrs:
                 # remove parsing success message since there's a semantic error
                 errors.remove("Parsing completed successfully. No Syntax Errors found.")
             else:     # semantic success
-                runtime_res = runtime.Runtime(seman_scope, ret_stack)
+                runtime_res = runtime.Runtime()
                 runtimeErrs = runtime_res.interpret(parseTree)
                 # errors += runtimeErrs
 

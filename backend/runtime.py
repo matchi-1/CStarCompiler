@@ -177,12 +177,12 @@ class Runtime:
         # remove error list here in the future
         return self.errors
 
-    def __init__(self, seman_scope, ret_stack):
-        self.curr_scope = seman_scope
+    def __init__(self):
+        self.curr_scope = SymbolTable()
         self.errors = []
         self.loop_depth = 0
         self.switch_depth = 0
-        self.function_return_stack = ret_stack
+        self.function_return_stack = []
         self.output = []  # <== NEW: collect all print outputs here
 
 
@@ -315,6 +315,8 @@ class Runtime:
                 self.function_return_stack.pop()
                 print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
                 self.current_function_name = None
+            
+            else: self.visit_node(statement)
         
         if not self.has_main:
             self.current_function_name = "main"
@@ -1251,7 +1253,6 @@ class Runtime:
         func_symbol = self.curr_scope.get(func_name)
 
         #populate symbol table with arguments
-        self_func = self.curr_scope.get(func_name)
         lit_details = []
         sym_details = {}
         for i, arg_n in enumerate(args_list):
@@ -1271,7 +1272,6 @@ class Runtime:
                 self.curr_scope.set(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"])
             elif sym_details[param][1]["dtype"][0] in ['arr', 'object']:
                 self.curr_scope.visible_symbols[param] = sym_details[param][0]
-        self.curr_scope.set_function(func_name, self_func["dtype"], self_func["params"], self_func["param_names"], self_func["value"])
 
 
         print(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
