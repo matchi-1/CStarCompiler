@@ -1275,10 +1275,13 @@ class Runtime:
         print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
 
     # func call evaluation
-    def evaluate_func(self, func_name, args_list):
+    def evaluate_func(self, func_name, args_list, method_symbol= None):
         print(f'\n(runtime)(dbg) Now evaluating funtion {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
-
+        if not func_symbol:
+            func_symbol = method_symbol
+        print(f"FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {func_symbol}")
+        
         #populate symbol table with arguments
         lit_details = []
         sym_details = {}
@@ -1480,9 +1483,10 @@ class Runtime:
         if class_info[class_elem]["dtype"][1] == 'void':
             if expected_val:
                 self.logError(f"Class method '{class_elem}' is void and cannot return any value, it cannot be used as a value.", node.method_id_n)
+            self.evaluate_func(class_elem, node.args_n)
         else:
-            val = self.default_vals[class_info[class_elem]["dtype"][1]]
-
+            val = self.evaluate_func(class_elem, node.args_n, class_info[class_elem])
+        print(f"RETURNED FROM METHOD_CALL: {class_info[class_elem]["dtype"], val, node.obj_id_n}")
         return (class_info[class_elem]["dtype"], val, node.obj_id_n)
     
     # var / arr dec helper function for type and range checking
