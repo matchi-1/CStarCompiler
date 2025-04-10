@@ -45,8 +45,10 @@ def compile_code():
     code = data.get('code', '')
     code += '\n'
     
+    errors = []
     lexer_results = lexer.scan(code)  # returns [tokens, errors]
-    tokens, errors = lexer_results  # unpack 
+    tokens, lexerrors = lexer_results  # unpack 
+    errors += lexerrors  # add lexer errors to the list
 
     # calls syntax & seman analyzer
     try:
@@ -54,7 +56,7 @@ def compile_code():
         parseErrs, parseTree = syn_analyzer.parse()
         errors += parseErrs  # comment out to just test for lexer
 
-        if "Parsing completed successfully. No Syntax Errors found." in parseErrs:   # parsing success
+        if "Parsing completed successfully. No Syntax Errors found." in parseErrs and not lexerrors:   # parsing success
             seman_analyzer = semantic_analyzer.SemanticAnalyzer()
             semanErrs = seman_analyzer.interpret(parseTree)  # comment/uncomment for testing
             errors += semanErrs
