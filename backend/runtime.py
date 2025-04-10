@@ -1938,9 +1938,11 @@ class Runtime:
                     if right_val == 0: #todo
                     # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
                         self.logError("Division by 0 is not allowed.", right_err)
-                    if left_type[1] in ["long", "int"]:
-                        return (dtype, int(left_val / right_val), left_err)
-                    return (dtype, left_val / right_val, left_err)
+                    # if left_type[1] in ["long", "int"]:
+                    #     return (dtype, int(left_val / right_val), left_err)
+                    res = left_val / right_val
+                    ret_val = Decimal(res) if dtype[1] in ['float', 'double'] else res 
+                    return (dtype, ret_val, left_err)
                     # return (dtype, None)
                 if fromRetBlock:
                     if right_type[0] == "lit" and right_val == 0:
@@ -1952,7 +1954,9 @@ class Runtime:
                 if fromRetBlock:
                     return (dtype, self.default_vals[dtype[1]], left_err) 
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    return (dtype, left_val * right_val, left_err)
+                    res = left_val * right_val
+                    ret_val = Decimal(res) if dtype[1] in ['float', 'double'] else res 
+                    return (dtype, ret_val, left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
