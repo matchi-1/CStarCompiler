@@ -1937,7 +1937,9 @@ class Runtime:
                     if right_val == 0: #todo
                     # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
                         self.logError("Division by 0 is not allowed.", right_err)
-                    return (dtype, int(left_val / right_val), left_err)
+                    if left_type[1] in ["long", "int"]:
+                        return (dtype, int(left_val / right_val), left_err)
+                    return (dtype, left_val / right_val, left_err)
                     # return (dtype, None)
                 if fromRetBlock:
                     if right_type[0] == "lit" and right_val == 0:
@@ -2559,7 +2561,7 @@ class Runtime:
                 for i, specifier in enumerate(format_specifiers):
                     param_node = print_params_n[i + 1] 
                     param_type, param_value, err_n  = self.visit_node(param_node)
-
+                    print(f"PARAM VALUUEEEE thingy: {param_value} str: {str(param_value)}")
                 
                     if not self._validate_format_specifier(specifier, param_type[1], param_value) :
                         # err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
