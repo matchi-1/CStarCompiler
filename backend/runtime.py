@@ -1,6 +1,6 @@
 import eventlet, copy
 from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
-from decimal import Decimal
+from decimal import Decimal, getcontext, localcontext, ROUND_HALF_UP, ROUND_DOWN
 from flask_socketio import SocketIO
 import time
 import codecs
@@ -348,12 +348,59 @@ class Runtime:
         raise SyntaxError(full_message)
     
 
-    def _format_float_output(self, value):
-        if isinstance(value, float):
-            return f"{value:.2f}"
-        elif isinstance(value, Decimal):
-            return f"{value.quantize(Decimal("0.00"))}"
-        return str(value) 
+    def _format_output(self, dtype, value):
+        print(f"Formatting output: type: {dtype}, value: {value}")
+        
+        if not isinstance(value, Decimal) and not dtype in ["float", "double"]:
+            match dtype:
+                # if int exceeds max/min return max/min
+                case "int":
+                    if value > self.MAX_INT:
+                        return str(self.MAX_INT)
+                    elif value < self.MIN_INT:
+                        return str(self.MIN_INT)
+                    
+                # if double exceeds max/min return max/min
+                case "double":
+                    if value > self.MAX_LONG:
+                        return str(self.MAX_LONG)
+                    elif value < self.MIN_LONG:
+                        return str(self.MIN_LONG)
+                    
+            return str(value)
+
+        norm_value = value.normalize()
+        _, digits, exponent = norm_value.as_tuple()
+
+        # if exponent == 0:
+        #     if isinstance(value, Decimal):
+        #         return f"{norm_value.quantize(Decimal("0.00"))}"
+            
+        match dtype:
+            case "float":
+                if value > self.MAX_FLOAT:
+                    return f"{Decimal(self.MAX_FLOAT).quantize(Decimal("0.00"))}"
+                elif value < self.MIN_FLOAT:
+                    return f"{Decimal(self.MIN_FLOAT).quantize(Decimal("0.00"))}"
+                max_decimals = 7
+            case "double":
+                if value > self.MAX_DOUBLE:
+                    print(f"(runtime)(dbg) output value exceeded max double, returning max value..")
+                    return f"{Decimal(self.MAX_DOUBLE).quantize(Decimal("0.00"))}"
+                elif value < self.MIN_DOUBLE:
+                    return f"{Decimal(self.MIN_DOUBLE).quantize(Decimal("0.00"))}"
+                print(f"(runtime)(dbg) double value does not exceed max or min")
+                max_decimals = 16
+            case _:
+                max_decimals = 2
+
+        decimal_places = -exponent if exponent < 0 else 0
+        if decimal_places > max_decimals:
+            quantizer = Decimal("1").scaleb(-max_decimals)
+            return f"{value.quantize(quantizer, rounding=ROUND_HALF_UP)}"
+        else:
+            quantizer = Decimal("1").scaleb(-decimal_places) if decimal_places > 0 else Decimal("1")
+            return f"{value.quantize(quantizer)}"
 
     # ------------------------------------ NODE VISITATION FUNCS----------------------------------
     # FORMAT: visit_{node_name}
@@ -2676,9 +2723,11 @@ class Runtime:
                 if len(print_params_n) > 1:
                     self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
                 
-                self.check_type_and_range("print value", first_param_type, first_param_type, first_param_val)
-                formatted_output = self._format_float_output(first_param_val)
-                print(f"param value formatted heh: {self._format_float_output(first_param_val)}")
+                # self.check_type_and_range("print value", first_param_type, first_param_type, first_param_val)
+                # self.check_digits(first_param_type[1], first_param_val)
+                
+                formatted_output = self._format_output(first_param_type[1], first_param_val)
+                print(f"param value formatted heh: {formatted_output}")
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
             # for param in print_params_n:
@@ -2722,8 +2771,8 @@ class Runtime:
                         self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
                         return None
                     
-                    if specifier in ["%f", "%lf"]:
-                        param_value = self._format_float_output(param_value) 
+                    # if specifier in ["%f", "%lf"]:
+                    param_value = self._format_output(param_type[1], param_value) 
 
                     formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
