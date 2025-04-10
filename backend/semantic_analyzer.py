@@ -146,9 +146,19 @@ class SemanticAnalyzer:
         else:
             print(f'\n(semantic)(dbg) VISITING {nodeName}!!')
             print(f'!!NODE!!: {node}!!')
+            #print(f'!!NODE!!: {node}!!')
+            ret_val = None
             if nodeName in ['node_func_call', 'node_class_method_call']:
-                return visit_func(node, expected_val=funcExpectedVal)
-            return visit_func(node)
+                ret_val = visit_func(node, expected_val=funcExpectedVal)
+            else:
+                ret_val = visit_func(node)
+            if nodeName in ['node_iden', 'node_num', 'node_bi_op', 'node_un_op', 'node_arr_idx', 'node_class_arr_idx', 'node_func_call', 'node_class_method_call']:
+                print('AAAA CHECK VALUE NODE', ret_val[0], ret_val[1])
+                if ret_val[0][1] in ['float', 'double'] and ret_val[0][0] in ['var', 'lit']:
+                    print('AAAA CHECK FIRING', ret_val[1])
+                    ret_val = (ret_val[0], Decimal(ret_val[1]), ret_val[2])
+                
+            return ret_val
         
     def print_symbols(self, d, indent=2):
         """Recursively prints dictionaries with {} and lists with [] using proper indentation."""
@@ -1488,6 +1498,7 @@ class SemanticAnalyzer:
         right_type, right_val, right_err = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
 
+        print('taa types', type(left_val), type(right_val))
 
         if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
             self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.", left_err)
@@ -1548,17 +1559,13 @@ class SemanticAnalyzer:
                     # print("(semantic)(dbg) ERROR: DIVIDE BY 0")
                     self.logError("Division by 0 is not allowed.", right_err)
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    res = left_val / right_val
-                    ret_val = Decimal(res) if dtype[1] in ['float', 'double'] else res 
-                    return (dtype, ret_val, left_err)
+                    return (dtype, left_val / right_val, left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '*':
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    res = left_val * right_val
-                    ret_val = Decimal(res) if dtype[1] in ['float', 'double'] else res 
-                    return (dtype, ret_val, left_err)
+                    return (dtype, left_val * right_val, left_err)
                     # return (dtype, None)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
