@@ -208,14 +208,10 @@ class Runtime:
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
             #print('-----------AST-----------------\n\t\t', node)
-<<<<<<< HEAD
             #print('-----------OUTPUT--------------\n\t\t', self.output)
             
             
             
-=======
-            print('-----------OUTPUT--------------\n\t\t', self.output)  
->>>>>>> a20578edf8455ca2b0bca525e5b0155127656287
         
         except SyntaxError as e:
             print (e)
@@ -537,7 +533,7 @@ class Runtime:
                     class_content.append(self.visit_node_func_dec(vardec_n, priv))
 
                 elif type(vardec_n).__name__ == "node_arr_dec":
-                    class_content.append(self.visit_node_arr_dec(vardec_n, priv))
+                    class_content.append(self.visit_node_arr_dec(vardec_n, priv, True))
                 
                 else: self.logError(f"Invalid class body statement: {type(vardec_n).__name__}.", vardec_n)  
 
@@ -581,9 +577,28 @@ class Runtime:
         class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
         class_elem_obj = copy.deepcopy(class_elem_info)
         for att_method, att_method_info in class_elem_obj.items():
+            print(f"!#@$%@$!^%$@!^%$@!%^$%@!%^$@^!$@^%!$@^$!@^@!^%$^@!$^\natt_method: {att_method}\\\\\ {type(att_method).__name__}\n att_method_info: {att_method_info} |||| {type(att_method_info).__name__}")
+            
             if type(att_method_info["value"]).__name__ == "node_input":
                 _, input_val, _ = self.visit_node(att_method_info["value"])
                 att_method_info["value"] = input_val
+
+            if type(att_method_info["value"]).__name__ == "list":
+                arr_vals = att_method_info["value"]
+                print(f"***************************************************\narr_vals: {arr_vals}")
+                if att_method_info["arr_info"]["dimension"] == 1:
+                    for idx, arr_val in enumerate(arr_vals):
+                        if type(arr_val).__name__ == "node_input":
+                            _, input_val, _ = self.visit_node(arr_val)
+                            arr_vals[idx] = input_val  # ← this updates the actual list
+                            
+                else:
+                    for arr_val in arr_vals:
+                        for idx, val in enumerate(arr_val):
+                            if type(val).__name__ == "node_input":
+                                _, input_val, _ = self.visit_node(val)
+                                arr_val[idx] = input_val  # ← this updates the actual list
+                    
         
         if class_inst_cont:
             #constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
@@ -1678,7 +1693,7 @@ class Runtime:
         return class_return
 
     #array declaration
-    def visit_node_arr_dec(self, node, priv = False):
+    def visit_node_arr_dec(self, node, priv = False, input_deactivator_for_classes_yes = False):
         print(f'\n(runtime)(dbg) VISITING {type(node).__name__}!!')
         print(f'!!NODE!!: {node}!!')
         id = node.id_n.id_t["tokenName"]
@@ -1694,22 +1709,22 @@ class Runtime:
 
         size_1_type, size_1, _ = self.visit_node(node.size1_n)
 
-        if size_1_type[1] not in ['int']:
-            self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
+        # if size_1_type[1] not in ['int']:
+        #     self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
         
-        if size_1 < 1:
-            self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
+        # if size_1 < 1:
+        #     self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
         size_2_type, size_2, _ = self.visit_node(node.size2_n) if node.size2_n else (None, None, None)
 
-        if size_2_type and size_2_type[1] not in ['int']:
-            self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
-        print(size_2 and size_2 < 1)
+        # if size_2_type and size_2_type[1] not in ['int']:
+        #     self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
+        # print(size_2 and size_2 < 1)
         
-        try:
-            if size_2 < 1:
-                self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
-        except TypeError:
-            pass
+        # try:
+        #     if size_2 < 1:
+        #         self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
+        # except TypeError:
+        #     pass
 
 
         values_list = None
@@ -1747,14 +1762,18 @@ class Runtime:
             if node.arr_dec_cont_n and not arr_rec:
                 
                 for index_1D, value_node in enumerate(values_list or []):
-                    val_type, val, err_n = self.visit_node(value_node)
-                    print(f'arr init valtype: {val_type[1]}')
+                    if (input_deactivator_for_classes_yes and type(value_node).__name__ == "node_input"):
+                        val = value_node
+                    else:
+                        _, val, _ = self.visit_node(value_node)
+                        #val_type, val, err_n = self.visit_node(value_node)
+                    #print(f'arr init valtype: {val_type[1]}')
                     
                     #error for arr size in code gen
                     # if val_type[1] != node.dtype_t["tokenName"]:
                     #     self.logError(f"Array contents of '{id}' can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}'.", node.id_n)
                     
-                    self.check_type_and_range("array", dtype, val_type, val, node.id_n, index_1D, err_n = err_n)
+                    #self.check_type_and_range("array", dtype, val_type, val, node.id_n, index_1D, err_n = err_n)
 
                     arr_vals.append(val)
                 
@@ -1774,14 +1793,18 @@ class Runtime:
                 temp_arr = []
                 
                 for index_2D, value_node in enumerate(inner_arr or []):
-                    val_type, val, err_n = self.visit_node(value_node)
-                    print(f'arr init valtype: {val_type}, val = {val}')
+                    if (input_deactivator_for_classes_yes and type(value_node).__name__ == "node_input"):
+                        val = value_node
+                    else:
+                        _, val, _ = self.visit_node(value_node)
+                    # val_type, val, err_n = self.visit_node(value_node)
+                    # print(f'arr init valtype: {val_type}, val = {val}')
                     
                     #error for arr size in code gen
                     # if val_type[1] != node.dtype_t["tokenName"]:
                     #     self.logError(f"Array contents of '{id}'  can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}.", node.id_n)
                     
-                    self.check_type_and_range("array", dtype, val_type, val, node.id_n, index_1D, index_2D, err_n = err_n)
+                    # self.check_type_and_range("array", dtype, val_type, val, node.id_n, index_1D, index_2D, err_n = err_n)
 
                     temp_arr.append(val)
                 
@@ -2267,7 +2290,7 @@ class Runtime:
 
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
-            if node_loop.inig_arg_n: self.visit_node(node_loop.init_arg_n)
+            if node_loop.init_arg_n: self.visit_node(node_loop.init_arg_n)
 
             #self.visit_node(node_loop.condition_n.condition_value_n)
             #print(f"CONDITION was found from: {loop_name} \n")
