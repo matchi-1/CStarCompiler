@@ -348,7 +348,10 @@ class Runtime:
         raise SyntaxError(full_message)
     
 
-
+    def _format_float_output(self, value):
+        if isinstance(value, (float, Decimal)):
+            return f"{float(value):.2f}"  
+        return str(value)  
 
     # ------------------------------------ NODE VISITATION FUNCS----------------------------------
     # FORMAT: visit_{node_name}
@@ -2646,6 +2649,7 @@ class Runtime:
         print(f'\n(runtime)(dbg) Visiting node_output\n')
         print_stmts_n = node.print_stmts_n 
         print_params_n = node.print_params_n  
+    
 
         # if not print_params_n:
         #     self.logError("Output statement requires at least one parameter (format string).")
@@ -2659,7 +2663,7 @@ class Runtime:
             # self.logError("First parameter in output statement must be a string (format string).", first_param)
                 if len(print_params_n) > 1:
                     self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
-                formatted_output = str(first_param_val)
+                formatted_output = self._format_float_output(first_param_val)
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
             # for param in print_params_n:
@@ -2701,6 +2705,10 @@ class Runtime:
                         print("ERERRRRRRRRRRRRRRRR err_n: " + str(err_n))
                         self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
                         return None
+                    
+                    if specifier in ["%f", "%lf"]:
+                        param_value = self._format_float_output(param_value) 
+
                     formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
             if print_stmts_n == "println":
