@@ -2658,11 +2658,11 @@ class Runtime:
                 formatted_output = str(first_param_val)
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
-            for param in print_params_n:
-                print(f"!!!!!!@!@!@&T@!^!*&@^&*!@\nVISITING PRINT PARAMS:\n{print_params_n}\n{param}")
-                if not (type(param).__name__ == "node_input"):
-                    param_type, param_value, err_n = self.visit_node(param)
-                    formatted_output += str(param_value)
+            # for param in print_params_n:
+            #     print(f"!!!!!!@!@!@&T@!^!*&@^&*!@\nVISITING PRINT PARAMS:\n{print_params_n}\n{param}")
+            #     if not (type(param).__name__ == "node_input"):
+            #         param_type, param_value, err_n = self.visit_node(param)
+            #         formatted_output += str(param_value)
                 
                 # for i, param in enumerate(print_params_n):
                 #     param_type, param_value, err_n  = self.visit_node(param)
