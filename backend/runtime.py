@@ -2568,7 +2568,6 @@ class Runtime:
                 for i, specifier in enumerate(format_specifiers):
                     param_node = print_params_n[i + 1] 
                     param_type, param_value, err_n  = self.visit_node(param_node)
-                    print(f"PARAM VALUUEEEE thingy: {param_value} str: {str(param_value)}")
                 
                     if not self._validate_format_specifier(specifier, param_type[1], param_value) :
                         # err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
@@ -2603,15 +2602,19 @@ class Runtime:
         if specifier == "%s":
             return param_type == "string"
         elif specifier == "%d":
+            self.check_type_and_range('Format specifier', (None, 'int'), (None, param_type), val)
             return param_type == "int"
         elif specifier == "%ld":
+            self.check_type_and_range('Format specifier', (None, 'long'), (None, param_type), val)
             return param_type in ['int', 'long']
         elif specifier == "%f":
             if param_type == 'int':
                 self.check_type_and_range('Format specifier', (None, 'float'), (None, 'int'), val)
                 return True
+            self.check_type_and_range('Format specifier', (None, 'float'), (None, param_type), val)
             return param_type == "float"
         elif specifier == "%lf":
+            self.check_type_and_range('Format specifier', (None, 'double'), (None, param_type), val)
             return param_type in ['float', 'double']
         else:
             return False
