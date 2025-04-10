@@ -350,9 +350,10 @@ class Runtime:
 
     def _format_float_output(self, value):
         if isinstance(value, (float, Decimal)):
-            return f"{float(value):.2f}"  
-        return str(value)  
-
+            clamped_value = max(self.MIN_FLOAT, min(float(value), self.MAX_FLOAT))
+            return f"{clamped_value:.2f}" 
+        return str(value)
+        
     # ------------------------------------ NODE VISITATION FUNCS----------------------------------
     # FORMAT: visit_{node_name}
     # VALUE nodes always return tuple of dtype and value
