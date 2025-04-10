@@ -4,6 +4,7 @@ from decimal import Decimal
 from flask_socketio import SocketIO
 import time
 import codecs
+import re
 
 socketio = None  # global holder
 user_response = {}
@@ -261,7 +262,7 @@ class Runtime:
         if visit_func is None:
             if nodeName == 'node_imports_list':
                 print()
-            else: print(f"\n(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
+            else: print(f"\n(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}\n node: {node}")
         else:
             print(f'\n(runtime)(dbg) VISITING {nodeName}!!')
             #print(f'!!NODE!!: {node}!!')
@@ -1406,30 +1407,137 @@ class Runtime:
         func_name = node.id_n.id_t["tokenName"]
         print(f'\n(runtime)(dbg) Visiting node_func_call for {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
+        
         if not func_symbol:
             self.logError(f"Function '{func_name}' hasn't been declared yet.", node.id_n)
+        
         if func_symbol["dtype"][0] != 'func':
             self.logError(f"Symbol '{func_name}' is not a function.", node.id_n)
+
         
-        self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
+        #self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
         #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
         #temp vals
         print('(runtime)(dbg) Done checking, back in visit func_call now')
         print('(runtime)(dbg)', node.args_n)
         val = None
-        if func_symbol["dtype"][1] == 'void':
+        if func_symbol["isStd_lib"]:
+            val = self.handleStandardLibraries(func_name, node.args_n)
+
+        elif func_symbol["dtype"][1] == 'void':
             if expected_val:
                 self.logError(f"Function '{func_name}' is void and cannot return any value, it cannot be used as a value.", node.id_n)
             self.evaluate_func(func_name, node.args_n)
+        
         else:
             val = self.evaluate_func(func_name, node.args_n)
 
 
         print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
-        self.RETURN_PROMISES.pop()
+        if self.RETURN_PROMISES: self.RETURN_PROMISES.pop()
         return (('lit', f'{func_symbol["dtype"][1]}'), val, node.id_n) 
 
-    
+
+    def handleStandardLibraries(self, func_name, args_list):
+        print(f'(runtime)(dbg) HANDLING STANDARD LIBRARY: \nfuncname = {func_name}\nargs_LIST = {args_list}')
+        func_symbol = self.curr_scope.get(func_name)
+        lit_details = []
+        sym_details = {}
+        ret_val = None
+        ret_string = ""
+        # for i, arg_n in enumerate(args_list):
+        #     nodeName = type(arg_n).__name__
+        #     if nodeName != 'node_iden':
+        #         dtype, val, _ = self.visit_node(arg_n)
+        #         lit_details.append((func_symbol["param_names"][i], val, dtype)) 
+        #     else:
+        #         self.curr_scope.get(arg_n.id_t["tokenName"])
+        #         sym_details[func_symbol["param_names"][i]] = (arg_n.id_t["tokenName"], self.curr_scope.get(arg_n.id_t["tokenName"]))
+        
+        str_param1 = int_param1 = int_param2 = None
+
+        for i, arg_n in enumerate(args_list):
+            param_name = func_symbol["param_names"][i]
+            nodeName = type(arg_n).__name__
+
+            if nodeName != 'node_iden':
+                dtype, val, _ = self.visit_node(arg_n)
+                lit_details.append((param_name, val, dtype))
+
+                # Immediate assignment if it's a target param
+                if param_name == "str_param1":
+                    str_param1 = val
+                elif param_name == "int_param1":
+                    int_param1 = val
+                elif param_name == "int_param2":
+                    int_param2 = val
+
+            else:
+                tokenName = arg_n.id_t["tokenName"]
+                sym_info = self.curr_scope.get(tokenName)
+                sym_details[param_name] = (tokenName, sym_info)
+
+                # Immediate assignment if it's a target param
+                val = sym_info['value']
+                if param_name == "str_param1":
+                    str_param1 = val
+                elif param_name == "int_param1":
+                    int_param1 = val
+                elif param_name == "int_param2":
+                    int_param2 = val
+
+
+        print('BBBBBBBBBBBBBBBBBBBBBBBBBB\n', sym_details)
+        print('\nCCCCCCCCCCCCCCCCCCCCCCCCCCC\n', lit_details)
+        print('\nDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n', func_symbol)
+
+        if func_name == "array_length":
+            return len(sym_details[func_symbol["param_names"][0]][1]["value"])
+        
+        # if lit_details:
+        #     ret_string = lit_details[1]
+        # else:
+        #     ret_string = sym_details[func_symbol["param_names"][0]][1]["value"]
+
+        match (func_name):
+            case "array_isEmpty":
+                return False #????
+
+            case "str_isEmpty":
+                return len(str_param1) == 0
+            
+            case "str_length":
+                return len(str_param1)
+            
+            case "str_popAlpha":
+                return re.sub(r'[a-zA-Z]', '', str_param1)
+            
+            case "str_popDigits":
+                return re.sub(r'\d', '', str_param1)
+            
+            case "str_popSpecial":
+                return re.sub(r'[^a-zA-Z0-9 ]', '', str_param1)
+            
+            case "str_slice":
+                if int_param2 < int_param1:
+                    self.logError("Slice end index cannot be less than start index.", args_list[1])
+                
+                if int_param1 < 0 or int_param2 < 0:
+                    self.logError("Slice indices cannot be negative.", args_list[1])
+
+                if int_param1 >= len(str_param1) or int_param2 >= len(str_param1):
+                    self.logError(f"Slice index '{int_param2 if int_param2 >= len(str_param1) else int_param1}' out of bounds for string '{str_param1}' with length '{len(str_param1)}'.", args_list[1])
+
+                return str_param1[int_param1:int_param2+1]
+            
+            case "str_toLower":
+                return str_param1.lower()
+            
+            case "str_toUpper":
+                return str_param1.upper()
+
+
+
     def check_function_params(self, func_symbol, args, node_id, call_string):
         print(f"(runtime)(dbg) CHECKING PARAMS from {call_string}!!")
         """
@@ -2548,7 +2656,7 @@ class Runtime:
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
             for param in print_params_n:
-                print(f"!!!!!!@!@!@&T@!^!*&@^&*!@^!\n{print_params_n}\n{param}")
+                print(f"!!!!!!@!@!@&T@!^!*&@^&*!@\nVISITING PRINT PARAMS:\n{print_params_n}\n{param}")
                 if not (type(param).__name__ == "node_input"):
                     param_type, param_value, err_n = self.visit_node(param)
                     formatted_output += str(param_value)
@@ -2578,7 +2686,7 @@ class Runtime:
                 formatted_output = str(first_param_val)
                 for i, specifier in enumerate(format_specifiers):
                     param_node = print_params_n[i + 1] 
-                    print(f"!!!!!!@!@!@&T@!^!*&@^&*!@^!\n{format_specifiers}\n{param_node}")
+                    print(f"()()()()()(()()()()()()()()()()()()()()()()()))\n{format_specifiers}\n{param_node}")
                     param_type, param_value, err_n  = self.visit_node(param_node)
                 
                     if not self._validate_format_specifier(specifier, param_type[1], param_value) :
@@ -2606,7 +2714,7 @@ class Runtime:
  
 
     def _extract_format_specifiers(self, format_string):
-        import re
+        # import re
         return re.findall(r'%[sdf]|%l[df]', format_string or "")  # matches %s, %d, %f, %ld, %lf
                                                         #or statement so that we dont throw an exeption on None returns
 
