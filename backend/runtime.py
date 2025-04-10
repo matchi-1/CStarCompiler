@@ -2022,6 +2022,10 @@ class Runtime:
                 err_n =left_err
             self.logError(f"Direct operations on entire objects are not allowed. Access specific properties of object '{var_name}' instead.", err_n)
 
+        #parse values
+        left_val = Decimal(left_val) if left_type[1] in ['float', 'double'] else int(left_val) if left_type[1] in ['int', 'long'] else left_val
+        right_val = Decimal(right_val) if right_type[1] in ['float', 'double'] else int(right_val) if right_type[1] in ['int', 'long'] else right_val
+
         if (left_type[1] == 'long' or right_type[1] == 'long'):
             dtype = ('lit', 'long')
         if (left_type[1] == 'float' or right_type[1] == 'float'):
