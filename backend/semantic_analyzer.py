@@ -1326,7 +1326,7 @@ class SemanticAnalyzer:
                 self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
             if const and not dec_node.value_n:
                 self.logError("Constant variable declarations must always be initialized with a value.", err_n)
-            class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_node.value_n if dec_node.value_n != None else default_val, dtype=dtype, priv = priv, const=const))
+            class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_value if dec_node.value_n != None else default_val, dtype=dtype, priv = priv, const=const))
 
         return class_return
 
@@ -1497,6 +1497,8 @@ class SemanticAnalyzer:
         left_type, left_val, left_err = self.visit_node(node.left_n)
         right_type, right_val, right_err = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
+        print(f"(semantic) bi_op left_type: {left_type} left_val: {left_val}")
+        print(f"(semantic) bi_op right_type: {right_type} right_val: {right_val}")
 
         print('taa types', type(left_val), type(right_val))
 
