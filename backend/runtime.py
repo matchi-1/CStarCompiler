@@ -3,6 +3,7 @@ from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt,
 from decimal import Decimal
 from flask_socketio import SocketIO
 import time
+import codecs
 
 socketio = None  # global holder
 user_response = {}
@@ -2442,6 +2443,8 @@ class Runtime:
         print(">>>> WAITING INPUT FROM FRONTEND.....")
         global wait_flag, user_response
         wait_flag = True  # set the shared wait flag
+        prompt_value = codecs.decode(prompt_value, 'unicode_escape')
+        print(">>>> PROMPT FROM BACKEND: " + prompt_value)
         socketio.emit('request_input', { "type": "input_request", "prompt": prompt_value })
 
         # wait for input from frontend
