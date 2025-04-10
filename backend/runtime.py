@@ -1992,6 +1992,15 @@ class Runtime:
     def visit_node_bi_op(self, node, fromRetBlock=False):
         
         left_type, left_val, left_err = self.visit_node(node.left_n)
+        if node.op_t["tokenName"] in ['||', '&&'] and left_type[0] not in ['arr', 'obj']:
+            if node.op_t["tokenName"] == '&&':
+                if not left_val:
+                    return (('lit', 'bool'), False, left_err)
+                # return (('lit', 'bool'), None)
+            else:
+                if left_val:
+                    return (('lit', 'bool'), True or right_val, left_err)
+                
         right_type, right_val, right_err = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
         print(f"(runtime) bi_op left_type: {left_type} left_val: {left_val}")
