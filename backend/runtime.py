@@ -213,7 +213,7 @@ class Runtime:
 
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
-            #print('-----------AST-----------------\n\t\t', node)
+            print('-----------AST-----------------\n\t\t', node)
             #print('-----------OUTPUT--------------\n\t\t', self.output)
             
             
@@ -764,6 +764,7 @@ class Runtime:
     def visit_node_str(self, node):
         # return (('var', node.dtype), node.val_t["tokenName"][1:-1]
         err_n = ErrorNode(node.val_t["tokenLine"], node.val_t["tokenCol"] - len(node.val_t["tokenName"]) - 1)
+        print(f"(runtime)(dbg) RETURNED FROM node_str!! : {('lit', node.dtype), node.val_t["tokenName"][1:-1], err_n}")
         return (('lit', node.dtype), node.val_t["tokenName"][1:-1], err_n)
     
     def visit_node_bool(self, node):
@@ -2541,17 +2542,21 @@ class Runtime:
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
             for param in print_params_n:
-                param_type, param_value, err_n = self.visit_node(param)
-                for i, param in enumerate(print_params_n):
-                    param_type, param_value, err_n  = self.visit_node(param)
-                    # entire arrays and objects are not allowed as direct output
-                    if param_type[0] == 'arr':
-                        self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", err_n)
-                        return None
-                    elif param_type[0] == 'object':
-                        self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", err_n)
-                        return None
+                print(f"!!!!!!@!@!@&T@!^!*&@^&*!@^!\n{print_params_n}\n{param}")
+                if not (type(param).__name__ == "node_input"):
+                    param_type, param_value, err_n = self.visit_node(param)
                     formatted_output += str(param_value)
+                
+                # for i, param in enumerate(print_params_n):
+                #     param_type, param_value, err_n  = self.visit_node(param)
+                #     # entire arrays and objects are not allowed as direct output
+                #     # if param_type[0] == 'arr':
+                #     #     self.logError(f"(Output Parameter {i+1}) Direct output of entire arrays is not allowed. Access specific elements instead.", err_n)
+                #     #     return None
+                #     # elif param_type[0] == 'object':
+                #     #     self.logError(f"(Output Parameter {i+1}) Direct output of entire objects is not allowed. Access specific properties instead.", err_n)
+                #     #     return None
+                #     formatted_output += str(param_value)
             
                 # return None
             else:
@@ -2567,6 +2572,7 @@ class Runtime:
                 formatted_output = str(first_param_val)
                 for i, specifier in enumerate(format_specifiers):
                     param_node = print_params_n[i + 1] 
+                    print(f"!!!!!!@!@!@&T@!^!*&@^&*!@^!\n{format_specifiers}\n{param_node}")
                     param_type, param_value, err_n  = self.visit_node(param_node)
                 
                     if not self._validate_format_specifier(specifier, param_type[1], param_value) :

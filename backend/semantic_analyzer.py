@@ -2088,6 +2088,7 @@ class SemanticAnalyzer:
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
             for param in print_params_n:
+                print(f"!!!!!!@!@!@&T@!^!*&@^&*!@^!\n{print_params_n}\n{param}")
                 param_type, param_value, err_n = self.visit_node(param)
                 for i, param in enumerate(print_params_n):
                     param_type, param_value, err_n  = self.visit_node(param)
