@@ -349,11 +349,12 @@ class Runtime:
     
 
     def _format_float_output(self, value):
-        if isinstance(value, (float, Decimal)):
-            clamped_value = max(self.MIN_FLOAT, min(float(value), self.MAX_FLOAT))
-            return f"{clamped_value:.2f}" 
-        return str(value)
-        
+        if isinstance(value, float):
+            return f"{value:.2f}"
+        elif isinstance(value, Decimal):
+            return f"{value.quantize(Decimal("0.00"))}"
+        return str(value) 
+
     # ------------------------------------ NODE VISITATION FUNCS----------------------------------
     # FORMAT: visit_{node_name}
     # VALUE nodes always return tuple of dtype and value
@@ -2671,9 +2672,13 @@ class Runtime:
 
             if first_param_type is None or first_param_type[1] != "string":
             # self.logError("First parameter in output statement must be a string (format string).", first_param)
+                print(f"param value heh: {first_param_val} type: {first_param_type}")
                 if len(print_params_n) > 1:
                     self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
+                
+                self.check_type_and_range("print value", first_param_type, first_param_type, first_param_val)
                 formatted_output = self._format_float_output(first_param_val)
+                print(f"param value formatted heh: {self._format_float_output(first_param_val)}")
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
             # for param in print_params_n:
@@ -2709,6 +2714,7 @@ class Runtime:
                     param_node = print_params_n[i + 1] 
                     print(f"()()()()()(()()()()()()()()()()()()()()()()()))\n{format_specifiers}\n{param_node}")
                     param_type, param_value, err_n  = self.visit_node(param_node)
+                    print(f"param value heh: {param_value}")
                 
                     if not self._validate_format_specifier(specifier, param_type[1], param_value) :
                         # err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
