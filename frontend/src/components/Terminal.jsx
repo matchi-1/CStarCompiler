@@ -136,6 +136,7 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
         };
 
         const handleDone = (data) => {
+            handleUserInput("");
             setLogs(prev => [...prev, { type: 'success', value: data.value.toString() }]);
             if (onExecutionComplete) {
                 onExecutionComplete(); // notify parent that execution is done
@@ -190,8 +191,12 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                     <p>Compiler Logs</p>
                 </div>
                 <div className="tab-filler">
-                    <p className="x-tab-btn">x</p>
+                    {clearLogs && <p>Program running . . .</p>}
                 </div>
+                {/* <div className="tab-filler">
+                    <p className="x-tab-btn">x</p>
+                </div> */}
+
             </div>
 
             <div className="terminal-body">

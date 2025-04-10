@@ -2,6 +2,7 @@ import eventlet, copy
 from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal
 from flask_socketio import SocketIO
+import time
 
 socketio = None  # global holder
 user_response = {}
@@ -32,10 +33,13 @@ def setup_runtime(sio_instance):
 
 def checkTerminate():
     global terminate_program
-    if terminate_program:
-        terminate_program = False
-        socketio.emit("done", { "type": "success", "value": "[Program terminated by the user.]" })
-        raise SyntaxError("Program terminated by the user.")
+    try: 
+        if terminate_program:
+            terminate_program = False
+            socketio.emit("done", { "type": "success", "value": "[Program terminated by the user.]" })
+            raise SyntaxError("Program terminated by the user.")
+    except SyntaxError as e:
+            print (e)
         
 
 
@@ -199,6 +203,7 @@ class Runtime:
     RETURN_PROMISES = list()
 
     def interpret(self, node):
+        start_time = time.time()
         try:
             self.RETURN_PROMISES.clear()
             self.visit_node(node)
@@ -215,11 +220,11 @@ class Runtime:
         
         except SyntaxError as e:
             print (e)
-
+        end_time = time.time()
+        elapsed_time = end_time - start_time
         # remove error list here in the future
-        global terminate_program
-        if not terminate_program:
-            socketio.emit("done", { "type": "success", "value": "[Finished runtime execution.]" })
+
+        socketio.emit("done", { "type": "success", "value": f"[Finished runtime execution. Total elapsed time: {"{:.2f}".format(elapsed_time)} seconds.]" })
         return self.errors
 
     def __init__(self):
@@ -328,7 +333,6 @@ class Runtime:
         self.errors.append(full_message)
         #print(full_message)
         socketio.emit('error', { "type": "error", "value": full_message })
-        #eventlet.sleep(0.1)
         raise SyntaxError(full_message)
     
 
@@ -1930,15 +1934,15 @@ class Runtime:
             case '/':
                 print(f"search for me:")
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes and not fromRetBlock:
+                    if right_val == 0: #todo
+                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
+                        self.logError("Division by 0 is not allowed.", right_err)
                     return (dtype, int(left_val / right_val), left_err)
                     # return (dtype, None)
                 if fromRetBlock:
                     if right_type[0] == "lit" and right_val == 0:
                         self.logError("Division by 0 is not allowed.", right_err)
                     return (dtype, self.default_vals[dtype[1]], left_err)
-                elif right_val == 0: #todo
-                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
-                    self.logError("Division by 0 is not allowed.", right_err)
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '*':
@@ -2297,6 +2301,7 @@ class Runtime:
 
             #handle for loops
             while True:
+                checkTerminate()
                 if loop_count > self.MAX_LOOP_COUNT:
                     self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
@@ -2325,6 +2330,7 @@ class Runtime:
 
         elif loop_name == 'node_while' or loop_name == 'node_do':
             while True:
+                checkTerminate()
                 if loop_count > self.MAX_LOOP_COUNT:
                     self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
@@ -2354,6 +2360,7 @@ class Runtime:
             # self.visit_node(node_loop.ctrl_stmt_body_n)
 
             while True:
+                checkTerminate()
                 if loop_count > self.MAX_LOOP_COUNT:
                     self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
                     break
@@ -2573,7 +2580,7 @@ class Runtime:
             formatted_output = self.handle_backspace_escapes(formatted_output)
             print('(runtime)(OUTPUT) printing: ', formatted_output)
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
-            #eventlet.sleep(0.1)
+            
 
         return None
  
@@ -2686,7 +2693,7 @@ class Runtime:
     
     def visit_node_switch_stmt(self, node):
         self.enter_scope(type(node).__name__)
-        self.switch_depth += 1
+        # self.switch_depth += 1
         
         switch_type, switch_val, err_n = self.visit_node(node.value_n)
         if switch_type[1] not in ["string", "int", "long"]:
@@ -2773,7 +2780,7 @@ class Runtime:
            # self.exit_scope(default_stmt)
 
 
-        self.switch_depth -= 1
+        # self.switch_depth -= 1
         self.exit_scope(type(node).__name__)
         return
     

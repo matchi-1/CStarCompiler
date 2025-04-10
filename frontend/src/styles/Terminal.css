@@ -33,6 +33,7 @@
     width: 100%;
     display: flex;
     flex-direction: row;
+
     background-color: var(--sideBar-blue);
     user-select: none;
 }
@@ -65,13 +66,15 @@
     margin-right: 0.35rem;
     font-size: 0.85rem;
     color: var(--font-darkerLightBlue);
+    font-size: 0.7rem;
+    padding-right: 1rem;
 }
 
 
 /* Tab items with white border only on the right */
 .tab-item {
     background-color: var(--terminal-blue);
-    width: 10rem;
+    width: 9rem;
     height: 100%;
     position: relative;
     display: flex;
@@ -215,4 +218,3 @@
     color: #ff8d8d;
     font-weight: bold;
   }
-  
