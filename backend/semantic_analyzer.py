@@ -672,9 +672,10 @@ class SemanticAnalyzer:
                     self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', idx_err)
                 if idx_val < 0:
                         self.logError("String index cannot be negative.", idx_err)
-                if idx_val >= len(arr_sym["value"]):
-                    self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.', idx_err)
-                return (('lit', 'string'), arr_sym["value"][idx_val], arr_id_err)
+                # if idx_val >= len(arr_sym["value"]):
+                #     self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.', idx_err)
+                # return (('lit', 'string'), arr_sym["value"][idx_val], arr_id_err)
+                return (('lit', 'string'), "", arr_id_err)
             else:
                 self.logError(f'Symbol \'{node.id_n.id_t["tokenName"]}\' is not an array.', arr_id_err)
 
