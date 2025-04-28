@@ -745,7 +745,7 @@ class SemanticAnalyzer:
 
                 elif type(param).__name__ == "node_funcpar_var":
                     param_types.append({
-                        "dtype": ("var", param.dtype_t["tokenName"])
+                        "dtype": ("var", param.dtype_t["tokenName"] if param.dtype_t else None) # for any types
                     })  
         
         self.current_function_name = func_name
@@ -798,8 +798,8 @@ class SemanticAnalyzer:
                     print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
 
                 elif type(param).__name__ == "node_funcpar_var":
-                    var_dtype = ('var', param.dtype_t["tokenName"])
-                    print(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
+                    var_dtype = ('var', param.dtype_t["tokenName"] if param.dtype_t else None)
+                    print(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]] if param.dtype_t else 0, dtype=(var_dtype if param.dtype_t else None), const=False)}')
 
         
         # Visit function body
@@ -1114,6 +1114,8 @@ class SemanticAnalyzer:
                 arg_val_type, arg_val, arg_err_n = self.visit_node(arg_node)
 
                 if param_type["dtype"][0] == "var":
+                    if param_type["dtype"][1] is None:
+                            continue  # accept any dtype for std libs (for math)
                     if arg_val_type[0] != "lit" or arg_arr_att_flag:  # values and vars are treated the sme type
                         if arg_val_type[0] == 'arr' : # value  vs  array 
                             if not arg_arr_att_flag: # value  vs  array as a whole

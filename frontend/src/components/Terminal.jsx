@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import '../styles/Terminal.css';
 
@@ -12,6 +12,8 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
     const terminalRef = useRef();
     const [inputText, setInputText] = useState('');
     const [logs, setLogs] = useState([]);
+    const logsRef = useRef(logs);
+    logsRef.current = logs;
 
     const formattedInitialLogs = initialLogs.map(log => ({
         type: 'error',
@@ -56,47 +58,56 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
         console.log("all logs:", logs);
     }, [initialLogs]);
 
-    // socket listeners
-    useEffect(() => {
 
-        const connectHandler = () => {
-            console.log('Connected to backend!');
-        };
-        const handlePrintOutput = (data) => {
-            console.log("Received output string to be displayed:", data);
+    // socket handlers
+    const connectHandler = () => {
+        console.log('Connected to backend!');
+    };
 
-            const value = parseEscapeSequences(data.value.toString(), true); //parseEscapeSequences(data.value.toString());
+    const handlePrintOutput = useCallback((data) => {
+        console.log("Received output string to be displayed:", data);
 
-            // if there's no newline, append directly to the last log
-            if (!value.includes('\n')) {
-                setLogs(prevLogs => {
-                    const updatedLogs = [...prevLogs];
-                    const last = updatedLogs[updatedLogs.length - 1];
+        const value = parseEscapeSequences(data.value.toString(), true); //parseEscapeSequences(data.value.toString());
 
-                    if (last && last.type === 'output') {
-                        // replace the last log entry with a new object
-                        const newLast = { ...last, value: last.value + value };
-                        updatedLogs[updatedLogs.length - 1] = newLast;
-                    } else {
-                        updatedLogs.push({ type: 'output', value });
-                    }
-
-                    return updatedLogs;
-                });
-                return;
-            }
-
-            // else, split and stream line-by-line
-            const parts = value.split('\n');
-            // console.log("PARTS: " + parts)
-
+        // if there's no newline, append directly to the last log
+        if (!value.includes('\n')) {
             setLogs(prevLogs => {
                 const updatedLogs = [...prevLogs];
+                const last = updatedLogs[updatedLogs.length - 1];
 
-                parts.forEach((part, index) => {
-                    const isLast = index === parts.length - 1;
+                if (last && last.type === 'output') {
+                    // replace the last log entry with a new object
+                    const newLast = { ...last, value: last.value + value };
+                    updatedLogs[updatedLogs.length - 1] = newLast;
+                } else {
+                    updatedLogs.push({ type: 'output', value });
+                }
 
-                    if (isLast) {
+                return updatedLogs;
+            });
+            return;
+        }
+
+        // else, split and stream line-by-line
+        const parts = value.split('\n');
+
+        setLogs(prevLogs => {
+            const updatedLogs = [...prevLogs]; // Start with the previous logs
+
+            parts.forEach((part, index) => {
+                const isLast = index === parts.length - 1;
+
+                if (isLast) {
+                    const last = updatedLogs[updatedLogs.length - 1];
+                    if (last && last.type === 'output') {
+                        // clone and replace to avoid mutation
+                        const newLast = { ...last, value: last.value + part };
+                        updatedLogs[updatedLogs.length - 1] = newLast;
+                    } else {
+                        updatedLogs.push({ type: 'output', value: part });
+                    }
+                } else {
+                    if (part !== '') {
                         const last = updatedLogs[updatedLogs.length - 1];
                         if (last && last.type === 'output') {
                             // clone and replace to avoid mutation
@@ -105,48 +116,42 @@ const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) =>
                         } else {
                             updatedLogs.push({ type: 'output', value: part });
                         }
-                    } else {
-                        if (part !== '') {
-                            const last = updatedLogs[updatedLogs.length - 1];
-                            if (last && last.type === 'output') {
-
-                                // clone and replace to avoid mutation
-                                const newLast = { ...last, value: last.value + part };
-                                updatedLogs[updatedLogs.length - 1] = newLast;
-                            } else {
-                                updatedLogs.push({ type: 'output', value: part });
-                            }
-                        }
-                        updatedLogs.push({ type: 'output', value: '' }); // newline marker
                     }
-                });
-
-                return updatedLogs;
+                    updatedLogs.push({ type: 'output', value: '' }); // newline marker
+                }
             });
 
-        };
+            // Update the logs state with the updated logs array
+            return updatedLogs;
+        });
 
-        const handleRequestInput = (data) => {
-            console.log("Received input request:", data);
-            setLogs(prev => [...prev, { type: 'input_request', prompt: data.prompt.toString() }]);
-        };
+    }, []);
 
-        const handleError = (data) => {
-            console.log("Received runtime error:", data);
-            setLogs(prev => [...prev, { type: 'error', value: data.value.toString() }]);
-            if (onExecutionComplete) {
-                onExecutionComplete(); // notify parent that execution is done
-            }
-        };
+    const handleRequestInput = (data) => {
+        console.log("Received input request:", data);
+        setLogs(prev => [...prev, { type: 'input_request', prompt: data.prompt.toString() }]);
+    };
 
-        const handleDone = (data) => {
-            handleUserInput("");
-            setLogs(prev => [...prev, { type: 'success', value: data.value.toString() }]);
-            if (onExecutionComplete) {
-                onExecutionComplete(); // notify parent that execution is done
-            }
-        };
+    const handleError = (data) => {
+        console.log("Received runtime error:", data);
+        setLogs(prev => [...prev, { type: 'error', value: data.value.toString() }]);
+        if (onExecutionComplete) {
+            onExecutionComplete(); // notify parent that execution is done
+        }
+    };
 
+    const handleDone = (data) => {
+        handleUserInput("");
+        setLogs(prev => [...prev, { type: 'success', value: data.value.toString() }]);
+        if (onExecutionComplete) {
+            onExecutionComplete(); // notify parent that execution is done
+        }
+    };
+
+
+
+    // socket listeners
+    useEffect(() => {
         socket.on('connect', connectHandler);
         socket.on('request_input', handleRequestInput);
         socket.on('print_output', handlePrintOutput);

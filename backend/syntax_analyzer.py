@@ -4,7 +4,7 @@ from lexical_analyzer import Token
 PREDICT_SETS = {
     "program":["import", "Identifier", "const", "void", "bool", "string", "int", "long", "float", "double", "private", "class"],
     "imports_rec": ["import", "private", "class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
-    "std_lib": [ "Cstring", "Carray"],
+    "std_lib": [ "Cstring", "Carray", "Cmath"],
     "program_constructs": ["class", "int", "long", "bool", "float", "double", "string", "const", "void", "Identifier"],
     "data_type": ["bool", "string", "int", "long", "double", "float"],
     "class_body": [ "private" , "const", "int", "long", "bool", "float", "double", "string" , "void"],
@@ -311,7 +311,7 @@ class node_funcpar_var:
         self.dtype_t = dtype_t
         self.id_n = id_n
     def __repr__(self):
-        return f"node_funcpar_var: (dtype_t: {self.dtype_t["tokenName"]}, id_n: {self.id_n})"
+        return f"node_funcpar_var: (dtype_t: {self.dtype_t["tokenName"] if self.dtype_t else 'None'}, id_n: {self.id_n})"
 
 class node_output:
     def __init__(self, print_stmts_n, print_params_n):
@@ -1187,6 +1187,7 @@ class SyntaxAnalyzer:
                     string_type_t = Token("string", "string", std_lib_header_line, std_lib_header_col).to_dict()
                     int_type_t = Token("int", "int", std_lib_header_line, std_lib_header_col).to_dict()
                     bool_type_t = Token("bool", "bool", std_lib_header_line, std_lib_header_col).to_dict()
+                    double_type_t = Token("double", "double", std_lib_header_line, std_lib_header_col).to_dict()
 
                     # default parameter identifier tokens
                     str_iden = Token("str_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
@@ -1197,6 +1198,10 @@ class SyntaxAnalyzer:
                     int_iden_n2= node_iden(int_iden2)
                     array_iden = Token("array_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
                     array_iden_n = node_iden(array_iden)
+                    num_iden = Token("num_param1", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
+                    num_iden_n = node_iden(num_iden)
+                    num_iden2 = Token("num_param2", "Identifier", std_lib_header_line, std_lib_header_col).to_dict() 
+                    num_iden_n2 = node_iden(num_iden2)
 
                     if std_lib_header == "Cstring":
                         print("ADDED Cstring !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -1262,6 +1267,19 @@ class SyntaxAnalyzer:
                         array_length_params_n = [node_funcpar_arr(None, array_iden_n, None)]
                         std_lib_func_dec_nodes.append(node_func_dec(int_type_t, array_length_iden_n, array_length_params_n, None, True))
 
+                    if std_lib_header == "Cmath":
+                        print("ADDED Cmath !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                        # math_pow built-in Cmath stdlib function
+                        math_pow_iden_t = Token("math_pow", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        math_pow_iden_n = node_iden(math_pow_iden_t)
+                        math_pow_params_n = [node_funcpar_var(None, num_iden_n), node_funcpar_var(None, num_iden_n2)]
+                        std_lib_func_dec_nodes.append(node_func_dec(double_type_t, math_pow_iden_n, math_pow_params_n, None, True))
+
+                        # math_sqrt built-in Cmath stdlib function
+                        math_sqrt_iden_t = Token("math_sqrt", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        math_sqrt_iden_n = node_iden(math_sqrt_iden_t)
+                        math_sqrt_params_n = [node_funcpar_var(None, num_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(double_type_t, math_sqrt_iden_n, math_sqrt_params_n, None, True))
 
                 else:
                     error_msg = f"Semantic Error ({std_lib_header_line}, {std_lib_header_col}): Duplicate library import: Standard library '{std_lib_header}' has already been imported."
