@@ -270,7 +270,7 @@ class Runtime:
             if nodeName in ['node_func_call', 'node_class_method_call']:
                 try:
                     ret_val = visit_func(node, expected_val=funcExpectedVal)
-                except:
+                except RecursionError:
                     self.logError(f"Maximum recursion limit reached.")
             elif nodeName in ['node_bi_op']:
                 ret_val = visit_func(node, fromRetBlock=fromRetBlock)
@@ -1838,7 +1838,11 @@ class Runtime:
             case 'class':
                 self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
             case 'arr':
-                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
+                self.logError(
+                    f"{'Symbol ' + err_n.id_t['tokenName'] + ' is ' if err_n.id_t else 'You are trying to access '}"
+                    "an entire array. Access array elements as values instead.",
+                    err_n
+                )
             case 'object':
                 self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
   

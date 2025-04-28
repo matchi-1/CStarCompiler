@@ -1235,7 +1235,11 @@ class SemanticAnalyzer:
             case 'class':
                 self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
             case 'arr':
-                self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire array. Access array elements as values instead.", err_n)
+                self.logError(
+                    f"{'Symbol ' + err_n.id_t['tokenName'] + ' is ' if err_n.id_t else 'You are trying to access '}"
+                    "an entire array. Access array elements as values instead.",
+                    err_n
+                )
             case 'object':
                 self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is an entire object. Access object attributes as values instead.", err_n)
   
@@ -1281,7 +1285,7 @@ class SemanticAnalyzer:
 
     #node_var_dec
     def visit_node_vardec(self, node, priv = False):
-        err_n = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"]) )
+        err_n = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"]), node.id_n.id_t["tokenName"] )
 
         if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
             self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
@@ -1307,6 +1311,7 @@ class SemanticAnalyzer:
             
         if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
+        print("JSADHJDASADSHJSADKSAKJADSKJADSKJADSLADHKALKLASHAASDJ ERROR NODE: ", err_n.id_t)
         self.check_type_and_range("variable", dtype, val_type, value, node.id_n, err_n = err_n)
 
         class_return = []
@@ -1326,7 +1331,7 @@ class SemanticAnalyzer:
 
             #print(f"!!!!!!!!!!!!!!!!!!!!decNODE VAL: {dec_node.value_n.val_t["tokenType"] if dec_node.value_n != None else default_val}")
             if self.curr_scope.get(dec_node.id_n.id_t["tokenName"], False):
-                self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
+                self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n.id_n)
             if const and not dec_node.value_n:
                 self.logError("Constant variable declarations must always be initialized with a value.", err_n)
             class_return.append(self.curr_scope.set(dec_node.id_n.id_t["tokenName"], dec_value if dec_node.value_n != None else default_val, dtype=dtype, priv = priv, const=const))
