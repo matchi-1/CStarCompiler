@@ -989,7 +989,7 @@ class Runtime:
 
                 elif type(param).__name__ == "node_funcpar_var":
                     param_types.append({
-                        "dtype": ("var", param.dtype_t["tokenName"])
+                        "dtype": ("var", param.dtype_t["tokenName"] if param.dtype_t else None),  # for any types
                     })  
                 param_names.append(param.id_n.id_t["tokenName"])
         
