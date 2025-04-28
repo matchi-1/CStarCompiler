@@ -928,7 +928,10 @@ class Runtime:
             idx_val = 0
         idx2_val = None
         if node.idx2_n:
+            print('hehehehehe node', node)
+            print('hehehe node idx2: ', node.idx2_n)
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
+            print('hehehehe idx', idx2_val)
             if arr_sym["arr_info"]["dimension"] == 1:
                 if dtype == 'string':
                     self.logError("String indexing is not allowed for array elements.", idx2_err)
@@ -951,11 +954,15 @@ class Runtime:
                 print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), arr_sym["value"][idx_val], arr_id_err)}")
                 return (('arr', dtype), arr_sym["value"][idx_val], arr_id_err)
             
-        
-        
+        print('hahahaha', idx2_val)
+        if idx2_val != None:
+            print('hehe true')
+        else:
+            print('hehe false')
+
         print(f"{arr_sym}")
         print(f"RETURNED FROM node_arr_idx: {('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err}")
-        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
+        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val != None else arr_sym["value"][idx_val], arr_id_err)
 
     def visit_node_func_dec(self, node, priv = False):
         func_name = node.id_n.id_t["tokenName"]
@@ -1183,7 +1190,7 @@ class Runtime:
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", idx2_err)
 
         value_type, value, val_err_n = self.visit_node(node.value_n)
-
+        print('hihihihi', value)
         # check value to be assigned to array element
         self.check_type_and_range("array", arr_symbol["dtype"], value_type, value, arr_node.id_n, idx1_val, idx2_val, err_n = val_err_n)
         # if value_type[1] != arr_dtype:
