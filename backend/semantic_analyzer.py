@@ -1928,9 +1928,9 @@ class SemanticAnalyzer:
             self.visit_node(node_loop.condition_n.condition_value_n)
             print(f"CONDITION was found from: {loop_name} \n")
             #print(f"(semantic)(dbg) FOUND CONDITION for {loop_name} -> {node_loop.condition_n.condition_value_n} = {self.visit_node(node_loop.condition_n.condition_value_n)}")
-            
-            self.visit_node(node_loop .inc_arg_n, funcExpectedVal=False) 
             self.visit_node(node_loop.ctrl_stmt_body_n)
+            self.visit_node(node_loop .inc_arg_n, funcExpectedVal=False) 
+            
 
 
         elif loop_name == 'node_while' or loop_name == 'node_do':
