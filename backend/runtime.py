@@ -2596,7 +2596,7 @@ class Runtime:
                 loop_count += 1
 
 
-        elif loop_name == 'node_while' or loop_name == 'node_do':
+        elif loop_name == 'node_while':
             while True:
                 checkTerminate()
                 if loop_count > self.MAX_LOOP_COUNT:
@@ -2609,6 +2609,26 @@ class Runtime:
                 self.break_continue_check = None
                 self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
         
+                if self.break_continue_check:
+                    if self.break_continue_check == 'node_break_stmt':
+                        break
+
+                loop_count += 1
+
+        elif loop_name == 'node_do':
+            while True:
+                checkTerminate()
+                if loop_count > self.MAX_LOOP_COUNT:
+                    self.logError(f"Maximum loop limit reached ({self.MAX_LOOP_COUNT}).", node_loop.ctrl_stmt_body_n)
+                    break
+                
+                self.break_continue_check = None
+                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+
+                #not efficient, needs refactoring
+                _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
+                if val == False: break
+
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
                         break
@@ -2925,7 +2945,7 @@ class Runtime:
                 #return break_continue_check
                 # loop count +1
             
-            elif not (self.break_continue_check == "node_break_stmt" or self.break_continue_check == "node_continue_stmt"): 
+            else: 
                 ret_val = self.visit_node(statement, funcExpectedVal=False)
 
         print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
