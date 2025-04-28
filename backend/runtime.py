@@ -828,7 +828,7 @@ class Runtime:
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 self.logError(f'Array \'{class_elem}\' is 2-dimensional but accessed with 1 index.', err_n)
-        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], err_n_obj)
+        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val != None else arr_sym["value"][idx_val], err_n_obj)
 
     def visit_node_num(self, node):
         val = 0
