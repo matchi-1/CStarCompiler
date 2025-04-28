@@ -268,7 +268,10 @@ class Runtime:
             #print(f'!!NODE!!: {node}!!')
             ret_val = None
             if nodeName in ['node_func_call', 'node_class_method_call']:
-                ret_val = visit_func(node, expected_val=funcExpectedVal)
+                try:
+                    ret_val = visit_func(node, expected_val=funcExpectedVal)
+                except:
+                    self.logError(f"Maximum recursion limit reached.")
             elif nodeName in ['node_bi_op']:
                 ret_val = visit_func(node, fromRetBlock=fromRetBlock)
             else:
