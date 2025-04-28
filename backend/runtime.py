@@ -1508,20 +1508,22 @@ class Runtime:
         print('(runtime)(dbg)', node.args_n)
         val = None
         if func_symbol["isStd_lib"]:
-            val = self.handleStandardLibraries(func_name, node.args_n)
+           ret_type, val = self.handleStandardLibraries(func_name, node.args_n)
 
         elif func_symbol["dtype"][1] == 'void':
             if expected_val:
                 self.logError(f"Function '{func_name}' is void and cannot return any value, it cannot be used as a value.", node.id_n)
             self.evaluate_func(func_name, node.args_n)
+            ret_type = func_symbol["dtype"][1]
         
         else:
             val = self.evaluate_func(func_name, node.args_n)
+            ret_type = func_symbol["dtype"][1]
 
 
         print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
         if self.RETURN_PROMISES: self.RETURN_PROMISES.pop()
-        return (('lit', f'{func_symbol["dtype"][1]}'), val, node.id_n) 
+        return (('lit', ret_type), val, node.id_n) 
 
 
     def handleStandardLibraries(self, func_name, args_list):
@@ -1596,35 +1598,44 @@ class Runtime:
 
                 if num_param1 == 0 and num_param2 < 0:
                     self.logError("Zero raised to a negative exponent is undefined.", args_list[1])
-
-                return pow(num_param1, num_param2)
+                res = pow(num_param1, num_param2)
+                if (res > self.MAX_DOUBLE):
+                    res = self.MAX_DOUBLE
+                if (res < self.MIN_DOUBLE):
+                    res = self.MIN_DOUBLE
+                return ('double', res)
             
             case "math_sqrt":
                 if num_param1 < 0:
                     self.logError("The square root of a negative number is undefined.", args_list[0])
                 import math
-                return math.sqrt(num_param1)
+                res = math.sqrt(num_param1)
+                if (res > self.MAX_DOUBLE):
+                    res = self.MAX_DOUBLE
+                if (res < self.MIN_DOUBLE):
+                    res = self.MIN_DOUBLE
+                return ('double', res)
             
             case "array_length":
-                return len(sym_details[func_symbol["param_names"][0]][1]["value"])
+                return ('long', len(sym_details[func_symbol["param_names"][0]][1]["value"]))
             
             case "array_isEmpty":
-                return False #????
+                return ('bool', False)
 
             case "str_isEmpty":
-                return len(str_param1) == 0
+                return ('bool', len(str_param1) == 0)
             
             case "str_length":
-                return len(str_param1)
+                return ('long', len(str_param1))
             
             case "str_popAlpha":
-                return re.sub(r'[a-zA-Z]', '', str_param1)
+                return ('string', re.sub(r'[a-zA-Z]', '', str_param1))
             
             case "str_popDigits":
-                return re.sub(r'\d', '', str_param1)
+                return ('string', re.sub(r'\d', '', str_param1))
             
             case "str_popSpecial":
-                return re.sub(r'[^a-zA-Z0-9 ]', '', str_param1)
+                return ('string', re.sub(r'[^a-zA-Z0-9 ]', '', str_param1))
             
             case "str_slice":
                 if num_param2 < num_param1:
@@ -1636,13 +1647,13 @@ class Runtime:
                 if num_param1 >= len(str_param1) or num_param2 >= len(str_param1):
                     self.logError(f"Slice index '{num_param2 if num_param2 >= len(str_param1) else num_param1}' out of bounds for string '{str_param1}' with length '{len(str_param1)}'.", args_list[1])
 
-                return str_param1[num_param1:num_param2+1]
+                return ('string', str_param1[num_param1:num_param2+1])
             
             case "str_toLower":
-                return str_param1.lower()
+                return ('string', str_param1.lower())
             
             case "str_toUpper":
-                return str_param1.upper()
+                return ('string', str_param1.upper())
 
 
 
@@ -2383,7 +2394,7 @@ class Runtime:
                             return (('lit', 'int'), int(right_val), left_err)
                         case 'double':
                             if int(right_val) <= self.MAX_INT and int(right_val) >= self.MIN_INT:
-                                return (('lit', 'int'), right_val, left_err)
+                                return (('lit', 'int'), int(right_val), left_err)
                             else:
                                 self.logError(f'Value {right_val} is out of integer range.', right_err)
                 case 'long':

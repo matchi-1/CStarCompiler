@@ -1272,13 +1272,13 @@ class SyntaxAnalyzer:
                         # math_pow built-in Cmath stdlib function
                         math_pow_iden_t = Token("math_pow", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
                         math_pow_iden_n = node_iden(math_pow_iden_t)
-                        math_pow_params_n = [node_funcpar_var(None, num_iden_n), node_funcpar_var(None, num_iden_n2)]
+                        math_pow_params_n = [node_funcpar_var(double_type_t, num_iden_n), node_funcpar_var(double_type_t, num_iden_n2)]
                         std_lib_func_dec_nodes.append(node_func_dec(double_type_t, math_pow_iden_n, math_pow_params_n, None, True))
 
                         # math_sqrt built-in Cmath stdlib function
                         math_sqrt_iden_t = Token("math_sqrt", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
                         math_sqrt_iden_n = node_iden(math_sqrt_iden_t)
-                        math_sqrt_params_n = [node_funcpar_var(None, num_iden_n)]
+                        math_sqrt_params_n = [node_funcpar_var(double_type_t, num_iden_n)]
                         std_lib_func_dec_nodes.append(node_func_dec(double_type_t, math_sqrt_iden_n, math_sqrt_params_n, None, True))
 
                 else:

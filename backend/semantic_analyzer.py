@@ -558,11 +558,11 @@ class SemanticAnalyzer:
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int']:
                     self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', err_n)
-                if idx_val < 0:
-                        self.logError("String index cannot be negative.", err_n)
-                if idx_val >= len(arr_sym["value"]):
-                    self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.', err_n)
-                return (('lit', 'string'), arr_sym["value"][idx_val], err_n)
+                # if idx_val < 0:
+                #         self.logError("String index cannot be negative.", err_n)
+                # if idx_val >= len(arr_sym["value"]):
+                #     self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.', err_n)
+                # return (('lit', 'string'), arr_sym["value"][idx_val], err_n)
             else:
                 self.logError(f'Symbol \'{node.obj_id_n.id_t["tokenName"]}\' is not an array.', node.obj_id_n)
 
@@ -570,10 +570,10 @@ class SemanticAnalyzer:
         
         if idx_type[1] not in ['int']:
             self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', err_n)
-        if idx_val < 0:
-                self.logError(f"Array index for '{class_elem}' cannot be negative.", err_n)
-        if idx_val >= arr_sym["arr_info"]["size1"]:
-            self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', err_n)
+        # if idx_val < 0:
+        #         # self.logError(f"Array index for '{class_elem}' cannot be negative.", err_n)
+        # if idx_val >= arr_sym["arr_info"]["size1"]:
+        #     self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', err_n)
         idx2_val = None
         if node.idx2_n:
             if arr_sym["arr_info"]["dimension"] == 1:
@@ -583,10 +583,10 @@ class SemanticAnalyzer:
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
             if idx2_type[1] not in ['int']:
                 self.logError(f'Type mismatch: expected whole positive integer but got {idx2_type[1]}.', err_n)
-            if idx2_val < 0:
-                self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
-            if idx2_val >= arr_sym["arr_info"]["size2"]:
-                self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', err_n)
+            # if idx2_val < 0:
+            #     self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
+            # if idx2_val >= arr_sym["arr_info"]["size2"]:
+            #     self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', err_n)
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 self.logError(f'Array \'{class_elem}\' is 2-dimensional but accessed with 1 index.', err_n)
@@ -670,8 +670,8 @@ class SemanticAnalyzer:
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int']:
                     self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', idx_err)
-                if idx_val < 0:
-                        self.logError("String index cannot be negative.", idx_err)
+                # if idx_val < 0:
+                #         self.logError("String index cannot be negative.", idx_err)
                 # if idx_val >= len(arr_sym["value"]):
                 #     self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.', idx_err)
                 # return (('lit', 'string'), arr_sym["value"][idx_val], arr_id_err)
@@ -682,10 +682,10 @@ class SemanticAnalyzer:
     
         if idx_type[1] not in ['int']:
             self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.'. idx_err)
-        if idx_val < 0:
-                self.logError("Array index cannot be negative.", idx_err)
-        if idx_val >= arr_sym["arr_info"]["size1"]:
-            self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', idx_err)
+        # if idx_val < 0:
+        #         self.logError("Array index cannot be negative.", idx_err)
+        # if idx_val >= arr_sym["arr_info"]["size1"]:
+        #     self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', idx_err)
         idx2_val = None
         if node.idx2_n:
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
@@ -697,11 +697,11 @@ class SemanticAnalyzer:
             if idx2_type[1] not in ['int']:
                 self.logError(f'Type mismatch: expected whole positive integer but got {idx2_type[1]}.', idx2_err)
             
-            if idx2_val < 0:
-                self.logError("Array index cannot be negative.", idx2_err)
+            # if idx2_val < 0:
+            #     self.logError("Array index cannot be negative.", idx2_err)
             
-            if idx2_val >= arr_sym["arr_info"]["size2"]:
-                self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', idx2_err)
+            # if idx2_val >= arr_sym["arr_info"]["size2"]:
+            #     self.logError(f'Array out of bounds: Index {idx2_val} is out of bounds for array length {arr_sym["arr_info"]["size2"]}.', idx2_err)
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
@@ -892,10 +892,10 @@ class SemanticAnalyzer:
         if idx1_type[1] not in ['int', 'long']:
             self.logError(f"Array index must be an integer, but found '{idx1_type[1]}'.", idx_err)
 
-        if idx1_val is not None and (idx1_val < 0 or (arr_symbol["arr_info"]["size1"] is not None and idx1_val >= arr_symbol["arr_info"]["size1"])):  # code gen    
-            if idx1_val < 0:
-                self.logError(f"Array index for '{arr_name}' cannot be negative.", idx_err) 
-            self.logError(f"Array index '{idx1_val}' out of bounds for array '{arr_name}'.", idx_err)
+        # if idx1_val is not None and (idx1_val < 0 or (arr_symbol["arr_info"]["size1"] is not None and idx1_val >= arr_symbol["arr_info"]["size1"])):  # code gen    
+        #     if idx1_val < 0:
+        #         self.logError(f"Array index for '{arr_name}' cannot be negative.", idx_err) 
+        #     self.logError(f"Array index '{idx1_val}' out of bounds for array '{arr_name}'.", idx_err)
 
         idx2_val = None
         if arr_dim == 2:
@@ -903,10 +903,10 @@ class SemanticAnalyzer:
             if idx2_type[1] not in ['int', 'long']:
                 self.logError(f"Array index must be an integer, but found '{idx2_type[1]}'.", idx2_err)
 
-            if idx2_val is not None and (idx2_val < 0 or (arr_symbol["arr_info"]["size2"] is not None and idx2_val >= arr_symbol["arr_info"]["size2"])):
-                if idx2_val < 0:
-                    self.logError(f"Array index for '{arr_name}' cannot be negative.", idx_err)  
-                self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", idx2_err)
+            # if idx2_val is not None and (idx2_val < 0 or (arr_symbol["arr_info"]["size2"] is not None and idx2_val >= arr_symbol["arr_info"]["size2"])):
+            #     if idx2_val < 0:
+            #         self.logError(f"Array index for '{arr_name}' cannot be negative.", idx_err)  
+            #     self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", idx2_err)
 
         value_type, value, val_err_n = self.visit_node(node.value_n)
 
@@ -1005,20 +1005,20 @@ class SemanticAnalyzer:
         if idx1_type[1] not in ['int', 'long']:
             self.logError(f"Array index must be an integer, but found a '{idx1_type[1]}' instead.", idx1_err)
 
-        if idx1_val is not None and (idx1_val < 0 or (att_info["arr_info"]["size1"] is not None and idx1_val >= att_info["arr_info"]["size1"])):  # code gen    
-            if idx1_val < 0:
-                self.logError(f"Array index for '{att_name}' cannot be negative.", err_n)   
-            self.logError(f"Array index '{idx1_val}' out of bounds for array '{att_name}'.", idx1_err)
+        # if idx1_val is not None and (idx1_val < 0 or (att_info["arr_info"]["size1"] is not None and idx1_val >= att_info["arr_info"]["size1"])):  # code gen    
+        #     if idx1_val < 0:
+        #         self.logError(f"Array index for '{att_name}' cannot be negative.", err_n)   
+        #     self.logError(f"Array index '{idx1_val}' out of bounds for array '{att_name}'.", idx1_err)
 
         if att_arr_dtype == 2:
             idx2_type, idx2_val, idx2_err = self.visit_node(att_arr_idx2)
             if idx2_type[1] not in ['int', 'long']:
                 self.logError(f"Array index must be an integer, but found a '{idx2_type[1]}' instead.", idx2_err)
 
-            if idx2_val is not None and (idx2_val < 0 or (att_info["arr_info"]["size2"] is not None and idx2_val >= att_info["arr_info"]["size2"])):
-                if idx2_val < 0:
-                    self.logError(f"Array index for '{att_name}' cannot be negative.", idx2_err)    
-                self.logError(f"Array index '{idx2_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
+            # if idx2_val is not None and (idx2_val < 0 or (att_info["arr_info"]["size2"] is not None and idx2_val >= att_info["arr_info"]["size2"])):
+            #     if idx2_val < 0:
+            #         self.logError(f"Array index for '{att_name}' cannot be negative.", idx2_err)    
+            #     self.logError(f"Array index '{idx2_val}' out of bounds for array '{att_name}'.", node.class_arr_n.att_id_n)
 
         value_type, value, value_err = self.visit_node(node.value_n)
         err_n = ErrorNode(node.class_arr_n.att_id_n.id_t["tokenLine"], node.class_arr_n.att_id_n.id_t["tokenCol"] - len(node.class_arr_n.att_id_n.id_t["tokenName"]) - 1)
