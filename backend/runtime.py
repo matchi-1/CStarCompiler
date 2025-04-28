@@ -351,9 +351,39 @@ class Runtime:
         raise SyntaxError(full_message)
     
 
-    def _format_output(self, dtype, value):
-        print(f"Formatting output: type: {dtype}, value: {value}")
+    def _format_output(self, dtype, target_dtype, value):
+        print(f"Formatting output: type: {dtype}, value: {value}, target: {target_dtype}")
+        if target_dtype in ['float', 'double']:
+            if dtype in ['int', 'long']:
+                match dtype:
+                # if int exceeds max/min return max/min
+                    case "int":
+                        if value > self.MAX_INT:
+                            value =  self.MAX_INT
+                        elif value < self.MIN_INT:
+                            value = self.MIN_INT
+                        
+                    # if double exceeds max/min return max/min
+                    case "double":
+                        if value > self.MAX_LONG:
+                            value = self.MAX_LONG
+                        elif value < self.MIN_LONG:
+                            value = self.MIN_LONG
+                return f"{value}.00"
+            else:
+                match dtype:
+                    case 'float':
+                        print('hihihi')
+                        print(value)
+                        print(int(value))
+                        print(value-int(value))
+                        if value <= self.MAX_FLOAT and value >= self.MIN_FLOAT and value-int(value)==0.0:
+                            return f'{value.quantize(Decimal('0.00'))}'
+                    case 'double':
+                        if value <= self.MAX_DOUBLE and value >= self.MIN_DOUBLE and value-int(value)==0.0:
+                            return f'{value.quantize(Decimal('0.00'))}'
         
+            
         if not isinstance(value, Decimal) and not dtype in ["float", "double"]:
             match dtype:
                 # if int exceeds max/min return max/min
@@ -398,6 +428,7 @@ class Runtime:
                 max_decimals = 2
 
         decimal_places = -exponent if exponent < 0 else 0
+
         if decimal_places > max_decimals:
             quantizer = Decimal("1").scaleb(-max_decimals)
             return f"{value.quantize(quantizer, rounding=ROUND_HALF_UP)}"
@@ -958,7 +989,7 @@ class Runtime:
 
                 elif type(param).__name__ == "node_funcpar_var":
                     param_types.append({
-                        "dtype": ("var", param.dtype_t["tokenName"] if param.dtype_t else None)
+                        "dtype": ("var", param.dtype_t["tokenName"])
                     })  
                 param_names.append(param.id_n.id_t["tokenName"])
         
@@ -2609,10 +2640,7 @@ class Runtime:
         if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
             self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
             return None
-        if node.prompt_n is None:
-            self.logError("Input statement is missing the prompt parameter. If you do not wish to have any prompt text upon input, just add an empty string.", err_n)
-            return None
-        else:
+        if node.prompt_n is not None:
             prompt_type, prompt_value, prompt_err = self.visit_node(node.prompt_n)
             if prompt_type[0] in ["arr", "object", "class"]:
                 if prompt_type[0] == "arr":
@@ -2754,7 +2782,7 @@ class Runtime:
                 # self.check_type_and_range("print value", first_param_type, first_param_type, first_param_val)
                 # self.check_digits(first_param_type[1], first_param_val)
                 
-                formatted_output = self._format_output(first_param_type[1], first_param_val)
+                formatted_output = self._format_output(first_param_type[1], first_param_type[1], first_param_val)
                 print(f"param value formatted heh: {formatted_output}")
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
@@ -2798,9 +2826,15 @@ class Runtime:
                         print("ERERRRRRRRRRRRRRRRR err_n: " + str(err_n))
                         self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
                         return None
-                    
+                    specifier_types = {
+                        '%s': 'string',
+                        '%d': 'int',
+                        '%ld': 'long',
+                        '%f': 'float',
+                        '%lf': 'double'
+                    }
                     # if specifier in ["%f", "%lf"]:
-                    param_value = self._format_output(param_type[1], param_value) 
+                    param_value = self._format_output(param_type[1], specifier_types[specifier], param_value) 
 
                     formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
