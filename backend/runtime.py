@@ -268,7 +268,10 @@ class Runtime:
             #print(f'!!NODE!!: {node}!!')
             ret_val = None
             if nodeName in ['node_func_call', 'node_class_method_call']:
-                ret_val = visit_func(node, expected_val=funcExpectedVal)
+                try:
+                    ret_val = visit_func(node, expected_val=funcExpectedVal)
+                except:
+                    self.logError(f"Maximum recursion limit reached.")
             elif nodeName in ['node_bi_op']:
                 ret_val = visit_func(node, fromRetBlock=fromRetBlock)
             else:
@@ -2606,7 +2609,10 @@ class Runtime:
         if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
             self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
             return None
-        if node.prompt_n is not None:
+        if node.prompt_n is None:
+            self.logError("Input statement is missing the prompt parameter. If you do not wish to have any prompt text upon input, just add an empty string.", err_n)
+            return None
+        else:
             prompt_type, prompt_value, prompt_err = self.visit_node(node.prompt_n)
             if prompt_type[0] in ["arr", "object", "class"]:
                 if prompt_type[0] == "arr":
