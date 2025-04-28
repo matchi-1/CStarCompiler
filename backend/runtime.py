@@ -1506,25 +1506,25 @@ class Runtime:
         #         self.curr_scope.get(arg_n.id_t["tokenName"])
         #         sym_details[func_symbol["param_names"][i]] = (arg_n.id_t["tokenName"], self.curr_scope.get(arg_n.id_t["tokenName"]))
         
-        str_param1 = int_param1 = int_param2 = None
+        str_param1 = num_param1 = num_param2 = None
 
         for i, arg_n in enumerate(args_list):
             param_name = func_symbol["param_names"][i]
-            nodeName = type(arg_n).__name__
+            node_name = type(arg_n).__name__
 
-            if nodeName != 'node_iden':
+            if node_name != 'node_iden': #arg is lit
                 dtype, val, _ = self.visit_node(arg_n)
                 lit_details.append((param_name, val, dtype))
 
                 # Immediate assignment if it's a target param
                 if param_name == "str_param1":
                     str_param1 = val
-                elif param_name == "int_param1":
-                    int_param1 = val
-                elif param_name == "int_param2":
-                    int_param2 = val
+                elif param_name == "int_param1" or param_name == "num_param1":
+                    num_param1 = val
+                elif param_name == "int_param2" or param_name == "num_param2":
+                    num_param2 = val
 
-            else:
+            else: # arg is identifier
                 tokenName = arg_n.id_t["tokenName"]
                 sym_info = self.curr_scope.get(tokenName)
                 sym_details[param_name] = (tokenName, sym_info)
@@ -1533,25 +1533,47 @@ class Runtime:
                 val = sym_info['value']
                 if param_name == "str_param1":
                     str_param1 = val
-                elif param_name == "int_param1":
-                    int_param1 = val
-                elif param_name == "int_param2":
-                    int_param2 = val
+                elif param_name == "int_param1" or param_name == "num_param1":
+                    num_param1 = val
+                elif param_name == "int_param2" or param_name == "num_param2":
+                    num_param2 = val
 
-
-        print('BBBBBBBBBBBBBBBBBBBBBBBBBB\n', sym_details)
-        print('\nCCCCCCCCCCCCCCCCCCCCCCCCCCC\n', lit_details)
-        print('\nDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n', func_symbol)
-
-        if func_name == "array_length":
-            return len(sym_details[func_symbol["param_names"][0]][1]["value"])
+        print('\n\n \t\t\t\tSTD LIB HANDLING DEBUG:')
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nsym_details: ', sym_details)
+        print('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nlit_details: ', lit_details)
+        print('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nfunc_symbol: ', func_symbol)
+        print(f'\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nnumparam1: {num_param1 if num_param1 else 'None'}: ')
+        print(f'\nnumparam1type: {type(num_param1) if num_param1 else 'None'}: ')
+        print(f'\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nnumparam2: {num_param2 if num_param2 else 'None'}: ')
+        print(f'\nnumparam2type: {type(num_param2) if num_param2 else 'None'}: ')
+        print('-----------------------------------\n\n')
+        # if func_name == "array_length":
+        #     return len(sym_details[func_symbol["param_names"][0]][1]["value"])
         
         # if lit_details:
         #     ret_string = lit_details[1]
         # else:
         #     ret_string = sym_details[func_symbol["param_names"][0]][1]["value"]
-
+        import decimal
         match (func_name):
+            case "math_pow":
+                if num_param1 < 0 and isinstance(num_param2, decimal.Decimal):  
+                    self.logError("Negative bases raised to a decimal exponent are undefined.", args_list[1])
+
+                if num_param1 == 0 and num_param2 < 0:
+                    self.logError("Zero raised to a negative exponent is undefined.", args_list[1])
+
+                return pow(num_param1, num_param2)
+            
+            case "math_sqrt":
+                if num_param1 < 0:
+                    self.logError("The square root of a negative number is undefined.", args_list[0])
+                import math
+                return math.sqrt(num_param1)
+            
+            case "array_length":
+                return len(sym_details[func_symbol["param_names"][0]][1]["value"])
+            
             case "array_isEmpty":
                 return False #????
 
@@ -1571,16 +1593,16 @@ class Runtime:
                 return re.sub(r'[^a-zA-Z0-9 ]', '', str_param1)
             
             case "str_slice":
-                if int_param2 < int_param1:
+                if num_param2 < num_param1:
                     self.logError("Slice end index cannot be less than start index.", args_list[1])
                 
-                if int_param1 < 0 or int_param2 < 0:
+                if num_param1 < 0 or num_param2 < 0:
                     self.logError("Slice indices cannot be negative.", args_list[1])
 
-                if int_param1 >= len(str_param1) or int_param2 >= len(str_param1):
-                    self.logError(f"Slice index '{int_param2 if int_param2 >= len(str_param1) else int_param1}' out of bounds for string '{str_param1}' with length '{len(str_param1)}'.", args_list[1])
+                if num_param1 >= len(str_param1) or num_param2 >= len(str_param1):
+                    self.logError(f"Slice index '{num_param2 if num_param2 >= len(str_param1) else num_param1}' out of bounds for string '{str_param1}' with length '{len(str_param1)}'.", args_list[1])
 
-                return str_param1[int_param1:int_param2+1]
+                return str_param1[num_param1:num_param2+1]
             
             case "str_toLower":
                 return str_param1.lower()
