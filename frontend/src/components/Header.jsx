@@ -3,6 +3,10 @@ import '../styles/Header.css';
 import { io } from 'socket.io-client';
 
 const socket = io("http://localhost:5000");
+// const socket = io("https://cstar-backend-217043973303.asia-southeast1.run.app", {
+//   transports: ["websocket"],
+//   secure: true
+// });
 
 const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExecutionComplete }) => {
 

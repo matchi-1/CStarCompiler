@@ -3,6 +3,10 @@ import { io } from 'socket.io-client';
 import '../styles/Terminal.css';
 
 const socket = io("http://localhost:5000");
+// const socket = io("https://cstar-backend-217043973303.asia-southeast1.run.app", {
+//     transports: ["websocket"],
+//     secure: true
+//   });
 
 const Terminal = ({ logs: initialLogs = [], clearLogs, onExecutionComplete }) => {
     const terminalRef = useRef();

@@ -1,5 +1,6 @@
 # <> ------------------------------------- | WEBSOCKET TEST | AA
 import eventlet
+import os
 eventlet.monkey_patch()
 from flask_socketio import SocketIO
 #from inoutTest import run_loop, wait_flag_container
@@ -17,8 +18,7 @@ CORS(app)  # cross-origin requests
 
 # <> ------------------------------------- | WEBSOCKET TEST | BB
 app.config["SECRET_KEY"] = "secret"
-socketio = SocketIO(app, cors_allowed_origins="*")
-
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 # Inject socketio to runtime
 setup_runtime(socketio)
 
@@ -97,4 +97,7 @@ def compile_code():
 
 if __name__ == '__main__':
     #app.run(debug=True) 
-    socketio.run(app, debug=True) # <> ------------------------------------- | WEBSOCKET TEST | CC
+    #socketio.run(app, debug=True) # <> ------------------------------------- | WEBSOCKET TEST | CC
+
+    port = int(os.environ.get("PORT", 5000))  # fallback to 5000 if PORT not set
+    socketio.run(app, host="0.0.0.0", port=port, debug=True)
