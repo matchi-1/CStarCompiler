@@ -1624,7 +1624,7 @@ class Runtime:
                 return ('double', res)
             
             case "array_length":
-                return ('long', len(sym_details[func_symbol["param_names"][0]][1]["value"]))
+                return ('long', len(sym_details.get(func_symbol["param_names"][0])[1]["value"]) if sym_details.get(func_symbol["param_names"][0]) else len(lit_details[0][1]))
             
             case "array_isEmpty":
                 return ('bool', False)
