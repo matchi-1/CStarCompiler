@@ -1624,7 +1624,7 @@ class Runtime:
                 return ('double', res)
             
             case "array_length":
-                return ('long', len(sym_details.get(func_symbol["param_names"][0])[1]["value"]) if sym_details.get(func_symbol["param_names"][0]) else len(lit_details[0][1]))
+                return ('int', len(sym_details.get(func_symbol["param_names"][0])[1]["value"]) if sym_details.get(func_symbol["param_names"][0]) else len(lit_details[0][1]))
             
             case "array_isEmpty":
                 return ('bool', False)
@@ -1633,7 +1633,7 @@ class Runtime:
                 return ('bool', len(str_param1) == 0)
             
             case "str_length":
-                return ('long', len(str_param1))
+                return ('int', len(str_param1))
             
             case "str_popAlpha":
                 return ('string', re.sub(r'[a-zA-Z]', '', str_param1))
