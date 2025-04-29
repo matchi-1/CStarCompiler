@@ -1225,6 +1225,8 @@ class SemanticAnalyzer:
         if dec_type == "array":
             return
 
+        if isinstance(value, list):
+            return
         index = None
         if index_1D != None:
             index = f" at index [{index_1D}]"
