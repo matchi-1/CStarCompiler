@@ -2566,7 +2566,7 @@ class Runtime:
 
             #self.visit_node(node_loop.condition_n.condition_value_n)
             #print(f"CONDITION was found from: {loop_name} \n")
-
+            
             #handle for loops
             while True:
                 checkTerminate()
@@ -2575,6 +2575,7 @@ class Runtime:
                     break
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
+                print(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
                 if val == False: break
 
                 break_outer = False
@@ -2604,6 +2605,7 @@ class Runtime:
                     break
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
+                print(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
                 if val == False: break
                 
                 self.break_continue_check = None
@@ -2627,6 +2629,7 @@ class Runtime:
 
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
+                print(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
                 if val == False: break
 
                 if self.break_continue_check:
@@ -2665,6 +2668,7 @@ class Runtime:
                 loop_count += 1
 
         # self.loop_depth -= 1
+        print(f"(runtime)(dbg) EXITING scope '{loop_name}': \nTABLE: ")
         self.exit_scope(loop_name)
 
     def visit_node_input(self, node):
@@ -2926,7 +2930,7 @@ class Runtime:
     
     # ALEX HERE
     def visit_node_ctrl_stmt_body(self, node):
-        self.enter_scope(type(node).__name__)
+        # self.enter_scope(type(node).__name__)
         statements_n = node.statements_n
         for statement in statements_n:
             ctrl_stmt = type(statement).__name__
@@ -2948,8 +2952,8 @@ class Runtime:
             else: 
                 ret_val = self.visit_node(statement, funcExpectedVal=False)
 
-        print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
-        self.exit_scope(type(node).__name__)
+        # print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
+        # self.exit_scope(type(node).__name__)
         return ret_val
         #return break_continue_check
     
@@ -2974,6 +2978,7 @@ class Runtime:
             if node.else_chain_n:
                 ret_val = self.visit_node(node.else_chain_n)
 
+        print(f"(runtime)(dbg) EXITING scope 'if_stmt': \nTABLE: ")
         self.exit_scope(type(node).__name__)
         print('AAAAAAAAAAAA IF RET', ret_val)
         return (cond, ret_val)
@@ -2991,7 +2996,8 @@ class Runtime:
             visit_vals = self.visit_node(chain_stmt)
             if visit_vals[0] == True:
                 break
-        
+
+        print(f"(runtime)(dbg) EXITING scope 'elseif_stmt': \nTABLE: ")
         self.exit_scope(type(node).__name__)
         print('AAAAAAAAAAAAA ELSE CHAIN RET', visit_vals[1])
         print('AAAAAAA ELSE RETURN PROMISES', self.    RETURN_PROMISES)
@@ -3004,6 +3010,7 @@ class Runtime:
             ret_val = self.visit_node(node.body_n)
             print('AAAAAAAAAAAAAAA ELSE RET', ret_val)
 
+        print(f"(runtime)(dbg) EXITING scope 'else_stmt': \nTABLE: ")
         self.exit_scope(type(node).__name__)
         return (False, ret_val)
     
@@ -3097,6 +3104,7 @@ class Runtime:
 
 
         # self.switch_depth -= 1
+        print(f"(runtime)(dbg) EXITING scope 'switch_stmt': \nTABLE: ")
         self.exit_scope(type(node).__name__)
         return
     
