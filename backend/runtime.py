@@ -481,10 +481,9 @@ class Runtime:
             ret_val = self.visit_node(node.body_codeblock_n)
             print('AAAAAAAAAAAAAAAA BODY RET', ret_val)
         
-        if node.return_stmt_n:
+        if node.return_stmt_n and not ret_val:
             ret_val = self.visit_node(node.return_stmt_n)
             
-        
         self.exit_scope(type(node).__name__)
         return ret_val
         
@@ -496,6 +495,7 @@ class Runtime:
             ret_val = self.visit_node(statement, funcExpectedVal=False)
             if type(statement) is node_if_stmt:
                 ret_val = ret_val[1]
+
             print('AAAAAAAAAAA CODE BLOCK RET', ret_val)
             print('AAAAAAA RETURN PROMISES', self.RETURN_PROMISES)
             print("\n(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: ")
