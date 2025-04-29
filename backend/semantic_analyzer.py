@@ -562,7 +562,7 @@ class SemanticAnalyzer:
                 #         self.logError("String index cannot be negative.", err_n)
                 # if idx_val >= len(arr_sym["value"]):
                 #     self.logError(f'String index out of bounds: Index {idx_val} is out of bounds for string length {len(arr_sym["value"])}.', err_n)
-                # return (('lit', 'string'), arr_sym["value"][idx_val], err_n)
+                return (('lit', 'string'), "", err_n)
             else:
                 self.logError(f'Symbol \'{node.obj_id_n.id_t["tokenName"]}\' is not an array.', node.obj_id_n)
 
@@ -590,7 +590,7 @@ class SemanticAnalyzer:
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 self.logError(f'Array \'{class_elem}\' is 2-dimensional but accessed with 1 index.', err_n)
-        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], err_n_obj)
+        return (('var', dtype), self.default_vals[dtype], err_n_obj)
 
     def visit_node_num(self, node):
         val = 0
@@ -705,13 +705,14 @@ class SemanticAnalyzer:
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
-                print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), arr_sym["value"][idx_val], arr_id_err)}")
-                return (('arr', dtype), arr_sym["value"][idx_val], arr_id_err)
+                print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), self.default_vals[dtype], arr_id_err)}")
+                return (('arr', dtype), self.default_vals[dtype], arr_id_err)
         
         print(f"{arr_sym}")
-        print(f"RETURNED FROM node_arr_idx: {('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err}")
+        #print(f"RETURNED FROM node_arr_idx: {('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err}")
         
-        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
+        # return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err)
+        return (('var', dtype), self.default_vals[dtype], arr_id_err)
     #cont...
 
     def visit_node_func_dec(self, node, priv = False):
