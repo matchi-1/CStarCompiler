@@ -1221,6 +1221,9 @@ class SemanticAnalyzer:
         print("PRINT >>>>>>>>>>>>>>>>> VALUE: " + str(value))
         print("PRINT >>>>>>>>>>>>>>>>> INDEX_1D: " + str(index_1D))
         print("PRINT >>>>>>>>>>>>>>>>> INDEX_2D: " + str(index_2D))
+        
+        if dec_type == "array":
+            return
 
         index = None
         if index_1D != None:
@@ -1397,8 +1400,11 @@ class SemanticAnalyzer:
             if const:
                 self.logError("Constant array declarations must be initialized with values.", node.id_n)
             values_list = []
-            for i in range(size_1):
-                values_list.append(base_val)
+            if size_2 is None:
+                values_list = [base_val for _ in range(size_1)]
+            else:
+                values_list = [[base_val for _ in range(size_2)] for _ in range(size_1)]
+
         
        #print(f'##########################values_list@!!@!@!@: {values_list if values_list else arr_rec} dim = {dim}')
                 
@@ -1406,8 +1412,9 @@ class SemanticAnalyzer:
         arr_vals = []
         if dim == 1:
             if node.arr_dec_cont_n and not arr_rec:
-                
+                print(f"\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$values_list:{values_list}\n\n")
                 for index_1D, value_node in enumerate(values_list or []):
+                    print(f"\n\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$value_node:{value_node}\n\n")
                     val_type, val, err_n = self.visit_node(value_node)
                     print(f'arr init valtype: {val_type[1]}')
                     
@@ -1430,40 +1437,43 @@ class SemanticAnalyzer:
             else: arr_vals = values_list
         
         else:
-            
-            for index_1D, inner_arr in enumerate(values_list or []):
-                temp_arr = []
-                
-                for index_2D, value_node in enumerate(inner_arr or []):
-                    val_type, val, err_n = self.visit_node(value_node)
-                    print(f'arr init valtype: {val_type}, val = {val}')
-                    
-                    #error for arr size in code gen
-                    # if val_type[1] != node.dtype_t["tokenName"]:
-                    #     self.logError(f"Array contents of '{id}'  can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}.", node.id_n)
-                    
-                    self.check_type_and_range("array", dtype, val_type, val, node.id_n, index_1D, index_2D, err_n = err_n)
+            if node.arr_dec_cont_n and not arr_rec:
+                print(f"\n\nvalues_list:{values_list}\n\n")
+                for index_1D, inner_arr in enumerate(values_list or []):
+                    temp_arr = []
+                    print(f"\n\ninner_arr:{inner_arr}\n\n")
+                    for index_2D, value_node in enumerate(inner_arr or []):
+                        print(f"\n\nvalue_node:{value_node}\n\n")
+                        val_type, val, err_n = self.visit_node(value_node)
+                        print(f'arr init valtype: {val_type}, val = {val}')
+                        
+                        #error for arr size in code gen
+                        # if val_type[1] != node.dtype_t["tokenName"]:
+                        #     self.logError(f"Array contents of '{id}'  can only be of type '{node.dtype_t["tokenName"]}', but found '{val_type[1]}.", node.id_n)
+                        
+                        self.check_type_and_range("array", dtype, val_type, val, node.id_n, index_1D, index_2D, err_n = err_n)
 
-                    temp_arr.append(val)
-                
-                if len(temp_arr) > size_2:
-                        singplur = 'element' if size_2 == 1 else 'elements'
-                        self.logError(f"Expected {size_2} {singplur} for inner array element of array '{id}', but got {len(temp_arr)} elements instead.", node.id_n)
-                
-                elif len(temp_arr) < size_2:
-                    for i in range(size_2 - len(temp_arr)):
-                        temp_arr.append(base_val)
+                        temp_arr.append(val)
+                    
+                    if len(temp_arr) > size_2:
+                            singplur = 'element' if size_2 == 1 else 'elements'
+                            self.logError(f"Expected {size_2} {singplur} for inner array element of array '{id}', but got {len(temp_arr)} elements instead.", node.id_n)
+                    
+                    elif len(temp_arr) < size_2:
+                        for i in range(size_2 - len(temp_arr)):
+                            temp_arr.append(base_val)
 
-                #print(f"_____________________________{temp_arr}")
-                arr_vals.append(temp_arr)
-            
-            if len(arr_vals) > size_1:
-                singplur = 'element' if size_1 == 1 else 'elements'
-                self.logError(f"Expected {size_1} {singplur} for array '{id}', but got {len(arr_vals)}.", node.id_n)
-            
-            elif len(arr_vals) < size_1:
-                    for i in range(size_1 - len(arr_vals)):
-                        arr_vals.append([base_val]*(size_2 if size_2 else size_1))
+                    #print(f"_____________________________{temp_arr}")
+                    arr_vals.append(temp_arr)
+                
+                if len(arr_vals) > size_1:
+                    singplur = 'element' if size_1 == 1 else 'elements'
+                    self.logError(f"Expected {size_1} {singplur} for array '{id}', but got {len(arr_vals)}.", node.id_n)
+                
+                elif len(arr_vals) < size_1:
+                        for i in range(size_1 - len(arr_vals)):
+                            arr_vals.append([base_val]*(size_2 if size_2 else size_1))
+            else: arr_vals = values_list
         classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
         
         for arrdec_node in arr_rec or []:
