@@ -1505,6 +1505,8 @@ class Runtime:
 
             if body_ret and type(body_ret[0]) is bool:
                 ret_type, ret_val, _ = body_ret[1]
+            else:
+                ret_type, ret_val, _ = body_ret
 
         self.exit_scope(func_name)
         print('AAAAAAAAAAAAAAAAAAAAAA EVAL RET', ret_val)
