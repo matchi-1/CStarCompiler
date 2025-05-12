@@ -1662,6 +1662,9 @@ class Runtime:
             case "str_toUpper":
                 return ('string', str_param1.upper())
 
+            case "str_charToAscii":
+                return ('int', ord(str_param1[0]) if str_param1 else 0)
+
 
 
     def check_function_params(self, func_symbol, args, node_id, call_string):
@@ -1852,7 +1855,9 @@ class Runtime:
                     if value > self.MAX_INT or value < self.MIN_INT:
                           self.logError(f"Value '{value}' is out of 'int' range for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ''}.", err_n)
              
-                if val_type and dtype[1] != val_type[1]:    
+                if val_type and dtype[1] != val_type[1]:   
+                    print("valtype: ", val_type[1])
+                    print("dtype: ", dtype[1]) 
                     self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""} but found '{val_type[1]}'." , err_n)
 
             case "long":

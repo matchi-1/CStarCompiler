@@ -1253,6 +1253,12 @@ class SyntaxAnalyzer:
                         str_toUpper_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
                         std_lib_func_dec_nodes.append(node_func_dec(string_type_t, str_toUpper_iden_n, str_toUpper_params_n, None, True))
 
+                        # str_charToAscii built-in Cstring stdlib function
+                        str_charToAscii_iden_t = Token("str_charToAscii", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                        str_charToAscii_iden_n = node_iden(str_charToAscii_iden_t)
+                        str_charToAscii_params_n = [node_funcpar_var(string_type_t, str_iden_n)]
+                        std_lib_func_dec_nodes.append(node_func_dec(int_type_t, str_charToAscii_iden_n, str_charToAscii_params_n, None, True))
+
                     if std_lib_header == "Carray":
                         print("ADDED Carray !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                         # array_isEmpty built-in Carray stdlib function

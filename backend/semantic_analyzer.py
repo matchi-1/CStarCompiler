@@ -557,7 +557,7 @@ class SemanticAnalyzer:
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int']:
-                    self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', err_n)
+                    self.logError(f'Type mismatch: expected whole positive integer for an array index (1st dimension) but got {idx_type[1]}.', err_n)
                 # if idx_val < 0:
                 #         self.logError("String index cannot be negative.", err_n)
                 # if idx_val >= len(arr_sym["value"]):
@@ -569,7 +569,7 @@ class SemanticAnalyzer:
         
         
         if idx_type[1] not in ['int']:
-            self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', err_n)
+            self.logError(f'Type mismatch: expected whole positive integer for an array index (1st dimension) but got {idx_type[1]}.', err_n)
         # if idx_val < 0:
         #         # self.logError(f"Array index for '{class_elem}' cannot be negative.", err_n)
         # if idx_val >= arr_sym["arr_info"]["size1"]:
@@ -582,7 +582,7 @@ class SemanticAnalyzer:
                 self.logError(f'Array \'{class_elem}\' is 1-dimensional but accessed with 2 indices.', err_n)
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
             if idx2_type[1] not in ['int']:
-                self.logError(f'Type mismatch: expected whole positive integer but got {idx2_type[1]}.', err_n)
+                self.logError(f'Type mismatch: expected whole positive integer for an array index (2nd dimension) but got {idx2_type[1]}.', err_n)
             # if idx2_val < 0:
             #     self.logError(f"Array index for '{class_elem}' cannot be negative.", node.att_id_n)
             # if idx2_val >= arr_sym["arr_info"]["size2"]:
@@ -669,7 +669,7 @@ class SemanticAnalyzer:
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int']:
-                    self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.', idx_err)
+                    self.logError(f'Type mismatch: expected whole positive integer for an array index (1st dimension) but got {idx_type[1]}.', idx_err)
                 # if idx_val < 0:
                 #         self.logError("String index cannot be negative.", idx_err)
                 # if idx_val >= len(arr_sym["value"]):
@@ -681,7 +681,7 @@ class SemanticAnalyzer:
 
     
         if idx_type[1] not in ['int']:
-            self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.'. idx_err)
+            self.logError(f'Type mismatch: expected whole positive integer for an array index (1st dimension) but got {idx_type[1]}.', idx_err)
         # if idx_val < 0:
         #         self.logError("Array index cannot be negative.", idx_err)
         # if idx_val >= arr_sym["arr_info"]["size1"]:
@@ -695,7 +695,7 @@ class SemanticAnalyzer:
                 self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 1-dimensional but accessed with 2 indices.', idx2_err)
             
             if idx2_type[1] not in ['int']:
-                self.logError(f'Type mismatch: expected whole positive integer but got {idx2_type[1]}.', idx2_err)
+                self.logError(f'Type mismatch: expected whole positive integer for an array index (2nd dimension) but got {idx2_type[1]}.', idx2_err)
             
             # if idx2_val < 0:
             #     self.logError("Array index cannot be negative.", idx2_err)
