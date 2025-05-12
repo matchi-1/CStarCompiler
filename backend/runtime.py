@@ -202,6 +202,8 @@ class Runtime:
 
     MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
 
+    inside_loop = False
+
     RETURN_PROMISES = list()
 
     def interpret(self, node):
@@ -1913,8 +1915,13 @@ class Runtime:
     def visit_node_vardec(self, node, priv = False, input_deactivator_for_classes_yes = False):
         err_n = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"]) )
 
-        if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
-            self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
+        if not self.inside_loop:
+            if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
+                self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
+        else:
+            if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
+                print(f"REMOVED: {self.curr_scope.syms.pop(node.id_n.id_t["tokenName"])}")
+        
         const = node.const_b
         dtype = ('var', node.dtype_t["tokenName"])
         id = node.id_n.id_t["tokenName"]
@@ -2590,6 +2597,7 @@ class Runtime:
         ret_val = None
 
         self.enter_scope(loop_name)
+        self.inside_loop = True
         if loop_name == 'node_forloop':    
             if node_loop.init_arg_n: self.visit_node(node_loop.init_arg_n)
 
@@ -2710,6 +2718,7 @@ class Runtime:
         # self.loop_depth -= 1
         print(f"(runtime)(dbg) EXITING scope '{loop_name}': \nTABLE: ")
         self.exit_scope(loop_name)
+        self.inside_loop = False
         print('(runtime)(dbg) RETURNNG FROM LOOP: ', ret_val)
         if ret_val and type(ret_val[0]) is bool:
             ret_val = ret_val[1]
