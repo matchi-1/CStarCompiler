@@ -202,7 +202,6 @@ class Runtime:
 
     MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
 
-    inside_loop = False
 
     RETURN_PROMISES = list()
 
@@ -2602,7 +2601,6 @@ class Runtime:
         ret_val = None
 
         self.enter_scope(loop_name)
-        self.inside_loop = True
         if loop_name == 'node_forloop':    
             if node_loop.init_arg_n: self.visit_node(node_loop.init_arg_n)
 
@@ -2723,7 +2721,6 @@ class Runtime:
         self.loop_depth -= 1
         print(f"(runtime)(dbg) EXITING scope '{loop_name}': \nTABLE: ")
         self.exit_scope(loop_name)
-        self.inside_loop = False
         print('(runtime)(dbg) RETURNNG FROM LOOP: ', ret_val)
         if ret_val and type(ret_val[0]) is bool:
             ret_val = ret_val[1]
