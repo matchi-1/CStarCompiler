@@ -3147,8 +3147,9 @@ class Runtime:
     
     def visit_node_return_block(self, node):
         print("ENTERED RETURN BLOCK")
+        ret = self.visit_node(node.ret_value_n)
         self.RETURN_PROMISES.append(True)
-        return self.visit_node(node.ret_value_n)
+        return ret
 
         # if self.function_return_stack:
 
