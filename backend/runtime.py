@@ -1966,19 +1966,19 @@ class Runtime:
         # if size_1_type[1] not in ['int']:
         #     self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
         
-        # if size_1 < 1:
-        #     self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
+        if size_1 < 1:
+            self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
         size_2_type, size_2, _ = self.visit_node(node.size2_n) if node.size2_n else (None, None, None)
 
         # if size_2_type and size_2_type[1] not in ['int']:
         #     self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
         # print(size_2 and size_2 < 1)
         
-        # try:
-        #     if size_2 < 1:
-        #         self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
-        # except TypeError:
-        #     pass
+        try:
+            if size_2 < 1:
+                self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
+        except TypeError:
+            pass
 
 
         values_list = None
@@ -2589,8 +2589,10 @@ class Runtime:
                 self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
         
                 if self.break_continue_check:
+                    print("breaked heree")
                     if self.break_continue_check == 'node_break_stmt':
                         # break_outer = True
+                        self.break_continue_check = None
                         break
                     # elif self.break_continue_check == 'node_continue_stmt':
                     #     continue   
@@ -2618,6 +2620,7 @@ class Runtime:
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
+                        self.break_continue_check = None
                         break
 
                 loop_count += 1
@@ -2639,6 +2642,7 @@ class Runtime:
 
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
+                        self.break_continue_check = None
                         break
 
                 loop_count += 1
@@ -2668,6 +2672,7 @@ class Runtime:
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
+                        self.break_continue_check = None
                         break
 
                 loop_count += 1
@@ -2715,7 +2720,6 @@ class Runtime:
                     self.logError(f"Symbol '{node.count_n}' is an object, try accessing its attributes instead.", count_err)
                 else:
                     self.logError(f"Symbol '{node.count_n}' is a class and cannot be used as a prompt.", count_err)
-
 
 
             if count_type is None or count_type[1] != 'int':
@@ -2939,19 +2943,22 @@ class Runtime:
         statements_n = node.statements_n
         ret_val = None
         for statement in statements_n:
+            if self.break_continue_check:
+                break
+
             ctrl_stmt = type(statement).__name__
 
             if ctrl_stmt == "node_break_stmt":
                 print("(runtime)(dbg) FOUND 'break' !!!")
                 self.break_continue_check =  "node_break_stmt"
-                break
+                return ret_val
                 #return break_continue_check
                 # exit out of loop
             
             elif ctrl_stmt == "node_continue_stmt":
                 print("(runtime)(dbg) FOUND 'continue' !!!")
                 self.break_continue_check =  "node_continue_stmt"
-                break
+                return ret_val
                 #return break_continue_check
                 # loop count +1
             

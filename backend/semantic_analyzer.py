@@ -1364,19 +1364,19 @@ class SemanticAnalyzer:
         if size_1_type[1] not in ['int']:
             self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
         
-        if size_1 < 1:
-            self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
+        # if size_1 < 1:
+        #     self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
         size_2_type, size_2, _ = self.visit_node(node.size2_n) if node.size2_n else (None, None, None)
 
         if size_2_type and size_2_type[1] not in ['int']:
             self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
         print(size_2 and size_2 < 1)
         
-        try:
-            if size_2 < 1:
-                self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
-        except TypeError:
-            pass
+        # try:
+        #     if size_2 < 1:
+        #         self.logError(f"Cannot declare array '{id}' with 2nd Dimension size less than 1.", node.id_n)
+        # except TypeError:
+        #     pass
 
 
         values_list = None
@@ -2232,7 +2232,7 @@ class SemanticAnalyzer:
     
     # ALEX HERE
     def visit_node_ctrl_stmt_body(self, node):
-        self.enter_scope(type(node).__name__)
+        # self.enter_scope(type(node).__name__)
         statements_n = node.statements_n
         
         for statement in statements_n:
@@ -2255,8 +2255,8 @@ class SemanticAnalyzer:
             else:
                 self.visit_node(statement, funcExpectedVal=False)
 
-        print("(semantic)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
-        self.exit_scope(type(node).__name__)
+        # print("(semantic)(dbg) EXITING scope 'ctrl_stmt_body', TABLE: ")
+        # self.exit_scope(type(node).__name__)
         return
     
     def visit_node_condition_value(self, node):
