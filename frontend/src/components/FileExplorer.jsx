@@ -1,46 +1,46 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { FaFolder, FaFile, FaEdit, FaTrash } from 'react-icons/fa';
-import { IoIosArrowBack } from 'react-icons/io'; 
+import { IoIosArrowBack } from 'react-icons/io';
 import '../styles/FileExplorer.css';
-import { db, getDocs, collection } from '../firebaseConfig';  
-import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase/firestore';  
+import { db, getDocs, collection } from '../firebaseConfig';
+import { doc, updateDoc, setDoc, addDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 
 const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab, setActiveTab
-   , fileData, setFileData, files, setFiles, fetchFiles
+  , fileData, setFileData, files, setFiles, fetchFiles
 }) => {
 
 
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const fileInputRef = useRef(null); 
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchFiles();
   }, []);
 
   const handleRefresh = () => {
-    fetchFiles(); 
+    fetchFiles();
   };
-  
+
   const handleAddFileClick = () => {
-      fileInputRef.current.click(); 
-    };
+    fileInputRef.current.click();
+  };
 
   const addFile = (newFile) => {
-    setFiles((prevFiles) => [...prevFiles, newFile]); 
+    setFiles((prevFiles) => [...prevFiles, newFile]);
   };
 
   const handleFileClick = (file) => {
     fetchFiles();
-  
+
     if (file.type === "file") {
       // Check if a file with the same name and type already exists in openTabs
       const isFileOpen = openTabs.some(openFile => openFile.name === file.name && openFile.type === file.type);
-  
+
       if (!isFileOpen) {
         setOpenTabs([...openTabs, file]);
       }
-  
+
       setActiveTab(file.name); // Use the file name or unique ID as the activeTab
 
     }
@@ -50,40 +50,40 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
-  
+
     if (file && file.name.endsWith('.cstr')) {
       let fileName = file.name;
 
-      const baseName = fileName.slice(0, -5); 
+      const baseName = fileName.slice(0, -5);
       const extension = '.cstr';
-  
+
       const filesCollectionRef = collection(db, 'files');
-  
+
       let newFileName = fileName;
       let counter = 1;
-  
+
       while (true) {
         const q = query(filesCollectionRef, where('name', '==', newFileName));
         const querySnapshot = await getDocs(q);
-  
+
         if (querySnapshot.empty) {
           break;
         }
-  
+
         newFileName = `${baseName}(${counter})${extension}`;
         counter++;
       }
-  
+
       try {
         const fileContent = await new Promise((resolve, reject) => {
           const reader = new FileReader();
-  
+
           reader.onload = () => resolve(reader.result);
           reader.onerror = (error) => reject(error);
-  
+
           reader.readAsText(file);
         });
-  
+
         await addDoc(filesCollectionRef, {
           name: newFileName,
           content: fileContent,
@@ -92,7 +92,7 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
         });
 
 
-        fetchFiles(); 
+        fetchFiles();
         console.log(`File uploaded successfully as ${newFileName}.`);
         event.target.value = null;
 
@@ -114,29 +114,29 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
       // Check for duplicates
       const q = query(filesCollectionRef, where('name', '==', newFolder));
       const querySnapshot = await getDocs(q);
-  
+
       if (!querySnapshot.empty) {
         alert('A folder with this name already exists. Please choose a different name.');
         return;
       }
 
       try {
-        const foldersCollectionRef = collection(db, 'files'); 
-        
+        const foldersCollectionRef = collection(db, 'files');
+
         // Add folder document to Firestore
         await addDoc(foldersCollectionRef, {
           name: newFolder,
           type: 'folder',
-          createdAt: new Date(), 
+          createdAt: new Date(),
         });
-  
+
         setFiles((prevFiles) => [
           ...prevFiles,
           { name: newFolder, type: 'folder' }
         ]);
 
         fetchFiles();
-  
+
         console.log(`Folder '${newFolder}' created successfully.`);
       } catch (error) {
         console.error('Error adding folder to Firestore:', error);
@@ -151,18 +151,17 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     if (newName) {
       newName = newName.trim();
 
-      if(file.type == 'file')
-        {
-            if (!newName.endsWith('.cstr')) {
-              console.log("appended");
-            newName += '.cstr';
-          }
+      if (file.type == 'file') {
+        if (!newName.endsWith('.cstr')) {
+          console.log("appended");
+          newName += '.cstr';
         }
+      }
 
-        if (newName === file.name) {
-          alert('The file name is unchanged.');
-          return;
-        }
+      if (newName === file.name) {
+        alert('The file name is unchanged.');
+        return;
+      }
 
       const filesCollectionRef = collection(db, 'files');
 
@@ -173,52 +172,52 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
       if (!querySnapshot.empty) {
         alert('A file with this name already exists. Please choose a different name.');
         return;
-    }
-
-    try {
-      console.log("active:", activeTab);
-      if (activeTab === file.name) {
-        console.log(activeTab.name); // This should now print
-        setActiveTab(newName);
       }
-      setOpenTabs((prevTabs) =>
-        prevTabs.map((tab) =>
-          tab.id === file.id ? { ...tab, name: newName } : tab
-        )
-      );
 
-      // Rename in Firestore
-      const fileRef = doc(db, 'files', file.id);
-      const oldName = file.name;
-      await updateDoc(fileRef, { name: newName });
+      try {
+        console.log("active:", activeTab);
+        if (activeTab === file.name) {
+          console.log(activeTab.name); // This should now print
+          setActiveTab(newName);
+        }
+        setOpenTabs((prevTabs) =>
+          prevTabs.map((tab) =>
+            tab.id === file.id ? { ...tab, name: newName } : tab
+          )
+        );
 
-    } catch (error) {
-      console.error('Error renaming file in Firestore:', error);
-      alert('Failed to rename file in Firestore.');
+        // Rename in Firestore
+        const fileRef = doc(db, 'files', file.id);
+        const oldName = file.name;
+        await updateDoc(fileRef, { name: newName });
+
+      } catch (error) {
+        console.error('Error renaming file in Firestore:', error);
+        alert('Failed to rename file in Firestore.');
+      }
     }
-  }
-  fetchFiles();
-};
+    fetchFiles();
+  };
 
   const handleDelete = async (file) => {
-    
+
     if (window.confirm(`Are you sure you want to delete "${file.name}"?`)) {
       try {
-        const fileRef = doc(db, "files", file.id); 
-        
+        const fileRef = doc(db, "files", file.id);
+
         await deleteDoc(fileRef);
-  
+
         // Remove the file from openTabs
-      setOpenTabs((prevTabs) =>
-        prevTabs.filter((tab) => tab.id !== file.id) // Filter out the deleted file
-      );
+        setOpenTabs((prevTabs) =>
+          prevTabs.filter((tab) => tab.id !== file.id) // Filter out the deleted file
+        );
 
-      // If the deleted file was the active tab, set the active tab to null or the first tab
-      if (activeTab === file.name) {
-        setActiveTab(openTabs[0].name);  
-      }
+        // If the deleted file was the active tab, set the active tab to null or the first tab
+        if (activeTab === file.name) {
+          setActiveTab(openTabs[0].name);
+        }
 
-      fetchFiles(); 
+        fetchFiles();
 
       } catch (error) {
         console.error("Error deleting file from Firestore:", error);
@@ -227,16 +226,16 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     }
   };
 
-// Memoize the sorted file data to avoid sorting on each render
-const sortedFileData = useMemo(() => {
-  return fileData.slice().sort((a, b) => {
-    console.log("SORTING..");
-    if (a.type === b.type) {
-      return a.name.localeCompare(b.name); // Alphabetical within type
-    }
-    return a.type === 'folder' ? -1 : 1; // Folders first
-  });
-}, [fileData]);
+  // Memoize the sorted file data to avoid sorting on each render
+  const sortedFileData = useMemo(() => {
+    return fileData.slice().sort((a, b) => {
+      console.log("SORTING..");
+      if (a.type === b.type) {
+        return a.name.localeCompare(b.name); // Alphabetical within type
+      }
+      return a.type === 'folder' ? -1 : 1; // Folders first
+    });
+  }, [fileData]);
 
   return (
     <div className={`file-explorer ${isVisible ? 'visible' : ''}`}>
@@ -252,22 +251,17 @@ const sortedFileData = useMemo(() => {
             alt="Upload Files"
             onClick={handleAddFileClick}
           />
-        <input
-          ref={fileInputRef}  
-          type="file"
-          accept=".cstr"  
-          onChange={handleFileUpload}  
-          style={{ display: 'none' }}  
-        />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".cstr"
+            onChange={handleFileUpload}
+            style={{ display: 'none' }}
+          />
           <img
             src="/assets/new-document.png"
             alt="New Document"
-            onClick={addFile} 
-          />
-          <img
-            src="/assets/new-folder.png"
-            alt="New Folder"
-            onClick={addFolder} 
+            onClick={addFile}
           />
           <img
             src="/assets/refresh.png"
@@ -292,12 +286,12 @@ const sortedFileData = useMemo(() => {
       */}
       <div className='file-explorer-content-wrapper'>
         <div className="file-explorer-content">
-         {sortedFileData.length === 0 ? (
-          <p>No files or folders available</p>
+          {sortedFileData.length === 0 ? (
+            <p>No files or folders available</p>
           ) : (
-          <ul>
-            {sortedFileData.map((file, index) => (
-              <li
+            <ul>
+              {sortedFileData.map((file, index) => (
+                <li
                   key={index}
                   onMouseEnter={() => setHoveredIndex(index)} // Set hovered index
                   onMouseLeave={() => setHoveredIndex(null)} // Clear hovered index
@@ -305,25 +299,25 @@ const sortedFileData = useMemo(() => {
                   className="file-item"
                 >
                   {file.type === 'folder' ? (
-                      <FaFolder size={12} />
-                    ) : (
-                      <img src="/assets/CStarLogo2.png" alt="Cstar" className="CStar-file-icon" />
-                    )}
-                    <span className="file-name">{file.name}</span>
+                    <FaFolder size={12} />
+                  ) : (
+                    <img src="/assets/CStarLogo2.png" alt="Cstar" className="CStar-file-icon" />
+                  )}
+                  <span className="file-name">{file.name}</span>
 
                   {hoveredIndex === index && ( // Show buttons only if this file is hovered
                     <span className="file-actions">
-                      <FaEdit 
-                        className="file-action-icon" 
-                        onClick={() => handleRename(file)} 
-                        title="Edit" 
+                      <FaEdit
+                        className="file-action-icon"
+                        onClick={() => handleRename(file)}
+                        title="Edit"
                       />
-                      <FaTrash 
-                        className="file-action-icon" 
-                        onClick={() => handleDelete(file)} 
-                        title="Delete" 
-                    />
-                  </span>                
+                      <FaTrash
+                        className="file-action-icon"
+                        onClick={() => handleDelete(file)}
+                        title="Delete"
+                      />
+                    </span>
                   )}
                 </li>
               ))}
@@ -331,7 +325,7 @@ const sortedFileData = useMemo(() => {
           )}
         </div>
       </div>
-      
+
 
     </div>
   );
