@@ -2587,6 +2587,7 @@ class Runtime:
         # self.loop_depth += 1
 
         loop_count = 0
+        ret_val = None
 
         self.enter_scope(loop_name)
         if loop_name == 'node_forloop':    
@@ -2609,7 +2610,9 @@ class Runtime:
                 break_outer = False
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+                ret_val = self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+                if self.RETURN_PROMISES:
+                    break
         
                 if self.break_continue_check:
                     print("breaked heree")
@@ -2639,7 +2642,9 @@ class Runtime:
                 if val == False: break
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+                ret_val = self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+                if self.RETURN_PROMISES:
+                    break
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
@@ -2656,7 +2661,9 @@ class Runtime:
                     break
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+                ret_val = self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+                if self.RETURN_PROMISES:
+                    break
 
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
@@ -2691,7 +2698,9 @@ class Runtime:
                 if loop_count > repeat_val: break
                 
                 self.break_continue_check = None
-                self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+                ret_val = self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)
+                if self.RETURN_PROMISES:
+                    break
         
                 if self.break_continue_check:
                     if self.break_continue_check == 'node_break_stmt':
@@ -2703,6 +2712,7 @@ class Runtime:
         # self.loop_depth -= 1
         print(f"(runtime)(dbg) EXITING scope '{loop_name}': \nTABLE: ")
         self.exit_scope(loop_name)
+        return ret_val
 
     def visit_node_input(self, node):
         count_value = 0
