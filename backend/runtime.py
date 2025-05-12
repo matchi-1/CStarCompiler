@@ -2712,6 +2712,9 @@ class Runtime:
         # self.loop_depth -= 1
         print(f"(runtime)(dbg) EXITING scope '{loop_name}': \nTABLE: ")
         self.exit_scope(loop_name)
+        print('(runtime)(dbg) RETURNNG FROM LOOP: ', ret_val)
+        if ret_val and type(ret_val[0]) is bool:
+            ret_val = ret_val[1]
         return ret_val
 
     def visit_node_input(self, node):
