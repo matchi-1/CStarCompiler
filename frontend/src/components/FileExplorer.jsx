@@ -7,7 +7,7 @@ import { doc, updateDoc, setDoc, addDoc, deleteDoc, query, where } from 'firebas
 
 
 const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab, setActiveTab
-  , fileData, setFileData, files, setFiles, fetchFiles
+  , fileData, setFileData, files, setFiles, fetchFiles, code, setValue
 }) => {
 
 
@@ -22,30 +22,26 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     fetchFiles();
   };
 
-  const handleAddFileClick = () => {
+  const handleUpload = () => {
     fileInputRef.current.click();
   };
 
-  const addFile = (newFile) => {
-    setFiles((prevFiles) => [...prevFiles, newFile]);
-  };
 
   const handleFileClick = (file) => {
     fetchFiles();
-
+  
     if (file.type === "file") {
       // Check if a file with the same name and type already exists in openTabs
       const isFileOpen = openTabs.some(openFile => openFile.name === file.name && openFile.type === file.type);
-
+  
       if (!isFileOpen) {
         setOpenTabs([...openTabs, file]);
       }
-
+  
       setActiveTab(file.name); // Use the file name or unique ID as the activeTab
 
-    }
+      }
   };
-
 
 
   const handleFileUpload = async (event) => {
@@ -103,6 +99,20 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     } else {
       alert('Please select a .cstr file only.');
     }
+  };
+
+  const handleNewFile = async() => {
+    const newFileName = prompt('Enter Cstar source code name: ');
+    // setFiles((prevFiles) => [...prevFiles, newFile]);
+    const filesCollectionRef = collection(db, 'files');
+    await addDoc(filesCollectionRef, {
+      name: newFileName + ".cstr",
+      content: "",
+      type: 'file',
+      createdAt: new Date(),
+    });
+
+    fetchFiles();
   };
 
   const addFolder = async () => {
@@ -228,14 +238,17 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
 
   // Memoize the sorted file data to avoid sorting on each render
   const sortedFileData = useMemo(() => {
-    return fileData.slice().sort((a, b) => {
-      console.log("SORTING..");
-      if (a.type === b.type) {
-        return a.name.localeCompare(b.name); // Alphabetical within type
-      }
-      return a.type === 'folder' ? -1 : 1; // Folders first
-    });
+    return fileData
+      .filter(f => typeof f.name === 'string')
+      .slice()
+      .sort((a, b) => {
+        if (a.type === b.type) {
+          return a.name.localeCompare(b.name);
+        }
+        return a.type === 'folder' ? -1 : 1;
+      });
   }, [fileData]);
+  
 
   return (
     <div className={`file-explorer ${isVisible ? 'visible' : ''}`}>
@@ -249,7 +262,8 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
           <img
             src="/assets/upload.png"
             alt="Upload Files"
-            onClick={handleAddFileClick}
+            title="Upload Files"
+            onClick={handleUpload}
           />
           <input
             ref={fileInputRef}
@@ -261,29 +275,20 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
           <img
             src="/assets/new-document.png"
             alt="New Document"
-            onClick={addFile}
+            title="New File"
+            onClick={handleNewFile}
           />
           <img
             src="/assets/refresh.png"
             alt="Refresh"
+            title="Refresh"
             onClick={handleRefresh}
           />
 
         </div>
       </div>
 
-      {/*   
-      TODO:
 
-      - add dowload button ✅
-      
-
-       (folder stuff)
-         -add dropdown icon for folders
-         -Make folder collapsible.
-         -select and deselect folders
-         -upload only on specific folders when selected
-      */}
       <div className='file-explorer-content-wrapper'>
         <div className="file-explorer-content">
           {sortedFileData.length === 0 ? (

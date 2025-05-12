@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import '../styles/Header.css';
 import { io } from 'socket.io-client';
+import { db, getDocs, collection } from '../firebaseConfig';  
+import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase/firestore';  
 
 const socket = io("http://localhost:5000");
 // const socket = io("https://cstar-backend-217043973303.asia-southeast1.run.app", {
@@ -8,7 +10,7 @@ const socket = io("http://localhost:5000");
 //   secure: true
 // });
 
-const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExecutionComplete }) => {
+const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExecutionComplete, code, setValue, setFileData }) => {
 
   const handleTerminate = () => {
     console.log("Terminating program...");
@@ -34,6 +36,37 @@ const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExe
       editorRef.current.trigger('keyboard', 'redo', null);
     }
   };
+
+    // Save functionality
+    const handleSave = async () => {
+      console.log("Saving file...");
+      if (!activeTab){ console.log("ACTIVE TAB NOT SETT!!!"); return; }
+      
+      try {
+        const filesCollectionRef = collection(db, 'files');
+        const q = query(filesCollectionRef, where('name', '==', activeTab));
+        console.log("query: ", q);
+        console.log("updatign file with: ", code);
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+          // const fileData = querySnapshot.docs[0].data();
+          await updateDoc(/** @type {DocumentReference} */(querySnapshot.docs[0].ref), {
+            content: code
+          });
+          console.log("File saved successfully!");
+          alert("File saved successfully!");
+          //setValue(fileData.content); // Update the editor's value
+        } else {
+          console.warn(`File "${activeTab}" not found.`);
+          setValue(''); // Clear the editor if no file is found
+        }
+      } catch (error) {
+        console.error('Error fetching file content:', error);
+        setValue(''); // Clear the editor on error
+      }
+    };
+  
 
   const handleDownload = () => {
     const file = fileData.find((file) => file.name === activeTab);
@@ -61,7 +94,7 @@ const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExe
         <div className="header-item" onClick={handleRedo}>
           <p>Redo</p>
         </div>
-        <div className="header-item">
+        <div className="header-item" onClick={handleSave}>
           <p>Save</p>
         </div>
         <div className="header-item" onClick={handleDownload}>

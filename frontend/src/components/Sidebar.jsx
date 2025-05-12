@@ -12,12 +12,12 @@ const Sidebar = ({ toggleFiles }) => {
         <img src="/assets/folder.png" alt="Files" />
       </div>
 
-      <div
+      {/* <div
         className="sidebar-item"
         onClick={() => alert('Terminal clicked')}
       >
-        {/*<img src="/assets/terminal.png" alt="Terminal" />*/}
-      </div>
+        {/*<img src="/assets/terminal.png" alt="Terminal" />
+      </div> */}
     </div>
   );
 };
