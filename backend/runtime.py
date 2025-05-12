@@ -2944,6 +2944,7 @@ class Runtime:
     
     # ALEX HERE
     def visit_node_ctrl_stmt_body(self, node):
+        ret_val = None
         # self.enter_scope(type(node).__name__)
         statements_n = node.statements_n
         ret_val = None
@@ -2972,7 +2973,7 @@ class Runtime:
 
         # print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
         # self.exit_scope(type(node).__name__)
-        return ret_val
+        return ret_val 
         #return break_continue_check
     
     def visit_node_condition_value(self, node):
