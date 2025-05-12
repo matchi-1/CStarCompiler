@@ -234,7 +234,7 @@ class Runtime:
     def __init__(self):
         self.curr_scope = SymbolTable()
         self.errors = []
-        # self.loop_depth = 0
+        self.loop_depth = 0
         # self.switch_depth = 0
         self.function_return_stack = []
         #self.output = []  # <== NEW: collect all print outputs here
@@ -1920,7 +1920,7 @@ class Runtime:
     def visit_node_vardec(self, node, priv = False, input_deactivator_for_classes_yes = False):
         err_n = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"]) )
 
-        if not self.inside_loop:
+        if not self.loop_depth > 0:
             if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
                 self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
         else:
@@ -2596,7 +2596,7 @@ class Runtime:
     def visit_node_loop_stmt(self, node):
         node_loop = node.loop_stmt_n
         loop_name = type(node_loop).__name__
-        # self.loop_depth += 1
+        self.loop_depth += 1
 
         loop_count = 0
         ret_val = None
@@ -2720,7 +2720,7 @@ class Runtime:
 
                 loop_count += 1
 
-        # self.loop_depth -= 1
+        self.loop_depth -= 1
         print(f"(runtime)(dbg) EXITING scope '{loop_name}': \nTABLE: ")
         self.exit_scope(loop_name)
         self.inside_loop = False
