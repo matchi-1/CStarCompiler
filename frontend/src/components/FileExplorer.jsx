@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { FaFolder, FaFile, FaEdit, FaTrash } from 'react-icons/fa';
-import { IoIosArrowBack } from 'react-icons/io';
+import { FaFolder, FaEdit, FaTrash } from 'react-icons/fa';
 import '../styles/FileExplorer.css';
 import { db, getDocs, collection } from '../firebaseConfig';
-import { doc, updateDoc, setDoc, addDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 
 const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab, setActiveTab
-  , fileData, setFileData, files, setFiles, fetchFiles, code, setValue
+  , fileData, fetchFiles, 
 }) => {
 
 
@@ -103,7 +102,7 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
 
   const handleNewFile = async() => {
     const newFileName = prompt('Enter Cstar source code name: ');
-    // setFiles((prevFiles) => [...prevFiles, newFile]);
+    
     const filesCollectionRef = collection(db, 'files');
     await addDoc(filesCollectionRef, {
       name: newFileName + ".cstr",
@@ -115,45 +114,6 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
     fetchFiles();
   };
 
-  const addFolder = async () => {
-    const newFolder = prompt('Enter folder name');
-    if (newFolder) {
-
-      const filesCollectionRef = collection(db, 'files');
-
-      // Check for duplicates
-      const q = query(filesCollectionRef, where('name', '==', newFolder));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        alert('A folder with this name already exists. Please choose a different name.');
-        return;
-      }
-
-      try {
-        const foldersCollectionRef = collection(db, 'files');
-
-        // Add folder document to Firestore
-        await addDoc(foldersCollectionRef, {
-          name: newFolder,
-          type: 'folder',
-          createdAt: new Date(),
-        });
-
-        setFiles((prevFiles) => [
-          ...prevFiles,
-          { name: newFolder, type: 'folder' }
-        ]);
-
-        fetchFiles();
-
-        console.log(`Folder '${newFolder}' created successfully.`);
-      } catch (error) {
-        console.error('Error adding folder to Firestore:', error);
-        alert('Failed to create folder.');
-      }
-    }
-  };
 
   const handleRename = async (file) => {
     let newName = prompt('Enter new name:', file.name);

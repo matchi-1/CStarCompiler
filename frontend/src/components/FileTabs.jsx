@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import '../styles/FileTabs.css';
 import { db, getDocs, collection } from '../firebaseConfig';  
-import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase/firestore';  
+import { query, where } from 'firebase/firestore';  
 
-const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, fileData, setFileData
-  , code, setValue
-
+const FileTabs = ({ openTabs, setOpenTabs, activeTab, setActiveTab, setValue
   }) => {
   
   const closeTab = (tabToClose) => {

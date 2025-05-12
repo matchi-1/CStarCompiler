@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import '../styles/Header.css';
 import { io } from 'socket.io-client';
 import { db, getDocs, collection } from '../firebaseConfig';  
-import { doc, updateDoc, setDoc,addDoc, deleteDoc, query, where } from 'firebase/firestore';  
+import { updateDoc, query, where } from 'firebase/firestore';  
 
 const socket = io("http://localhost:5000");
 // const socket = io("https://cstar-backend-217043973303.asia-southeast1.run.app", {
@@ -10,7 +10,7 @@ const socket = io("http://localhost:5000");
 //   secure: true
 // });
 
-const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExecutionComplete, code, setValue, setFileData }) => {
+const Header = ({ editorRef, fileData, activeTab, clickHandler, clearLogs, onExecutionComplete, code, setValue }) => {
 
   const handleTerminate = () => {
     console.log("Terminating program...");
