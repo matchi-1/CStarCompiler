@@ -1361,8 +1361,8 @@ class SemanticAnalyzer:
 
         size_1_type, size_1, _ = self.visit_node(node.size1_n)
 
-        if size_1_type[1] not in ['int']:
-            self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
+        # if size_1_type[1] not in ['int']:
+        #     self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
         
         # if size_1 < 1:
         #     self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
@@ -1486,15 +1486,15 @@ class SemanticAnalyzer:
             
             if size_1_type[1] not in ['int']:
                 self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", arrdec_node.id_n)
-            if size_1 < 1:
-                self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 1st Dimension size less than 1.", arrdec_node.id_n)
+            # if size_1 < 1:
+            #     self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 1st Dimension size less than 1.", arrdec_node.id_n)
             size_2_type, size_2, _ = self.visit_node(arrdec_node.size2_n) if node.size2_n else (None, None, None)
             
             if size_2_type and size_2_type[1] not in ['int']:
                 self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", arrdec_node.id_n)
             
-            if size_2 and size_2 < 1:
-                self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 2nd Dimension size less than 1.", arrdec_node.id_n)
+            # if size_2 and size_2 < 1:
+            #     self.logError(f"Cannot declare array '{arrdec_node.id_n.id_t["tokenName"]}' with 2nd Dimension size less than 1.", arrdec_node.id_n)
 
 
             if self.curr_scope.get(arrdec_node.id_n.id_t["tokenName"], checkParent=False):
