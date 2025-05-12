@@ -1490,16 +1490,19 @@ class Runtime:
         ret_val = None
         if body_ret:
             print('AAAAAAAAAAAAAAAAAAAAAA BODY RET', body_ret)
-            # format A: direct tuple (ex. (('var', 'string'), 'bdbdbd', <ErrorNode>))
-            if isinstance(body_ret, tuple) and len(body_ret) == 3:
-                ret_type, ret_val, _ = body_ret
+            # # format A: direct tuple (ex. (('var', 'string'), 'bdbdbd', <ErrorNode>))
+            # if isinstance(body_ret, tuple) and len(body_ret) == 3:
+            #     ret_type, ret_val, _ = body_ret
 
-            # format B: list containing a dict with 'result'  (ex. [{'result': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}}])
-            if isinstance(body_ret, list) and len(body_ret) == 1:
-                result = body_ret[0].get('result')
-                if result:
-                    ret_type = result.get('dtype')
-                    ret_val = result.get('value')
+            # # format B: list containing a dict with 'result'  (ex. [{'result': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}}])
+            # if isinstance(body_ret, list) and len(body_ret) == 1:
+            #     result = body_ret[0].get('result')
+            #     if result:
+            #         ret_type = result.get('dtype')
+            #         ret_val = result.get('value')
+
+            if body_ret and type(body_ret[0]) is bool:
+                ret_type, ret_val, _ = body_ret[1]
 
         self.exit_scope(func_name)
         print('AAAAAAAAAAAAAAAAAAAAAA EVAL RET', ret_val)
