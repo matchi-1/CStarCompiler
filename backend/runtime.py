@@ -1489,7 +1489,18 @@ class Runtime:
         ret_type = None
         ret_val = None
         if body_ret:
-            ret_type, ret_val, _ = body_ret
+            print('AAAAAAAAAAAAAAAAAAAAAA BODY RET', body_ret)
+            # format A: direct tuple (ex. (('var', 'string'), 'bdbdbd', <ErrorNode>))
+            if isinstance(body_ret, tuple) and len(body_ret) == 3:
+                ret_type, ret_val, _ = body_ret
+
+            # format B: list containing a dict with 'result'  (ex. [{'result': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}}])
+            if isinstance(body_ret, list) and len(body_ret) == 1:
+                result = body_ret[0].get('result')
+                if result:
+                    ret_type = result.get('dtype')
+                    ret_val = result.get('value')
+
         self.exit_scope(func_name)
         print('AAAAAAAAAAAAAAAAAAAAAA EVAL RET', ret_val)
         return ret_val
@@ -1664,6 +1675,13 @@ class Runtime:
 
             case "str_charToAscii":
                 return ('int', ord(str_param1[0]) if str_param1 else 0)
+
+            case "str_asciiToChar":
+                if not (0 <= num_param1 <= 255):
+                    self.logError("Cannot convert value to ASCII character. Value must be between 0 and 255.", args_list[0])
+
+                return ('string', chr(num_param1))
+ 
 
 
 
