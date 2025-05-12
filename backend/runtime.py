@@ -2606,8 +2606,6 @@ class Runtime:
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
                 print(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
                 if val == False: break
-
-                break_outer = False
                 
                 self.break_continue_check = None
                 ret_val = self.visit_node(node_loop.ctrl_stmt_body_n, funcExpectedVal=False)

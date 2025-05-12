@@ -102,19 +102,19 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
 
   const handleNewFile = async() => {
     const newFileName = prompt('Enter Cstar source code name: ');
-    if (!newFileName) {
-      alert('File name cannot be empty.');
-      return;
-    }
-    const filesCollectionRef = collection(db, 'files');
-    await addDoc(filesCollectionRef, {
-      name: newFileName + ".cstr",
-      content: "",
-      type: 'file',
-      createdAt: new Date(),
-    });
+    if (newFileName) {
+      const filesCollectionRef = collection(db, 'files');
+      await addDoc(filesCollectionRef, {
+        name: newFileName + ".cstr",
+        content: "",
+        type: 'file',
+        createdAt: new Date(),
+      });
 
     fetchFiles();
+
+    }
+    
   };
 
 
