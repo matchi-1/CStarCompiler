@@ -2937,6 +2937,7 @@ class Runtime:
     def visit_node_ctrl_stmt_body(self, node):
         # self.enter_scope(type(node).__name__)
         statements_n = node.statements_n
+        ret_val = None
         for statement in statements_n:
             ctrl_stmt = type(statement).__name__
 
