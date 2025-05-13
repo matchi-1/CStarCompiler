@@ -92,26 +92,25 @@ class LexicalAnalyzer:
                     case 'r':  currState = 's98'
                     case 's':  currState = 's110'
                     case 't':  currState = 's123'
-                    case 'v':  currState = 's132'
-                    case 'w':  currState = 's137'
+                    case 'v':  currState = 's128'
+                    case 'w':  currState = 's133'
                     case '-':  currState = 'DASH_CHECK'
                     case '!':  currState = 'NEGATION_CHECK'
                     case '%':  currState = 'MODULO_CHECK'
-                    case '&':  currState = 's157'
+                    case '&':  currState = 's153'
                     case '(':  currState = 'OPEN_PAREN_CHECK'
                     case ')':  currState = 'CLOSING_PAREN_CHECK'
                     case '*':  currState = 'ASTERISK_CHECK'
                     case ',':  currState = 'COMMA_CHECK'
                     case '.':  currState = 'DOT_CHECK'
                     case '/':  currState = 'SLASH_CHECK'
-                    # case '?':  currState = 'QUESTION_CHECK'
                     case ':':  currState = 'COLON_CHECK'
                     case '[':  currState = 'OPEN_BRACKET_CHECK'
                     case ']':  currState = 'CLOSING_BRACKET_CHECK'
                     case '{':  currState = 'OPEN_CURLY_CHECK'
                     case '}':  currState = 'CLOSING_CURLY_CHECK'
-                    case '|':  currState = 's194'
-                    case '"':  currState = 's224'
+                    case '|':  currState = 's184'
+                    case '"':  currState = 's213'
                     case '+':  currState = 'PLUS_CHECK'
                     case '<':  currState = 'OPEN_ANGLE_CHECK'
                     case '>':  currState = 'CLOSING_ANGLE_CHECK'
@@ -591,72 +590,59 @@ class LexicalAnalyzer:
             
             case 's123':
                 match currChar:
-                    # case 'h':  currState = 's124'
-                    case 'r':  currState = 's128'
+                    case 'r':  currState = 's124'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
         
-            # case 's124':
-            #     match currChar:
-            #         case 'i':  currState = 's125'
-            #         case 'ANY':  currState = 'DEFINED'
-            #         case _:   currState = 'UNDEFINED'
-
-            # case 's125':
-            #     match currChar:
-            #         case 's':  currState = 'THIS_CHECK'
-            #         case 'ANY':  currState = 'DEFINED'
-            #         case _:   currState = 'UNDEFINED'
-
-            case 's128':
+            case 's124':
                 match currChar:
-                    case 'u':  currState = 's129'
+                    case 'u':  currState = 's125'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's129':
+            case 's125':
                 match currChar:
                     case 'e':  currState = 'TRUE_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's132':
+            case 's128':
                 match currChar:
-                    case 'o':  currState = 's133'
+                    case 'o':  currState = 's129'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's133':
+            case 's129':
                 match currChar:
-                    case 'i':  currState = 's134'
+                    case 'i':  currState = 's130'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's134':
+            case 's130':
                 match currChar:
                     case 'd':  currState = 'VOID_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's137':
+            case 's133':
                 match currChar:
-                    case 'h':  currState = 's138'
+                    case 'h':  currState = 's134'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's138':
+            case 's134':
                 match currChar:
-                    case 'i':  currState = 's139'
+                    case 'i':  currState = 's135'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's139':
+            case 's135':
                 match currChar:
-                    case 'l':  currState = 's140'
+                    case 'l':  currState = 's136'
                     case 'ANY':  currState = 'DEFINED'
                     case _:  currState = 'UNDEFINED'
 
-            case 's140':
+            case 's136':
                 match currChar:
                     case 'e':  currState = 'WHILE_CHECK'
                     case 'ANY':  currState = 'DEFINED'
@@ -664,124 +650,124 @@ class LexicalAnalyzer:
 
             #### RESERVED SYMBOLS #######################################
 
-            case 's143':
+            case 's139':
                 match currChar:
                     case '-':  currState = 'DECREMENT_CHECK'
                     case '=':  currState = 'MINUS_ASS_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's149':
+            case 's145':
                 match currChar:
                     case '=':  currState = 'NOT_EQUAL_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case '153':
+            case '149':
                 match currChar:
                     case '=':  currState = 'MODULO_ASS_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's157':
+            case 's153':
                 match currChar:
                     case '&':  currState = 'LOGICAND_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case '164':
+            case '160':
                 match currChar:
                     case '=':  currState = 'MULT_ASS_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's174':
+            case 's168':
                 match currChar:
-                    case '*':  currState = 's220'
-                    case '/':  currState = 's218'
+                    case '*':  currState = 's209'
+                    case '/':  currState = 's207'
                     case '=':  currState = 'DIV_ASS_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's194':
+            case 's184':
                 match currChar:
                     case '|':  currState = 'LOGICOR_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's197':
+            case 's187':
                 match currChar:
                     case '+':  currState = 'INCREMENT_CHECK'
                     case '=':  currState = 'ADD_ASS_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
             
-            case 's203':
+            case 's193':
                 match currChar:
                     case '=':  currState = 'LESS_OR_EQUAL_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's207':
+            case 's197':
                 match currChar:
                     case '=':  currState = 'GREATER_OR_EQUAL_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
         
-            case 's211':
+            case 's201':
                 match currChar:
                     case '=':  currState = 'EQUAL_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's215':
+            case 's205':
                 match currChar:
-                    case '_':  currState = 's215'
-                    case _ if currChar in self.alphanum:  currState = 's215'
+                    case '_':  currState = 's205'
+                    case _ if currChar in self.alphanum:  currState = 's205'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's218':
+            case 's207':
                 match currChar:
-                    case _ if currChar in self.ascii:  currState = 's218'
+                    case _ if currChar in self.ascii:  currState = 's207'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's220':
+            case 's209':
                 match currChar:
-                    case '\n':  currState = 's220'
-                    case '*':  currState = 's221' #catches * before ascii check
+                    case '\n':  currState = 's209'
+                    case '*':  currState = 's210' #catches * before ascii check
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
                 global  multi_line_start_found
                 multi_line_start_found = True  # multi-line comment start found
 
 
-            case 's221':
+            case 's210':
                 match currChar:
                     case '/':  currState = 'MULTI_COMMENT_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's224':
+            case 's213':
                 match currChar:
                     case '"':  currState = 'STRING_LIT_CHECK' #catches " before ascii check
-                    case _ if currChar in self.ascii:  currState = 's224'
+                    case _ if currChar in self.ascii:  currState = 's213'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's227':
+            case 's249':
                 match currChar:
-                    case _ if currChar in self.numbers:  currState = 's227'
+                    case _ if currChar in self.numbers:  currState = 's249'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
             
-            case 's260':
+            case 's216':
                 match currChar:
                     case '.': 
                         need_frac_num = True
-                        currState = 's227'
-                    case _ if currChar in self.numbers: currState = 's260'
+                        currState = 's249'
+                    case _ if currChar in self.numbers: currState = 's216'
                     case 'ANY':  currState = 'DEFINED'
                     case _:  currState = 'UNDEFINED' 
         
@@ -867,7 +853,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'bool', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -883,7 +869,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'double', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -899,7 +885,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'float', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -916,7 +902,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'int', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -932,7 +918,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'long', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -948,7 +934,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'string', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -965,7 +951,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'break', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1006,7 +992,7 @@ class LexicalAnalyzer:
                             add_token(currToken, '-', currLine, currCol)
                         elif (code[i] in ['-', '=']):
                             print('(dbg) going to s143')
-                            currState = 's143'
+                            currState = 's139'
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1016,7 +1002,7 @@ class LexicalAnalyzer:
                         if (code[i] in self.exclamation_delim):
                             add_token(currToken, '!', currLine, currCol)
                         elif (code[i] == '='):
-                            currState = 's149'
+                            currState = 's145'
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1026,7 +1012,7 @@ class LexicalAnalyzer:
                         if (code[i] in self.percent_delim):
                             add_token(currToken, '%', currLine, currCol)
                         elif (code[i] == '='):
-                            currState = '153'
+                            currState = '149'
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1036,7 +1022,7 @@ class LexicalAnalyzer:
                         if (code[i] in self.asterisk_delim):
                             add_token(currToken, '*', currLine, currCol)
                         elif (code[i] in ['/', '=']):
-                            currState = '164'
+                            currState = '160'
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1052,7 +1038,7 @@ class LexicalAnalyzer:
                     case 'DOT_CHECK':
                         expected = ['alphabetic_chars', '/'] + self.whitespace
                         if (code[i] in self.numbers):
-                            currState = 's227'
+                            currState = 's249'
                         elif (code[i] in self.dot_delim):
                             add_token(currToken, '.', currLine, currCol)
                         else:
@@ -1064,19 +1050,10 @@ class LexicalAnalyzer:
                         if (code[i] in self.slash_delim):
                             add_token(currToken, '/', currLine, currCol)
                         elif (code[i] in ['*', '/', '=']):
-                            currState = 's174'
+                            currState = 's168'
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    # ? symbol
-                    # case 'QUESTION_CHECK':
-                    #     expected = ['alphanum', '(', '/', '\"'] + self.newline
-                    #     if (code[i] in self.question_delim):
-                    #         add_token(currToken, '?', currLine, currCol)
-                    #     else:
-                    #         currToken += code[i]
-                    #         add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    # : symbol
                     case 'COLON_CHECK':
                         expected = ['alphanum', '(', ' ', '/'] + self.newline
                         if (code[i] in self.colon_delim):
@@ -1122,7 +1099,7 @@ class LexicalAnalyzer:
                         if (code[i] in self.plus_delim):
                             add_token(currToken, '+', currLine, currCol)
                         else:
-                            currState = 's197'
+                            currState = 's187'
                     # < symbol
                     case 'OPEN_ANGLE_CHECK':
                         expected = ['alphanum', ' ', '(', '+', '-', '/'] + self.newline
@@ -1131,7 +1108,7 @@ class LexicalAnalyzer:
                             print("(dbg) arithmetic spotted for <")
                             add_token(currToken, '<', currLine, currCol)
                         elif (code[i] == '='):
-                            currState = 's203'
+                            currState = 's193'
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1141,7 +1118,7 @@ class LexicalAnalyzer:
                         if (code[i] in self.great_delim):
                             add_token(currToken, '>', currLine, currCol)
                         elif (code[i] == '='):
-                            currState = 's207'
+                            currState = 's197'
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1151,7 +1128,7 @@ class LexicalAnalyzer:
                         if (code[i] in self.equal_delim):
                             add_token(currToken, '=', currLine, currCol)
                         else:
-                            currState = 's211'
+                            currState = 's201'
                     # in statement
                     case 'IN_CHECK':
                         expected = ['<', '/']
@@ -1179,7 +1156,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'println', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1196,7 +1173,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'private', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1213,7 +1190,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'repeat', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1230,7 +1207,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'return', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1240,19 +1217,7 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    # static statement
-                    # case 'STATIC_CHECK':
-                    #     expected = self.newline_delim
-                    #     if (code[i] in self.newline_delim):
-                    #         add_token(currToken, 'static', currLine, currCol)
-                    #     elif (code[i] in self.alphanum + ['_']):
-                    #         currToken += code[i]
-                    #         currState ='s215'
-                    #         print('(dbg) now in state 215')
-                    #         continue
-                    #     else:
-                    #         currToken += code[i]
-                    #         add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
+        
                     # switch statement
                     case 'SWITCH_CHECK':
                         expected = self.loop_delim
@@ -1260,7 +1225,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'switch', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1270,27 +1235,15 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    # this statement
-                    # case 'THIS_CHECK':
-                    #     expected = self.this_delim
-                    #     if (code[i] in self.this_delim):
-                    #         add_token(currToken, 'this', currLine, currCol)
-                    #     elif (code[i] in self.alphanum + ['_']):
-                    #         currToken += code[i]
-                    #         currState ='s215'
-                    #         print('(dbg) now in state 215')
-                    #         continue
-                    #     else:
-                    #         currToken += code[i]
-                    #         add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    # this statement
+                
+                    # true
                     case 'TRUE_CHECK':
                         expected = self.nbl_delim
                         if (code[i] in self.nbl_delim):
                             add_token(currToken, 'bool_lit', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1307,7 +1260,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'void', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1324,7 +1277,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'while', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1463,7 +1416,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'case', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1480,7 +1433,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'class', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1497,7 +1450,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'continue', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1514,7 +1467,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'const', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1531,7 +1484,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'default', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1557,7 +1510,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'else', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1574,7 +1527,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'bool_lit', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1591,7 +1544,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'for', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1608,7 +1561,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'if', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1625,7 +1578,7 @@ class LexicalAnalyzer:
                             add_token(currToken, 'import', currLine, currCol)
                         elif (code[i] in self.alphanum + ['_']):
                             currToken += code[i]
-                            currState ='s215'
+                            currState ='s205'
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
@@ -1639,7 +1592,7 @@ class LexicalAnalyzer:
             
             #---SPECIAL STATES---
             #identifier state
-            if (currState == 's215'):
+            if (currState == 's205'):
                 print('(dbg) in identifier check state now')
                 if (code[i] in self.iden_delim):
                     print('(dbg) correct delim')    
@@ -1650,7 +1603,7 @@ class LexicalAnalyzer:
                 elif (code[i] in self.alphanum + ['_']): #if not delim but still valid, keep looping
                         currToken += code[i]
                         print('(dbg) accepted for iden')
-                        currState ='s215'
+                        currState ='s205'
                         if reset_col:
                             currLine += 1
                             currCol = 1
@@ -1663,7 +1616,7 @@ class LexicalAnalyzer:
                     add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
             #end of identifier looping
             #single line comment
-            if (currState == 's218'):
+            if (currState == 's207'):
                 if (code[i] == '\n'):
                     add_token(currToken, 'single_comment', currLine, currCol)
                     if reset_col:
@@ -1680,12 +1633,12 @@ class LexicalAnalyzer:
                     continue
             #end of single line comment
             #multi-line comment
-            if (currState == 's221'):
+            if (currState == 's210'):
                 if (code[i] != '/'):
-                    currState = 's220'
+                    currState = 's209'
             #end of multi-line comment
             #whole number
-            if (currState == 's260'):
+            if (currState == 's216'):
                 if (code[i] in self.numbers):
                     print("(dbg) got another number")
                     currWholeCount += 1
@@ -1725,7 +1678,7 @@ class LexicalAnalyzer:
                     currFracCount = 0
             #end of whole number
             #fractional part of number
-            if (currState == 's227'):
+            if (currState == 's249'):
                 if (code[i] in self.numbers):
                     need_frac_num = False
                     currFracCount += 1
@@ -1798,7 +1751,7 @@ class LexicalAnalyzer:
                     add_error(self.unexpectedSymbol('|', currLine, currCol, lineContent, leadingSpaces))
             # end of | symbol
             #string
-            if (currState == 's224'):
+            if (currState == 's213'):
                 if (code[i] == '\\' and not char_esc):
                     char_esc = True
                     currToken += code[i]
@@ -1824,7 +1777,7 @@ class LexicalAnalyzer:
 
             #iterating through chars
             #check whitespaces
-            if (currState not in ['s224', 's218', 's220']):
+            if (currState not in ['s213', 's207', 's209']):
                 if (code[i] == ' '):
                     if (self.transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):
                         if currToken not in ['&', '|']:
@@ -1869,7 +1822,7 @@ class LexicalAnalyzer:
                         print("(dbg)s0 is num")
                         #go to whole num loop state
                         currWholeCount += 1
-                        currState = 's260'  
+                        currState = 's216'  
                         if reset_col:
                             currLine += 1
                             currCol = 1
@@ -1887,7 +1840,7 @@ class LexicalAnalyzer:
                     if (code[i] in self.alphabetic_chars and i != len(code)-1):
                         print(f'(dbg) index {i}')
                         print(f'(dbg) length {len(code)}')
-                        currState = 's215'
+                        currState = 's205'
                     if reset_col:
                         currLine += 1
                         currCol = 1
@@ -1895,14 +1848,14 @@ class LexicalAnalyzer:
                     continue
                 else:
                     print('(dbg) not in s0')
-                    if (currState == 's220'):
+                    if (currState == 's209'):
                         currToken += code[i]
                         if reset_col:
                             currLine += 1
                             currCol = 1
                             reset_col = False
                         continue
-                    if (currState == 's224'):
+                    if (currState == 's213'):
                         if (code[i] == '\n'):
                             add_error(self.stringMissingClose(currToken, currLine, currCol, lineContent, leadingSpaces))
                             if reset_col:
@@ -1919,7 +1872,7 @@ class LexicalAnalyzer:
                             continue
                     if (code[i] in self.alphanum + ['_']):
                         currToken += code[i]
-                        currState = 's215'
+                        currState = 's205'
                         if reset_col:
                             currLine += 1
                             currCol = 1
