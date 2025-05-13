@@ -1725,7 +1725,7 @@ class LexicalAnalyzer:
                     currFracCount = 0
             #end of fractional number
             #& symbol
-            if (currState == 's184'):
+            if (currState == 's153'):
                 currToken += code[i]
                 if(code[i] == '&'):
                     currState = 'LOGICAND_CHECK'
@@ -1738,7 +1738,7 @@ class LexicalAnalyzer:
                     add_error(self.unexpectedSymbol('&', currLine, currCol, lineContent, leadingSpaces))
             # end of | symbol
             #& symbol
-            if (currState == 's223'):
+            if (currState == 's184'):
                 currToken += code[i]
                 if(code[i] == '|'):
                     currState = 'LOGICOR_CHECK'
@@ -1964,7 +1964,7 @@ class LexicalAnalyzer:
         return self.generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
     def wholeRangeError(self, currToken, currLine, currCol, lineContent, leadingSpaces):
-        errorType = "Numeric exceeding max range"
+        errorType = "Numeric exceeding max digit count"
         return self.generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
     def fracPrecError(self, currToken, currLine, currCol, lineContent, leadingSpaces):
