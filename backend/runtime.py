@@ -537,7 +537,7 @@ class Runtime:
         self.visit_node_class_body(node.class_body_n, className, node)
 
 
-    def visit_node_constructor_dec(self, node, parentClassname): #TODO: be wary of return statements
+    def visit_node_constructor_dec(self, node, parentClassname): 
         className = node.class_id_n.id_t["tokenName"]
         err_n = ErrorNode(node.class_id_n.id_t["tokenLine"], node.class_id_n.id_t["tokenCol"] - len(node.class_id_n.id_t["tokenName"]) - 1)
         # Check if constructor already exists in current scope
@@ -710,7 +710,7 @@ class Runtime:
                                 _, input_val, _ = self.visit_node(val)
                                 arr_val[idx] = input_val  # ← this updates the actual list
                     
-        
+        init_val = None
         if class_inst_cont:
             #constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
             
@@ -720,17 +720,13 @@ class Runtime:
             
             class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"]
             
-            
-            # if constructor_call_id != class_id:
-            #     self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
-            
-            # if not class_constructor_info:
-            #     self.logError(f"Class '{class_id}' has no defined constructor function.", class_inst_cont.class_id_n)
-        
             self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
-
+            init_val = class_inst_cont.func_arg_n
+            #self.evaluate_func(class_id, class_inst_cont.func_arg_n)
+            #print(f'\n(runtime)(dbg) Now evaluating constructor in class "{class_id}"\n')
+            #self.visit_node_code_block(class_inst_cont.code_block_n, class_id, class_inst_cont.class_id_n)
             
-        self.curr_scope.set_obj(obj_id, None, dtype, class_elem_obj)
+        self.curr_scope.set_obj(obj_id, init_val, dtype, class_elem_obj)
 
 
     def visit_node_class_att(self, node):   #iden.iden
@@ -1538,7 +1534,7 @@ class Runtime:
         #self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
         #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
         #temp vals
-        print('(runtime)(dbg) Done checking, back in visit func_call now')
+        #print('(runtime)(dbg) Done checking, back in visit func_call now')
         print('(runtime)(dbg)', node.args_n)
         val = None
         if func_symbol["isStd_lib"]:
