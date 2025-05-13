@@ -101,17 +101,22 @@ const FileExplorer = ({ isVisible, toggleFiles, openTabs, setOpenTabs, activeTab
   };
 
   const handleNewFile = async() => {
-    const newFileName = prompt('Enter Cstar source code name: ');
+    const newFileName = prompt('Enter Cstar source code name: ') + ".cstr";
     if (newFileName) {
       const filesCollectionRef = collection(db, 'files');
       await addDoc(filesCollectionRef, {
-        name: newFileName + ".cstr",
+        name: newFileName,
         content: "",
         type: 'file',
         createdAt: new Date(),
       });
 
     fetchFiles();
+    const q = query(filesCollectionRef, where('name', '==', newFileName));
+    const querySnapshot = await getDocs(q);
+    const fileData = querySnapshot.docs[0].data();
+    setOpenTabs([...openTabs, { id: querySnapshot.docs[0].id, ...fileData }]);
+    setActiveTab(newFileName);
 
     }
     

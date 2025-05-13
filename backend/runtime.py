@@ -138,25 +138,28 @@ class FuncSymbolTable(SymbolTable):
         return (self.parent, self.visible_symbols[sym_name])
 
     def get(self, sym_name, checkParent = True):
+
         sym = self.syms.get(sym_name, None)
         if not sym:
             #check if in visible symbols
             if sym_name in self.visible_symbols and self.parent:
                 sym = self.parent.get(self.visible_symbols[sym_name])
             else:
+                if not self.parent: return
                 #check if in global
                 if checkParent:
                     print('\n\n\n\n\n')
                     #check scopes
                     curr_parent = self.parent
-                    while type(curr_parent) is not FuncSymbolTable and sym_name not in curr_parent.syms:
+                    while type(curr_parent) is not FuncSymbolTable and (curr_parent and sym_name not in curr_parent.syms):
                         curr_parent = curr_parent.parent
                     
-                    if sym_name in curr_parent.syms:
+                    if curr_parent and sym_name in curr_parent.syms:
                         sym = curr_parent.syms[sym_name]
                     else:
                         #check params
-                        curr_parent = curr_parent.parent
+                        if curr_parent: curr_parent = curr_parent.parent
+                        if not curr_parent: return
                         if sym_name in curr_parent.syms:
                             sym = curr_parent.syms[sym_name]
                         else:
