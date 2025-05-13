@@ -502,15 +502,17 @@ class Runtime:
         for statement in node.code_block_statement_n:
             #print("++++ CODE BLOCK STATEMENT: " + str(statement))
             ret_val = self.visit_node(statement, funcExpectedVal=False)
-            if type(statement) is node_if_stmt:
+            
+            if ret_val and type(ret_val[0]) is bool:
                 ret_val = ret_val[1]
 
             print('AAAAAAAAAAA CODE BLOCK RET', ret_val)
             print('AAAAAAA RETURN PROMISES', self.RETURN_PROMISES)
             print("\n(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: ")
             self.print_symbols(self.curr_scope.syms, indent=2)
-            if self.RETURN_PROMISES:
-                return ret_val
+            
+        if self.RETURN_PROMISES:
+            return ret_val
         return None
 
     def visit_node_program_constructs(self, node):
