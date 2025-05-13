@@ -140,10 +140,12 @@ class FuncSymbolTable(SymbolTable):
     def get(self, sym_name, checkParent = True):
 
         sym = self.syms.get(sym_name, None)
-        if not sym:
+        if sym: return sym
+        else:
             #check if in visible symbols
             if sym_name in self.visible_symbols and self.parent:
                 sym = self.parent.get(self.visible_symbols[sym_name])
+                return sym
             else:
                 if not self.parent: return
                 #check if in global
@@ -156,15 +158,17 @@ class FuncSymbolTable(SymbolTable):
                     
                     if curr_parent and sym_name in curr_parent.syms:
                         sym = curr_parent.syms[sym_name]
+                        return sym
                     else:
                         #check params
                         if curr_parent: curr_parent = curr_parent.parent
                         if not curr_parent: return
                         if sym_name in curr_parent.syms:
                             sym = curr_parent.syms[sym_name]
+                            return sym
                         else:
                             # find global scope
-                            while curr_parent.parent:
+                            while curr_parent.parent and sym_name not in curr_parent.syms:
                                 print('moving on to upper scope..')
                                 print(curr_parent.syms)
                                 print('\n\n')
@@ -175,7 +179,8 @@ class FuncSymbolTable(SymbolTable):
                             print('AAAAAAAAAAAA PARENTS SYMS', curr_parent.syms)
                             self.print_symbol_tree(2)
                             sym = curr_parent.get(sym_name, None)
-        return sym
+                            return sym
+        
 class ErrorNode:
     def __init__(self, line, startCol, id_t = None):
         self.line = line
@@ -756,10 +761,10 @@ class Runtime:
             
             
         if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
-            self.logError(f"Element '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
+            self.logError(f"Attribute '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
         
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
-            self.logError(f"Element '{class_elem}' is a private element within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.att_id_n)
 
         print(f"(runtime)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
         return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"], node.obj_id_n)  
@@ -790,7 +795,7 @@ class Runtime:
             self.logError(f"Attribute '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
         
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
-            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.att_id_n)
 
         arr_sym = obj_info["obj_info"][class_elem]
         dtype = arr_sym["dtype"][1]
@@ -873,7 +878,9 @@ class Runtime:
         return (('lit', 'bool'), node.val_t["tokenName"]=="true", err_n)
     
     def visit_node_iden(self, node):
+        print(f"VISITING IDEN: {node.id_t["tokenName"]}")
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
+        print("IDEN_SMYBOL: ", iden_symbol)
         err_n = ErrorNode(node.id_t["tokenLine"], node.id_t["tokenCol"] - len(node.id_t["tokenName"]) - 1, node.id_t)
         if not iden_symbol:
             self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", err_n)
@@ -1814,6 +1821,9 @@ class Runtime:
         class_elem = node.method_id_n.id_t["tokenName"]
 
         obj_info = self.curr_scope.get(obj_name)
+        self.enter_scope(obj_name)
+        self.curr_scope.syms = obj_info["obj_info"]
+        print(f"SCOPE SYMS INFO:     {self.curr_scope.syms}")
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
         if obj_info["dtype"][0] != "object":    
@@ -1825,7 +1835,7 @@ class Runtime:
             self.logError(f"Method '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.method_id_n)
         
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
-            self.logError(f"Method '{class_elem}' is a private method within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.method_id_n)
+            self.logError(f"Method '{class_elem}' is a private method within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.method_id_n)
 
         # self.obj_id_n = class_id_n
         # self.method_id_n = method_id_n
@@ -1840,6 +1850,7 @@ class Runtime:
             self.evaluate_func(class_elem, node.args_n)
         else:
             val = self.evaluate_func(class_elem, node.args_n, class_info[class_elem])
+        self.exit_scope(obj_name)
         print(f"RETURNED FROM METHOD_CALL: {class_info[class_elem]["dtype"], val, node.obj_id_n}")
         return (class_info[class_elem]["dtype"], val, node.obj_id_n)
     
