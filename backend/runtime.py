@@ -132,10 +132,10 @@ class SymbolTable:
 
 class FuncSymbolTable(SymbolTable):
     # dictionary. key = alias in func, value = name in symbol table
-    visible_symbols = {}
+    # visible_symbols = {}
 
-    def getCaller(self, sym_name):
-        return (self.parent, self.visible_symbols[sym_name])
+    # def getCaller(self, sym_name):
+    #     return (self.parent, self.visible_symbols[sym_name])
 
     def get(self, sym_name, checkParent = True):
 
@@ -143,43 +143,43 @@ class FuncSymbolTable(SymbolTable):
         if sym: return sym
         else:
             #check if in visible symbols
-            if sym_name in self.visible_symbols and self.parent:
-                sym = self.parent.get(self.visible_symbols[sym_name])
-                return sym
-            else:
-                if not self.parent: return
-                #check if in global
-                if checkParent:
-                    print('\n\n\n\n\n')
-                    #check scopes
-                    curr_parent = self.parent
-                    while type(curr_parent) is not FuncSymbolTable and (curr_parent and sym_name not in curr_parent.syms):
-                        curr_parent = curr_parent.parent
-                    
-                    if curr_parent and sym_name in curr_parent.syms:
+            # if sym_name in self.visible_symbols and self.parent:
+            #     sym = self.parent.get(self.visible_symbols[sym_name])
+            #     return sym
+            # else:
+            # if not self.parent: return
+            #check if in global
+            if checkParent:
+                print('\n\n\n\n\n')
+                #check scopes
+                curr_parent = self.parent
+                while type(curr_parent) is not FuncSymbolTable and (curr_parent and sym_name not in curr_parent.syms):
+                    curr_parent = curr_parent.parent
+                
+                if curr_parent and sym_name in curr_parent.syms:
+                    sym = curr_parent.syms[sym_name]
+                    return sym
+                else:
+                    #check params
+                    if curr_parent: curr_parent = curr_parent.parent
+                    if not curr_parent: return
+                    if sym_name in curr_parent.syms:
                         sym = curr_parent.syms[sym_name]
                         return sym
                     else:
-                        #check params
-                        if curr_parent: curr_parent = curr_parent.parent
-                        if not curr_parent: return
-                        if sym_name in curr_parent.syms:
-                            sym = curr_parent.syms[sym_name]
-                            return sym
-                        else:
-                            # find global scope
-                            while curr_parent.parent and sym_name not in curr_parent.syms:
-                                print('moving on to upper scope..')
-                                print(curr_parent.syms)
-                                print('\n\n')
-                                curr_parent = curr_parent.parent
-                                print('upper scope now')
-                                print(curr_parent.syms)
-                                print('\n\n')
-                            print('AAAAAAAAAAAA PARENTS SYMS', curr_parent.syms)
-                            self.print_symbol_tree(2)
-                            sym = curr_parent.get(sym_name, None)
-                            return sym
+                        # find global scope
+                        while curr_parent.parent and sym_name not in curr_parent.syms:
+                            print('moving on to upper scope..')
+                            print(curr_parent.syms)
+                            print('\n\n')
+                            curr_parent = curr_parent.parent
+                            print('upper scope now')
+                            print(curr_parent.syms)
+                            print('\n\n')
+                        print('AAAAAAAAAAAA PARENTS SYMS', curr_parent.syms)
+                        self.print_symbol_tree(2)
+                        sym = curr_parent.get(sym_name, None)
+                        return sym
         
 class ErrorNode:
     def __init__(self, line, startCol, id_t = None):
@@ -188,6 +188,12 @@ class ErrorNode:
         self.id_t = id_t
 
 class Runtime:
+
+    scope_depth = 0
+    address_list = []
+    # index will act as address
+    # each element will be a tuple, where the first element is the scope depth (for removing addresses when exiting a scope),
+    # and the second element is the value
 
     numtypes = ['int', 'long', 'float', 'double']
     default_vals = {
@@ -268,16 +274,20 @@ class Runtime:
 
     def enter_scope(self, nodeName):
         print(F'\n(runtime)(dbg) ENTERING scope {nodeName}')
+        self.scope_depth += 1
         self.curr_scope = SymbolTable(self.curr_scope)
 
     def enter_func_scope(self, nodeName):
         print(f'(runtime)(dbg) Entering function {nodeName}\'s scope' )
+        self.scope_depth += 1
         self.curr_scope = FuncSymbolTable(self.curr_scope)
     
     def exit_scope(self, nodeName):
         print(F'\n(runtime)(dbg) EXITING scope {nodeName}, table: ')
         #print table dbg
         self.print_symbols(self.curr_scope.syms, indent=2)
+        self.address_list = [i for i in self.address_list if i[0] != self.scope_depth]
+        self.scope_depth -= 1
         self.curr_scope = self.curr_scope.parent
 
     def visit_node(self, node, funcExpectedVal = True, fromRetBlock = False):
@@ -598,7 +608,8 @@ class Runtime:
 
         #self.enter_scope(type(node).__name__)
         print(f"\n(runtime)(dbg) ENTERING scope Constructor for class '{className}'")
-        self.curr_scope = SymbolTable(self.curr_scope)
+        # self.curr_scope = SymbolTable(self.curr_scope)
+        self.enter_scope(type(node).__name__)
 
         # Add parameters to new function scope
         if node.params_n:
@@ -615,15 +626,16 @@ class Runtime:
                     class_name = ('object', param.class_id_n.id_t["tokenName"])
                     class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
                     class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
-                    print(f">>>>>>>>>>>>>SET OBJ (CONSTRUCTOR): {self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)}")
+                    print(f">>>>>>>>>>>>>SET OBJ (CONSTRUCTOR): {self.curr_scope.set_obj(param_name, None, class_name, len(self.address_list))}")
+                    self.address_list.append((self.scope_depth, class_elem_info))
 
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     print(arr_dtype)
-                    arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]]
-                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
+                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=len(self.address_list), dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
+                    self.address_list.append((self.scope_depth, None if not arr_dtype else [self.default_vals[arr_dtype[1]]]))
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
@@ -637,7 +649,8 @@ class Runtime:
 
         print(f"\n(runtime)(dbg) EXITING scope Constructor for class '{className}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
-        self.curr_scope = self.curr_scope.parent
+        # self.curr_scope = self.curr_scope.parent
+        self.exit_scope(type(node).__name__)
 
         return constructorInfo
 
@@ -653,7 +666,8 @@ class Runtime:
         
             #self.enter_scope(type(node).__name__)
             print(f"\n(runtime)(dbg) ENTERING scope 'Class: {className}'")
-            self.curr_scope = SymbolTable(self.curr_scope)
+            # self.curr_scope = SymbolTable(self.curr_scope)
+            self.enter_scope(type(node).__name__)
 
             for class_body_stmt_n in class_body_stmt:
                 priv = class_body_stmt_n.is_private_b
@@ -673,8 +687,8 @@ class Runtime:
             
             if parent_node.constructor_dec_n: constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n, className)
             child_sym = self.curr_scope.syms
-            # self.exit_scope(type(node).__name__)
-            self.curr_scope = self.curr_scope.parent
+            self.exit_scope(type(node).__name__)
+            # self.curr_scope = self.curr_scope.parent
 
         if parent_node.constructor_dec_n and not node.class_body_stmt_n: 
             constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n, className)
@@ -686,6 +700,7 @@ class Runtime:
 
         flattened = [item for sublist in class_content for item in sublist]
         merged_dict = {k: v for d in flattened for k, v in d.items()}
+        print("(runtime)(dbg) merged_dict ", merged_dict)
         self.curr_scope.set_class(className, class_info={"constructor_dec" : constructor_info, "class_body_content": merged_dict})
         
 
@@ -731,7 +746,13 @@ class Runtime:
                             if type(val).__name__ == "node_input":
                                 _, input_val, _ = self.visit_node(val)
                                 arr_val[idx] = input_val  # ← this updates the actual list
-                    
+        #load arrays into address list, and change value into the addresses
+        for k, v in class_elem_obj.items():
+            print('(runtime)(dbg) checking type of class elem', type(v['value']))
+            if type(v['value']) is list:
+                vals = v['value']
+                class_elem_obj[k]['value'] = len(self.address_list)
+                self.address_list.append((self.scope_depth, vals))
         init_val = None
         if class_inst_cont:
             #constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
@@ -751,8 +772,10 @@ class Runtime:
                     if constructors and constructors.class_id_n == class_id:
                         self.visit_node(constructors.code_block_n)
                         break
-
-        self.curr_scope.set_obj(obj_id, init_val, dtype, class_elem_obj)
+        print('(runtime)(dbg) class inst class_elem_obj', class_elem_obj)
+        self.curr_scope.set_obj(obj_id, init_val, dtype, len(self.address_list))
+        self.address_list.append((self.scope_depth, class_elem_obj))
+        print('(runtime)(dbg) address list after obj inst: ', self.address_list)
 
 
     def visit_node_class_att(self, node):   #iden.iden
@@ -788,8 +811,8 @@ class Runtime:
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
             self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.att_id_n)
 
-        print(f"(runtime)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
-        return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"], node.obj_id_n)  
+        print(f"(runtime)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], self.address_list[obj_info["obj_info"]][1][class_elem]["value"])}")
+        return (class_info[class_elem]["dtype"], self.address_list[obj_info["obj_info"]][1][class_elem]["value"], node.obj_id_n)  
 
     def visit_node_class_arr_idx(self, node):
         err_n_obj = ErrorNode(node.obj_id_n.id_t["tokenLine"], node.obj_id_n.id_t["tokenCol"] - len(node.obj_id_n.id_t["tokenName"]) - 1)
@@ -819,7 +842,7 @@ class Runtime:
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
             self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.att_id_n)
 
-        arr_sym = obj_info["obj_info"][class_elem]
+        arr_sym = self.address_list[obj_info["obj_info"]][1][class_elem]
         dtype = arr_sym["dtype"][1]
         idx_type, idx_val, err_n = self.visit_node(node.idx_n)
 
@@ -859,7 +882,7 @@ class Runtime:
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 self.logError(f'Array \'{class_elem}\' is 2-dimensional but accessed with 1 index.', err_n)
-        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val != None else arr_sym["value"][idx_val], err_n_obj)
+        return (('var', dtype), self.address_list[arr_sym["value"]][1][idx_val][idx2_val] if idx2_val != None else self.address_list[arr_sym["value"]][1][idx_val], err_n_obj)
 
     def visit_node_num(self, node):
         val = 0
@@ -955,6 +978,7 @@ class Runtime:
             self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.'. idx_err)
         if idx_val < 0:
                 self.logError("Array index cannot be negative.", idx_err)
+        print(f'(runtime)(dbg) arr_sym for {node.id_n.id_t["tokenName"]}', arr_sym)
         if idx_val >= arr_sym["arr_info"]["size1"] and arr_sym["arr_info"]["size1"] != 0:
             self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', idx_err)
         if arr_sym["arr_info"]["size1"] == 0:
@@ -984,8 +1008,8 @@ class Runtime:
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
-                print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), arr_sym["value"][idx_val], arr_id_err)}")
-                return (('arr', dtype), arr_sym["value"][idx_val], arr_id_err)
+                print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), self.address_list[arr_sym["value"]][1][idx_val], arr_id_err)}")
+                return (('arr', dtype), self.address_list[arr_sym["value"]][1][idx_val], arr_id_err)
             
         print('hahahaha', idx2_val)
         if idx2_val != None:
@@ -994,8 +1018,8 @@ class Runtime:
             print('hehe false')
 
         print(f"{arr_sym}")
-        print(f"RETURNED FROM node_arr_idx: {('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val else arr_sym["value"][idx_val], arr_id_err}")
-        return (('var', dtype), arr_sym["value"][idx_val][idx2_val] if idx2_val != None else arr_sym["value"][idx_val], arr_id_err)
+        print(f"RETURNED FROM node_arr_idx: {('var', dtype), self.address_list[arr_sym["value"]][1][idx_val][idx2_val] if idx2_val else self.address_list[arr_sym["value"]][1][idx_val], arr_id_err}")
+        return (('var', dtype), self.address_list[arr_sym["value"]][1][idx_val][idx2_val] if idx2_val != None else self.address_list[arr_sym["value"]][1][idx_val], arr_id_err)
 
     def visit_node_func_dec(self, node, priv = False):
         func_name = node.id_n.id_t["tokenName"]
@@ -1058,7 +1082,8 @@ class Runtime:
         # Enter function scope
         #self.enter_scope(type(node).__name__)
         print(f"\n(runtime)(dbg) ENTERING scope 'Function: {func_name}'")
-        self.curr_scope = SymbolTable(self.curr_scope)
+        # self.curr_scope = SymbolTable(self.curr_scope)
+        self.enter_scope(type(node).__name__)
         # Add parameters to new function scope
         # if node.params_n:
         #     for param in node.params_n:
@@ -1114,7 +1139,8 @@ class Runtime:
         # Exit function scope, back to program constructs
         print(f"\n(runtime)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
-        self.curr_scope = self.curr_scope.parent
+        # self.curr_scope = self.curr_scope.parent
+        self.exit_scope(type(node).__name__)
         return classReturn
 
     # assign_stmt  -- need to refactor nodes in ast bc 
@@ -1238,20 +1264,20 @@ class Runtime:
         while not check_scope.get(arr_name, False):
             check_scope = check_scope.parent
 
-        if type(check_scope) is FuncSymbolTable:
-            check_scope, arr_name = check_scope.getCaller(arr_name)
+        # if type(check_scope) is FuncSymbolTable:
+        #     check_scope, arr_name = check_scope.getCaller(arr_name)
         if arr_dim == 1:
             match assign_op:
                 case "=":
-                    check_scope.syms[arr_name]["value"][idx1_val] = value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] = value
                 case "+=":
-                    check_scope.syms[arr_name]["value"][idx1_val] += value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] += value
                 case "-=":
-                    check_scope.syms[arr_name]["value"][idx1_val] -= value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] -= value
                 case "*=":
-                    check_scope.syms[arr_name]["value"][idx1_val] *= value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] *= value
                 case "/=":
-                    check_scope.syms[arr_name]["value"][idx1_val] /= value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] /= value
                 case "%=":
                     if value == 0:
                         self.logError("Modulo by 0 is not allowed.", val_err_n)
@@ -1259,19 +1285,19 @@ class Runtime:
                         self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err_n)
                     if arr_symbol["dtype"][1] == "int" and value_type[1] == "long":
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {arr_symbol["dtype"][1]} and {value_type[1]}.", val_err_n)
-                    check_scope.syms[arr_name]["value"][idx1_val] %= value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] %= value
         else:
             match assign_op:
                 case "=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] = value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] = value
                 case "+=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] += value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] += value
                 case "-=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] -= value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] -= value
                 case "*=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] *= value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] *= value
                 case "/=":
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] /= value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] /= value
                 case "%=":
                     if value == 0:
                         self.logError("Modulo by 0 is not allowed.", val_err_n)
@@ -1279,7 +1305,7 @@ class Runtime:
                         self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err_n)
                     if arr_symbol["dtype"][1] == "int" and value_type[1] == "long":
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {arr_symbol["dtype"][1]} and {value_type[1]}.", val_err_n)
-                    check_scope.syms[arr_name]["value"][idx1_val][idx2_val] %= value
+                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] %= value
 
 
     def visit_node_assign_stmt_object_att(self,node):
@@ -1294,12 +1320,12 @@ class Runtime:
         while not check_scope.get(obj_name, False):
             check_scope = check_scope.parent
 
-        if type(check_scope) is FuncSymbolTable:
-            check_scope, obj_name = check_scope.getCaller(obj_name)
+        # if type(check_scope) is FuncSymbolTable:
+        #     check_scope, obj_name = check_scope.getCaller(obj_name)
         
         print(f"\nOBJ INFO: {check_scope.get(obj_name)} \n{obj_name}")
         
-        att_info = check_scope.get(obj_name)["obj_info"].get(att_name)
+        att_info = self.address_list[check_scope.get(obj_name)["obj_info"]][1].get(att_name)
         #print(f"!!!!!!!!!!!!!found att_info for '{att_name}' in '{obj_name}': {att_info}")   
 
         if att_info["dtype"][0] == 'var' and att_info["const"]:
@@ -1330,15 +1356,16 @@ class Runtime:
 
         match assign_op:
             case "=":
-                check_scope.syms[obj_name]["obj_info"][att_name]["value"] = val
+                print("nigg", self.address_list[check_scope.syms[obj_name]["obj_info"]])
+                self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] = val
             case "+=":
-                check_scope.syms[obj_name]["obj_info"][att_name]["value"] += val
+                self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] += val
             case "-=":
-                check_scope.syms[obj_name]["obj_info"][att_name]["value"] -= val
+                self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] -= val
             case "*=":
-                check_scope.syms[obj_name]["obj_info"][att_name]["value"] *= val
+                self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] *= val
             case "/=":
-                check_scope.syms[obj_name]["obj_info"][att_name]["value"] /= val
+                self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] /= val
             case "%=":
                 if val == 0:
                     self.logError("Modulo by 0 is not allowed.", err_n)
@@ -1346,7 +1373,7 @@ class Runtime:
                     self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
                 if att_info["dtype"][1] == "int" and val_type[1] == "long":
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {val_type[1]}.", err_n)
-                check_scope.syms[obj_name]["obj_info"][att_name]["value"] %= val
+                self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] %= val
 
         print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
@@ -1375,10 +1402,10 @@ class Runtime:
         while not check_scope.get(obj_name, False):
             check_scope = check_scope.parent
 
-        if type(check_scope) is FuncSymbolTable:
-            check_scope, obj_name = check_scope.getCaller(obj_name)
+        # if type(check_scope) is FuncSymbolTable:
+        #     check_scope, obj_name = check_scope.getCaller(obj_name)
 
-        att_info = check_scope.get(obj_name)["obj_info"].get(att_name)
+        att_info = self.address_list[check_scope.get(obj_name)["obj_info"]][1].get(att_name)
         assign_op = node.op_t["tokenName"]
 
         print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
@@ -1445,15 +1472,15 @@ class Runtime:
         if att_arr_dim == 1:
             match assign_op:
                 case "=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] = value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val] = value
                 case "+=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] += value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val] += value
                 case "-=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] -= value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val] -= value
                 case "*=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] *= value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val] *= value
                 case "/=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] /= value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val] /= value
                 case "%=":
                     if value == 0:
                         self.logError("Modulo by 0 is not allowed.", err_n)
@@ -1461,19 +1488,19 @@ class Runtime:
                         self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
                     if att_info["dtype"][1] == "int" and value_type[1] == "long":
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type[1]}.", err_n)
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val] %= value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val] %= value
         else:
             match assign_op:
                 case "=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] = value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val][idx2_val] = value
                 case "+=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] += value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val][idx2_val] += value
                 case "-=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] -= value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val][idx2_val] -= value
                 case "*=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] *= value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val][idx2_val] *= value
                 case "/=":
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] /= value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val][idx2_val] /= value
                 case "%=":
                     if value == 0:
                         self.logError("Modulo by 0 is not allowed.", err_n)
@@ -1481,7 +1508,7 @@ class Runtime:
                         self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", err_n)
                     if att_info["dtype"][1] == "int" and value_type[1] == "long":
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type}.", err_n)
-                    check_scope.syms[obj_name]["obj_info"][att_name]["value"][idx1_val][idx2_val] %= value
+                    self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val][idx2_val] %= value
 
         print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
 
@@ -1505,14 +1532,16 @@ class Runtime:
                 sym_details[func_symbol["param_names"][i]] = (arg_n.id_t["tokenName"], self.curr_scope.get(arg_n.id_t["tokenName"]))
         print('AAAAAAAAAAAAAAAAAAAAAAAAA\n', sym_details)
         self.enter_func_scope(func_name)
+        # self.enter_scope(func_name)
         for detail in lit_details:
             self.curr_scope.set(detail[0], detail[1], detail[2])
         for param in sym_details:
             # self.curr_scope.set(param, sym_details[param]["value"], sym_details[param]["dtype"])
             if sym_details[param][1]["dtype"][0] not in ['arr', 'object']:
                 self.curr_scope.set(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"])
-            else:
-                self.curr_scope.visible_symbols[param] = sym_details[param][0]
+            elif sym_details[param][1]["dtype"][0] == 'arr':
+                self.curr_scope.set_array(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"], sym_details[param][1]["arr_info"])
+            #else: obj
         self.curr_scope.set_function(func_name, func_symbol["dtype"], func_symbol["params"], func_symbol["param_names"], func_symbol["value"], priv=func_symbol["priv"], isStd_lib=func_symbol["isStd_lib"])
         print(f'ABOUT TO ENTER {func_name} BODY WITH SYMBOL TABLE:')
         self.print_symbols(self.curr_scope.syms, indent=2)
@@ -1844,7 +1873,7 @@ class Runtime:
 
         obj_info = self.curr_scope.get(obj_name)
         self.enter_scope(obj_name)
-        self.curr_scope.syms = obj_info["obj_info"]
+        self.curr_scope.syms = self.address_list[obj_info["obj_info"]][1]
         print(f"SCOPE SYMS INFO:     {self.curr_scope.syms}")
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
@@ -2022,6 +2051,7 @@ class Runtime:
         print(f'!!NODE!!: {node}!!')
         id = node.id_n.id_t["tokenName"]
         const = node.const_b
+        vals_for_class = []
         if self.curr_scope.get(id, checkParent=False):
             self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
 
@@ -2155,8 +2185,13 @@ class Runtime:
                             arr_vals.append([base_val]*(size_2 if size_2 else size_1))
                             
             else: arr_vals = values_list
-        classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
-        
+        print('(runtime)(dbg) arr_info', {'dimension': dim, 'size1': size_1, 'size2':size_2})
+        # classReturn.append(self.curr_scope.set_array(id, len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
+        class_app = self.curr_scope.set_array(id, len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b)
+        class_app[id]["value"] = arr_vals
+        classReturn.append(class_app)
+        self.address_list.append((self.scope_depth, arr_vals))
+    
         for arrdec_node in arr_rec or []:
             arrdec_vals = []
             
@@ -2186,8 +2221,12 @@ class Runtime:
                 arrdec_vals.append(temp_arr if temp_arr else base_val)
             #print(f"_____________________________{arrdec_vals}")
 
-            classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
-            
+            # classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
+            # classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
+            class_app = self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b)
+            class_app[id]["value"] = arr_vals
+            classReturn.append(class_app)
+            self.address_list.append((self.scope_depth, arrdec_vals))
         return classReturn
 
     # binary and unary operations
