@@ -1,5 +1,5 @@
 import eventlet, copy
-from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
+from syntax_analyzer import node_iden, node_class_dec, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal, getcontext, localcontext, ROUND_HALF_UP, ROUND_DOWN
 from flask_socketio import SocketIO
 import time
@@ -213,6 +213,24 @@ class Runtime:
 
     RETURN_PROMISES = list()
 
+    CONSTRUCTOR_NODES = []
+
+    def extract_constructors(self, node_program_constructs):
+        constructors = []
+
+        constructs = node_program_constructs.program_constructs_statement_n
+
+        for construct in constructs:
+            print(construct)
+            if not isinstance(construct, node_class_dec):
+                continue
+
+            if construct and construct.constructor_dec_n:
+                constructors.append(construct.constructor_dec_n)
+
+        return constructors
+
+
     def interpret(self, node):
         start_time = time.time()
         try:
@@ -224,8 +242,9 @@ class Runtime:
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
             print('-----------AST-----------------\n\t\t', node)
+            self.CONSTRUCTOR_NODES = self.extract_constructors(node.program_structure_stmts[1])
+            print('-----------CONSTRUCTORS------------------\n\t\t', self.CONSTRUCTOR_NODES)
             #print('-----------OUTPUT--------------\n\t\t', self.output)
-            
             
             
         
@@ -498,6 +517,7 @@ class Runtime:
         
     #code_block PLACEHODLER
     def visit_node_code_block(self, node):
+        ret_val = None
         # PLACEHODLER!! idk if correct
         for statement in node.code_block_statement_n:
             #print("++++ CODE BLOCK STATEMENT: " + str(statement))
@@ -727,7 +747,11 @@ class Runtime:
             #self.evaluate_func(class_id, class_inst_cont.func_arg_n)
             #print(f'\n(runtime)(dbg) Now evaluating constructor in class "{class_id}"\n')
             #self.visit_node_code_block(class_inst_cont.code_block_n, class_id, class_inst_cont.class_id_n)
-            
+            for constructors in self.CONSTRUCTOR_NODES:
+                    if constructors and constructors.class_id_n == class_id:
+                        self.visit_node(constructors.code_block_n)
+                        break
+
         self.curr_scope.set_obj(obj_id, init_val, dtype, class_elem_obj)
 
 
