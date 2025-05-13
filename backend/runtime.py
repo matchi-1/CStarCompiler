@@ -2881,7 +2881,7 @@ class Runtime:
                         i += 2
                         continue
 
-                    elif esc in ['n', 't', '\\', '"', "'"]:
+                    elif esc in ['n', 't', '\\', '"']:
                         # treat the escape sequence as one unit
                         result.append('\\' + esc)
                         i += 2
