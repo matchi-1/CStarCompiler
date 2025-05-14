@@ -549,8 +549,9 @@ class Runtime:
             _printlog("\n(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: ")
             self.print_symbols(self.curr_scope.syms, indent=2)
             
-        if self.RETURN_PROMISES:
-            return ret_val
+            if self.RETURN_PROMISES:
+                _printlog("returning from code block: ", ret_val)
+                return ret_val
         return None
 
     def visit_node_program_constructs(self, node):
@@ -1577,6 +1578,7 @@ class Runtime:
         self.print_symbols(self.curr_scope.syms, indent=2)
 
         _printlog(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
+        _printlog(f'fromConstructor: ', fromConstrcutor)
         body_ret = self.visit_node_body(func_symbol["value"]) if not fromConstrcutor else self.visit_node(func_symbol["value"])
         ret_type = None
         ret_val = None
@@ -1942,6 +1944,7 @@ class Runtime:
         self.exit_scope(obj_name)
         self.address_list[obj_info["obj_info"]][1] = copy.deepcopy(inner_scope_syms)
         _printlog(f"RETURNED FROM METHOD_CALL: {class_info[class_elem]["dtype"], val, node.obj_id_n}")
+        if self.RETURN_PROMISES: self.RETURN_PROMISES.pop()
         return (class_info[class_elem]["dtype"], val, node.obj_id_n)
     
     # var / arr dec helper function for type and range checking
