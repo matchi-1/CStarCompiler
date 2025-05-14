@@ -13,7 +13,7 @@ terminate_program = False
 
 def _printlog(*args, sep=' ', end='\n'):
     message = sep.join(str(arg) for arg in args) + end
-    with open('runtime_log.log', 'a') as f:
+    with open('runtime_log.log', 'a', encoding="utf-8") as f:
         f.write(message)
     print(*args, sep=sep, end=end)
 
