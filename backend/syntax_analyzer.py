@@ -120,7 +120,7 @@ class node_bool:
         self.dtype = "bool"
     def __repr__(self):
         return self.val_t["tokenName"]
-
+    
 class node_iden:
     def __init__(self, id_t):
         self.id_t = id_t
@@ -616,12 +616,13 @@ class node_imports_list:
 class SyntaxAnalyzer:
     # Takes tokens, initializes current token and its index
     def __init__(self, tokens):
-        self.classNames = []            #for checking if constructor name matches class name
-        self.errors = []
-        self.parse_tree = None
-        self.tokens = [token.to_dict() 
+        self.classNames = []            # for checking if constructor name matches class name
+        self.errors = []                # create error list 
+        self.parse_tree = None           # create a parse tree attribute (None at first)
+        self.tokens = [token.to_dict()    # convert token objects to dicts so they can be accessed as token["attribute"]
                for token in tokens 
                if token.token_type not in {"single_comment", "multi-line comment"}]   # comments will be ignored by the parser
+        
         # print(self.tokens) #uncomment to check tokens that the parser accepted
         
         # if not self.tokens:
@@ -629,55 +630,54 @@ class SyntaxAnalyzer:
         #     self.errors.append(message)
         #     raise SyntaxError(message)
 
-        self.currToken_index = 0
-        self.currToken = self.tokens[self.currToken_index] if self.tokens else None
+        self.currToken_index = 0  # start at 0 currtoken index 
+        self.currToken = self.tokens[self.currToken_index] if self.tokens else None  # get the first token, else none if none
 
-        self.lineContent = ''
+        self.lineContent = ''  # no line content yet
         self.hasMainFunction = False  # Track if main function is found
-        self.hasMainReturn = False
-        self.hasFunctionReturned = False
+        self.hasMainReturn = False   # [OLD CODE] Track if main function has a return statement 
+        self.hasFunctionReturned = False   # [OLD CODE] Track if a function has a return statement 
+
+
 
     #-------------------- HELPER FUNCTIONS --------------------
     # Advancer for the next token
     def nextToken(self):
         # print("(parser)(dbg)currtoken: " + str(self.currToken))
-        self.currToken_index += 1
-        if self.currToken_index < len(self.tokens):
-            self.currToken = self.tokens[self.currToken_index]
+        self.currToken_index += 1  # increment the index
+        if self.currToken_index < len(self.tokens): # check if the index is within bounds so it won't throw an error
+            self.currToken = self.tokens[self.currToken_index]  # assign the next token to currToken
         else:
-            self.currToken = None
+            self.currToken = None # if there are no more tokens, then set currToken to None
 
-    # Peeks at a token at the current index + offset.
-    def peek(self, offset=1):
-        peek_index = self.currToken_index + offset
-        if 0 <= peek_index < len(self.tokens):
-            print("('peek' function) current token:'",        #hahahahha idk how to format strings (too lazy to gpt)
-            self.currToken["tokenName"], "' peeked [", offset, "] token/s further and found:'",
-            self.tokens[peek_index]["tokenName"], "'")
-            return self.tokens[peek_index]
-        return None
-
+    
     # Matches the current token with the expected type. Returns True if matched, False otherwise.
-    def match(self, expected_token, hasSpecError=True):
-        if self.currToken is not None and self.currToken["tokenType"] == expected_token:
+    def match(self, expected_token, hasSpecError=True): 
+        if self.currToken is not None and self.currToken["tokenType"] == expected_token: # check if the current token is not None and if it matches the expected token
             # print(f"('match' function) token {expected_token} matched")
-            retToken = self.currToken
-            self.nextToken()
+            retToken = self.currToken  # return the token for AST
+            self.nextToken()   # advance to the next token 
             return retToken
-        elif hasSpecError:
+        
+        elif hasSpecError:  # flag to not throw the standard error
             # print("('match' function) deactivating default expected token error")
             return None
-        else:
+        else:  # standard error for unmatched errors
             # print("('match' function) activating default expected token error")
             self.ERROR_expected_token(expected_token)
             return None
 
-    def matchPredictSet(self, non_terminal, hasSpecError=True):
-        expected_predict_set = PREDICT_SETS.get(non_terminal, [])
-        if self.currToken is None:  # EOF
+
+    # Match the current token with the expected tokens in the predict set
+    def matchPredictSet(self, non_terminal, hasSpecError=True):  # non_terminal here is the key to the PREDICT_SETS dict
+        expected_predict_set = PREDICT_SETS.get(non_terminal, [])  # get the list of predict set for that specific non-terminal, else return none
+        
+        # reached EOF but still expects a predict set
+        if self.currToken is None:  
             self.ERROR_expected_token(expected_predict_set)
             return False
 
+        # got a token but isn't what is the expected next token (predict set) for that token
         if self.currToken["tokenType"] not in expected_predict_set:
             if not hasSpecError:
                 self.ERROR_expected_token(expected_predict_set)
@@ -700,25 +700,25 @@ class SyntaxAnalyzer:
     # 4. directly append error / make another error if u dont need line, col but have a general error message
     # 5. avoid using logError if the error that you'll generate would be a 1.) repeat of a previous error 2.) a new error that will be reused more than once [in this case, make a new error]
     
+    
     def ERROR_unexpected(self, expected_token, error_type, expected_predict_set=[]):
-        if self.currToken:
+        if self.currToken:  # get the current token as a reference for the error 
             currToken = self.currToken["tokenName"]
             currLine = self.currToken["tokenLine"]
             currCol = self.currToken["tokenCol"]
-        else: 
+        else:   # if it reached eof, use the last token's details
             currToken = self.tokens[self.currToken_index - 1]
             currLine = currToken["tokenLine"]
             currCol = currToken["tokenCol"]
 
-        
+        # just add this part if there is an expected predict set after
         if expected_predict_set:
-            
             expected_tokens = ", ".join(f"'{token}'" for token in expected_predict_set)
             expected_message = f"{expected_tokens}"
         else:
             expected_message = f"'{expected_token}'"
 
-        
+        # construct the error: 
         if self.currToken:
             message = (
                 f"\tSyntax Error: Unexpected Token '{currToken}' at line {currLine}, column {currCol}"
@@ -886,28 +886,25 @@ class SyntaxAnalyzer:
         self.logError(f"Cstar doesn't allow incrementing or decrementing object attributes.")
 
 
-    #-------------------- PARSER START --------------------
+    #-------------------- PARSER START --------------------  method that's being called in app.py to start parsing each token in the sequence
     def parse(self):
         try:
-            self.parse_tree = self.program()
+            self.parse_tree = self.program()  # start creating the parse tree by building from the root node which is 'program' in CFG
             print(self.parse_tree)
             #self.value()
-            self.errors.append("Parsing completed successfully. No Syntax Errors found.")
+            self.errors.append("Parsing completed successfully. No Syntax Errors found.") # parsing complete
             print("Parsing completed successfully. No Syntax Errors found.")
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
             print (e)
         return (self.errors, self.parse_tree)
 
-    #-------------------- CFG START --------------------
-    # for semantic stuff, instead of using "if not", just add else clause to add functionality in if match clause
-
+    #-------------------- CFG START - PRODUCTIONS --------------------
     def program(self):
-        program_stmts = []
-        
+        program_stmts = []  # can be program constructs and main body
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
-        if not self.tokens:
+        if not self.tokens:  # no tokens found
             message = "\n\tNo tokens to parse."
             self.errors.append(message)
             raise SyntaxError(message)

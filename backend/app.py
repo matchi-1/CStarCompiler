@@ -82,6 +82,10 @@ def compile_code():
     # convert Token objects to dictionaries
     tokens_dict = [token.to_dict() for token in tokens]
 
+    # object
+    # object.attribute
+    # token = Token("id", "x", 1, 1)
+
     # create a JSON-serializable response
     response = {
         "tokens": tokens_dict or [],  # should not send out None/null 
