@@ -486,7 +486,7 @@ class node_program_constructs:
 
 class program_node:
     def __init__(self, program_structure_stmts):
-        self.program_structure_stmts = program_structure_stmts
+        self.program_structure_stmts = program_structure_stmts  # list of statements -- imports list, prog constructs, body (main body)
 
     def __repr__(self):
         statements = ",\n\n".join(map(str, self.program_structure_stmts))

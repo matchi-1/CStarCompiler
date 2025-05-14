@@ -11,6 +11,17 @@ user_response = {}
 wait_flag = False
 terminate_program = False
 
+# MAIN DIFFERENCES OF RUNTIME TO SEMAN
+    # loop implementation (execute x times)
+    # evaluations and computations
+    # function / scope evaluations
+    # input / output frontend connections
+    # classes / objects  -- actually contructs and makes individual objects
+    # address lists
+    # ctrl statements -- evaluate conditions and only pass there
+    # continue break functionalities
+    # return -- exits the function body when encountered
+
 def _printlog(*args, sep=' ', end='\n'):
     message = sep.join(str(arg) for arg in args) + end
     with open('runtime_log.log', 'a', encoding="utf-8") as f:
@@ -2114,16 +2125,16 @@ class Runtime:
 
         size_1_type, size_1, _ = self.visit_node(node.size1_n)
 
-        # if size_1_type[1] not in ['int']:
-        #     self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
+        if size_1_type[1] not in ['int']:
+            self.logError(f"Type mismatch: expected whole positive integer for array 1st Dimension size, but got '{size_1_type[1]}'.", node.id_n)
         
         if size_1 < 1:
             self.logError(f"Cannot declare array '{id}' with 1st Dimension size less than 1.", node.id_n)
         size_2_type, size_2, _ = self.visit_node(node.size2_n) if node.size2_n else (None, None, None)
 
-        # if size_2_type and size_2_type[1] not in ['int']:
-        #     self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
-        # _printlog(size_2 and size_2 < 1)
+        if size_2_type and size_2_type[1] not in ['int']:
+            self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
+        _printlog(size_2 and size_2 < 1)
         
         try:
             if size_2 < 1:
@@ -2857,18 +2868,10 @@ class Runtime:
     def visit_node_input(self, node):
         count_value = 0
         err_n = ErrorNode(node.in_stmt_t["tokenLine"], node.in_stmt_t["tokenCol"] - len(node.in_stmt_t["tokenName"]) - 1)
-
-        if not hasattr(node, 'type_t'):
-            self.logError("Input node is missing the 'type_t' attribute.", err_n)
-            return None
-
         expected_dtype = node.type_t["tokenName"] 
 
         # _printlog(f"(runtime)(dbg) Expected Data Type: {expected_dtype}")
 
-        if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
-            self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
-            return None
         if node.prompt_n is not None:
             prompt_type, prompt_value, prompt_err = self.visit_node(node.prompt_n)
             if prompt_type[0] in ["arr", "object", "class"]:
@@ -2900,13 +2903,13 @@ class Runtime:
                 return None
             if count_value <= 0:
                 self.logError(f"Integer parameter of input statement must be greater than 0, but found '{count_value}' instead.", count_err)
-            if hasattr(node.count_n, 'var_name'):
-                var_name = node.count_n.var_name
-                var_type = self.get_variable_type(var_name)  
+            # if hasattr(node.count_n, 'var_name'):
+            #     var_name = node.count_n.var_name
+            #     var_type = self.get_variable_type(var_name)  
 
-                if var_type not in ["int", "long"]:
-                    self.logError(f"The variable '{var_name}' used as the second parameter must be an integer.", count_err)
-                    return None
+            #     if var_type not in ["int", "long"]:
+            #         self.logError(f"The variable '{var_name}' used as the second parameter must be an integer.", count_err)
+            #         return None
 
         # # >>>> GET INPUT FROM USER FROM FRONTEND
         _printlog(">>>> START GET INPUT FROM USER")

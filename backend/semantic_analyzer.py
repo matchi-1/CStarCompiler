@@ -4,19 +4,19 @@ main_n = None
 
 class SymbolTable:
     def __init__(self, parent=None):
-        self.syms = {} #key: string val: dict
-        self.parent = parent
+        self.syms = {} # key: string (sym name),  val: dict (sym contents)
+        self.parent = parent # previous scope -- None at start
 
-
-    def get(self, sym_name, checkParent = True):
+    # it gets the symbol's value from the sym table using sym name
+    def get(self, sym_name, checkParent = True):  # checkParent is false, if u want to check curr scope for the same iden (dont check parent bc we do shadowing)
         sym = self.syms.get(sym_name, None)
         if not sym and self.parent and checkParent:
-            return self.parent.get(sym_name)
+            return self.parent.get(sym_name)  # recusively go up to its parent to check if sym was declared in higher scopes
         return sym
     
         
-    # ALWAYS NAME ARGS FOR DTYPE PRIV AND CONST WHEN CALLING SET
-    def _create_symbol_entry(self, value, dtype, priv, const):
+    # ALWAYS NAME ARGS FOR DTYPE PRIV AND CONST WHEN CALLING SET 
+    def _create_symbol_entry(self, value, dtype, priv, const):  # base content info
         return {
             "value": value,
             "dtype": dtype,
@@ -25,20 +25,20 @@ class SymbolTable:
         }
 
     def set(self, sym_name, value, dtype=None, priv=False, const=False):
-        sym_content = self._create_symbol_entry(value, dtype, priv, const)
-        self.syms[sym_name] = sym_content
-        return {sym_name: sym_content}
+        sym_content = self._create_symbol_entry(value, dtype, priv, const)  # create bare minimum symbol (for variables)
+        self.syms[sym_name] = sym_content  # to set the newly created sym content to the symtable using the sym_name as the key
+        return {sym_name: sym_content}  #  return the key:value pair
 
     def set_array(self, sym_name, value, dtype, arr_info, priv=False, const=False):
         sym_content = self._create_symbol_entry(value, dtype, priv, const)
-        sym_content["arr_info"] = arr_info  
-        self.syms[sym_name] = sym_content
+        sym_content["arr_info"] = arr_info   # add arr_info sym info
+        self.syms[sym_name] = sym_content  # add sym to sym table
         return {sym_name: sym_content}
 
     def set_class(self, sym_name, class_info):
         sym_content = {}
-        sym_content["class_info"] = class_info 
-        sym_content["dtype"] = ('class', None)
+        sym_content["class_info"] = class_info   # add class_info sym info
+        sym_content["dtype"] = ('class', None)  # class, arr, lit, var, func, obj -- tuple guides ('dect_type', 'value')
         self.syms[sym_name] = sym_content
 
     def set_obj(self, sym_name, initVal, class_name, obj_info):
@@ -61,7 +61,6 @@ class SymbolTable:
         self.syms[sym_name] = sym_content
         return {sym_name: sym_content}
     
-    
     def set_constructor(self, sym_name, param_types):
         sym_content = {}
         sym_content["params"] = param_types
@@ -82,9 +81,9 @@ class ErrorNode:
         self.id_t = id_t
 
 class SemanticAnalyzer:
-
     numtypes = ['int', 'long', 'float', 'double']
-    default_vals = {
+
+    default_vals = {  # not the official default vals in rules, but rather, placeholder
         'string': '',
         'bool' : False,
         'int' : 1,
@@ -102,16 +101,16 @@ class SemanticAnalyzer:
     MIN_DOUBLE =    -   9999999999999999000
     MAX_DOUBLE =        9999999999999999000
 
-    MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
 
     def setMain(self, main_n_fromSyn):
         global main_n
         main_n = main_n_fromSyn
 
+    # start parsing ast 
     def interpret(self, node):
         try:
-            self.visit_node(node)
-            self.errors.append("Semantic analysis completed successfully. No Semantic Errors found.")
+            self.visit_node(node)  # start parsing the root node which is "program_node"
+            self.errors.append("Semantic analysis completed successfully. No Semantic Errors found.") # semantic analysis done wo errors
             print("Semantic checking completed successfully. No Semantic Errors found.")
 
             print('---------GLOBAL TABLE---------\n\t\t')
@@ -122,26 +121,28 @@ class SemanticAnalyzer:
 
         return self.errors
 
+    # upon instantiation of seman obj
     def __init__(self):
-        self.curr_scope = SymbolTable()
-        self.errors = []
-        self.loop_depth = 0
-        self.switch_depth = 0
-        self.function_return_stack = []
-        self.output = []  # <== NEW: collect all print outputs here
+        self.curr_scope = SymbolTable()  # global scope -- access to all global symbols
+        self.errors = []    
+        self.loop_depth = 0    # used in break, continue to see whether or not it's allowed inside conditionals
+        self.switch_depth = 0  # same with loop depth 
+        self.function_return_stack = []  # validates return type of funcs to its return statements
 
-    def enter_scope(self, nodeName):
+    # creates a new table for each scope 
+    def enter_scope(self, nodeName): # nodeName is just the name of the sym or any scope like func names or if / loops
         print(F'\n(semantic)(dbg) ENTERING scope {nodeName}')
-        self.curr_scope = SymbolTable(self.curr_scope)
+        self.curr_scope = SymbolTable(self.curr_scope)  # create a table within a table (dict within a dict)
     
     def exit_scope(self, nodeName):
         print(F'\n(semantic)(dbg) EXITING scope {nodeName}, table: ')
         #print table dbg
         self.print_symbols(self.curr_scope.syms, indent=2)
-        self.curr_scope = self.curr_scope.parent
+        self.curr_scope = self.curr_scope.parent  # reassign parent of currscope to currscope
 
+    # helper method to visit each nodes in the ast
     def visit_node(self, node, funcExpectedVal = True):
-        nodeName = type(node).__name__
+        nodeName = type(node).__name__ # type returns the class and .__name__ returns the name of the class as a string
         visit_func = getattr(self, f'visit_{nodeName}', None)  # Get the appropriate visit function, or None if it doesn't exist
 
         if visit_func is None:
@@ -154,14 +155,14 @@ class SemanticAnalyzer:
             #print(f'!!NODE!!: {node}!!')
             ret_val = None
             if nodeName in ['node_func_call', 'node_class_method_call']:
-                ret_val = visit_func(node, expected_val=funcExpectedVal)
+                ret_val = visit_func(node, expected_val=funcExpectedVal) # check if theyre expected to return a val (esp for void funcs called as a value)
             else:
                 ret_val = visit_func(node)
             if nodeName in ['node_iden', 'node_num', 'node_bi_op', 'node_un_op', 'node_arr_idx', 'node_class_arr_idx', 'node_func_call', 'node_class_method_call']:
                 print('AAAA CHECK VALUE NODE', ret_val[0], ret_val[1])
-                if ret_val[0][1] in ['float', 'double'] and ret_val[0][0] in ['var', 'lit']:
+                if ret_val[0][1] in ['float', 'double'] and ret_val[0][0] in ['var', 'lit']:  # check if float dbl from triple tuple return, and get 2nd part of 1st tuple
                     print('AAAA CHECK FIRING', ret_val[1])
-                    ret_val = (ret_val[0], Decimal(ret_val[1]), ret_val[2])
+                    ret_val = (ret_val[0], Decimal(ret_val[1]), ret_val[2]) 
                 
             return ret_val
         
@@ -235,16 +236,16 @@ class SemanticAnalyzer:
     # FORMAT: visit_{node_name}
     # VALUE nodes always return tuple of dtype and value
     
-    #program PLACEHODLER
+    # program PLACEHODLER
     def visit_program_node(self, node):
         #PLACEHOLDER! the real thing would iterate through      
         #self.visit_node(node.program_structure_stmts[2])
         self.has_main = False
         
-        for statement in node.program_structure_stmts:
-            if type(statement).__name__ == "node_body":
+        for statement in node.program_structure_stmts:  # iterate thru imports list, prog constructs, body (main body) (if existing)
+            if type(statement).__name__ == "node_body": # this is main body
                 self.has_main = True
-                self.current_function_name = "main"
+                self.current_function_name = "main"  # assign main as the func name
                 self.function_return_stack.append("void")
 
                 self.count_return = 0
@@ -261,21 +262,20 @@ class SemanticAnalyzer:
                 print(f"(semantic)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
                 self.current_function_name = None
             
-            else: self.visit_node(statement)
+            else: self.visit_node(statement) # just visit the node
         
         if not self.has_main:
             self.current_function_name = "main"
             self.logError(f"Function '{self.current_function_name}' must have a return statement.", main_n)
 
-    #body PLACEHOLDER
-    def visit_node_body(self, node):
-        self.enter_scope(type(node).__name__)
-        # PLACEHOLDER! idk if it's correct
 
-        if node.body_codeblock_n:
-            self.visit_node(node.body_codeblock_n)
+    def visit_node_body(self, node):
+        self.enter_scope(type(node).__name__) # create new scope/table for the function body
+
+        if node.body_codeblock_n: # function is not empty
+            self.visit_node(node.body_codeblock_n) 
         
-        if node.return_stmt_n:
+        if node.return_stmt_n: # 
             self.visit_node(node.return_stmt_n)
         
         self.exit_scope(type(node).__name__)
@@ -317,7 +317,7 @@ class SemanticAnalyzer:
         self.visit_node_class_body(node.class_body_n, className, node)
 
 
-    def visit_node_constructor_dec(self, node, parentClassname): #TODO: be wary of return statements
+    def visit_node_constructor_dec(self, node, parentClassname):
         className = node.class_id_n.id_t["tokenName"]
         err_n = ErrorNode(node.class_id_n.id_t["tokenLine"], node.class_id_n.id_t["tokenCol"] - len(node.class_id_n.id_t["tokenName"]) - 1)
         # Check if constructor already exists in current scope
@@ -372,9 +372,8 @@ class SemanticAnalyzer:
                 if type(param).__name__ == "node_funcpar_class":
                     class_name = ('object', param.class_id_n.id_t["tokenName"])
                     class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
-                    class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
+                    class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       # filter items so u dont get private elems
                     print(f">>>>>>>>>>>>>SET OBJ (CONSTRUCTOR): {self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)}")
-
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
@@ -415,7 +414,7 @@ class SemanticAnalyzer:
 
             for class_body_stmt_n in class_body_stmt:
                 priv = class_body_stmt_n.is_private_b
-                vardec_n = class_body_stmt_n.vardec_n
+                vardec_n = class_body_stmt_n.vardec_n  # dtype, iden
                 
                 if type(vardec_n).__name__ == "node_vardec":
                     class_content.append(self.visit_node_vardec(vardec_n, priv))
@@ -441,16 +440,16 @@ class SemanticAnalyzer:
         if node.class_body_stmt_n: self.print_symbols(child_sym, indent=2)
         else: self.print_symbols(self.curr_scope.syms, indent=2)
 
-
+        # flatten it to be wide than to go deep 
         flattened = [item for sublist in class_content for item in sublist]
         merged_dict = {k: v for d in flattened for k, v in d.items()}
         self.curr_scope.set_class(className, class_info={"constructor_dec" : constructor_info, "class_body_content": merged_dict})
         
 
     def visit_node_class_inst(self, node):
-        class_id = node.class_id_n.id_t["tokenName"]
-        obj_id = node.obj_id_n.id_t["tokenName"]
-        class_inst_cont = node.class_instcont_n
+        class_id = node.class_id_n.id_t["tokenName"] # orig class
+        obj_id = node.obj_id_n.id_t["tokenName"] # obj iden
+        class_inst_cont = node.class_instcont_n # constructor calling + args
 
         if self.curr_scope.get(obj_id, False):
             self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", node.obj_id_n)
@@ -466,18 +465,18 @@ class SemanticAnalyzer:
         elif self.curr_scope.parent.get(class_id).get("class_info"): class_elem_info = self.curr_scope.parent.get(class_id)["class_info"]["class_body_content"]
 
         
-        class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
+        class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       # filter items
         
         
         if class_inst_cont:
             constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
             
             check_scope_class = self.curr_scope
-            while not check_scope_class.get(class_id, False):
+
+            while not check_scope_class.get(class_id, False): # if it's deep within the scopes, find the parent class (which is in global)
                 check_scope_class = check_scope_class.parent
             
             class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"]
-            
             
             if constructor_call_id != class_id:
                 self.logError(f"Constructor call must match class name. Expected '{class_id}', but found '{constructor_call_id}'.", class_inst_cont.class_id_n)
@@ -527,13 +526,13 @@ class SemanticAnalyzer:
         print(f"(semantic)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
         return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"], node.obj_id_n)  
 
-    def visit_node_class_arr_idx(self, node):
+    def visit_node_class_arr_idx(self, node): # iden.iden[x]
         err_n_obj = ErrorNode(node.obj_id_n.id_t["tokenLine"], node.obj_id_n.id_t["tokenCol"] - len(node.obj_id_n.id_t["tokenName"]) - 1)
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.att_id_n.id_t["tokenName"]
 
         obj_info = self.curr_scope.get(obj_name)
-        if obj_info.get("class_info"):
+        if obj_info.get("class_info"): # class_info is unique to classes
             self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
 
         if obj_info.get("dtype")[0] != 'object':
@@ -562,7 +561,7 @@ class SemanticAnalyzer:
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int']:
-                    self.logError(f'Type mismatch: expected whole positive integer for an array index (1st dimension) but got {idx_type[1]}.', err_n)
+                    self.logError(f'Type mismatch: expected whole positive integer for string indexing but got {idx_type[1]}.', err_n)
                 # if idx_val < 0:
                 #         self.logError("String index cannot be negative.", err_n)
                 # if idx_val >= len(arr_sym["value"]):
@@ -583,7 +582,7 @@ class SemanticAnalyzer:
         if node.idx2_n:
             if arr_sym["arr_info"]["dimension"] == 1:
                 if dtype == "string":
-                    self.logError("String indexing is not allowed for array elements.", err_n)
+                    self.logError("String indexing is not allowed for array elements.", err_n)  # iden.str[x][1] -- string indexing of arr elems
                 self.logError(f'Array \'{class_elem}\' is 1-dimensional but accessed with 2 indices.', err_n)
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
             if idx2_type[1] not in ['int']:
@@ -596,6 +595,7 @@ class SemanticAnalyzer:
             if arr_sym["arr_info"]["dimension"] == 2:
                 self.logError(f'Array \'{class_elem}\' is 2-dimensional but accessed with 1 index.', err_n)
         return (('var', dtype), self.default_vals[dtype], err_n_obj)
+
 
     def visit_node_num(self, node):
         val = 0
@@ -660,7 +660,7 @@ class SemanticAnalyzer:
             return (iden_symbol.get("dtype", None), iden_symbol.get("value", None), err_n)
             # return (('var', iden_symbol["dtype"][1]), None)
         
-    def visit_node_arr_idx(self, node):
+    def visit_node_arr_idx(self, node):  # iden[x]
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
         #print(f"ARRRRRRRRRRRRRRRR SYMMMMMMMMMM of {node.id_n.id_t["tokenName"]}: {arr_sym}")
         arr_id_err = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"])-1)
@@ -674,7 +674,7 @@ class SemanticAnalyzer:
         if arr_sym["dtype"][0] != 'arr':
             if not node.idx2_n and dtype == 'string':
                 if idx_type[1] not in ['int']:
-                    self.logError(f'Type mismatch: expected whole positive integer for an array index (1st dimension) but got {idx_type[1]}.', idx_err)
+                    self.logError(f'Type mismatch: expected whole positive integer for string indexing but got {idx_type[1]}.', idx_err)
                 # if idx_val < 0:
                 #         self.logError("String index cannot be negative.", idx_err)
                 # if idx_val >= len(arr_sym["value"]):
@@ -836,8 +836,8 @@ class SemanticAnalyzer:
         self.curr_scope = self.curr_scope.parent
         return classReturn
 
-    # assign_stmt  -- need to refactor nodes in ast bc 
-    def visit_node_assign_stmt_var(self, node):
+
+    def visit_node_assign_stmt_var(self, node): # var = val
         iden = node.id_n
         value = node.value_n
         iden_name = iden.id_t["tokenName"]
@@ -865,7 +865,7 @@ class SemanticAnalyzer:
         
         self.check_type_and_range("variable", iden_symbol["dtype"], val_type, val, node.id_n, err_n = val_err)
 
-    def visit_node_assign_stmt_array_elem(self, node): 
+    def visit_node_assign_stmt_array_elem(self, node):  # arr[x] = val
         # visit_node_assign_stmt_object_att_arr REFERENCES THIS, CHANGE BOTH FUNCS WHEN U CHANGE THIS ONE THANK U
         arr_node = node.id_arr_n   # current node
         arr_name = arr_node.id_n.id_t["tokenName"]
@@ -927,7 +927,7 @@ class SemanticAnalyzer:
         # else:
         #     arr_symbol["value"][idx1_val][idx2_val] = value
 
-    def visit_node_assign_stmt_object_att(self,node):
+    def visit_node_assign_stmt_object_att(self,node):  # iden.iden =  val
         self.visit_node(node.class_att_n)
 
         obj_name = node.class_att_n.obj_id_n.id_t["tokenName"]
@@ -963,7 +963,7 @@ class SemanticAnalyzer:
         print(f"\n(semantic)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
         
-    def visit_node_assign_stmt_object_att_arr(self, node): # # iden.iden[1][2] = val
+    def visit_node_assign_stmt_object_att_arr(self, node): # iden.iden[1][2] = val
         print(node.class_arr_n)
         # node_assign_stmt_object_att_arr:
             # self.op_t         #assign_op
@@ -1219,6 +1219,15 @@ class SemanticAnalyzer:
     
     # var / arr dec helper function for type and range checking
     def check_type_and_range(self, dec_type, dtype, val_type, value, id_n = None, index_1D = None, index_2D = None, err_n = None):
+        # dec type - is its program entity type (an array, a variable, a format specifier, a value) -- used in err msgs
+        # dtype - expected data type to be compared to  -- tuple ('lit', 'dtype')
+        # val_type - actual value datatype to be compared to -- tuple ('lit', 'dtype')
+        # value -- value of the value to be checked
+        # id_n -- identifier node
+        # index_1D = array accessing value at 1D
+        # index_2D = array accessing value at 2D
+        # err_n - error node for err msgs
+
         id = id_n.id_t["tokenName"] if id_n else ''
         print("PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: " + dec_type)
         print("PRINT >>>>>>>>>>>>>>>>> DTYPE: " + str(dtype))
@@ -1307,7 +1316,7 @@ class SemanticAnalyzer:
         value = None
         idec_rec = None
         if node.vardec_cont_n:
-            if node.vardec_cont_n.value_n:
+            if node.vardec_cont_n.value_n: # x = val
                 val_type, value, err_n = self.visit_node(node.vardec_cont_n.value_n)
             if val_type: print('(semantic)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
@@ -1463,24 +1472,24 @@ class SemanticAnalyzer:
 
                         temp_arr.append(val)
                     
-                    if len(temp_arr) > size_2:
-                            singplur = 'element' if size_2 == 1 else 'elements'
-                            self.logError(f"Expected {size_2} {singplur} for inner array element of array '{id}', but got {len(temp_arr)} elements instead.", node.id_n)
+                    # if len(temp_arr) > size_2:
+                    #         singplur = 'element' if size_2 == 1 else 'elements'
+                    #         self.logError(f"Expected {size_2} {singplur} for inner array element of array '{id}', but got {len(temp_arr)} elements instead.", node.id_n)
                     
-                    elif len(temp_arr) < size_2:
-                        for i in range(size_2 - len(temp_arr)):
-                            temp_arr.append(base_val)
+                    # elif len(temp_arr) < size_2:
+                    #     for i in range(size_2 - len(temp_arr)):
+                    #         temp_arr.append(base_val)
 
                     #print(f"_____________________________{temp_arr}")
                     arr_vals.append(temp_arr)
                 
-                if len(arr_vals) > size_1:
-                    singplur = 'element' if size_1 == 1 else 'elements'
-                    self.logError(f"Expected {size_1} {singplur} for array '{id}', but got {len(arr_vals)}.", node.id_n)
+                # if len(arr_vals) > size_1:
+                #     singplur = 'element' if size_1 == 1 else 'elements'
+                #     self.logError(f"Expected {size_1} {singplur} for array '{id}', but got {len(arr_vals)}.", node.id_n)
                 
-                elif len(arr_vals) < size_1:
-                        for i in range(size_1 - len(arr_vals)):
-                            arr_vals.append([base_val]*(size_2 if size_2 else size_1))
+                # elif len(arr_vals) < size_1:
+                #         for i in range(size_1 - len(arr_vals)):
+                #             arr_vals.append([base_val]*(size_2 if size_2 else size_1))
             else: arr_vals = values_list
         classReturn.append(self.curr_scope.set_array(id, arr_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
         
@@ -2166,10 +2175,8 @@ class SemanticAnalyzer:
 
             if print_stmts_n == "println":
                 print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
-                self.output.append(str(formatted_output) + "\n")
             else:
                 print(f'\n\n(semantic)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
-                self.output.append(formatted_output)
 
         return None
 
