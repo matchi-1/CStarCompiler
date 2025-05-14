@@ -729,7 +729,7 @@ class Runtime:
         elif self.curr_scope.parent.get(class_id).get("class_info"): class_elem_info = self.curr_scope.parent.get(class_id)["class_info"]["class_body_content"]
 
         
-        class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
+        #class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
         class_elem_obj = copy.deepcopy(class_elem_info)
         for att_method, att_method_info in class_elem_obj.items():
             #_printlog(f"!#@$%@$!^%$@!^%$@!%^$%@!%^$@^!$@^%!$@^$!@^@!^%$^@!$^\natt_method: {att_method}\\\\\ {type(att_method).__name__}\n att_method_info: {att_method_info} |||| {type(att_method_info).__name__}")
@@ -764,7 +764,7 @@ class Runtime:
             
             class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"][class_id]
             
-            self.check_function_params(class_constructor_info, class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
+            #self.check_function_params(class_constructor_info, class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
             init_val = class_inst_cont.func_arg_n
             #self.evaluate_func(class_id, class_inst_cont.func_arg_n)
             #_printlog(f'\n(runtime)(dbg) Now evaluating constructor in class "{class_id}"\n')

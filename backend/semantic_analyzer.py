@@ -514,10 +514,10 @@ class SemanticAnalyzer:
             
             
         if not class_info_no_privates.get(class_elem) and not class_info.get(class_elem):
-            self.logError(f"Element '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
+            self.logError(f"Attribute '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
         
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
-            self.logError(f"Element '{class_elem}' is a private element within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.att_id_n)
 
         print(f"(semantic)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"])}")
         return (class_info[class_elem]["dtype"], obj_info["obj_info"][class_elem]["value"], node.obj_id_n)  
@@ -548,7 +548,7 @@ class SemanticAnalyzer:
             self.logError(f"Attribute '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.att_id_n)
         
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
-            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.att_id_n)
+            self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.att_id_n)
 
         arr_sym = obj_info["obj_info"][class_elem]
         dtype = arr_sym["dtype"][1]
@@ -1195,7 +1195,7 @@ class SemanticAnalyzer:
             self.logError(f"Method '{class_elem}' not found in object '{obj_name}', instance of class '{obj_info["dtype"][1]}'.", node.method_id_n)
         
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
-            self.logError(f"Method '{class_elem}' is a private method within class '{obj_info["dtype"][1]}' and cannot be accessed by any instance of the class.", node.method_id_n)
+            self.logError(f"Method '{class_elem}' is a private method within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.method_id_n)
 
         # self.obj_id_n = class_id_n
         # self.method_id_n = method_id_n
