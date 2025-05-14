@@ -1800,7 +1800,7 @@ class Runtime:
  
 
 
-
+    #for semantic only
     def check_function_params(self, func_symbol, args, node_id, call_string):
         _printlog(f"(runtime)(dbg) CHECKING PARAMS from {call_string}!!")
         """
@@ -1941,7 +1941,7 @@ class Runtime:
         # self.obj_id_n = class_id_n
         # self.method_id_n = method_id_n
         # self.args_n = args_n
-        self.check_function_params(class_info_no_privates[class_elem], node.args_n, node.method_id_n, "method")
+        #self.check_function_params(class_info_no_privates[class_elem], node.args_n, node.method_id_n, "method")
         _printlog(node)
 
         val = None

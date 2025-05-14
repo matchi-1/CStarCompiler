@@ -1388,7 +1388,7 @@ class SyntaxAnalyzer:
                 # if it's not main, continue matching parameters
                 if not self.hasMainFunction: # it's not main function so u can check for params
                     self.matchPredictSet("params_dec", False) # check possible starts of params
-                    return self.params_dec_start(void_t, id_temp_n, isVoid) # build func dec node (void) starting with this method
+                    return self.params_dec_start(void_t, id_temp_n, isVoid, inClassBody) # build func dec node (void) starting with this method
                 
                 # it's main, so check closing paren
                 else:
@@ -1466,7 +1466,7 @@ class SyntaxAnalyzer:
 
 
 
-    def params_dec_start(self, dtype_tempt_t, id_temp_n, isVoid = False):
+    def params_dec_start(self, dtype_tempt_t, id_temp_n, isVoid = False, inClassBody = False):
         
         if not self.hasMainFunction:
             print(f"(parser) production: \"params_dec_start\" detected , isVoid = {isVoid}")
@@ -1482,7 +1482,7 @@ class SyntaxAnalyzer:
                 self.ERROR_unclosed_curly_braces()
             self.hasFunctionReturned = False
 
-            if id_temp_n.id_t["tokenName"] == "main":
+            if id_temp_n.id_t["tokenName"] == "main" and not inClassBody:
                 err_msg = f"Semantic Error {id_temp_n.id_t["tokenLine"], id_temp_n.id_t["tokenCol"]-2}: The 'main' function must be of type 'void'."
                 self.errors.append(err_msg)
                 raise SyntaxError(err_msg)
