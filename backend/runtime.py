@@ -416,7 +416,7 @@ class Runtime:
                         return str(self.MIN_INT)
                     
                 # if double exceeds max/min return max/min
-                case "double":
+                case "long":
                     if value > self.MAX_LONG:
                         return str(self.MAX_LONG)
                     elif value < self.MIN_LONG:
@@ -438,6 +438,7 @@ class Runtime:
                 elif value < self.MIN_FLOAT:
                     return f"{Decimal(self.MIN_FLOAT).quantize(Decimal("0.00"))}"
                 max_decimals = 7
+
             case "double":
                 if value > self.MAX_DOUBLE:
                     print(f"(runtime)(dbg) output value exceeded max double, returning max value..")
@@ -446,6 +447,7 @@ class Runtime:
                     return f"{Decimal(self.MIN_DOUBLE).quantize(Decimal("0.00"))}"
                 print(f"(runtime)(dbg) double value does not exceed max or min")
                 max_decimals = 16
+
             case _:
                 max_decimals = 2
 
