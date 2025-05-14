@@ -1,0 +1,2329 @@
+
+(runtime)(dbg) VISITING program_node!!
+
+
+(runtime)(dbg) VISITING node_program_constructs!!
+
+(runtime)(dbg) VISITING node_class_dec!!
+
+(runtime)(dbg) VISITING node_class_body!!
+
+(runtime)(dbg) ENTERING scope 'Class: Logger'
+
+(runtime)(dbg) ENTERING scope node_class_body
+ -------------------------------------------> val_type: string d_type: string
+PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: variable
+PRINT >>>>>>>>>>>>>>>>> DTYPE: ('var', 'string')
+PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: ('lit', 'string')
+PRINT >>>>>>>>>>>>>>>>> ID_N: logLevel
+PRINT >>>>>>>>>>>>>>>>> VALUE: 
+PRINT >>>>>>>>>>>>>>>>> INDEX_1D: None
+PRINT >>>>>>>>>>>>>>>>> INDEX_2D: None
+PRINT >>>>>>>>>>>>>>>>> index: None
+>>param types : [{'dtype': ('var', 'string')}]
+>>>>>>>>>>> setLevel IS FUNC STD LIB? False
+
+(runtime)(dbg) ENTERING scope 'Function: setLevel'
+
+(runtime)(dbg) ENTERING scope node_func_dec
+(runtime)(dbg) Popped return type, Stack after pop = []
+
+(runtime)(dbg) EXITING scope 'Function: setLevel', SYMBOL TABLE: 
+		{ }
+
+(runtime)(dbg) EXITING scope node_func_dec, table: 
+		{ }
+>>param types : None
+>>>>>>>>>>> getLevel IS FUNC STD LIB? False
+
+(runtime)(dbg) ENTERING scope 'Function: getLevel'
+
+(runtime)(dbg) ENTERING scope node_func_dec
+(runtime)(dbg) Popped return type, Stack after pop = []
+
+(runtime)(dbg) EXITING scope 'Function: getLevel', SYMBOL TABLE: 
+		{ }
+
+(runtime)(dbg) EXITING scope node_func_dec, table: 
+		{ }
+>>param types : [{'dtype': ('var', 'string')}]
+>>>>>>>>>>> log IS FUNC STD LIB? False
+
+(runtime)(dbg) ENTERING scope 'Function: log'
+
+(runtime)(dbg) ENTERING scope node_func_dec
+(runtime)(dbg) Popped return type, Stack after pop = []
+
+(runtime)(dbg) EXITING scope 'Function: log', SYMBOL TABLE: 
+		{ }
+
+(runtime)(dbg) EXITING scope node_func_dec, table: 
+		{ }
+
+(runtime)(dbg) ENTERING scope Constructor for class 'Logger'
+
+(runtime)(dbg) ENTERING scope node_constructor_dec
+('var', 'string')
+>>>>>>>>>>>>>SET VAR: {'level': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}}
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_assign_stmt_var!!
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: level
+IDEN_SMYBOL:  {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('var', 'string'), iden_symbol["value"]:
+AAAA CHECK VALUE NODE ('var', 'string') 
+ ------------------------------------------->string
+ ------------------------------------------->
+PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: variable
+PRINT >>>>>>>>>>>>>>>>> DTYPE: ('var', 'string')
+PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: ('var', 'string')
+PRINT >>>>>>>>>>>>>>>>> ID_N: logLevel
+PRINT >>>>>>>>>>>>>>>>> VALUE: 
+PRINT >>>>>>>>>>>>>>>>> INDEX_1D: None
+PRINT >>>>>>>>>>>>>>>>> INDEX_2D: None
+PRINT >>>>>>>>>>>>>>>>> index: None
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		level : {
+			value : 
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+
+(runtime)(dbg) EXITING scope Constructor for class 'Logger', SYMBOL TABLE: 
+		level : {
+			value : 
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+
+(runtime)(dbg) EXITING scope node_constructor_dec, table: 
+		level : {
+			value : 
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+
+(runtime)(dbg) EXITING scope node_class_body, table: 
+		logLevel : {
+			value : 
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+		}
+
+(runtime)(dbg) EXITING scope 'Class: Logger', SYMBOL TABLE: 
+		logLevel : {
+			value : 
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+		}
+(runtime)(dbg) merged_dict  {'logLevel': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+
+(runtime)(dbg) DONE VISITNG scope 'node_program_constructs', GLOBAL TABLE: 
+		Logger : {
+			class_info : {
+				constructor_dec : {
+					Logger : {
+						value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+						params : [
+							dtype : ('var', 'string')
+						]
+						param_names : [
+							level
+						]
+					}
+				}
+				class_body_content : {
+					logLevel : {
+						value : 
+						dtype : ('var', 'string')
+						priv : False
+						const : False
+					}
+					setLevel : {
+						value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+						dtype : ('func', 'void')
+						priv : False
+						params : [
+							dtype : ('var', 'string')
+						]
+						param_names : [
+							level
+						]
+						isStd_lib : False
+					}
+					getLevel : {
+						value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+						dtype : ('func', 'string')
+						priv : False
+						params : None
+						param_names : None
+						isStd_lib : False
+					}
+					log : {
+						value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+						dtype : ('func', 'void')
+						priv : False
+						params : [
+							dtype : ('var', 'string')
+						]
+						param_names : [
+							message
+						]
+						isStd_lib : False
+					}
+				}
+			}
+			dtype : ('class', None)
+		}
+
+(runtime)(dbg) VISITING node_body!!
+
+(runtime)(dbg) ENTERING scope node_body
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_class_inst!!
+a90q8310923 Logger
+a90q8310123123123923 node_classinst_cont: (class_id_n: Logger, func_arg_n: ["INFO"])
+(runtime)(dbg) checking type of class elem <class 'str'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) CHECKING PARAMS from constructor!!
++++++++++++++++++++++++++++++++++++++++++++++++++++++ args: ["INFO"]
+>>>>>>>>>>>>>>>>>>>>>> arg_node: "INFO"
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'INFO', <runtime.ErrorNode object at 0x00000234A76DFA70>)
+>>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_sym: None
+>>>>>>>>>>>>>>>>>>>>>> arg_val_type: ('lit', 'string')
+>>>>>>>>>>>>>>>>>>>>>> param_type: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_value_flag: False
+>>>>>>>>>>>>>>>>>>>>>> node type: node_str
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'INFO', <runtime.ErrorNode object at 0x00000234A5AB5BE0>)
+(runtime)(dbg) FINISHED CHECKING PARAMS from constructor!!!!!
+
+(runtime)(dbg) ENTERING scope Logger
+
+(runtime)(dbg) Now evaluating funtion Logger
+
+FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {'value': node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level']}
+019238091283092183 "INFO"    a     node_str 
+
+ ["INFO"] 
+
+ {'value': node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level']}
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'INFO', <runtime.ErrorNode object at 0x00000234A5AB5BE0>)
+01011001010109381209. ('level', 'INFO', ('lit', 'string'))
+AAAAAAAAAAAAAAAAAAAAAAAAA
+ {}
+(runtime)(dbg) Entering function Logger's scope
+ABOUT TO ENTER Logger BODY WITH SYMBOL TABLE:
+		level : {
+			value : INFO
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+
+(runtime)(dbg) About to visit Logger's body node...
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_assign_stmt_var!!
+
+
+
+
+
+
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: level
+IDEN_SMYBOL:  {'value': 'INFO', 'dtype': ('lit', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('lit', 'string'), iden_symbol["value"]:INFO
+AAAA CHECK VALUE NODE ('lit', 'string') INFO
+ ------------------------------------------->string
+ ------------------------------------------->INFO
+PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: variable
+PRINT >>>>>>>>>>>>>>>>> DTYPE: ('var', 'string')
+PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: ('lit', 'string')
+PRINT >>>>>>>>>>>>>>>>> ID_N: logLevel
+PRINT >>>>>>>>>>>>>>>>> VALUE: INFO
+PRINT >>>>>>>>>>>>>>>>> INDEX_1D: None
+PRINT >>>>>>>>>>>>>>>>> INDEX_2D: None
+PRINT >>>>>>>>>>>>>>>>> index: None
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		level : {
+			value : INFO
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+
+(runtime)(dbg) EXITING scope Logger, table: 
+		level : {
+			value : INFO
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+AAAAAAAAAAAAAAAAAAAAAA EVAL RET None
+
+(runtime)(dbg) EXITING scope Logger, table: 
+		logLevel : {
+			value : INFO
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+(runtime)(dbg) class inst class_elem_obj {'logLevel': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+(runtime)(dbg) address list after obj inst:  [(1, {'logLevel': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}})]
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+
+(runtime)(dbg) VISITING node_class_inst!!
+a90q8310923 Logger
+a90q8310123123123923 node_classinst_cont: (class_id_n: Logger, func_arg_n: ["WARN"])
+(runtime)(dbg) checking type of class elem <class 'str'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) CHECKING PARAMS from constructor!!
++++++++++++++++++++++++++++++++++++++++++++++++++++++ args: ["WARN"]
+>>>>>>>>>>>>>>>>>>>>>> arg_node: "WARN"
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'WARN', <runtime.ErrorNode object at 0x00000234A772DA60>)
+>>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_sym: None
+>>>>>>>>>>>>>>>>>>>>>> arg_val_type: ('lit', 'string')
+>>>>>>>>>>>>>>>>>>>>>> param_type: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_value_flag: False
+>>>>>>>>>>>>>>>>>>>>>> node type: node_str
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'WARN', <runtime.ErrorNode object at 0x00000234A772DCA0>)
+(runtime)(dbg) FINISHED CHECKING PARAMS from constructor!!!!!
+
+(runtime)(dbg) ENTERING scope Logger
+
+(runtime)(dbg) Now evaluating funtion Logger
+
+FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {'value': node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level']}
+019238091283092183 "WARN"    a     node_str 
+
+ ["WARN"] 
+
+ {'value': node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level']}
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'WARN', <runtime.ErrorNode object at 0x00000234A772DA30>)
+01011001010109381209. ('level', 'WARN', ('lit', 'string'))
+AAAAAAAAAAAAAAAAAAAAAAAAA
+ {}
+(runtime)(dbg) Entering function Logger's scope
+ABOUT TO ENTER Logger BODY WITH SYMBOL TABLE:
+		level : {
+			value : WARN
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+
+(runtime)(dbg) About to visit Logger's body node...
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_assign_stmt_var!!
+
+
+
+
+
+
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: level
+IDEN_SMYBOL:  {'value': 'WARN', 'dtype': ('lit', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('lit', 'string'), iden_symbol["value"]:WARN
+AAAA CHECK VALUE NODE ('lit', 'string') WARN
+ ------------------------------------------->string
+ ------------------------------------------->WARN
+PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: variable
+PRINT >>>>>>>>>>>>>>>>> DTYPE: ('var', 'string')
+PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: ('lit', 'string')
+PRINT >>>>>>>>>>>>>>>>> ID_N: logLevel
+PRINT >>>>>>>>>>>>>>>>> VALUE: WARN
+PRINT >>>>>>>>>>>>>>>>> INDEX_1D: None
+PRINT >>>>>>>>>>>>>>>>> INDEX_2D: None
+PRINT >>>>>>>>>>>>>>>>> index: None
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		level : {
+			value : WARN
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+
+(runtime)(dbg) EXITING scope Logger, table: 
+		level : {
+			value : WARN
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+AAAAAAAAAAAAAAAAAAAAAA EVAL RET None
+
+(runtime)(dbg) EXITING scope Logger, table: 
+		logLevel : {
+			value : WARN
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+(runtime)(dbg) class inst class_elem_obj {'logLevel': {'value': 'INFO', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+(runtime)(dbg) address list after obj inst:  [(1, {'logLevel': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}), (1, {'logLevel': {'value': 'INFO', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}})]
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+		warnLogger : {
+			init_val : [
+				"WARN"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 1
+		}
+
+(runtime)(dbg) VISITING node_class_inst!!
+a90q8310923 Logger
+a90q8310123123123923 node_classinst_cont: (class_id_n: Logger, func_arg_n: ["ERROR"])
+(runtime)(dbg) checking type of class elem <class 'str'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) checking type of class elem <class 'syntax_analyzer.node_body'>
+(runtime)(dbg) CHECKING PARAMS from constructor!!
++++++++++++++++++++++++++++++++++++++++++++++++++++++ args: ["ERROR"]
+>>>>>>>>>>>>>>>>>>>>>> arg_node: "ERROR"
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'ERROR', <runtime.ErrorNode object at 0x00000234A772E0F0>)
+>>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_sym: None
+>>>>>>>>>>>>>>>>>>>>>> arg_val_type: ('lit', 'string')
+>>>>>>>>>>>>>>>>>>>>>> param_type: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_value_flag: False
+>>>>>>>>>>>>>>>>>>>>>> node type: node_str
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'ERROR', <runtime.ErrorNode object at 0x00000234A772E300>)
+(runtime)(dbg) FINISHED CHECKING PARAMS from constructor!!!!!
+
+(runtime)(dbg) ENTERING scope Logger
+
+(runtime)(dbg) Now evaluating funtion Logger
+
+FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {'value': node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level']}
+019238091283092183 "ERROR"    a     node_str 
+
+ ["ERROR"] 
+
+ {'value': node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level']}
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'ERROR', <runtime.ErrorNode object at 0x00000234A772E0C0>)
+01011001010109381209. ('level', 'ERROR', ('lit', 'string'))
+AAAAAAAAAAAAAAAAAAAAAAAAA
+ {}
+(runtime)(dbg) Entering function Logger's scope
+ABOUT TO ENTER Logger BODY WITH SYMBOL TABLE:
+		level : {
+			value : ERROR
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+
+(runtime)(dbg) About to visit Logger's body node...
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_assign_stmt_var!!
+
+
+
+
+
+
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: level
+IDEN_SMYBOL:  {'value': 'ERROR', 'dtype': ('lit', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('lit', 'string'), iden_symbol["value"]:ERROR
+AAAA CHECK VALUE NODE ('lit', 'string') ERROR
+ ------------------------------------------->string
+ ------------------------------------------->ERROR
+PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: variable
+PRINT >>>>>>>>>>>>>>>>> DTYPE: ('var', 'string')
+PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: ('lit', 'string')
+PRINT >>>>>>>>>>>>>>>>> ID_N: logLevel
+PRINT >>>>>>>>>>>>>>>>> VALUE: ERROR
+PRINT >>>>>>>>>>>>>>>>> INDEX_1D: None
+PRINT >>>>>>>>>>>>>>>>> INDEX_2D: None
+PRINT >>>>>>>>>>>>>>>>> index: None
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		level : {
+			value : ERROR
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+
+(runtime)(dbg) EXITING scope Logger, table: 
+		level : {
+			value : ERROR
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		Logger : {
+			value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+			dtype : None
+			priv : None
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : None
+		}
+AAAAAAAAAAAAAAAAAAAAAA EVAL RET None
+
+(runtime)(dbg) EXITING scope Logger, table: 
+		logLevel : {
+			value : ERROR
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+(runtime)(dbg) class inst class_elem_obj {'logLevel': {'value': 'WARN', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+(runtime)(dbg) address list after obj inst:  [(1, {'logLevel': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}), (1, {'logLevel': {'value': 'INFO', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}), (1, {'logLevel': {'value': 'WARN', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}})]
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+		warnLogger : {
+			init_val : [
+				"WARN"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 1
+		}
+		errorLogger : {
+			init_val : [
+				"ERROR"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 2
+		}
+
+(runtime)(dbg) VISITING node_class_method_call!!
+
+(runtime)(dbg) ENTERING scope infoLogger
+SCOPE SYMS INFO:     {'logLevel': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+(runtime)(dbg) CHECKING PARAMS from method!!
++++++++++++++++++++++++++++++++++++++++++++++++++++++ args: ["Application started"]
+>>>>>>>>>>>>>>>>>>>>>> arg_node: "Application started"
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Application started', <runtime.ErrorNode object at 0x00000234A772E270>)
+>>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_sym: None
+>>>>>>>>>>>>>>>>>>>>>> arg_val_type: ('lit', 'string')
+>>>>>>>>>>>>>>>>>>>>>> param_type: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_value_flag: False
+>>>>>>>>>>>>>>>>>>>>>> node type: node_str
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Application started', <runtime.ErrorNode object at 0x00000234A772E270>)
+(runtime)(dbg) FINISHED CHECKING PARAMS from method!!!!!
+infoLogger.log(["Application started"])
+
+(runtime)(dbg) Now evaluating funtion log
+
+FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}
+019238091283092183 "Application started"    a     node_str 
+
+ ["Application started"] 
+
+ {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Application started', <runtime.ErrorNode object at 0x00000234A619ECF0>)
+01011001010109381209. ('message', 'Application started', ('lit', 'string'))
+AAAAAAAAAAAAAAAAAAAAAAAAA
+ {}
+(runtime)(dbg) Entering function log's scope
+ABOUT TO ENTER log BODY WITH SYMBOL TABLE:
+		message : {
+			value : Application started
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+
+(runtime)(dbg) About to visit log's body node...
+
+(runtime)(dbg) ENTERING scope node_body
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_output!!
+
+(runtime)(dbg) Visiting node_output
+
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), '[%s] %s', <runtime.ErrorNode object at 0x00000234A772E270>)
+()()()()()(()()()()()()()()()()()()()()()()()))
+['%s', '%s']
+logLevel
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: logLevel
+
+
+
+
+
+
+IDEN_SMYBOL:  {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('var', 'string'), iden_symbol["value"]:
+AAAA CHECK VALUE NODE ('var', 'string') 
+param value heh: 
+Formatting output: type: string, value: , target: string
+()()()()()(()()()()()()()()()()()()()()()()()))
+['%s', '%s']
+message
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: message
+IDEN_SMYBOL:  {'value': 'Application started', 'dtype': ('lit', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('lit', 'string'), iden_symbol["value"]:Application started
+AAAA CHECK VALUE NODE ('lit', 'string') Application started
+param value heh: Application started
+Formatting output: type: string, value: Application started, target: string
+
+
+(runtime)(OUTUPT)	[] Application started
+
+
+(runtime)(OUTPUT) printing:  [] Application started
+
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		{ }
+AAAAAAAAAAAAAAAA BODY RET None
+
+(runtime)(dbg) VISITING node_return_block!!
+ENTERED RETURN BLOCK
+
+(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: NoneType
+ node: None
+
+(runtime)(dbg) EXITING scope node_body, table: 
+		{ }
+
+(runtime)(dbg) EXITING scope log, table: 
+		message : {
+			value : Application started
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+AAAAAAAAAAAAAAAAAAAAAA EVAL RET None
+
+(runtime)(dbg) EXITING scope infoLogger, table: 
+		logLevel : {
+			value : 
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+RETURNED FROM METHOD_CALL: (('func', 'void'), None, infoLogger)
+AAAA CHECK VALUE NODE ('func', 'void') None
+AAAAAAAAAAA CODE BLOCK RET (('func', 'void'), None, infoLogger)
+AAAAAAA RETURN PROMISES [True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+		warnLogger : {
+			init_val : [
+				"WARN"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 1
+		}
+		errorLogger : {
+			init_val : [
+				"ERROR"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 2
+		}
+
+(runtime)(dbg) VISITING node_class_method_call!!
+
+(runtime)(dbg) ENTERING scope warnLogger
+SCOPE SYMS INFO:     {'logLevel': {'value': 'INFO', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+(runtime)(dbg) CHECKING PARAMS from method!!
++++++++++++++++++++++++++++++++++++++++++++++++++++++ args: ["Low disk space"]
+>>>>>>>>>>>>>>>>>>>>>> arg_node: "Low disk space"
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Low disk space', <runtime.ErrorNode object at 0x00000234A772E4B0>)
+>>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_sym: None
+>>>>>>>>>>>>>>>>>>>>>> arg_val_type: ('lit', 'string')
+>>>>>>>>>>>>>>>>>>>>>> param_type: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_value_flag: False
+>>>>>>>>>>>>>>>>>>>>>> node type: node_str
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Low disk space', <runtime.ErrorNode object at 0x00000234A772E4B0>)
+(runtime)(dbg) FINISHED CHECKING PARAMS from method!!!!!
+warnLogger.log(["Low disk space"])
+
+(runtime)(dbg) Now evaluating funtion log
+
+FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}
+019238091283092183 "Low disk space"    a     node_str 
+
+ ["Low disk space"] 
+
+ {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Low disk space', <runtime.ErrorNode object at 0x00000234A667E4B0>)
+01011001010109381209. ('message', 'Low disk space', ('lit', 'string'))
+AAAAAAAAAAAAAAAAAAAAAAAAA
+ {}
+(runtime)(dbg) Entering function log's scope
+ABOUT TO ENTER log BODY WITH SYMBOL TABLE:
+		message : {
+			value : Low disk space
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+
+(runtime)(dbg) About to visit log's body node...
+
+(runtime)(dbg) ENTERING scope node_body
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_output!!
+
+(runtime)(dbg) Visiting node_output
+
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), '[%s] %s', <runtime.ErrorNode object at 0x00000234A772E4E0>)
+()()()()()(()()()()()()()()()()()()()()()()()))
+['%s', '%s']
+logLevel
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: logLevel
+
+
+
+
+
+
+IDEN_SMYBOL:  {'value': 'INFO', 'dtype': ('var', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('var', 'string'), iden_symbol["value"]:INFO
+AAAA CHECK VALUE NODE ('var', 'string') INFO
+param value heh: INFO
+Formatting output: type: string, value: INFO, target: string
+()()()()()(()()()()()()()()()()()()()()()()()))
+['%s', '%s']
+message
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: message
+IDEN_SMYBOL:  {'value': 'Low disk space', 'dtype': ('lit', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('lit', 'string'), iden_symbol["value"]:Low disk space
+AAAA CHECK VALUE NODE ('lit', 'string') Low disk space
+param value heh: Low disk space
+Formatting output: type: string, value: Low disk space, target: string
+
+
+(runtime)(OUTUPT)	[INFO] Low disk space
+
+
+(runtime)(OUTPUT) printing:  [INFO] Low disk space
+
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES [True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		{ }
+AAAAAAAAAAAAAAAA BODY RET None
+
+(runtime)(dbg) VISITING node_return_block!!
+ENTERED RETURN BLOCK
+
+(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: NoneType
+ node: None
+
+(runtime)(dbg) EXITING scope node_body, table: 
+		{ }
+
+(runtime)(dbg) EXITING scope log, table: 
+		message : {
+			value : Low disk space
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+AAAAAAAAAAAAAAAAAAAAAA EVAL RET None
+
+(runtime)(dbg) EXITING scope warnLogger, table: 
+		logLevel : {
+			value : INFO
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+RETURNED FROM METHOD_CALL: (('func', 'void'), None, warnLogger)
+AAAA CHECK VALUE NODE ('func', 'void') None
+AAAAAAAAAAA CODE BLOCK RET (('func', 'void'), None, warnLogger)
+AAAAAAA RETURN PROMISES [True, True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+		warnLogger : {
+			init_val : [
+				"WARN"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 1
+		}
+		errorLogger : {
+			init_val : [
+				"ERROR"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 2
+		}
+
+(runtime)(dbg) VISITING node_class_method_call!!
+
+(runtime)(dbg) ENTERING scope errorLogger
+SCOPE SYMS INFO:     {'logLevel': {'value': 'WARN', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+(runtime)(dbg) CHECKING PARAMS from method!!
++++++++++++++++++++++++++++++++++++++++++++++++++++++ args: ["Unable to open configuration file"]
+>>>>>>>>>>>>>>>>>>>>>> arg_node: "Unable to open configuration file"
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Unable to open configuration file', <runtime.ErrorNode object at 0x00000234A772E0C0>)
+>>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_sym: None
+>>>>>>>>>>>>>>>>>>>>>> arg_val_type: ('lit', 'string')
+>>>>>>>>>>>>>>>>>>>>>> param_type: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_value_flag: False
+>>>>>>>>>>>>>>>>>>>>>> node type: node_str
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Unable to open configuration file', <runtime.ErrorNode object at 0x00000234A772E0C0>)
+(runtime)(dbg) FINISHED CHECKING PARAMS from method!!!!!
+errorLogger.log(["Unable to open configuration file"])
+
+(runtime)(dbg) Now evaluating funtion log
+
+FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}
+019238091283092183 "Unable to open configuration file"    a     node_str 
+
+ ["Unable to open configuration file"] 
+
+ {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Unable to open configuration file', <runtime.ErrorNode object at 0x00000234A76D1A30>)
+01011001010109381209. ('message', 'Unable to open configuration file', ('lit', 'string'))
+AAAAAAAAAAAAAAAAAAAAAAAAA
+ {}
+(runtime)(dbg) Entering function log's scope
+ABOUT TO ENTER log BODY WITH SYMBOL TABLE:
+		message : {
+			value : Unable to open configuration file
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+
+(runtime)(dbg) About to visit log's body node...
+
+(runtime)(dbg) ENTERING scope node_body
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_output!!
+
+(runtime)(dbg) Visiting node_output
+
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), '[%s] %s', <runtime.ErrorNode object at 0x00000234A772E5D0>)
+()()()()()(()()()()()()()()()()()()()()()()()))
+['%s', '%s']
+logLevel
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: logLevel
+
+
+
+
+
+
+IDEN_SMYBOL:  {'value': 'WARN', 'dtype': ('var', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('var', 'string'), iden_symbol["value"]:WARN
+AAAA CHECK VALUE NODE ('var', 'string') WARN
+param value heh: WARN
+Formatting output: type: string, value: WARN, target: string
+()()()()()(()()()()()()()()()()()()()()()()()))
+['%s', '%s']
+message
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: message
+IDEN_SMYBOL:  {'value': 'Unable to open configuration file', 'dtype': ('lit', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('lit', 'string'), iden_symbol["value"]:Unable to open configuration file
+AAAA CHECK VALUE NODE ('lit', 'string') Unable to open configuration file
+param value heh: Unable to open configuration file
+Formatting output: type: string, value: Unable to open configuration file, target: string
+
+
+(runtime)(OUTUPT)	[WARN] Unable to open configuration file
+
+
+(runtime)(OUTPUT) printing:  [WARN] Unable to open configuration file
+
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES [True, True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		{ }
+AAAAAAAAAAAAAAAA BODY RET None
+
+(runtime)(dbg) VISITING node_return_block!!
+ENTERED RETURN BLOCK
+
+(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: NoneType
+ node: None
+
+(runtime)(dbg) EXITING scope node_body, table: 
+		{ }
+
+(runtime)(dbg) EXITING scope log, table: 
+		message : {
+			value : Unable to open configuration file
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+AAAAAAAAAAAAAAAAAAAAAA EVAL RET None
+
+(runtime)(dbg) EXITING scope errorLogger, table: 
+		logLevel : {
+			value : WARN
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+RETURNED FROM METHOD_CALL: (('func', 'void'), None, errorLogger)
+AAAA CHECK VALUE NODE ('func', 'void') None
+AAAAAAAAAAA CODE BLOCK RET (('func', 'void'), None, errorLogger)
+AAAAAAA RETURN PROMISES [True, True, True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+		warnLogger : {
+			init_val : [
+				"WARN"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 1
+		}
+		errorLogger : {
+			init_val : [
+				"ERROR"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 2
+		}
+
+(runtime)(dbg) VISITING node_class_method_call!!
+
+(runtime)(dbg) ENTERING scope infoLogger
+SCOPE SYMS INFO:     {'logLevel': {'value': '', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+(runtime)(dbg) CHECKING PARAMS from method!!
++++++++++++++++++++++++++++++++++++++++++++++++++++++ args: ["DEBUG"]
+>>>>>>>>>>>>>>>>>>>>>> arg_node: "DEBUG"
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'DEBUG', <runtime.ErrorNode object at 0x00000234A772E5D0>)
+>>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_sym: None
+>>>>>>>>>>>>>>>>>>>>>> arg_val_type: ('lit', 'string')
+>>>>>>>>>>>>>>>>>>>>>> param_type: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_value_flag: False
+>>>>>>>>>>>>>>>>>>>>>> node type: node_str
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'DEBUG', <runtime.ErrorNode object at 0x00000234A772E0F0>)
+(runtime)(dbg) FINISHED CHECKING PARAMS from method!!!!!
+infoLogger.setLevel(["DEBUG"])
+
+(runtime)(dbg) Now evaluating funtion setLevel
+
+FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}
+019238091283092183 "DEBUG"    a     node_str 
+
+ ["DEBUG"] 
+
+ {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'DEBUG', <runtime.ErrorNode object at 0x00000234A619ECF0>)
+01011001010109381209. ('level', 'DEBUG', ('lit', 'string'))
+AAAAAAAAAAAAAAAAAAAAAAAAA
+ {}
+(runtime)(dbg) Entering function setLevel's scope
+ABOUT TO ENTER setLevel BODY WITH SYMBOL TABLE:
+		level : {
+			value : DEBUG
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+
+(runtime)(dbg) About to visit setLevel's body node...
+
+(runtime)(dbg) ENTERING scope node_body
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_assign_stmt_var!!
+
+
+
+
+
+
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: level
+IDEN_SMYBOL:  {'value': 'DEBUG', 'dtype': ('lit', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('lit', 'string'), iden_symbol["value"]:DEBUG
+AAAA CHECK VALUE NODE ('lit', 'string') DEBUG
+ ------------------------------------------->string
+ ------------------------------------------->DEBUG
+PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: variable
+PRINT >>>>>>>>>>>>>>>>> DTYPE: ('var', 'string')
+PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: ('lit', 'string')
+PRINT >>>>>>>>>>>>>>>>> ID_N: logLevel
+PRINT >>>>>>>>>>>>>>>>> VALUE: DEBUG
+PRINT >>>>>>>>>>>>>>>>> INDEX_1D: None
+PRINT >>>>>>>>>>>>>>>>> INDEX_2D: None
+PRINT >>>>>>>>>>>>>>>>> index: None
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES [True, True, True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		{ }
+AAAAAAAAAAAAAAAA BODY RET None
+
+(runtime)(dbg) VISITING node_return_block!!
+ENTERED RETURN BLOCK
+
+(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: NoneType
+ node: None
+
+(runtime)(dbg) EXITING scope node_body, table: 
+		{ }
+
+(runtime)(dbg) EXITING scope setLevel, table: 
+		level : {
+			value : DEBUG
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+AAAAAAAAAAAAAAAAAAAAAA EVAL RET None
+
+(runtime)(dbg) EXITING scope infoLogger, table: 
+		logLevel : {
+			value : DEBUG
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+RETURNED FROM METHOD_CALL: (('func', 'void'), None, infoLogger)
+AAAA CHECK VALUE NODE ('func', 'void') None
+AAAAAAAAAAA CODE BLOCK RET (('func', 'void'), None, infoLogger)
+AAAAAAA RETURN PROMISES [True, True, True, True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+		warnLogger : {
+			init_val : [
+				"WARN"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 1
+		}
+		errorLogger : {
+			init_val : [
+				"ERROR"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 2
+		}
+
+(runtime)(dbg) VISITING node_class_method_call!!
+
+(runtime)(dbg) ENTERING scope infoLogger
+SCOPE SYMS INFO:     {'logLevel': {'value': 'DEBUG', 'dtype': ('var', 'string'), 'priv': False, 'const': False}, 'setLevel': {'value': node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['level'], 'isStd_lib': False}, 'getLevel': {'value': node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, 'dtype': ('func', 'string'), 'priv': False, 'params': None, 'param_names': None, 'isStd_lib': False}, 'log': {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}}
+(runtime)(dbg) CHECKING PARAMS from method!!
++++++++++++++++++++++++++++++++++++++++++++++++++++++ args: ["Loading debug modules"]
+>>>>>>>>>>>>>>>>>>>>>> arg_node: "Loading debug modules"
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Loading debug modules', <runtime.ErrorNode object at 0x00000234A772E510>)
+>>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_sym: None
+>>>>>>>>>>>>>>>>>>>>>> arg_val_type: ('lit', 'string')
+>>>>>>>>>>>>>>>>>>>>>> param_type: {'dtype': ('var', 'string')}
+>>>>>>>>>>>>>>>>>>>>>> arg_value_flag: False
+>>>>>>>>>>>>>>>>>>>>>> node type: node_str
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Loading debug modules', <runtime.ErrorNode object at 0x00000234A772E510>)
+(runtime)(dbg) FINISHED CHECKING PARAMS from method!!!!!
+infoLogger.log(["Loading debug modules"])
+
+(runtime)(dbg) Now evaluating funtion log
+
+FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}
+019238091283092183 "Loading debug modules"    a     node_str 
+
+ ["Loading debug modules"] 
+
+ {'value': node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, 'dtype': ('func', 'void'), 'priv': False, 'params': [{'dtype': ('var', 'string')}], 'param_names': ['message'], 'isStd_lib': False}
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Loading debug modules', <runtime.ErrorNode object at 0x00000234A76D1A30>)
+01011001010109381209. ('message', 'Loading debug modules', ('lit', 'string'))
+AAAAAAAAAAAAAAAAAAAAAAAAA
+ {}
+(runtime)(dbg) Entering function log's scope
+ABOUT TO ENTER log BODY WITH SYMBOL TABLE:
+		message : {
+			value : Loading debug modules
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+
+(runtime)(dbg) About to visit log's body node...
+
+(runtime)(dbg) ENTERING scope node_body
+
+(runtime)(dbg) VISITING node_code_block!!
+
+(runtime)(dbg) VISITING node_output!!
+
+(runtime)(dbg) Visiting node_output
+
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), '[%s] %s', <runtime.ErrorNode object at 0x00000234A772E0F0>)
+()()()()()(()()()()()()()()()()()()()()()()()))
+['%s', '%s']
+logLevel
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: logLevel
+
+
+
+
+
+
+IDEN_SMYBOL:  {'value': 'DEBUG', 'dtype': ('var', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('var', 'string'), iden_symbol["value"]:DEBUG
+AAAA CHECK VALUE NODE ('var', 'string') DEBUG
+param value heh: DEBUG
+Formatting output: type: string, value: DEBUG, target: string
+()()()()()(()()()()()()()()()()()()()()()()()))
+['%s', '%s']
+message
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: message
+IDEN_SMYBOL:  {'value': 'Loading debug modules', 'dtype': ('lit', 'string'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('lit', 'string'), iden_symbol["value"]:Loading debug modules
+AAAA CHECK VALUE NODE ('lit', 'string') Loading debug modules
+param value heh: Loading debug modules
+Formatting output: type: string, value: Loading debug modules, target: string
+
+
+(runtime)(OUTUPT)	[DEBUG] Loading debug modules
+
+
+(runtime)(OUTPUT) printing:  [DEBUG] Loading debug modules
+
+AAAAAAAAAAA CODE BLOCK RET None
+AAAAAAA RETURN PROMISES [True, True, True, True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		{ }
+AAAAAAAAAAAAAAAA BODY RET None
+
+(runtime)(dbg) VISITING node_return_block!!
+ENTERED RETURN BLOCK
+
+(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: NoneType
+ node: None
+
+(runtime)(dbg) EXITING scope node_body, table: 
+		{ }
+
+(runtime)(dbg) EXITING scope log, table: 
+		message : {
+			value : Loading debug modules
+			dtype : ('lit', 'string')
+			priv : False
+			const : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+AAAAAAAAAAAAAAAAAAAAAA EVAL RET None
+
+(runtime)(dbg) EXITING scope infoLogger, table: 
+		logLevel : {
+			value : DEBUG
+			dtype : ('var', 'string')
+			priv : False
+			const : False
+		}
+		setLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				level
+			]
+			isStd_lib : False
+		}
+		getLevel : {
+			value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+			dtype : ('func', 'string')
+			priv : False
+			params : None
+			param_names : None
+			isStd_lib : False
+		}
+		log : {
+			value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+			dtype : ('func', 'void')
+			priv : False
+			params : [
+				dtype : ('var', 'string')
+			]
+			param_names : [
+				message
+			]
+			isStd_lib : False
+		}
+RETURNED FROM METHOD_CALL: (('func', 'void'), None, infoLogger)
+AAAA CHECK VALUE NODE ('func', 'void') None
+AAAAAAAAAAA CODE BLOCK RET (('func', 'void'), None, infoLogger)
+AAAAAAA RETURN PROMISES [True, True, True, True, True]
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+		warnLogger : {
+			init_val : [
+				"WARN"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 1
+		}
+		errorLogger : {
+			init_val : [
+				"ERROR"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 2
+		}
+AAAAAAAAAAAAAAAA BODY RET (('func', 'void'), None, infoLogger)
+
+(runtime)(dbg) EXITING scope node_body, table: 
+		infoLogger : {
+			init_val : [
+				"INFO"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 0
+		}
+		warnLogger : {
+			init_val : [
+				"WARN"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 1
+		}
+		errorLogger : {
+			init_val : [
+				"ERROR"
+			]
+			dtype : ('object', 'Logger')
+			obj_info : 2
+		}
+(runtime)(dbg) Popped return type, Stack after pop = []
+Runtime success. No Runtime Errors found.
+---------GLOBAL TABLE---------
+		
+		Logger : {
+			class_info : {
+				constructor_dec : {
+					Logger : {
+						value : node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)
+						params : [
+							dtype : ('var', 'string')
+						]
+						param_names : [
+							level
+						]
+					}
+				}
+				class_body_content : {
+					logLevel : {
+						value : ERROR
+						dtype : ('var', 'string')
+						priv : False
+						const : False
+					}
+					setLevel : {
+						value : node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+						dtype : ('func', 'void')
+						priv : False
+						params : [
+							dtype : ('var', 'string')
+						]
+						param_names : [
+							level
+						]
+						isStd_lib : False
+					}
+					getLevel : {
+						value : node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+
+						dtype : ('func', 'string')
+						priv : False
+						params : None
+						param_names : None
+						isStd_lib : False
+					}
+					log : {
+						value : node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+
+						dtype : ('func', 'void')
+						priv : False
+						params : [
+							dtype : ('var', 'string')
+						]
+						param_names : [
+							message
+						]
+						isStd_lib : False
+					}
+				}
+			}
+			dtype : ('class', None)
+		}
+-----------AST-----------------
+		 program: { 
+node_imports_list: (stdlib_n: []),
+
+node_program_constructs: (node_class_dec: (class_id_n: Logger, 
+	constructor_dec_n: node_constructor_dec: (class_id_n: Logger, params_dec_n: [node_funcpar_var: (dtype_t: string, id_n: level)], 
+		code_block_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+)),
+	class_body_n: node_class_body(
+		private_b: False, node_vardec: 
+	(const_b: False, dtype_t: string, id_n: logLevel, None),
+	private_b: False, node_func_dec: (
+	dtype_t: void, id_n: setLevel, params_n: [node_funcpar_var: (dtype_t: string, id_n: level)], body_n: node_body: { body_codeblock_n: node_code_block(node_assign_stmt_var: id_n:'logLevel', op:'=', val:'level'
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, is_std_lib: False),
+	private_b: False, node_func_dec: (
+	dtype_t: string, id_n: getLevel, params_n: [], body_n: node_body: { body_codeblock_n: node_code_block(
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: logLevel) }
+, is_std_lib: False),
+	private_b: False, node_func_dec: (
+	dtype_t: void, id_n: log, params_n: [node_funcpar_var: (dtype_t: string, id_n: message)], body_n: node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: println, print_params_n: ["[%s] %s", logLevel, message])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+, is_std_lib: False)
+)) 
+),
+
+node_body: { body_codeblock_n: node_code_block(node_class_inst: (class_id_n: Logger, obj_id_n: infoLogger, 
+class_instcont_n: node_classinst_cont: (class_id_n: Logger, func_arg_n: ["INFO"])),
+node_class_inst: (class_id_n: Logger, obj_id_n: warnLogger, 
+class_instcont_n: node_classinst_cont: (class_id_n: Logger, func_arg_n: ["WARN"])),
+node_class_inst: (class_id_n: Logger, obj_id_n: errorLogger, 
+class_instcont_n: node_classinst_cont: (class_id_n: Logger, func_arg_n: ["ERROR"])),
+infoLogger.log(["Application started"]),
+warnLogger.log(["Low disk space"]),
+errorLogger.log(["Unable to open configuration file"]),
+infoLogger.setLevel(["DEBUG"]),
+infoLogger.log(["Loading debug modules"])
+), 
+body_return_stmt_n: node_return_block: (ret_value_n: None) }
+ 
+}
+Received user input: {'response': ''}

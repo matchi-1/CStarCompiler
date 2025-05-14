@@ -11,18 +11,24 @@ user_response = {}
 wait_flag = False
 terminate_program = False
 
+def _printlog(*args, sep=' ', end='\n'):
+    message = sep.join(str(arg) for arg in args) + end
+    with open('runtime_log.log', 'a') as f:
+        f.write(message)
+    print(*args, sep=sep, end=end)
+
 def setup_runtime(sio_instance):
     global socketio
     socketio = sio_instance
 
     @socketio.on("connect")
     def on_connect():
-        print("Client connected")
+        _printlog("Client connected")
 
     @socketio.on("user_response")
     def on_user_response(data):
         global user_response, wait_flag
-        print("Received user input:", data)
+        _printlog("Received user input:", data)
         user_response = data
         wait_flag = False
 
@@ -49,11 +55,11 @@ def checkTerminate():
 # function to handle user responses
 def handle_user_response(data):
     global user_response
-    print(f"DEBUG: Handling user response - data: {data}")  
+    _printlog(f"DEBUG: Handling user response - data: {data}")  
     user_response["value"] = data.get("response")
-    print(f"DEBUG: Setting user_response to: {user_response}")  
+    _printlog(f"DEBUG: Setting user_response to: {user_response}")  
     wait_flag = False
-    print("User response handled:", data)
+    _printlog("User response handled:", data)
 
 
 
@@ -127,7 +133,7 @@ class SymbolTable:
     
     def print_symbol_tree(self, indent=0):
         """Recursively prints the symbol table from the current scope up to the root."""
-        print("\t" * indent + f"Scope Level {indent}: {self.syms}")
+        _printlog("\t" * indent + f"Scope Level {indent}: {self.syms}")
 
         if self.parent:
             self.parent.print_symbol_tree(indent + 1)  # Move up the tree
@@ -152,7 +158,7 @@ class FuncSymbolTable(SymbolTable):
             # if not self.parent: return
             #check if in global
             if checkParent:
-                print('\n\n\n\n\n')
+                _printlog('\n\n\n\n\n')
                 #check scopes
                 curr_parent = self.parent
                 while type(curr_parent) is not FuncSymbolTable and (curr_parent and sym_name not in curr_parent.syms):
@@ -171,14 +177,14 @@ class FuncSymbolTable(SymbolTable):
                     else:
                         # find global scope
                         while curr_parent.parent and sym_name not in curr_parent.syms:
-                            print('moving on to upper scope..')
-                            print(curr_parent.syms)
-                            print('\n\n')
+                            _printlog('moving on to upper scope..')
+                            _printlog(curr_parent.syms)
+                            _printlog('\n\n')
                             curr_parent = curr_parent.parent
-                            print('upper scope now')
-                            print(curr_parent.syms)
-                            print('\n\n')
-                        print('AAAAAAAAAAAA PARENTS SYMS', curr_parent.syms)
+                            _printlog('upper scope now')
+                            _printlog(curr_parent.syms)
+                            _printlog('\n\n')
+                        _printlog('AAAAAAAAAAAA PARENTS SYMS', curr_parent.syms)
                         self.print_symbol_tree(2)
                         sym = curr_parent.get(sym_name, None)
                         return sym
@@ -223,18 +229,19 @@ class Runtime:
 
 
     def interpret(self, node):
+        open('runtime_log.log', 'w').close()
         start_time = time.time()
         try:
             self.RETURN_PROMISES.clear()
             self.visit_node(node)
             self.errors.append("Runtime success. No Runtime Errors found.")
-            print("Runtime success. No Runtime Errors found.")
+            _printlog("Runtime success. No Runtime Errors found.")
 
-            print('---------GLOBAL TABLE---------\n\t\t')
+            _printlog('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
-            print('-----------AST-----------------\n\t\t', node)
+            _printlog('-----------AST-----------------\n\t\t', node)
             
-            #print('-----------OUTPUT--------------\n\t\t', self.output)
+            #_printlog('-----------OUTPUT--------------\n\t\t', self.output)
             
             
         
@@ -257,17 +264,17 @@ class Runtime:
         self.break_continue_check = None
 
     def enter_scope(self, nodeName):
-        print(F'\n(runtime)(dbg) ENTERING scope {nodeName}')
+        _printlog(F'\n(runtime)(dbg) ENTERING scope {nodeName}')
         self.scope_depth += 1
         self.curr_scope = SymbolTable(self.curr_scope)
 
     def enter_func_scope(self, nodeName):
-        print(f'(runtime)(dbg) Entering function {nodeName}\'s scope' )
+        _printlog(f'(runtime)(dbg) Entering function {nodeName}\'s scope' )
         self.scope_depth += 1
         self.curr_scope = FuncSymbolTable(self.curr_scope)
     
     def exit_scope(self, nodeName):
-        print(F'\n(runtime)(dbg) EXITING scope {nodeName}, table: ')
+        _printlog(F'\n(runtime)(dbg) EXITING scope {nodeName}, table: ')
         #print table dbg
         self.print_symbols(self.curr_scope.syms, indent=2)
         self.address_list = [i for i in self.address_list if i[0] != self.scope_depth]
@@ -283,11 +290,11 @@ class Runtime:
         
         if visit_func is None:
             if nodeName == 'node_imports_list':
-                print()
-            else: print(f"\n(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}\n node: {node}")
+                _printlog()
+            else: _printlog(f"\n(runtime)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}\n node: {node}")
         else:
-            print(f'\n(runtime)(dbg) VISITING {nodeName}!!')
-            #print(f'!!NODE!!: {node}!!')
+            _printlog(f'\n(runtime)(dbg) VISITING {nodeName}!!')
+            #_printlog(f'!!NODE!!: {node}!!')
             ret_val = None
             if nodeName in ['node_func_call', 'node_class_method_call']:
                 try:
@@ -300,9 +307,9 @@ class Runtime:
                 ret_val = visit_func(node)
             
             if nodeName in ['node_iden', 'node_num', 'node_bi_op', 'node_un_op', 'node_arr_idx', 'node_class_arr_idx', 'node_func_call', 'node_class_method_call']:
-                print('AAAA CHECK VALUE NODE', ret_val[0], ret_val[1])
+                _printlog('AAAA CHECK VALUE NODE', ret_val[0], ret_val[1])
                 if ret_val[0][1] in ['float', 'double'] and ret_val[0][0] in ['var', 'lit']:
-                    print('AAAA CHECK FIRING', ret_val[1])
+                    _printlog('AAAA CHECK FIRING', ret_val[1])
                     ret_val = (ret_val[0], Decimal(ret_val[1]), ret_val[2])
                 
             return ret_val
@@ -312,46 +319,46 @@ class Runtime:
 
         if isinstance(d, dict):
             if not d:
-                print("\t" * indent + "{ }")  # Print {} for empty dictionary
+                _printlog("\t" * indent + "{ }")  # Print {} for empty dictionary
                 return
 
             for key, value in d.items():
-                print("\t" * indent + f"{key} :", end=" ")
+                _printlog("\t" * indent + f"{key} :", end=" ")
 
                 if isinstance(value, dict):
-                    print("{")  # Open brace for dictionary
+                    _printlog("{")  # Open brace for dictionary
                     self.print_symbols(value, indent + 1)  # Recursive call for nested dict
-                    print("\t" * indent + "}")  # Closing brace
+                    _printlog("\t" * indent + "}")  # Closing brace
 
                 elif isinstance(value, list):
                     if not value:
-                        print("[ ]")  # Print [] for empty list
+                        _printlog("[ ]")  # Print [] for empty list
                     else:
-                        print("[")  # Open bracket for list
+                        _printlog("[")  # Open bracket for list
                         for item in value:
                             if isinstance(item, dict):  # Fix indentation for dicts inside lists
                                 self.print_symbols(item, indent + 1)
                             else:
-                                print("\t" * (indent + 1) + str(item))
-                        print("\t" * indent + "]")  # Closing bracket
+                                _printlog("\t" * (indent + 1) + str(item))
+                        _printlog("\t" * indent + "]")  # Closing bracket
 
                 else:
-                    print(value)  # Print primitive values
+                    _printlog(value)  # Print primitive values
 
         elif isinstance(d, list):  # Handle standalone lists
             if not d:
-                print("\t" * indent + "[ ]")  # Print [] for empty list
+                _printlog("\t" * indent + "[ ]")  # Print [] for empty list
             else:
-                print("\t" * indent + "[")  # Open bracket for list
+                _printlog("\t" * indent + "[")  # Open bracket for list
                 for item in d:
                     if isinstance(item, dict):  # Fix indentation for dicts inside lists
                         self.print_symbols(item, indent + 1)
                     else:
-                        print("\t" * (indent + 1) + str(item))
-                print("\t" * indent + "]")  # Closing bracket
+                        _printlog("\t" * (indent + 1) + str(item))
+                _printlog("\t" * indent + "]")  # Closing bracket
 
         else:
-            print(d)  # Print non-dictionary/list values
+            _printlog(d)  # Print non-dictionary/list values
 
     def logError(self, msg, err_n = None): 
         if isinstance(err_n, ErrorNode):
@@ -368,13 +375,13 @@ class Runtime:
                 f"Runtime Error: {msg}"
             )
         self.errors.append(full_message)
-        #print(full_message)
+        #_printlog(full_message)
         socketio.emit('error', { "type": "error", "value": full_message })
         raise SyntaxError(full_message)
     
 
     def _format_output(self, dtype, target_dtype, value):
-        print(f"Formatting output: type: {dtype}, value: {value}, target: {target_dtype}")
+        _printlog(f"Formatting output: type: {dtype}, value: {value}, target: {target_dtype}")
         if target_dtype in ['float', 'double']:
             if dtype in ['int', 'long']:
                 match dtype:
@@ -395,10 +402,10 @@ class Runtime:
             else:
                 match dtype:
                     case 'float':
-                        print('hihihi')
-                        print(value)
-                        print(int(value))
-                        print(value-int(value))
+                        _printlog('hihihi')
+                        _printlog(value)
+                        _printlog(int(value))
+                        _printlog(value-int(value))
                         if value <= self.MAX_FLOAT and value >= self.MIN_FLOAT and value-int(value)==0.0:
                             return f'{value.quantize(Decimal('0.00'))}'
                     case 'double':
@@ -441,11 +448,11 @@ class Runtime:
 
             case "double":
                 if value > self.MAX_DOUBLE:
-                    print(f"(runtime)(dbg) output value exceeded max double, returning max value..")
+                    _printlog(f"(runtime)(dbg) output value exceeded max double, returning max value..")
                     return f"{Decimal(self.MAX_DOUBLE).quantize(Decimal("0.00"))}"
                 elif value < self.MIN_DOUBLE:
                     return f"{Decimal(self.MIN_DOUBLE).quantize(Decimal("0.00"))}"
-                print(f"(runtime)(dbg) double value does not exceed max or min")
+                _printlog(f"(runtime)(dbg) double value does not exceed max or min")
                 max_decimals = 16
 
             case _:
@@ -487,7 +494,7 @@ class Runtime:
                 self.visit_node(statement)
 
                 self.function_return_stack.pop()
-                print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+                _printlog(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
                 self.current_function_name = None
             
             else: self.visit_node(statement)
@@ -503,7 +510,7 @@ class Runtime:
         ret_val = None
         if node.body_codeblock_n:
             ret_val = self.visit_node(node.body_codeblock_n)
-            print('AAAAAAAAAAAAAAAA BODY RET', ret_val)
+            _printlog('AAAAAAAAAAAAAAAA BODY RET', ret_val)
         
         if node.return_stmt_n and not ret_val:
             ret_val = self.visit_node(node.return_stmt_n)
@@ -516,15 +523,15 @@ class Runtime:
         ret_val = None
         # PLACEHODLER!! idk if correct
         for statement in node.code_block_statement_n:
-            #print("++++ CODE BLOCK STATEMENT: " + str(statement))
+            #_printlog("++++ CODE BLOCK STATEMENT: " + str(statement))
             ret_val = self.visit_node(statement, funcExpectedVal=False)
             
             if ret_val and type(ret_val[0]) is bool:
                 ret_val = ret_val[1]
 
-            print('AAAAAAAAAAA CODE BLOCK RET', ret_val)
-            print('AAAAAAA RETURN PROMISES', self.RETURN_PROMISES)
-            print("\n(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: ")
+            _printlog('AAAAAAAAAAA CODE BLOCK RET', ret_val)
+            _printlog('AAAAAAA RETURN PROMISES', self.RETURN_PROMISES)
+            _printlog("\n(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: ")
             self.print_symbols(self.curr_scope.syms, indent=2)
             
         if self.RETURN_PROMISES:
@@ -538,7 +545,7 @@ class Runtime:
             if global_declarations:
                 self.visit_node(global_declarations)
 
-        print("\n(runtime)(dbg) DONE VISITNG scope 'node_program_constructs', GLOBAL TABLE: ")
+        _printlog("\n(runtime)(dbg) DONE VISITNG scope 'node_program_constructs', GLOBAL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
 
         
@@ -596,7 +603,7 @@ class Runtime:
         constructorInfo = self.curr_scope.set_constructor(className, param_types, param_names, node.code_block_n)
 
         #self.enter_scope(type(node).__name__)
-        print(f"\n(runtime)(dbg) ENTERING scope Constructor for class '{className}'")
+        _printlog(f"\n(runtime)(dbg) ENTERING scope Constructor for class '{className}'")
         # self.curr_scope = SymbolTable(self.curr_scope)
         self.enter_scope(type(node).__name__)
 
@@ -615,28 +622,28 @@ class Runtime:
                     class_name = ('object', param.class_id_n.id_t["tokenName"])
                     class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
                     class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
-                    print(f">>>>>>>>>>>>>SET OBJ (CONSTRUCTOR): {self.curr_scope.set_obj(param_name, None, class_name, len(self.address_list))}")
+                    _printlog(f">>>>>>>>>>>>>SET OBJ (CONSTRUCTOR): {self.curr_scope.set_obj(param_name, None, class_name, len(self.address_list))}")
                     self.address_list.append((self.scope_depth, class_elem_info))
 
 
                 elif type(param).__name__ == "node_funcpar_arr":
                     arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
-                    print(arr_dtype)
-                    print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=len(self.address_list), dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
+                    _printlog(arr_dtype)
+                    _printlog(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=len(self.address_list), dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
                     self.address_list.append((self.scope_depth, None if not arr_dtype else [self.default_vals[arr_dtype[1]]]))
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
-                    print(f"{var_dtype}")
-                    print(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
+                    _printlog(f"{var_dtype}")
+                    _printlog(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
 
         # Visit function body
         if node.code_block_n:
             self.visit_node(node.code_block_n)
 
 
-        print(f"\n(runtime)(dbg) EXITING scope Constructor for class '{className}', SYMBOL TABLE: ")
+        _printlog(f"\n(runtime)(dbg) EXITING scope Constructor for class '{className}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
         # self.curr_scope = self.curr_scope.parent
         self.exit_scope(type(node).__name__)
@@ -645,7 +652,7 @@ class Runtime:
 
 
     def visit_node_class_body(self, node, className, parent_node):
-        print(f'\n(runtime)(dbg) VISITING {type(node).__name__}!!')
+        _printlog(f'\n(runtime)(dbg) VISITING {type(node).__name__}!!')
 
         class_content = []
         constructor_info = None
@@ -654,7 +661,7 @@ class Runtime:
             class_body_stmt = node.class_body_stmt_n
         
             #self.enter_scope(type(node).__name__)
-            print(f"\n(runtime)(dbg) ENTERING scope 'Class: {className}'")
+            _printlog(f"\n(runtime)(dbg) ENTERING scope 'Class: {className}'")
             # self.curr_scope = SymbolTable(self.curr_scope)
             self.enter_scope(type(node).__name__)
 
@@ -682,14 +689,14 @@ class Runtime:
         if parent_node.constructor_dec_n and not node.class_body_stmt_n: 
             constructor_info = self.visit_node_constructor_dec(parent_node.constructor_dec_n, className)
         
-        print(f"\n(runtime)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
+        _printlog(f"\n(runtime)(dbg) EXITING scope 'Class: {className}', SYMBOL TABLE: ")
         if node.class_body_stmt_n: self.print_symbols(child_sym, indent=2)
         else: self.print_symbols(self.curr_scope.syms, indent=2)
 
 
         flattened = [item for sublist in class_content for item in sublist]
         merged_dict = {k: v for d in flattened for k, v in d.items()}
-        print("(runtime)(dbg) merged_dict ", merged_dict)
+        _printlog("(runtime)(dbg) merged_dict ", merged_dict)
         self.curr_scope.set_class(className, class_info={"constructor_dec" : constructor_info, "class_body_content": merged_dict})
         
 
@@ -698,8 +705,8 @@ class Runtime:
         obj_id = node.obj_id_n.id_t["tokenName"]
         class_inst_cont = node.class_instcont_n
 
-        print("a90q8310923", class_id)
-        print("a90q8310123123123923", class_inst_cont)
+        _printlog("a90q8310923", class_id)
+        _printlog("a90q8310123123123923", class_inst_cont)
 
         # if self.curr_scope.get(obj_id, False):
         #     self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", node.obj_id_n)
@@ -717,7 +724,7 @@ class Runtime:
         class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
         class_elem_obj = copy.deepcopy(class_elem_info)
         for att_method, att_method_info in class_elem_obj.items():
-            #print(f"!#@$%@$!^%$@!^%$@!%^$%@!%^$@^!$@^%!$@^$!@^@!^%$^@!$^\natt_method: {att_method}\\\\\ {type(att_method).__name__}\n att_method_info: {att_method_info} |||| {type(att_method_info).__name__}")
+            #_printlog(f"!#@$%@$!^%$@!^%$@!%^$%@!%^$@^!$@^%!$@^$!@^@!^%$^@!$^\natt_method: {att_method}\\\\\ {type(att_method).__name__}\n att_method_info: {att_method_info} |||| {type(att_method_info).__name__}")
             
             if type(att_method_info["value"]).__name__ == "node_input":
                 _, input_val, _ = self.visit_node(att_method_info["value"])
@@ -725,7 +732,7 @@ class Runtime:
 
             if type(att_method_info["value"]).__name__ == "list":
                 arr_vals = att_method_info["value"]
-                #print(f"***************************************************\narr_vals: {arr_vals}")
+                #_printlog(f"***************************************************\narr_vals: {arr_vals}")
                 if att_method_info["arr_info"]["dimension"] == 1:
                     for idx, arr_val in enumerate(arr_vals):
                         if type(arr_val).__name__ == "node_input":
@@ -740,7 +747,7 @@ class Runtime:
                                 arr_val[idx] = input_val  # ← this updates the actual list
         #load arrays into address list, and change value into the addresses
         for k, v in class_elem_obj.items():
-            print('(runtime)(dbg) checking type of class elem', type(v['value']))
+            _printlog('(runtime)(dbg) checking type of class elem', type(v['value']))
             if type(v['value']) is list:
                 vals = v['value']
                 class_elem_obj[k]['value'] = len(self.address_list)
@@ -758,7 +765,7 @@ class Runtime:
             self.check_function_params(class_constructor_info, class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
             init_val = class_inst_cont.func_arg_n
             #self.evaluate_func(class_id, class_inst_cont.func_arg_n)
-            #print(f'\n(runtime)(dbg) Now evaluating constructor in class "{class_id}"\n')
+            #_printlog(f'\n(runtime)(dbg) Now evaluating constructor in class "{class_id}"\n')
             #self.visit_node_code_block(class_inst_cont.code_block_n, class_id, class_inst_cont.class_id_n)
 
             self.enter_scope(class_id)
@@ -766,10 +773,10 @@ class Runtime:
             self.evaluate_func(class_id, init_val, fromConstrcutor=True)
             self.exit_scope(class_id)
 
-        print('(runtime)(dbg) class inst class_elem_obj', class_elem_obj)
+        _printlog('(runtime)(dbg) class inst class_elem_obj', class_elem_obj)
         self.curr_scope.set_obj(obj_id, init_val, dtype, len(self.address_list))
         self.address_list.append((self.scope_depth, class_elem_obj))
-        print('(runtime)(dbg) address list after obj inst: ', self.address_list)
+        _printlog('(runtime)(dbg) address list after obj inst: ', self.address_list)
 
 
     def visit_node_class_att(self, node):   #iden.iden
@@ -783,7 +790,7 @@ class Runtime:
         if obj_info.get("class_info"):
             self.logError(f"Cannot use class '{obj_name}' to access attribute '{class_elem}'. Use an object instance of '{obj_name}' instead.", node.obj_id_n)
 
-        # print(f"Obj_info : {obj_info} \nobj_name: {obj_name} \nclass_elem: {class_elem}")
+        # _printlog(f"Obj_info : {obj_info} \nobj_name: {obj_name} \nclass_elem: {class_elem}")
 
         if obj_info.get("dtype")[0] != 'object':
             self.logError(f"Symbol '{obj_name}' not an object instance.", node.obj_id_n)
@@ -805,7 +812,7 @@ class Runtime:
         elif class_info.get(class_elem) and not class_info_no_privates.get(class_elem):
             self.logError(f"Attribute '{class_elem}' is a private attribute within class '{obj_info["dtype"][1]}' and cannot be accessed by any object instance of the class.", node.att_id_n)
 
-        print(f"(runtime)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], self.address_list[obj_info["obj_info"]][1][class_elem]["value"])}")
+        _printlog(f"(runtime)(dbg) EXITED node_class_att!! RETURNED: {(class_info[class_elem]["dtype"], self.address_list[obj_info["obj_info"]][1][class_elem]["value"])}")
         return (class_info[class_elem]["dtype"], self.address_list[obj_info["obj_info"]][1][class_elem]["value"], node.obj_id_n)  
 
     def visit_node_class_arr_idx(self, node):
@@ -820,7 +827,7 @@ class Runtime:
         if obj_info.get("dtype")[0] != 'object':
             self.logError(f"Symbol '{obj_name}' not an object.", node.obj_id_n)
 
-        print(obj_info)
+        _printlog(obj_info)
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
 
@@ -902,14 +909,14 @@ class Runtime:
                 if val > Decimal(self.MAX_DOUBLE) or val < Decimal(self.MIN_DOUBLE):
                     self.logError(f"Value {val} is out of 'double' range.", err_n)
 
-        print(f"RETURNED FROM NODE_NUM: {(node.dtype, val), err_n} using node: {node.val_t}")
+        _printlog(f"RETURNED FROM NODE_NUM: {(node.dtype, val), err_n} using node: {node.val_t}")
         return (('lit', node.dtype), val, err_n) 
         # return (('lit', node.dtype), None)
     
     def visit_node_str(self, node):
         # return (('var', node.dtype), node.val_t["tokenName"][1:-1]
         err_n = ErrorNode(node.val_t["tokenLine"], node.val_t["tokenCol"] - len(node.val_t["tokenName"]) - 1)
-        print(f"(runtime)(dbg) RETURNED FROM node_str!! : {('lit', node.dtype), node.val_t["tokenName"][1:-1], err_n}")
+        _printlog(f"(runtime)(dbg) RETURNED FROM node_str!! : {('lit', node.dtype), node.val_t["tokenName"][1:-1], err_n}")
         return (('lit', node.dtype), node.val_t["tokenName"][1:-1], err_n)
     
     def visit_node_bool(self, node):
@@ -917,9 +924,9 @@ class Runtime:
         return (('lit', 'bool'), node.val_t["tokenName"]=="true", err_n)
     
     def visit_node_iden(self, node):
-        print(f"VISITING IDEN: {node.id_t["tokenName"]}")
+        _printlog(f"VISITING IDEN: {node.id_t["tokenName"]}")
         iden_symbol = self.curr_scope.get(node.id_t["tokenName"])
-        print("IDEN_SMYBOL: ", iden_symbol)
+        _printlog("IDEN_SMYBOL: ", iden_symbol)
         err_n = ErrorNode(node.id_t["tokenLine"], node.id_t["tokenCol"] - len(node.id_t["tokenName"]) - 1, node.id_t)
         if not iden_symbol:
             self.logError(f"Symbol '{node.id_t["tokenName"]}' hasn't been declared yet.", err_n)
@@ -940,13 +947,13 @@ class Runtime:
                 case 'class':
                     self.logError(f"Symbol '{node.id_t["tokenName"]}' is a class and needs to be instantiated rather than using it as a value.", err_n)
                 
-            print(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
+            _printlog(f'RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: {iden_symbol.get("dtype", None)}, iden_symbol["value"]:{iden_symbol.get("value", None)}')
             return (iden_symbol.get("dtype", None), iden_symbol.get("value", None), err_n)
             # return (('var', iden_symbol["dtype"][1]), None)
         
     def visit_node_arr_idx(self, node):
         arr_sym = self.curr_scope.get(node.id_n.id_t["tokenName"])
-        #print(f"ARRRRRRRRRRRRRRRR SYMMMMMMMMMM of {node.id_n.id_t["tokenName"]}: {arr_sym}")
+        #_printlog(f"ARRRRRRRRRRRRRRRR SYMMMMMMMMMM of {node.id_n.id_t["tokenName"]}: {arr_sym}")
         arr_id_err = ErrorNode(node.id_n.id_t["tokenLine"], node.id_n.id_t["tokenCol"] - len(node.id_n.id_t["tokenName"])-1)
         
         if not arr_sym:
@@ -972,17 +979,17 @@ class Runtime:
             self.logError(f'Type mismatch: expected whole positive integer but got {idx_type[1]}.'. idx_err)
         if idx_val < 0:
                 self.logError("Array index cannot be negative.", idx_err)
-        print(f'(runtime)(dbg) arr_sym for {node.id_n.id_t["tokenName"]}', arr_sym)
+        _printlog(f'(runtime)(dbg) arr_sym for {node.id_n.id_t["tokenName"]}', arr_sym)
         if idx_val >= arr_sym["arr_info"]["size1"] and arr_sym["arr_info"]["size1"] != 0:
             self.logError(f'Array out of bounds: Index {idx_val} is out of bounds for array length {arr_sym["arr_info"]["size1"]}.', idx_err)
         if arr_sym["arr_info"]["size1"] == 0:
             idx_val = 0
         idx2_val = None
         if node.idx2_n:
-            print('hehehehehe node', node)
-            print('hehehe node idx2: ', node.idx2_n)
+            _printlog('hehehehehe node', node)
+            _printlog('hehehe node idx2: ', node.idx2_n)
             idx2_type, idx2_val, idx2_err = self.visit_node(node.idx2_n)
-            print('hehehehe idx', idx2_val)
+            _printlog('hehehehe idx', idx2_val)
             if arr_sym["arr_info"]["dimension"] == 1:
                 if dtype == 'string':
                     self.logError("String indexing is not allowed for array elements.", idx2_err)
@@ -1002,17 +1009,17 @@ class Runtime:
         else:
             if arr_sym["arr_info"]["dimension"] == 2:
                 # self.logError(f'Array \'{node.id_n.id_t["tokenName"]}\' is 2-dimensional but accessed with 1 index.')
-                print(f"RETURNED FROM node_arr_idx: {(('arr', dtype), self.address_list[arr_sym["value"]][1][idx_val], arr_id_err)}")
+                _printlog(f"RETURNED FROM node_arr_idx: {(('arr', dtype), self.address_list[arr_sym["value"]][1][idx_val], arr_id_err)}")
                 return (('arr', dtype), self.address_list[arr_sym["value"]][1][idx_val], arr_id_err)
             
-        print('hahahaha', idx2_val)
+        _printlog('hahahaha', idx2_val)
         if idx2_val != None:
-            print('hehe true')
+            _printlog('hehe true')
         else:
-            print('hehe false')
+            _printlog('hehe false')
 
-        print(f"{arr_sym}")
-        print(f"RETURNED FROM node_arr_idx: {('var', dtype), self.address_list[arr_sym["value"]][1][idx_val][idx2_val] if idx2_val else self.address_list[arr_sym["value"]][1][idx_val], arr_id_err}")
+        _printlog(f"{arr_sym}")
+        _printlog(f"RETURNED FROM node_arr_idx: {('var', dtype), self.address_list[arr_sym["value"]][1][idx_val][idx2_val] if idx2_val else self.address_list[arr_sym["value"]][1][idx_val], arr_id_err}")
         return (('var', dtype), self.address_list[arr_sym["value"]][1][idx_val][idx2_val] if idx2_val != None else self.address_list[arr_sym["value"]][1][idx_val], arr_id_err)
 
     def visit_node_func_dec(self, node, priv = False):
@@ -1062,27 +1069,27 @@ class Runtime:
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
         param_names = param_names if param_names else None
-        print(f">>param types : {param_types}")
-        print(f">>>>>>>>>>> {func_name} IS FUNC STD LIB? " + str(node.is_std_lib))
+        _printlog(f">>param types : {param_types}")
+        _printlog(f">>>>>>>>>>> {func_name} IS FUNC STD LIB? " + str(node.is_std_lib))
 
         classReturn = []
         # Store function in symbol table. (for classes only) also returns the resulting dict
         classReturn.append(self.curr_scope.set_function(func_name, return_type, param_types, param_names, node.body_n, priv, isStd_lib = node.is_std_lib))
         #add actual value param in da future
 
-        #print(f"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{classReturn}")
+        #_printlog(f"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{classReturn}")
 
 
         # Enter function scope
         #self.enter_scope(type(node).__name__)
-        print(f"\n(runtime)(dbg) ENTERING scope 'Function: {func_name}'")
+        _printlog(f"\n(runtime)(dbg) ENTERING scope 'Function: {func_name}'")
         # self.curr_scope = SymbolTable(self.curr_scope)
         self.enter_scope(type(node).__name__)
         # Add parameters to new function scope
         # if node.params_n:
         #     for param in node.params_n:
         #         param_name = param.id_n.id_t["tokenName"]
-        #         print(f"\n\nFOUND TYPE '{type(param).__name__}' FOR PARAM '{param_name}'")
+        #         _printlog(f"\n\nFOUND TYPE '{type(param).__name__}' FOR PARAM '{param_name}'")
 
         #         # Check if parameter name is duplicated
         #         if self.curr_scope.get(param_name, checkParent=False):
@@ -1093,18 +1100,18 @@ class Runtime:
         #             class_name = ('object', param.class_id_n.id_t["tokenName"])
         #             class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
         #             class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
-        #             print(f">>>>>>>>>>>>>SET OBJ: {self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)}")
+        #             _printlog(f">>>>>>>>>>>>>SET OBJ: {self.curr_scope.set_obj(param_name, None, class_name, class_elem_info)}")
 
         #         elif type(param).__name__ == "node_funcpar_arr":
         #             arr_dtype = ('arr', param.dtype_t["tokenName"]) if param.dtype_t else None  # for any types -- std lib Carray
         #             arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
-        #             print(arr_dtype)
+        #             _printlog(arr_dtype)
         #             arr_val = None if not arr_dtype else [self.default_vals[arr_dtype[1]]] 
-        #             print(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 0, "size2": 0 if arr_dim == 2 else None}, const=False)}')
+        #             _printlog(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=arr_val, dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 0, "size2": 0 if arr_dim == 2 else None}, const=False)}')
 
         #         elif type(param).__name__ == "node_funcpar_var":
         #             var_dtype = ('var', param.dtype_t["tokenName"])
-        #             print(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
+        #             _printlog(f'>>>>>>>>>>>>>SET VAR: {self.curr_scope.set(param_name, value=self.default_vals[var_dtype[1]], dtype=var_dtype, const=False)}')
 
         
         # Visit function body
@@ -1126,12 +1133,12 @@ class Runtime:
         #     # self.visit_node(node.body_n)
 
             self.function_return_stack.pop()
-            print(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
+            _printlog(f"(runtime)(dbg) Popped return type, Stack after pop = {self.function_return_stack}")
             self.current_function_name = None
  
 
         # Exit function scope, back to program constructs
-        print(f"\n(runtime)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
+        _printlog(f"\n(runtime)(dbg) EXITING scope 'Function: {func_name}', SYMBOL TABLE: ")
         self.print_symbols(self.curr_scope.syms, indent=2)
         # self.curr_scope = self.curr_scope.parent
         self.exit_scope(type(node).__name__)
@@ -1160,8 +1167,8 @@ class Runtime:
             self.logError(f"Symbol '{iden_name}' is a constant and cannot be reassigned.", id_err)
         dtype = iden_symbol["dtype"][1]
         val_type, val, val_err = self.visit_node(value)
-        print(f" ------------------------------------------->{val_type[1]}")
-        print(f" ------------------------------------------->{val}")
+        _printlog(f" ------------------------------------------->{val_type[1]}")
+        _printlog(f" ------------------------------------------->{val}")
         #if dtype != val_type[1]:
         #    self.logError(f"Type Mismatch: expected '{dtype}' for variable '{iden_name}' but found '{val_type[1]}'", iden)
         
@@ -1243,7 +1250,7 @@ class Runtime:
                 self.logError(f"Array index '{idx2_val}' out of bounds for array '{arr_name}'.", idx2_err)
 
         value_type, value, val_err_n = self.visit_node(node.value_n)
-        print('hihihihi', value)
+        _printlog('hihihihi', value)
         # check value to be assigned to array element
         self.check_type_and_range("array", arr_symbol["dtype"], value_type, value, arr_node.id_n, idx1_val, idx2_val, err_n = val_err_n)
         # if value_type[1] != arr_dtype:
@@ -1317,10 +1324,10 @@ class Runtime:
         # if type(check_scope) is FuncSymbolTable:
         #     check_scope, obj_name = check_scope.getCaller(obj_name)
         
-        print(f"\nOBJ INFO: {check_scope.get(obj_name)} \n{obj_name}")
+        _printlog(f"\nOBJ INFO: {check_scope.get(obj_name)} \n{obj_name}")
         
         att_info = self.address_list[check_scope.get(obj_name)["obj_info"]][1].get(att_name)
-        #print(f"!!!!!!!!!!!!!found att_info for '{att_name}' in '{obj_name}': {att_info}")   
+        #_printlog(f"!!!!!!!!!!!!!found att_info for '{att_name}' in '{obj_name}': {att_info}")   
 
         if att_info["dtype"][0] == 'var' and att_info["const"]:
             self.logError(f"Attribute '{att_name}' is a constant and cannot be reassigned.", node.class_att_n.att_id_n)
@@ -1334,7 +1341,7 @@ class Runtime:
 
         dtype = att_info["dtype"]
         val_type, val, err_n = self.visit_node(value)
-        print(f">>>>>>>>>>>>>>>>dtype: {dtype}, val_type: {val_type}, val: {val}")
+        _printlog(f">>>>>>>>>>>>>>>>dtype: {dtype}, val_type: {val_type}, val: {val}")
 
         self.check_type_and_range("attribute variable", dtype, val_type, val, node.class_att_n.att_id_n, err_n = err_n)
 
@@ -1350,7 +1357,7 @@ class Runtime:
 
         match assign_op:
             case "=":
-                print("nigg", self.address_list[check_scope.syms[obj_name]["obj_info"]])
+                _printlog("nigg", self.address_list[check_scope.syms[obj_name]["obj_info"]])
                 self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] = val
             case "+=":
                 self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] += val
@@ -1369,11 +1376,11 @@ class Runtime:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {val_type[1]}.", err_n)
                 self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"] %= val
 
-        print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
+        _printlog(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att!! New local object '{obj_name}' info: {self.curr_scope.get(obj_name)}")
 
         
     def visit_node_assign_stmt_object_att_arr(self, node): # # iden.iden[1][2] = val
-        print(node.class_arr_n)
+        _printlog(node.class_arr_n)
         # node_assign_stmt_object_att_arr:
             # self.op_t         #assign_op
             # self.value_n       #lit/var/func  
@@ -1383,8 +1390,8 @@ class Runtime:
                     # self.att_id_n     #iden
                     # self.idx_n        #1stD
                     # self.idx2_n       #2ndD
-        print('\n(runtime)(dbg) VISITING node_class_att!!')
-        print(f'!!NODE!!: {node.class_arr_n}!!')
+        _printlog('\n(runtime)(dbg) VISITING node_class_att!!')
+        _printlog(f'!!NODE!!: {node.class_arr_n}!!')
         self.visit_node_class_att(node.class_arr_n)
 
 
@@ -1402,7 +1409,7 @@ class Runtime:
         att_info = self.address_list[check_scope.get(obj_name)["obj_info"]][1].get(att_name)
         assign_op = node.op_t["tokenName"]
 
-        print(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
+        _printlog(f"\nOBJ INFO: {self.curr_scope.get(obj_name)} \n{obj_name}\n{att_info}\n{val_to_be_assigned}")
 
         if att_info["dtype"][0] != 'arr' :      
             if att_info["dtype"][1] == 'string':
@@ -1504,31 +1511,31 @@ class Runtime:
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {att_info["dtype"][1]} and {value_type}.", err_n)
                     self.address_list[check_scope.syms[obj_name]["obj_info"]][1][att_name]["value"][idx1_val][idx2_val] %= value
 
-        print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
+        _printlog(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
 
     # func call evaluation
     def evaluate_func(self, func_name, args_list, method_symbol= None, fromConstrcutor= False):
-        print(f'\n(runtime)(dbg) Now evaluating funtion {func_name}\n')
+        _printlog(f'\n(runtime)(dbg) Now evaluating funtion {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
         if not func_symbol:
             func_symbol = method_symbol
         if fromConstrcutor:
             func_symbol = func_symbol["class_info"]["constructor_dec"][func_name]
-        print(f"FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {func_symbol}")
+        _printlog(f"FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {func_symbol}")
                 
         #populate symbol table with arguments
         lit_details = []
         sym_details = {}
         for i, arg_n in enumerate(args_list):
             nodeName = type(arg_n).__name__
-            print('019238091283092183', arg_n, "   a    ", nodeName,"\n\n", args_list, "\n\n", func_symbol)
+            _printlog('019238091283092183', arg_n, "   a    ", nodeName,"\n\n", args_list, "\n\n", func_symbol)
             if nodeName != 'node_iden':
                 dtype, val, _ = self.visit_node(arg_n)
-                print("01011001010109381209.", (func_symbol["param_names"][i], val, dtype))
+                _printlog("01011001010109381209.", (func_symbol["param_names"][i], val, dtype))
                 lit_details.append((func_symbol["param_names"][i], val, dtype)) 
             else:
                 sym_details[func_symbol["param_names"][i]] = (arg_n.id_t["tokenName"], self.curr_scope.get(arg_n.id_t["tokenName"]))
-        print('AAAAAAAAAAAAAAAAAAAAAAAAA\n', sym_details)
+        _printlog('AAAAAAAAAAAAAAAAAAAAAAAAA\n', sym_details)
         self.enter_func_scope(func_name)
         # self.enter_scope(func_name)
         for detail in lit_details:
@@ -1541,15 +1548,15 @@ class Runtime:
                 self.curr_scope.set_array(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"], sym_details[param][1]["arr_info"])
             #else: obj
         self.curr_scope.set_function(func_name, func_symbol["dtype"] if not fromConstrcutor else None, func_symbol["params"], func_symbol["param_names"], func_symbol["value"], priv=func_symbol["priv"] if not fromConstrcutor else None, isStd_lib=func_symbol["isStd_lib"] if not fromConstrcutor else None)
-        print(f'ABOUT TO ENTER {func_name} BODY WITH SYMBOL TABLE:')
+        _printlog(f'ABOUT TO ENTER {func_name} BODY WITH SYMBOL TABLE:')
         self.print_symbols(self.curr_scope.syms, indent=2)
 
-        print(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
+        _printlog(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
         body_ret = self.visit_node_body(func_symbol["value"]) if not fromConstrcutor else self.visit_node(func_symbol["value"])
         ret_type = None
         ret_val = None
         if body_ret:    
-            print('AAAAAAAAAAAAAAAAAAAAAA BODY RET', body_ret)
+            _printlog('AAAAAAAAAAAAAAAAAAAAAA BODY RET', body_ret)
             # # format A: direct tuple (ex. (('var', 'string'), 'bdbdbd', <ErrorNode>))
             # if isinstance(body_ret, tuple) and len(body_ret) == 3:
             #     ret_type, ret_val, _ = body_ret
@@ -1568,14 +1575,14 @@ class Runtime:
 
 
         self.exit_scope(func_name)
-        print('AAAAAAAAAAAAAAAAAAAAAA EVAL RET', ret_val)
+        _printlog('AAAAAAAAAAAAAAAAAAAAAA EVAL RET', ret_val)
         return ret_val
         
     
     # func calls
     def visit_node_func_call(self, node, expected_val):
         func_name = node.id_n.id_t["tokenName"]
-        print(f'\n(runtime)(dbg) Visiting node_func_call for {func_name}\n')
+        _printlog(f'\n(runtime)(dbg) Visiting node_func_call for {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
         
         if not func_symbol:
@@ -1586,10 +1593,10 @@ class Runtime:
 
         
         #self.check_function_params(func_symbol, node.args_n, node.id_n, "function")
-        #print(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
+        #_printlog(f"RETURNED FROM FUNC CALL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{(func_symbol["dtype"], None)}")
         #temp vals
-        #print('(runtime)(dbg) Done checking, back in visit func_call now')
-        print('(runtime)(dbg)', node.args_n)
+        #_printlog('(runtime)(dbg) Done checking, back in visit func_call now')
+        _printlog('(runtime)(dbg)', node.args_n)
         val = None
         if func_symbol["isStd_lib"]:
            ret_type, val = self.handleStandardLibraries(func_name, node.args_n)
@@ -1605,13 +1612,13 @@ class Runtime:
             ret_type = func_symbol["dtype"][1]
 
 
-        print(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
+        _printlog(f"RETURNED FROM FUNC_CALL: {('lit', f'{func_symbol["dtype"][1]}'), val}")
         if self.RETURN_PROMISES: self.RETURN_PROMISES.pop()
         return (('lit', ret_type), val, node.id_n) 
 
 
     def handleStandardLibraries(self, func_name, args_list):
-        print(f'(runtime)(dbg) HANDLING STANDARD LIBRARY: \nfuncname = {func_name}\nargs_LIST = {args_list}')
+        _printlog(f'(runtime)(dbg) HANDLING STANDARD LIBRARY: \nfuncname = {func_name}\nargs_LIST = {args_list}')
         func_symbol = self.curr_scope.get(func_name)
         lit_details = []
         sym_details = {}
@@ -1658,15 +1665,15 @@ class Runtime:
                 elif param_name == "int_param2" or param_name == "num_param2":
                     num_param2 = val
 
-        print('\n\n \t\t\t\tSTD LIB HANDLING DEBUG:')
-        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nsym_details: ', sym_details)
-        print('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nlit_details: ', lit_details)
-        print('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nfunc_symbol: ', func_symbol)
-        print(f'\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nnumparam1: {num_param1 if num_param1 else 'None'}: ')
-        print(f'\nnumparam1type: {type(num_param1) if num_param1 else 'None'}: ')
-        print(f'\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nnumparam2: {num_param2 if num_param2 else 'None'}: ')
-        print(f'\nnumparam2type: {type(num_param2) if num_param2 else 'None'}: ')
-        print('-----------------------------------\n\n')
+        _printlog('\n\n \t\t\t\tSTD LIB HANDLING DEBUG:')
+        _printlog('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nsym_details: ', sym_details)
+        _printlog('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nlit_details: ', lit_details)
+        _printlog('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nfunc_symbol: ', func_symbol)
+        _printlog(f'\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nnumparam1: {num_param1 if num_param1 else 'None'}: ')
+        _printlog(f'\nnumparam1type: {type(num_param1) if num_param1 else 'None'}: ')
+        _printlog(f'\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nnumparam2: {num_param2 if num_param2 else 'None'}: ')
+        _printlog(f'\nnumparam2type: {type(num_param2) if num_param2 else 'None'}: ')
+        _printlog('-----------------------------------\n\n')
         # if func_name == "array_length":
         #     return len(sym_details[func_symbol["param_names"][0]][1]["value"])
         
@@ -1756,7 +1763,7 @@ class Runtime:
 
 
     def check_function_params(self, func_symbol, args, node_id, call_string):
-        print(f"(runtime)(dbg) CHECKING PARAMS from {call_string}!!")
+        _printlog(f"(runtime)(dbg) CHECKING PARAMS from {call_string}!!")
         """
         Checks params vs args -- used for func calls / method calls / constructors.
         params:
@@ -1771,13 +1778,13 @@ class Runtime:
             if len(func_symbol["params"]) != len(args):
                 param_count = len(func_symbol['params'])
                 self.logError(f"{call_string.capitalize()} call '{node_id.id_t['tokenName']}' requires {param_count} parameter{'s' if param_count > 1 else ''} but got {len(args)}.", node_id)
-            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++ args: " + str(args))
+            _printlog("+++++++++++++++++++++++++++++++++++++++++++++++++++++ args: " + str(args))
             for i, (arg_node, param_type) in enumerate(zip(args, func_symbol["params"])):
                 arg_sym = None
                 arg_val_type = None
                 arg_arr_att_flag = False # flag for checking if arg is a value or not (not a whole array or a whole object)
 
-                print(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
+                _printlog(">>>>>>>>>>>>>>>>>>>>>> arg_node: " + str(arg_node))
                 
                 if hasattr(arg_node, 'id_t'):
                     arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
@@ -1798,12 +1805,12 @@ class Runtime:
                     else: # if the current node doesn't have an iden 
                         arg_val_type = self.visit_node(arg_node)[0]
 
-                print(">>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: " + str(param_type))
-                print(">>>>>>>>>>>>>>>>>>>>>> arg_sym: " + str(arg_sym))
-                print(">>>>>>>>>>>>>>>>>>>>>> arg_val_type: " + str(arg_val_type))
-                print(">>>>>>>>>>>>>>>>>>>>>> param_type: " + str(param_type))
-                print(">>>>>>>>>>>>>>>>>>>>>> arg_value_flag: " + str(arg_arr_att_flag))
-                print(">>>>>>>>>>>>>>>>>>>>>> node type: " + str(type(arg_node).__name__))
+                _printlog(">>>>>>>>>>>>>>>>>>>>>> PARAM TYPE: " + str(param_type))
+                _printlog(">>>>>>>>>>>>>>>>>>>>>> arg_sym: " + str(arg_sym))
+                _printlog(">>>>>>>>>>>>>>>>>>>>>> arg_val_type: " + str(arg_val_type))
+                _printlog(">>>>>>>>>>>>>>>>>>>>>> param_type: " + str(param_type))
+                _printlog(">>>>>>>>>>>>>>>>>>>>>> arg_value_flag: " + str(arg_arr_att_flag))
+                _printlog(">>>>>>>>>>>>>>>>>>>>>> node type: " + str(type(arg_node).__name__))
 
                 arg_val_type, arg_val, arg_err_n = self.visit_node(arg_node)
 
@@ -1829,14 +1836,14 @@ class Runtime:
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected array of type '{param_type['dtype'][1]}' but found array of type '{arg_val_type[1]}'.", node_id)
                         
                     elif arg_val_type[0] != "arr" or arg_arr_att_flag:  # arr vs incorrect value types (or array elements too)
-                        print("ARRAYYYYYYYYYYYYYYYYYY ARR VS NOT ARR OR ARR ELEM")
+                        _printlog("ARRAYYYYYYYYYYYYYYYYYY ARR VS NOT ARR OR ARR ELEM")
                         if arg_val_type[0] in ["var", "lit"] or arg_arr_att_flag: # arr vs value
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found a value of type '{arg_val_type[1]}'.", node_id)
                         elif arg_val_type[0] == "object": # arr vs object 
                             self.logError(f"Type mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected an array but found an object instance of class '{arg_val_type[1]}'.", node_id)
                       
                     elif arg_val_type[0] == "arr":  # arr vs arr
-                        print("ARRAYYYYYYYYYYYYYYYYYY ARR VS ARR")
+                        _printlog("ARRAYYYYYYYYYYYYYYYYYY ARR VS ARR")
                         if param_type["dtype"][1] is None or param_type["dimension"] is None:
                             continue  # Accept any dtype and dimension for std libs
 
@@ -1846,7 +1853,7 @@ class Runtime:
                         else:
                             arg_sym = self.curr_scope.get(arg_node.id_t["tokenName"])
 
-                        print("ARRAYYYYYYYYYYYYYYYYYY CHECK IN ARGS ARR INFO: " + str(arg_sym["arr_info"]))
+                        _printlog("ARRAYYYYYYYYYYYYYYYYYY CHECK IN ARGS ARR INFO: " + str(arg_sym["arr_info"]))
 
                         if arg_sym["arr_info"]["dimension"] != param_type["dimension"]: # arr vs arr -- wrong dimension
                             self.logError(f"Dimension mismatch for {call_string} call '{node_id.id_t['tokenName']}' parameter {i+1}: expected {param_type['dimension']} dimensions but found {arg_sym['arr_info']['dimension']}.", node_id)
@@ -1867,7 +1874,7 @@ class Runtime:
             if args:
                 self.logError(f"{call_string.capitalize()} call '{node_id.id_t['tokenName']}' requires 0 parameters but got {len(args)}.", node_id)
 
-        print(f"(runtime)(dbg) FINISHED CHECKING PARAMS from {call_string}!!!!!")
+        _printlog(f"(runtime)(dbg) FINISHED CHECKING PARAMS from {call_string}!!!!!")
     
     
     def visit_node_class_method_call(self,node, expected_val):
@@ -1877,7 +1884,7 @@ class Runtime:
         obj_info = self.curr_scope.get(obj_name)
         self.enter_scope(obj_name)
         self.curr_scope.syms = self.address_list[obj_info["obj_info"]][1] if obj_info else None
-        print(f"SCOPE SYMS INFO:     {self.curr_scope.syms}")
+        _printlog(f"SCOPE SYMS INFO:     {self.curr_scope.syms}")
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
         if obj_info["dtype"][0] != "object":    
@@ -1895,7 +1902,7 @@ class Runtime:
         # self.method_id_n = method_id_n
         # self.args_n = args_n
         self.check_function_params(class_info_no_privates[class_elem], node.args_n, node.method_id_n, "method")
-        print(node)
+        _printlog(node)
 
         val = None
         if class_info[class_elem]["dtype"][1] == 'void':
@@ -1905,20 +1912,20 @@ class Runtime:
         else:
             val = self.evaluate_func(class_elem, node.args_n, class_info[class_elem])
         self.exit_scope(obj_name)
-        print(f"RETURNED FROM METHOD_CALL: {class_info[class_elem]["dtype"], val, node.obj_id_n}")
+        _printlog(f"RETURNED FROM METHOD_CALL: {class_info[class_elem]["dtype"], val, node.obj_id_n}")
         return (class_info[class_elem]["dtype"], val, node.obj_id_n)
     
     # var / arr dec helper function for type and range checking
     def check_type_and_range(self, dec_type, dtype, val_type, value, id_n = None, index_1D = None, index_2D = None, err_n = None):
         if type(value).__name__ == "node_input": return
         id = id_n.id_t["tokenName"] if id_n else ''
-        print("PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: " + dec_type)
-        print("PRINT >>>>>>>>>>>>>>>>> DTYPE: " + str(dtype))
-        print("PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: " + str(val_type))
-        print("PRINT >>>>>>>>>>>>>>>>> ID_N: " + str(id_n))
-        print("PRINT >>>>>>>>>>>>>>>>> VALUE: " + str(value))
-        print("PRINT >>>>>>>>>>>>>>>>> INDEX_1D: " + str(index_1D))
-        print("PRINT >>>>>>>>>>>>>>>>> INDEX_2D: " + str(index_2D))
+        _printlog("PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: " + dec_type)
+        _printlog("PRINT >>>>>>>>>>>>>>>>> DTYPE: " + str(dtype))
+        _printlog("PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: " + str(val_type))
+        _printlog("PRINT >>>>>>>>>>>>>>>>> ID_N: " + str(id_n))
+        _printlog("PRINT >>>>>>>>>>>>>>>>> VALUE: " + str(value))
+        _printlog("PRINT >>>>>>>>>>>>>>>>> INDEX_1D: " + str(index_1D))
+        _printlog("PRINT >>>>>>>>>>>>>>>>> INDEX_2D: " + str(index_2D))
 
         index = None
         if index_1D != None:
@@ -1926,7 +1933,7 @@ class Runtime:
             if index_2D != None:
                 index += f"[{index_2D}]"
         
-        print("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
+        _printlog("PRINT >>>>>>>>>>>>>>>>> index: " + str(index))
         match val_type[0]:
             # case 'func':
             #     self.logError(f"Symbol '{err_n.id_t["tokenName"]}' is a function and needs to be called rather than using it as a value.", err_n)
@@ -1948,8 +1955,8 @@ class Runtime:
                           self.logError(f"Value '{value}' is out of 'int' range for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ''}.", err_n)
              
                 if val_type and dtype[1] != val_type[1]:   
-                    print("valtype: ", val_type[1])
-                    print("dtype: ", dtype[1]) 
+                    _printlog("valtype: ", val_type[1])
+                    _printlog("dtype: ", dtype[1]) 
                     self.logError(f"Type Mismatch: expected '{dtype[1]}' for {dec_type} {f'\'{id}\'' if id else ''} {index if index else ""} but found '{val_type[1]}'." , err_n)
 
             case "long":
@@ -1992,7 +1999,7 @@ class Runtime:
                 self.logError(f"Symbol '{node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
         else:
             if self.curr_scope.get(node.id_n.id_t["tokenName"], False):
-                print(f"REMOVED: {self.curr_scope.syms.pop(node.id_n.id_t["tokenName"])}")
+                _printlog(f"REMOVED: {self.curr_scope.syms.pop(node.id_n.id_t["tokenName"])}")
         
         const = node.const_b
         dtype = ('var', node.dtype_t["tokenName"])
@@ -2006,7 +2013,7 @@ class Runtime:
                     value = node.vardec_cont_n.value_n
                 else:    
                     val_type, value, err_n = self.visit_node(node.vardec_cont_n.value_n)
-            if val_type: print('(runtime)(dbg) dec valtype: ', val_type)
+            if val_type: _printlog('(runtime)(dbg) dec valtype: ', val_type)
             idec_rec = node.vardec_cont_n.idec_rec_n
 
         default_val = self.default_vals[dtype[1]]
@@ -2020,7 +2027,7 @@ class Runtime:
             elif type(value).__name__ == "node_input":
                 val_type = ('lit', f'{dtype[1]}')
             
-        if val_type: print(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
+        if val_type: _printlog(f" -------------------------------------------> val_type: {val_type[1]} d_type: {dtype[1]}")
         
         self.check_type_and_range("variable", dtype, val_type, value, node.id_n, err_n = err_n)
 
@@ -2039,7 +2046,7 @@ class Runtime:
                 dec_value = default_val
             self.check_type_and_range("variable", dtype, decval_type, dec_value, dec_node.id_n, err_n = err_n)
 
-            #print(f"!!!!!!!!!!!!!!!!!!!!decNODE VAL: {dec_node.value_n.val_t["tokenType"] if dec_node.value_n != None else default_val}")
+            #_printlog(f"!!!!!!!!!!!!!!!!!!!!decNODE VAL: {dec_node.value_n.val_t["tokenType"] if dec_node.value_n != None else default_val}")
             if self.curr_scope.get(dec_node.id_n.id_t["tokenName"], False):
                 self.logError(f"Symbol '{dec_node.id_n.id_t["tokenName"]}' has already been declared.", err_n)
             if const and not dec_node.value_n:
@@ -2050,8 +2057,8 @@ class Runtime:
 
     #array declaration
     def visit_node_arr_dec(self, node, priv = False, input_deactivator_for_classes_yes = False):
-        print(f'\n(runtime)(dbg) VISITING {type(node).__name__}!!')
-        print(f'!!NODE!!: {node}!!')
+        _printlog(f'\n(runtime)(dbg) VISITING {type(node).__name__}!!')
+        _printlog(f'!!NODE!!: {node}!!')
         id = node.id_n.id_t["tokenName"]
         const = node.const_b
         vals_for_class = []
@@ -2075,7 +2082,7 @@ class Runtime:
 
         # if size_2_type and size_2_type[1] not in ['int']:
         #     self.logError(f"Type mismatch: expected whole positive integer for array 2nd Dimension size, but got '{size_2_type[1]}'.", node.id_n)
-        # print(size_2 and size_2 < 1)
+        # _printlog(size_2 and size_2 < 1)
         
         try:
             if size_2 < 1:
@@ -2095,7 +2102,7 @@ class Runtime:
                 if const:
                     self.logError("Constant array declarations must be initialized with values.", node.id_n)
                 arr_rec = node.arr_dec_cont_n
-                #print(f'##########################arr_rec@!!@!@!@: {arr_rec} size_1: {size_1} dim = {dim}')
+                #_printlog(f'##########################arr_rec@!!@!@!@: {arr_rec} size_1: {size_1} dim = {dim}')
                 values_list = []
                 
                 for i in range(size_1):
@@ -2114,7 +2121,7 @@ class Runtime:
                 values_list = [[base_val for _ in range(size_2)] for _ in range(size_1)]
 
         
-       #print(f'##########################values_list@!!@!@!@: {values_list if values_list else arr_rec} dim = {dim}')
+       #_printlog(f'##########################values_list@!!@!@!@: {values_list if values_list else arr_rec} dim = {dim}')
                 
 
         arr_vals = []
@@ -2127,7 +2134,7 @@ class Runtime:
                     else:
                         _, val, _ = self.visit_node(value_node)
                         #val_type, val, err_n = self.visit_node(value_node)
-                    #print(f'arr init valtype: {val_type[1]}')
+                    #_printlog(f'arr init valtype: {val_type[1]}')
                     
                     #error for arr size in code gen
                     # if val_type[1] != node.dtype_t["tokenName"]:
@@ -2158,7 +2165,7 @@ class Runtime:
                         else:
                             _, val, _ = self.visit_node(value_node)
                         # val_type, val, err_n = self.visit_node(value_node)
-                        # print(f'arr init valtype: {val_type}, val = {val}')
+                        # _printlog(f'arr init valtype: {val_type}, val = {val}')
                         
                         #error for arr size in code gen
                         # if val_type[1] != node.dtype_t["tokenName"]:
@@ -2176,7 +2183,7 @@ class Runtime:
                         for i in range(size_2 - len(temp_arr)):
                             temp_arr.append(base_val)
 
-                    #print(f"_____________________________{temp_arr}")
+                    #_printlog(f"_____________________________{temp_arr}")
                     arr_vals.append(temp_arr)
                 
                 if len(arr_vals) > size_1:
@@ -2188,7 +2195,7 @@ class Runtime:
                             arr_vals.append([base_val]*(size_2 if size_2 else size_1))
                             
             else: arr_vals = values_list
-        print('(runtime)(dbg) arr_info', {'dimension': dim, 'size1': size_1, 'size2':size_2})
+        _printlog('(runtime)(dbg) arr_info', {'dimension': dim, 'size1': size_1, 'size2':size_2})
         # classReturn.append(self.curr_scope.set_array(id, len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
         class_app = self.curr_scope.set_array(id, len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b)
         class_app[id]["value"] = arr_vals
@@ -2222,7 +2229,7 @@ class Runtime:
                     for j in range(size_2):
                         temp_arr.append(base_val)
                 arrdec_vals.append(temp_arr if temp_arr else base_val)
-            #print(f"_____________________________{arrdec_vals}")
+            #_printlog(f"_____________________________{arrdec_vals}")
 
             # classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
             # classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
@@ -2247,8 +2254,8 @@ class Runtime:
                 
         right_type, right_val, right_err = self.visit_node(node.right_n)
         dtype = ('lit', 'int')
-        print(f"(runtime) bi_op left_type: {left_type} left_val: {left_val}")
-        print(f"(runtime) bi_op right_type: {right_type} right_val: {right_val}")
+        _printlog(f"(runtime) bi_op left_type: {left_type} left_val: {left_val}")
+        _printlog(f"(runtime) bi_op right_type: {right_type} right_val: {right_val}")
 
         if (left_type[0] == 'arr' and right_type[0] == 'object') or (left_type[0] == 'object' and right_type[0] == 'arr'):
             self.logError("Direct operations between entire arrays and objects are not allowed. Perform element-wise evaluations instead.", left_err)
@@ -2300,7 +2307,7 @@ class Runtime:
                 if fromRetBlock:
                     return (dtype, self.default_vals[dtype[1]], left_err) 
                 elif left_type[1] in self.numtypes and right_type[1] in self.numtypes:
-                    print('AAAAAAAAA BI OP', left_val, right_val)
+                    _printlog('AAAAAAAAA BI OP', left_val, right_val)
                     return (dtype, left_val + right_val, left_err)
                     # return (dtype, None)
                 else:
@@ -2315,10 +2322,10 @@ class Runtime:
                 else:
                     self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long, float, double) for both operands, but got {left_type[1]} and {right_type[1]}.", left_err)
             case '/':
-                print(f"search for me:")
+                _printlog(f"search for me:")
                 if left_type[1] in self.numtypes and right_type[1] in self.numtypes and not fromRetBlock:
                     if right_val == 0: #todo
-                    # print("(runtime)(dbg) ERROR: DIVIDE BY 0")
+                    # _printlog("(runtime)(dbg) ERROR: DIVIDE BY 0")
                         self.logError("Division by 0 is not allowed.", right_err)
                     if left_type[1] in ["long", "int"] and right_type[1] in ["long", "int"]:
                         return (dtype, int(left_val / right_val), left_err)
@@ -2592,7 +2599,7 @@ class Runtime:
         
         match node.right_t["tokenName"]:
             case '++':
-                print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
+                _printlog(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
                 left_sym = self.curr_scope.get(node.id_left_n.id_t["tokenName"])
                 if left_sym["const"]:
                     self.logError("Constant symbols cannot be modified.", left_err)
@@ -2607,7 +2614,7 @@ class Runtime:
                 return (left_type, left_val, left_err)
                 # return (left_type, None)
             case '--':
-                print(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
+                _printlog(f"LLLLLEEEEEFFFFTTT: {left_type[1]}")
                 left_sym = self.curr_scope.get(node.id_left_n.id_t["tokenName"])
                 if left_sym["const"]:
                     self.logError("Constant symbols cannot be modified.", left_err)
@@ -2683,7 +2690,7 @@ class Runtime:
             if node_loop.init_arg_n: self.visit_node(node_loop.init_arg_n)
 
             #self.visit_node(node_loop.condition_n.condition_value_n)
-            #print(f"CONDITION was found from: {loop_name} \n")
+            #_printlog(f"CONDITION was found from: {loop_name} \n")
             
             #handle for loops
             while True:
@@ -2693,7 +2700,7 @@ class Runtime:
                     break
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-                print(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
+                _printlog(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
                 if val == False: break
                 
                 self.break_continue_check = None
@@ -2702,7 +2709,7 @@ class Runtime:
                     break
         
                 if self.break_continue_check:
-                    print("breaked heree")
+                    _printlog("breaked heree")
                     if self.break_continue_check == 'node_break_stmt':
                         # break_outer = True
                         self.break_continue_check = None
@@ -2725,7 +2732,7 @@ class Runtime:
                     break
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-                print(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
+                _printlog(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
                 if val == False: break
                 
                 self.break_continue_check = None
@@ -2754,7 +2761,7 @@ class Runtime:
 
                 #not efficient, needs refactoring
                 _, val, _ = self.visit_node(node_loop.condition_n.condition_value_n)
-                print(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
+                _printlog(f"CONDITION WAS FOUND ON: {loop_name} and EVALUATES {val}")
                 if val == False: break
 
                 if self.break_continue_check:
@@ -2773,7 +2780,7 @@ class Runtime:
             # if repeat_val < 0:
             #     self.logError(f"Invalid value for repeat statement. Expected positive 'int' or 'long' values, but found '{repeat_val}' instead.", err_n)
             
-            print(f"(runtime)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_type}, {repeat_val}")
+            _printlog(f"(runtime)(dbg) FOUND REPEAT VALUE -> {node_loop.repeat_value_n} = {repeat_type}, {repeat_val}")
             # self.visit_node(node_loop.ctrl_stmt_body_n)
 
             while True:
@@ -2797,9 +2804,9 @@ class Runtime:
                 loop_count += 1
 
         self.loop_depth -= 1
-        print(f"(runtime)(dbg) EXITING scope '{loop_name}': \nTABLE: ")
+        _printlog(f"(runtime)(dbg) EXITING scope '{loop_name}': \nTABLE: ")
         self.exit_scope(loop_name)
-        print('(runtime)(dbg) RETURNNG FROM LOOP: ', ret_val)
+        _printlog('(runtime)(dbg) RETURNNG FROM LOOP: ', ret_val)
         if ret_val and type(ret_val[0]) is bool:
             ret_val = ret_val[1]
         return ret_val
@@ -2814,7 +2821,7 @@ class Runtime:
 
         expected_dtype = node.type_t["tokenName"] 
 
-        # print(f"(runtime)(dbg) Expected Data Type: {expected_dtype}")
+        # _printlog(f"(runtime)(dbg) Expected Data Type: {expected_dtype}")
 
         if expected_dtype not in ["int", "long", "float", "double", "string", "bool"]:
             self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
@@ -2859,13 +2866,13 @@ class Runtime:
                     return None
 
         # # >>>> GET INPUT FROM USER FROM FRONTEND
-        print(">>>> START GET INPUT FROM USER")
-        print(">>>> EMIT REQUEST INPUT")
-        print(">>>> WAITING INPUT FROM FRONTEND.....")
+        _printlog(">>>> START GET INPUT FROM USER")
+        _printlog(">>>> EMIT REQUEST INPUT")
+        _printlog(">>>> WAITING INPUT FROM FRONTEND.....")
         global wait_flag, user_response
         wait_flag = True  # set the shared wait flag
         prompt_value = codecs.decode(prompt_value, 'unicode_escape')
-        print(">>>> PROMPT FROM BACKEND: " + prompt_value)
+        _printlog(">>>> PROMPT FROM BACKEND: " + prompt_value)
         socketio.emit('request_input', { "type": "input_request", "prompt": prompt_value })
 
         # wait for input from frontend
@@ -2875,9 +2882,9 @@ class Runtime:
         # check if program is being terminated by user
         checkTerminate()
 
-        print(">>>> DONEEE WAITING INPUT FROM FRONTEND.....")
+        _printlog(">>>> DONEEE WAITING INPUT FROM FRONTEND.....")
         raw_input_val = user_response.get("response", "")
-        print(">>>> User entered:", raw_input_val)
+        _printlog(">>>> User entered:", raw_input_val)
 
         try:
             if expected_dtype == "int":
@@ -2902,7 +2909,7 @@ class Runtime:
         # trim last n characters because of count limit
         if count_value:
             strValue = strValue[:(count_value)]
-        print(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), strValue)}")
+        _printlog(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), strValue)}")
         return (('lit', expected_dtype), strValue, err_n)
     
        
@@ -2938,7 +2945,7 @@ class Runtime:
         return final_str.encode('utf-8').decode('unicode_escape')
 
     def visit_node_output(self, node):
-        print(f'\n(runtime)(dbg) Visiting node_output\n')
+        _printlog(f'\n(runtime)(dbg) Visiting node_output\n')
         print_stmts_n = node.print_stmts_n 
         print_params_n = node.print_params_n  
     
@@ -2953,7 +2960,7 @@ class Runtime:
 
             if first_param_type is None or first_param_type[1] != "string":
             # self.logError("First parameter in output statement must be a string (format string).", first_param)
-                print(f"param value heh: {first_param_val} type: {first_param_type}")
+                _printlog(f"param value heh: {first_param_val} type: {first_param_type}")
                 if len(print_params_n) > 1:
                     self.logError("Print statements can only have one parameter, unless a string with format specifiers is used in the first parameter.", err_n)
                 
@@ -2961,11 +2968,11 @@ class Runtime:
                 # self.check_digits(first_param_type[1], first_param_val)
                 
                 formatted_output = self._format_output(first_param_type[1], first_param_type[1], first_param_val)
-                print(f"param value formatted heh: {formatted_output}")
+                _printlog(f"param value formatted heh: {formatted_output}")
 
             # check if any of the parameters are entire arrays, entire objects, classnames, function reference (just the func name)
             # for param in print_params_n:
-            #     print(f"!!!!!!@!@!@&T@!^!*&@^&*!@\nVISITING PRINT PARAMS:\n{print_params_n}\n{param}")
+            #     _printlog(f"!!!!!!@!@!@&T@!^!*&@^&*!@\nVISITING PRINT PARAMS:\n{print_params_n}\n{param}")
             #     if not (type(param).__name__ == "node_input"):
             #         param_type, param_value, err_n = self.visit_node(param)
             #         formatted_output += str(param_value)
@@ -2995,13 +3002,13 @@ class Runtime:
                 formatted_output = str(first_param_val)
                 for i, specifier in enumerate(format_specifiers):
                     param_node = print_params_n[i + 1] 
-                    print(f"()()()()()(()()()()()()()()()()()()()()()()()))\n{format_specifiers}\n{param_node}")
+                    _printlog(f"()()()()()(()()()()()()()()()()()()()()()()()))\n{format_specifiers}\n{param_node}")
                     param_type, param_value, err_n  = self.visit_node(param_node)
-                    print(f"param value heh: {param_value}")
+                    _printlog(f"param value heh: {param_value}")
                 
                     if not self._validate_format_specifier(specifier, param_type[1], param_value) :
                         # err_n = ErrorNode(first_param.id_t["tokenLine"], first_param.id_t["tokenCol"] - len(first_param.id_t["tokenName"]) - 1)
-                        print("ERERRRRRRRRRRRRRRRR err_n: " + str(err_n))
+                        _printlog("ERERRRRRRRRRRRRRRRR err_n: " + str(err_n))
                         self.logError(f"Format specifier '{specifier}' does not match argument {i+1} of type '{param_type[1]}'.", err_n)
                         return None
                     specifier_types = {
@@ -3017,16 +3024,16 @@ class Runtime:
                     formatted_output = formatted_output.replace(specifier, str(param_value), 1)
 
             if print_stmts_n == "println":
-                print(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
+                _printlog(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n') #TEMPORARY 
                 formatted_output += '\n'
             # else:
-            #     print(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
+            #     _printlog(f'\n\n(runtime)(OUTUPT)\t{formatted_output}\n\n', end='') #TEMPORARY
             #     if self.output:     
             #         self.output[-1] += formatted_output
             #     else:
             #         self.output.append(formatted_output)
             formatted_output = self.handle_backspace_escapes(formatted_output)
-            print('(runtime)(OUTPUT) printing: ', formatted_output)
+            _printlog('(runtime)(OUTPUT) printing: ', formatted_output)
             socketio.emit('print_output', { "type": "output", "value": formatted_output })
             
 
@@ -3073,14 +3080,14 @@ class Runtime:
             ctrl_stmt = type(statement).__name__
 
             if ctrl_stmt == "node_break_stmt":
-                print("(runtime)(dbg) FOUND 'break' !!!")
+                _printlog("(runtime)(dbg) FOUND 'break' !!!")
                 self.break_continue_check =  "node_break_stmt"
                 return ret_val
                 #return break_continue_check
                 # exit out of loop
             
             elif ctrl_stmt == "node_continue_stmt":
-                print("(runtime)(dbg) FOUND 'continue' !!!")
+                _printlog("(runtime)(dbg) FOUND 'continue' !!!")
                 self.break_continue_check =  "node_continue_stmt"
                 return ret_val
                 #return break_continue_check
@@ -3089,14 +3096,14 @@ class Runtime:
             else: 
                 ret_val = self.visit_node(statement, funcExpectedVal=False)
 
-        # print(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
+        # _printlog(f"(runtime)(dbg) EXITING scope 'ctrl_stmt_body': \nTABLE: ")
         # self.exit_scope(type(node).__name__)
         return ret_val 
         #return break_continue_check
     
     def visit_node_condition_value(self, node):
         _, value, _ = self.visit_node(node.condition_value_n)
-        print(f"(runtime)(dbg) FOUND CONDITION for {type(node).__name__} -> {value}")
+        _printlog(f"(runtime)(dbg) FOUND CONDITION for {type(node).__name__} -> {value}")
 
         return value
 
@@ -3106,7 +3113,7 @@ class Runtime:
         cond = False
         # IF BLOCK
         if self.visit_node(node.condition_n) == True:
-            print(f"CONDITION was found from: {type(node).__name__}")
+            _printlog(f"CONDITION was found from: {type(node).__name__}")
             if node.body_n:
                 ret_val = self.visit_node(node.body_n)
             cond = True
@@ -3115,9 +3122,9 @@ class Runtime:
             if node.else_chain_n:
                 ret_val = self.visit_node(node.else_chain_n)
 
-        print(f"(runtime)(dbg) EXITING scope 'if_stmt': \nTABLE: ")
+        _printlog(f"(runtime)(dbg) EXITING scope 'if_stmt': \nTABLE: ")
         self.exit_scope(type(node).__name__)
-        print('AAAAAAAAAAAA IF RET', ret_val)
+        _printlog('AAAAAAAAAAAA IF RET', ret_val)
         return (cond, ret_val)
         #if break_continue_check: return break_continue_check
     
@@ -3125,19 +3132,19 @@ class Runtime:
         self.enter_scope(type(node).__name__)
 
         else_chain_n = node.else_chain_n
-        print('AAA ELSE CHAIN LIST', else_chain_n)
+        _printlog('AAA ELSE CHAIN LIST', else_chain_n)
         for chain_stmt in else_chain_n:
             chain_type = type(chain_stmt).__name__
 
-            print(f"CHAAAAAAAAINNNNNNNN TYPE: {chain_type}")
+            _printlog(f"CHAAAAAAAAINNNNNNNN TYPE: {chain_type}")
             visit_vals = self.visit_node(chain_stmt)
             if visit_vals[0] == True:
                 break
 
-        print(f"(runtime)(dbg) EXITING scope 'elseif_stmt': \nTABLE: ")
+        _printlog(f"(runtime)(dbg) EXITING scope 'elseif_stmt': \nTABLE: ")
         self.exit_scope(type(node).__name__)
-        print('AAAAAAAAAAAAA ELSE CHAIN RET', visit_vals[1])
-        print('AAAAAAA ELSE RETURN PROMISES', self.    RETURN_PROMISES)
+        _printlog('AAAAAAAAAAAAA ELSE CHAIN RET', visit_vals[1])
+        _printlog('AAAAAAA ELSE RETURN PROMISES', self.    RETURN_PROMISES)
         return visit_vals[1]
 
     def visit_node_else_stmt(self, node):
@@ -3145,9 +3152,9 @@ class Runtime:
 
         if node.body_n:
             ret_val = self.visit_node(node.body_n)
-            print('AAAAAAAAAAAAAAA ELSE RET', ret_val)
+            _printlog('AAAAAAAAAAAAAAA ELSE RET', ret_val)
 
-        print(f"(runtime)(dbg) EXITING scope 'else_stmt': \nTABLE: ")
+        _printlog(f"(runtime)(dbg) EXITING scope 'else_stmt': \nTABLE: ")
         self.exit_scope(type(node).__name__)
         return (False, ret_val)
     
@@ -3198,15 +3205,15 @@ class Runtime:
             #self.enter_scope(case_stmt)
             #self.break_continue_check = None
             _, case_val, err_n = self.visit_node(case_stmt.case_value_n)
-            print(f"(runtime)(dbg) EVALUATING CASE VALUE: '{case_val}'")
+            _printlog(f"(runtime)(dbg) EVALUATING CASE VALUE: '{case_val}'")
             _, switch_val, _ = self.visit_node(node.value_n)
             
             if switch_val == case_val:
-                print(f"(runtime)(dbg) 'case_value' MATCHED: {case_val}")
+                _printlog(f"(runtime)(dbg) 'case_value' MATCHED: {case_val}")
                 #self.enter_scope(case_stmt)
 
                 if case_stmt.ctrl_stmt_body_n:
-                    print(f"(runtime)(dbg) TRAVERSING 'case_body'")
+                    _printlog(f"(runtime)(dbg) TRAVERSING 'case_body'")
                     self.break_continue_check = None
                     self.visit_node(case_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
                     #self.visit_node(case_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
@@ -3214,16 +3221,16 @@ class Runtime:
                     if self.break_continue_check == 'node_break_stmt': 
                         self.break_continue_check = None
                         case_matched = True
-                        print(f"(runtime)(dbg) 'case_body' BREAKED")
+                        _printlog(f"(runtime)(dbg) 'case_body' BREAKED")
                         #self.exit_scope(case_stmt)
                         break
                     elif self.break_continue_check == 'node_continue_stmt': 
-                        print(f"(runtime)(dbg) 'case_body' CONTINUED")
+                        _printlog(f"(runtime)(dbg) 'case_body' CONTINUED")
                         case_matched = True
                         break
                     else: 
                         self.break_continue_check = None
-                        print(f"(runtime)(dbg) 'case_body' FALLTHROUGH")
+                        _printlog(f"(runtime)(dbg) 'case_body' FALLTHROUGH")
                         #self.exit_scope(case_stmt)
                         continue
             #self.exit_scope(case_stmt)
@@ -3235,18 +3242,18 @@ class Runtime:
             
             if default_stmt.ctrl_stmt_body_n:
                 self.visit_node(default_stmt.ctrl_stmt_body_n, funcExpectedVal=False)
-                print(f"(runtime)(dbg) FOUND 'default_body'")
+                _printlog(f"(runtime)(dbg) FOUND 'default_body'")
 
            # self.exit_scope(default_stmt)
 
 
         # self.switch_depth -= 1
-        print(f"(runtime)(dbg) EXITING scope 'switch_stmt': \nTABLE: ")
+        _printlog(f"(runtime)(dbg) EXITING scope 'switch_stmt': \nTABLE: ")
         self.exit_scope(type(node).__name__)
         return
     
     def visit_node_return_block(self, node):
-        print("ENTERED RETURN BLOCK")
+        _printlog("ENTERED RETURN BLOCK")
         ret = self.visit_node(node.ret_value_n)
         self.RETURN_PROMISES.append(True)
         return ret
@@ -3258,7 +3265,7 @@ class Runtime:
 
         #     if node.ret_value_n:
         #         rettype, result, err_n = self.visit_node(node.ret_value_n, fromRetBlock=True)
-        #         print(f"RETURN VALUE: {result}\n RETTYPE: {rettype}")
+        #         _printlog(f"RETURN VALUE: {result}\n RETTYPE: {rettype}")
         #         if rettype[0] == 'arr':
         #             self.logError(f"Function '{self.current_function_name}' cannot return an array.", err_n)
                 
@@ -3317,10 +3324,10 @@ class Runtime:
         #             self.logError(f"Function '{self.current_function_name}' must return a value of type '{expected_return_type}', but got none.", err_n)
 
     def check_return_in_body(self, node):
-        print(f"(runtime)(dbg) Checking return in {type(node).__name__}")
+        _printlog(f"(runtime)(dbg) Checking return in {type(node).__name__}")
 
     # def check_return_in_body(self, node):
-    #     print(f"(runtime)(dbg) Checking return in {type(node).__name__}")
+    #     _printlog(f"(runtime)(dbg) Checking return in {type(node).__name__}")
 
     #     if node is None:
     #         return False
@@ -3335,7 +3342,7 @@ class Runtime:
     #         return any(self.check_return_in_body(stmt) for stmt in node.statements_n)
 
     #     if isinstance(node, node_if_stmt):
-    #         print(f"(runtime)(dbg) Checking return in IF statement")
+    #         _printlog(f"(runtime)(dbg) Checking return in IF statement")
 
     #         has_return_in_if = self.check_return_in_body(node.body_n)
     #         has_return_in_else = False
@@ -3343,7 +3350,7 @@ class Runtime:
     #         if node.else_chain_n:
     #             has_return_in_else = self.check_return_in_body(node.else_chain_n)
 
-    #         print(f"(runtime)(dbg) has_return_in_if={has_return_in_if}, has_return_in_else={has_return_in_else}")
+    #         _printlog(f"(runtime)(dbg) has_return_in_if={has_return_in_if}, has_return_in_else={has_return_in_else}")
 
     #         return has_return_in_if and has_return_in_else 
 
@@ -3357,14 +3364,14 @@ class Runtime:
     #         return self.check_return_in_body(node.loop_stmt_n.ctrl_stmt_body_n)
 
     #     if isinstance(node, node_switch_stmt):
-    #         print(f"(runtime)(dbg) Checking return in SWITCH statement")
+    #         _printlog(f"(runtime)(dbg) Checking return in SWITCH statement")
 
     #         case_returns = [self.check_return_in_body(case) for case in node.case_n.case_stmt_n]
 
     #         has_default = node.default_n is not None
     #         has_return_in_default = self.check_return_in_body(node.default_n) if has_default else False
 
-    #         print(f"(runtime)(dbg) Switch case returns: {case_returns}, has_default={has_default}, has_return_in_default={has_return_in_default}")
+    #         _printlog(f"(runtime)(dbg) Switch case returns: {case_returns}, has_default={has_default}, has_return_in_default={has_return_in_default}")
 
     #         if not all(case_returns) or (has_default and not has_return_in_default):
     #             return False
@@ -3378,7 +3385,7 @@ class Runtime:
     #         return self.check_return_in_body(node.ctrl_stmt_body_n)
 
     #     if isinstance(node, node_return_block):
-    #         print(f"(runtime)(dbg) Found return statement")
+    #         _printlog(f"(runtime)(dbg) Found return statement")
     #         self.count_return += 1
     #         return True
 
