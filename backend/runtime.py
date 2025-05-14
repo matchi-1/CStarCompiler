@@ -1946,6 +1946,15 @@ class Runtime:
     
     # var / arr dec helper function for type and range checking
     def check_type_and_range(self, dec_type, dtype, val_type, value, id_n = None, index_1D = None, index_2D = None, err_n = None):
+        # dec type - is its program entity type (an array, a variable, a format specifier, a value)
+        # dtype - expected data type to be compared to  -- tuple ('lit', 'dtype')
+        # val_type - actual value datatype to be compared to -- tuple ('lit', 'dtype')
+        # value -- value of the value to be checked
+        # id_n -- identifier node
+        # index_1D = array accessing value at 1D
+        # index_2D = array accessing value at 2D
+        # err_n - error node for err msgs
+
         if type(value).__name__ == "node_input": return
         id = id_n.id_t["tokenName"] if id_n else ''
         _printlog("PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: " + dec_type)
@@ -2943,11 +2952,13 @@ class Runtime:
             else:
                 self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
                 return None
+            
+
         except ValueError:
             self.logError(f"Cannot convert input '{raw_input_val}' to '{expected_dtype}'.", err_n)
             return None
         
-        
+        #self.check_type_and_range('input value', expected_dtype, expected_dtype, castedVal, err_n = err_n)
         _printlog(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), castedVal)}")
         return (('lit', expected_dtype), castedVal, err_n)
     
