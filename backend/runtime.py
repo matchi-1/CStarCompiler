@@ -1738,8 +1738,12 @@ class Runtime:
                 return ('string', str_param1.upper())
 
             case "str_charToAscii":
-                return ('int', ord(str_param1[0]) if str_param1 else 0)
+                ascii_code = ord(str_param1[0])
+                if not (0 <= ascii_code <= 255):
+                    self.logError(f"Character '{str_param1[0]}' is not within the ASCII range (0–255).", args_list[0])
 
+                return ('int', ord(str_param1[0]) if str_param1 else 0)
+                
             case "str_asciiToChar":
                 if not (0 <= num_param1 <= 255):
                     self.logError("Cannot convert value to ASCII character. Value must be between 0 and 255.", args_list[0])
