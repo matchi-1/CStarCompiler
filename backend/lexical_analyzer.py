@@ -756,18 +756,18 @@ class LexicalAnalyzer:
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
-            case 's249':
+            case 's216':
                 match currChar:
-                    case _ if currChar in self.numbers:  currState = 's249'
+                    case _ if currChar in self.numbers:  currState = 's216'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
             
-            case 's216':
+            case 's249':
                 match currChar:
                     case '.': 
                         need_frac_num = True
-                        currState = 's249'
-                    case _ if currChar in self.numbers: currState = 's216'
+                        currState = 's216'
+                    case _ if currChar in self.numbers: currState = 's249'
                     case 'ANY':  currState = 'DEFINED'
                     case _:  currState = 'UNDEFINED' 
         
@@ -1047,7 +1047,7 @@ class LexicalAnalyzer:
                     case 'DOT_CHECK':
                         expected = ['alphabetic_chars', '/'] + self.whitespace
                         if (code[i] in self.numbers):
-                            currState = 's249'
+                            currState = 's216'
                         elif (code[i] in self.dot_delim):
                             add_token(currToken, '.', currLine, currCol)
                         else:
@@ -1604,8 +1604,8 @@ class LexicalAnalyzer:
             # s207 - Single line comment
             # s210 - Multi-line comment
             # s213 - String literal
-            # s216 - Whole number
-            # s249 - Fractional number
+            # s249 - Whole number
+            # s216 - Fractional number
 
             # >>> identifier state
             if (currState == 's205'):  # you're still in the iden loop state
@@ -1661,7 +1661,7 @@ class LexicalAnalyzer:
             
 
             # >>> whole number
-            if (currState == 's216'): # start of a number 
+            if (currState == 's249'): # start of a number 
                 if (code[i] in self.numbers):  # if the next char is still a number 
                     print("(dbg) got another number")
                     currWholeCount += 1  # increment the whole count
@@ -1703,7 +1703,7 @@ class LexicalAnalyzer:
 
 
             # >>> fractional part of number
-            if (currState == 's249'):
+            if (currState == 's216'):
                 if (code[i] in self.numbers):
                     need_frac_num = False
                     currFracCount += 1
@@ -1829,7 +1829,7 @@ class LexicalAnalyzer:
                         print("(dbg)s0 is num")
                         # go to whole num loop state
                         currWholeCount += 1  # start counting whole number
-                        currState = 's216'  # s216 = whole number start loop 
+                        currState = 's249'  # s249 = whole number start loop 
                         if reset_col:
                             currLine += 1
                             currCol = 1
