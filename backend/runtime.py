@@ -374,7 +374,7 @@ class Runtime:
                 f"Runtime Error ({err_n.line}, {err_n.startCol}): {msg}"
             )
         elif isinstance(err_n, node_iden):
-            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"]) + 1
+            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"])
             full_message = (
                 f"Runtime Error ({err_n.id_t['tokenLine']}, {col}): {msg}"
             )
@@ -2904,6 +2904,10 @@ class Runtime:
         raw_input_val = user_response.get("response", "")
         _printlog(">>>> User entered:", raw_input_val)
 
+        # trim last n characters because of count limit
+        if count_value:
+            raw_input_val = raw_input_val[:(count_value)]
+
         try:
             if expected_dtype == "int":
                 strValue = int(raw_input_val)  
@@ -2924,9 +2928,7 @@ class Runtime:
             self.logError(f"Cannot convert input '{raw_input_val}' to '{expected_dtype}'.", err_n)
             return None
         
-        # trim last n characters because of count limit
-        if count_value:
-            strValue = strValue[:(count_value)]
+        
         _printlog(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), strValue)}")
         return (('lit', expected_dtype), strValue, err_n)
     

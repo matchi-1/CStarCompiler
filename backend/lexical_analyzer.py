@@ -2005,7 +2005,7 @@ class LexicalAnalyzer:
         return self.generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
     def adjustConstNumError(self, currToken, currLine, currCol, lineContent, leadingSpaces):
-        errorType = "Increment or decrement operation is not allowed on constants"
+        errorType = "Numbers are not valid delimeters for pre-increment or pre-decrement operators."
         return self.generateError(errorType, currToken, currLine, currCol, lineContent, leadingSpaces)
 
 #---TOKEN CLASS---#

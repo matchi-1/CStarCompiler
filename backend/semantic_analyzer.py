@@ -1,5 +1,6 @@
-from syntax_analyzer import node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
+from syntax_analyzer import main_n, node_iden, node_body, node_code_block, node_if_stmt, node_else_stmt, node_else_chain, node_loop_stmt, node_switch_stmt, node_case_stmt, node_default_stmt, node_return_block, node_ctrl_stmt_body, node_class_arr_idx, node_arr_idx, node_class_att, node_num, node_str, node_bool
 from decimal import Decimal
+main_n = None
 
 class SymbolTable:
     def __init__(self, parent=None):
@@ -102,6 +103,10 @@ class SemanticAnalyzer:
     MAX_DOUBLE =        9999999999999999000
 
     MAX_LOOP_COUNT = 1000  # Maximum loop iterations allowed
+
+    def setMain(self, main_n_fromSyn):
+        global main_n
+        main_n = main_n_fromSyn
 
     def interpret(self, node):
         try:
@@ -212,7 +217,7 @@ class SemanticAnalyzer:
                 f"Semantic Error ({err_n.line}, {err_n.startCol}): {msg}"
             )
         elif isinstance(err_n, node_iden):
-            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"]) + 1
+            col = err_n.id_t["tokenCol"] - len(err_n.id_t["tokenName"]) 
             full_message = (
                 f"Semantic Error ({err_n.id_t['tokenLine']}, {col}): {msg}"
             )
@@ -246,9 +251,9 @@ class SemanticAnalyzer:
                 has_return = self.check_return_in_body(statement)
                 if not has_return:
                     if self.count_return:
-                        self.logError(f"Function '{self.current_function_name}' must have a return statement in all possible code paths.")
+                        self.logError(f"Function '{self.current_function_name}' must have a return statement in all possible code paths.", main_n)
                     else:
-                        self.logError(f"Function '{self.current_function_name}' must have a return statement.")
+                        self.logError(f"Function '{self.current_function_name}' must have a return statement.", main_n)
                     
                 self.visit_node(statement)
 
@@ -260,7 +265,7 @@ class SemanticAnalyzer:
         
         if not self.has_main:
             self.current_function_name = "main"
-            self.logError(f"Function '{self.current_function_name}' must have a return statement.")
+            self.logError(f"Function '{self.current_function_name}' must have a return statement.", main_n)
 
     #body PLACEHOLDER
     def visit_node_body(self, node):

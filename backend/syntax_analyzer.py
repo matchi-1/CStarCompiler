@@ -1,5 +1,5 @@
 from lexical_analyzer import Token
-
+main_n = None
 #-------------------- PREDICT SETS --------------------
 PREDICT_SETS = {
     "program":["import", "Identifier", "const", "void", "bool", "string", "int", "long", "float", "double", "private", "class"],
@@ -72,6 +72,7 @@ MAX_FLOAT = 999999990
 MIN_DOUBLE = -9999999999999999000
 MAX_DOUBLE = 9999999999999999000
 
+
 def typeFracLit(frac_lit):
     if len(frac_lit.split('.')[1]) < 8:
         return "float"
@@ -79,7 +80,6 @@ def typeFracLit(frac_lit):
         return "double"
     else:
         return "err"
-    
 
 #-----------------AST FOR VALUE------------------
 # #_t suffix = token, #_n suffix = node
@@ -897,36 +897,43 @@ class SyntaxAnalyzer:
         except SyntaxError as e:
             #print(f"Parsing incomplete with error/s: {e}")
             print (e)
-        return (self.errors, self.parse_tree)
+        return (self.errors, self.parse_tree, main_n)
 
     #-------------------- CFG START - PRODUCTIONS --------------------
     def program(self):
-        program_stmts = []  # can be program constructs and main body
+        program_stmts = []  # can be node_imports_list, node_program_constructs and node_body
+        
         print("(parser) production: \"program\" detected")
         """<program> → <imports_list><program_constructs> int main(){ <main_body> return 0;}"""
+        
         if not self.tokens:  # no tokens found
             message = "\n\tNo tokens to parse."
             self.errors.append(message)
             raise SyntaxError(message)
         
+        # check if the very start of the program, it matches any word that can be a valid token start
         if self.matchPredictSet("program", False):
-            imports_list_node, std_lib_func_dec_nodes = self.imports_list([], [])
-            program_stmts.append(imports_list_node)
+            imports_list_node, std_lib_func_dec_nodes = self.imports_list([], [])  # unpack imports_list_node and the stdlib nodes from the imports_list method
+            
+            program_stmts.append(imports_list_node)  # we add the imports_list_node to the program_stmts list
             
             """<program> → <program_constructs> int main(){ <main_body> return 0;}"""
-            # Parse constructs
-            program_stmts.append(self.program_constructs(std_lib_func_dec_nodes))
+            
+            # Parse constructs 
+            # we just pass the std func dec nodes (if existing) because they should be treated as if they are part of the global scope/ast 
+            program_stmts.append(self.program_constructs(std_lib_func_dec_nodes)) # it's a list of program constructs to which program construct methods append to (with the address of the list)
            
             print(f"BACK AT MAIN PROGRAM : {self.hasMainFunction}")
 
             # Check for main function presence
-            if not self.hasMainFunction:
+            if not self.hasMainFunction:  # this flag will be set in program constructs when it finds "void main("
                 self.ERROR_no_main_func()
             else:
-                while self.currToken:
-                    #self.match("(", False)
-                    if not self.match(")"):
-                        self.ERROR_unclosed_parentheses()
+                if self.currToken:
+                    # #self.match("(", False)
+                    # if not self.match(")", False):  # match void main ( --> )
+                    #     self.logError(f"Expected closing parenthesis ')' as the main function cannot have parameters, but found '{self.currToken['tokenName'] if self.currToken else 'EOF'}' instead.")
+                    
                     self.match("{", False)
                     print("(parser) production: \"main_body\" detected")
                     program_stmts.append(self.body(["}"], True)) # isVoid = True here
@@ -950,7 +957,7 @@ class SyntaxAnalyzer:
 
                         print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
                         self.logError(f"Unreachable code detected. Remove unreachable code to execute the program.")
-                        break
+                        
             return program_node(program_stmts)
 
 
@@ -1313,9 +1320,8 @@ class SyntaxAnalyzer:
         return (node_imports_list(stdlibs), std_lib_func_dec_nodes)
 
 
-    # ----- TODO:REVISIT!! can't complete errors here yet bc errors would be found in each prod first, then check if there are external errors left 
-    # ex of unimplemented error: if there's a sole variable (it can be considered a class inst, pero if not yet defined, it should throw another type of error)
-    def program_constructs(self, program_constructs_statement_n = []):
+
+    def program_constructs(self, program_constructs_statement_n = []):  # get the func_dec nodes of std libs if they exist so that preceding nodes will be added to program constructs
         
         print("(parser) production: \"program_constructs\" detected: currtoken is \""
       + str(self.currToken["tokenName"])+"\"" if self.currToken else "None" + "\"")
@@ -1324,65 +1330,75 @@ class SyntaxAnalyzer:
             if self.matchPredictSet("program_constructs", False):  # Token is a valid start for program constructs
                 currentTokenType = self.currToken["tokenType"]
                 if currentTokenType == "class":
-                    program_constructs_statement_n.append(self.class_declaration([]))
+                    program_constructs_statement_n.append(self.class_declaration([]))  # append to program construct lists the class dec nodes
                     self.program_constructs(program_constructs_statement_n)
-                elif currentTokenType in PREDICT_SETS["iden_dec"]:
-                    program_constructs_statement_n.append(self.iden_dec())
-                else:
-                    program_constructs_statement_n.append(self.class_inst())    #initial prog construct ast
+                elif currentTokenType in PREDICT_SETS["iden_dec"]: # might be a function or a variable declaration
+                    program_constructs_statement_n.append(self.iden_dec()) # append to program construct lists the global funcs or variables
+                else: 
+                    program_constructs_statement_n.append(self.class_inst())    # append to program construct lists the class instantiation nodes
                     
             if not self.hasMainFunction:
-                self.program_constructs(program_constructs_statement_n)
+                self.program_constructs(program_constructs_statement_n) # continue recursively calling program constructs until main function is found
 
-            return node_program_constructs(program_constructs_statement_n)
+            return node_program_constructs(program_constructs_statement_n) # return the node of the program constructs 
 
     def iden_dec(self, inClassBody = False):
         print("(parser) production: \"iden_dec\" detected (current token: " + str(self.currToken["tokenName"]) + ")")
-        
 
         if self.currToken:
             currentTokenType = self.currToken["tokenType"]
-            const_b = False
-            if currentTokenType == "const":
-                self.match("const")
-                const_b = True
-                if self.currToken["tokenType"] == "void":
+            const_b = False  # flag for const 
+            if currentTokenType == "const": # const global variable
+                self.match("const")  # match token then move on
+                const_b = True # const found
+                if self.currToken["tokenType"] == "void":  # const void not allowed
                     self.logError("Void function cannot be preceded by 'const'.")
-                elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                    dtype_temp_t = self.data_type()
-                    iden_temp_n = node_iden(self.match("Identifier",False))
-                    vardec_cont_temp_n = self.var_dec_cont(dtype_temp_t, iden_temp_n, const_b)
+                elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:  # const then data type
+                    dtype_temp_t = self.data_type()  # get the data type token 
+                    iden_temp_n = node_iden(self.match("Identifier",False)) # create the identifier node
+                    vardec_cont_temp_n = self.var_dec_cont(dtype_temp_t, iden_temp_n, const_b) # create the vardec_cont node by going thru var_dec_cont method
                     
-                    if not self.match(";"):
+                    if not self.match(";"):  # end of a variable declaration
                         self.ERROR_terminating_token(";")
                     
                     return vardec_cont_temp_n
                 else: self.ERROR_expected_token(PREDICT_SETS["data_type"])
 
+            # currtoken not a dtype or void (so not a func dec or var dec)
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
                 self.logError(f"Expected data type or void, found '{currentTokenType}' instead.")
 
+            # void -- then func name
             elif currentTokenType == "void":
                 void_t = self.match("void")
                 id_temp_n = None
                 isVoid = True
                 if self.currToken:
-                    if self.currToken["tokenName"] == "main" and not inClassBody:
-                        self.hasMainFunction = True
+                    if self.currToken["tokenName"] == "main" and not inClassBody: # not in classbody (hasMainFunction won't be set to true if main is a method in a class)
+                        self.hasMainFunction = True # found main body, flag used in program
                         print("MAIN FUNCTION FOUND!!!!")
-                    id_temp_n = node_iden(self.match("Identifier", False))
+                    id_temp_n = node_iden(self.match("Identifier", False)) # get the identifier (used if function identifier is not main)
+                    global main_n
+                    main_n = id_temp_n
                 else:
-                    self.logError("Expected Identifier for function declaration.")
-                self.match("(", False)
-                self.matchPredictSet("params_dec", False)
-                if not self.hasMainFunction:
-                    return self.params_dec_start(void_t, id_temp_n, isVoid)
+                    self.logError("Expected Identifier for function declaration.")  # void ____ 
+                
+                self.match("(", False)  # match ( for void funcname(
+                
+                # if it's not main, continue matching parameters
+                if not self.hasMainFunction: # it's not main function so u can check for params
+                    self.matchPredictSet("params_dec", False) # check possible starts of params
+                    return self.params_dec_start(void_t, id_temp_n, isVoid) # build func dec node (void) starting with this method
+                
+                # it's main, so check closing paren
                 else:
-                    if self.currToken:
-                        if self.currToken["tokenType"] != ")":
-                            self.ERROR_unclosed_parentheses()
-                        return self.params_dec_start(void_t, id_temp_n, isVoid)
-                    else: self.logError("Expected ')', but reached EOF.")
+                    if self.currToken and self.currToken["tokenType"] == ")": 
+                        self.match(")", False) # match closing paren
+                    elif self.currToken and not self.currToken["tokenType"] == ")":
+                        self.logError(f"Expected closing parenthesis ')' as the main function cannot have parameters, but found '{self.currToken['tokenName']}' instead.")
+                    else: 
+                        self.logError(f"Expected closing parenthesis ')' as the main function cannot have parameters, but reached EOF instead.")
+
 
             elif currentTokenType in PREDICT_SETS["data_type"]:
                 dtype_temp_t = self.data_type()
@@ -1405,7 +1421,7 @@ class SyntaxAnalyzer:
             else:
                 node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n, const_b)
                 if id_temp_n.id_t["tokenName"] == "main":
-                    err_msg = f"Semantic Error {id_temp_n.id_t["tokenLine"], id_temp_n.id_t["tokenCol"]-2}: Cannot declare 'main' to be a global variable."
+                    err_msg = f"Semantic Error {id_temp_n.id_t["tokenLine"], id_temp_n.id_t["tokenCol"]}: Cannot declare 'main' to be a global variable."
                     self.errors.append(err_msg)
                     raise SyntaxError(err_msg)
                     
@@ -1660,7 +1676,6 @@ class SyntaxAnalyzer:
         return func_arg_n
 
     
-
     def func_arg_rec(self, func_arg_n):
         print("(parser) production: \"func_arg_rec\" detected")
 
@@ -1672,73 +1687,74 @@ class SyntaxAnalyzer:
             self.func_arg(func_arg_n)
         else: self.logError("Expected another value after ',' but reached EOF.")
         
+    # def func_method_call(self):    
+    #     print("(parser) production: \"func_method_call\" detected")
+    #     self.match("Identifier")      
+    #     self.func_method_call_mods()      
 
-
-    def func_method_call(self):    
-        print("(parser) production: \"func_method_call\" detected")
-        self.match("Identifier")      
-        self.func_method_call_mods()      
-
-    def func_method_call_mods(self):
-        print("(parser) production: \"func_method_call_mods\" detected")
-        if self.currToken and self.currToken["tokenType"] == "(":
-            # Handle (<func_arg>) -- direct func call
-            self.match("(")
-            self.func_arg([])
-            if not self.match(")"):
-                self.ERROR_unclosed_parentheses()
-        elif self.currToken and self.currToken["tokenType"] == ".":
-            # .Identifier(<func_arg>) -- method call
-            self.match(".")
-            self.match("Identifier", False)
-            self.match("(", False)
-            self.func_arg([])
-            if not self.match(")", False):
-                self.ERROR_unclosed_parentheses()
-        elif self.currToken and self.currToken["tokenType"] == "[":
-            # method of an object in an array of object (and recurse up til it reaches method calling)
-            self.as_array()
-            self.match(".", False)
-            self.match("Identifier", False)
-            self.func_method_call_mods()
-        else:
-            # Handle λ-production (no further modifications)
-            self.ERROR_expected_token([".","(","["])
-            print("(parser) λ-production for <func_method_call_mods>")
+    # def func_method_call_mods(self):
+    #     print("(parser) production: \"func_method_call_mods\" detected")
+    #     if self.currToken and self.currToken["tokenType"] == "(":
+    #         # Handle (<func_arg>) -- direct func call
+    #         self.match("(")
+    #         self.func_arg([])
+    #         if not self.match(")"):
+    #             self.ERROR_unclosed_parentheses()
+    #     elif self.currToken and self.currToken["tokenType"] == ".":
+    #         # .Identifier(<func_arg>) -- method call
+    #         self.match(".")
+    #         self.match("Identifier", False)
+    #         self.match("(", False)
+    #         self.func_arg([])
+    #         if not self.match(")", False):
+    #             self.ERROR_unclosed_parentheses()
+    #     elif self.currToken and self.currToken["tokenType"] == "[":
+    #         # method of an object in an array of object (and recurse up til it reaches method calling)
+    #         self.as_array()
+    #         self.match(".", False)
+    #         self.match("Identifier", False)
+    #         self.func_method_call_mods()
+    #     else:
+    #         # Handle λ-production (no further modifications)
+    #         self.ERROR_expected_token([".","(","["])
+    #         print("(parser) λ-production for <func_method_call_mods>")
 
 
     # Uses of predict sets in value:
     #  - when checking for cont. if the next operator is any of the expressions, only enter cont prods
     def stopCharOrOperatorCheck(self, stopChars):
+        # if the currtoken is a valid value and not in any valid term joinin operators, then throw an expected operator
         if self.currToken["tokenType"] not in PREDICT_SETS["term_join_operators"] + stopChars and self.currToken["tokenType"] in PREDICT_SETS["value"]:  # throw an error for missing operator
             self.ERROR_expected_operator()
     
     def value(self, stopChars):
         print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        return self.logic_exp(stopChars)
+        return self.logic_exp(stopChars) # top value of the ladder
 
     def logic_exp(self, stopChars):
         # print("(parser-value-chain): Entered \"logic_exp\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        left_n = self.rel_exp(stopChars)
-        
+        left_n = self.rel_exp(stopChars)  # open/traverse down the rel-exp ladder to open terms/groupings with higher precedence
+        # this could just be an atom/factor for example  (ex. just "x" or "5") or whole bunch of other expressions with high precedence
+
+        # once left side term is finished it will check if logic ops actually exist on its right
         if self.currToken:
-            if self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
-                left_n = self.logic_exp_cont(left_n, stopChars)
-            self.stopCharOrOperatorCheck(stopChars)
+            if self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:  # && or ||
+                left_n = self.logic_exp_cont(left_n, stopChars)  # if there are any pass the prev left_n to create a new left_n node
+            self.stopCharOrOperatorCheck(stopChars) # this just checks if there is an operator between terms 
                 
         return left_n
     
     def logic_exp_cont(self, left_n, stopChars):
         # print("(parser-value-chain): Entered \"logic_exp_cont\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
         op_t = None
-        match self.currToken["tokenType"]:
+        match self.currToken["tokenType"]:  # get op tokens
             case "&&":
                 op_t = self.match("&&")
             case "||":
                 op_t = self.match("||")
-        new_left_n = node_bi_op(left_n, op_t, self.rel_exp(stopChars))
+        new_left_n = node_bi_op(left_n, op_t, self.rel_exp(stopChars))  # create a bi_op node (join the previously built left node, operator, and the right term which can be another value (so go down rel_exp again))
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["logic_operator"]:
-            new_left_n = self.logic_exp_cont(new_left_n, stopChars)
+            new_left_n = self.logic_exp_cont(new_left_n, stopChars)  # recursively go thru logic exp cont and keep adding a new left node if it still sees more logical operators
         return new_left_n
 
     def rel_exp(self, stopChars):
@@ -1824,18 +1840,20 @@ class SyntaxAnalyzer:
     
     def factor(self, stopChars):
         # print("(parser-value-chain): Entered \"factor\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-        if self.currToken and self.currToken["tokenType"] == "-":
-            return node_un_op(self.match("-"), self.factor(stopChars))
+        if self.currToken and self.currToken["tokenType"] == "-":  
+            return node_un_op(self.match("-"), self.factor(stopChars))  # un ops can be: arith negation (-5), inc, dec, not, typecasting
         elif self.currToken and self.currToken["tokenType"] == "!":
             return node_un_op(self.match("!"), self.factor(stopChars))
         elif self.currToken and self.currToken["tokenType"] == "(":
             self.match("(")
-            return self.cast_val(stopChars)
-        elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["atom"]:
+            return self.cast_val(stopChars) # type casting or grouping paren
+        
+        elif self.currToken and self.currToken["tokenType"] in PREDICT_SETS["atom"]:  
             return self.atom()
+        
         else:
             is_valid_value = False
-            self.ERROR_expected_valid_value()
+            self.ERROR_expected_valid_value() # there's an operator then no more value or there is an invalid value
 
         return is_valid_value
     
@@ -1879,6 +1897,8 @@ class SyntaxAnalyzer:
                     self.ERROR_inc_dec_not_int()
                 else:
                     self.ERROR_expected_token("Identifier")
+            if self.currToken and self.currToken["tokenType"] == ".":
+                self.ERROR_inc_dec_objects()
             else:
                 print(f"RETURNED FROM VALUE CHAIN: {node_un_op(left_t, node_iden(temp_id))}")
                 return node_un_op(left_t, node_iden(temp_id))
@@ -1899,11 +1919,12 @@ class SyntaxAnalyzer:
             else:
                 print(f"RETURNED FROM VALUE CHAIN: {node_un_op(left_t, node_iden(temp_id))}")
                 return node_un_op(left_t, node_iden(temp_id))
+        
         elif self.currToken and self.currToken["tokenType"] == "Identifier":
             temp_id = self.match("Identifier")
             temp_node = node_iden(temp_id)
             # print("(parser-value-chain): Entered \"atom\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
-            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["mods_post_op"]:  # check if it can be array accessing, method/func call, attribute, inc/dec
                 temp_node = self.mods_post_op(node_iden(temp_id))
             print(f"RETURNED FROM VALUE CHAIN: {temp_node}")
             return temp_node
@@ -1958,16 +1979,16 @@ class SyntaxAnalyzer:
     def iden_mods(self, temp_id):
         print('(parser) production: "iden_mods" detected')
         is_valid_value = True
-        if self.currToken and self.currToken["tokenType"] in ['(', '[']:
+        if self.currToken and self.currToken["tokenType"] in ['(', '[']: # iden[1] or iden()
             return self.is_func_method_arr(temp_id)
         elif (self.currToken and self.currToken["tokenType"] == "."):
             self.match(".")
             tmp_att_id_n = node_iden(self.match("Identifier", False))
-            node_temp = node_class_att(temp_id, tmp_att_id_n)
+            node_temp = node_class_att(temp_id, tmp_att_id_n)  # iden.iden
             if self.currToken and self.currToken["tokenType"] in ['(', '[']:
-                node_temp = self.is_func_method_arr(temp_id, tmp_att_id_n)
+                node_temp = self.is_func_method_arr(temp_id, tmp_att_id_n)  # iden.iden[1] or iden.iden()
             elif self.currToken and self.currToken["tokenType"] == '.':
-                self.ERROR_further_class_access()
+                self.ERROR_further_class_access() # no more iden.iden.iden
 
             return node_temp
         return is_valid_value 
@@ -1993,7 +2014,7 @@ class SyntaxAnalyzer:
         print('(parser) production: "as_array" detected')
         is_valid_value = True
         node_temp = None
-        if (self.currToken and self.currToken["tokenType"] == "["):
+        if (self.currToken and self.currToken["tokenType"] == "["): # iden[]  or iden.iden[]
             self.match("[")
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_exp"]:
                 val_temp = self.arith_exp(["]"])
@@ -2002,23 +2023,22 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_pos_integer_value()
                 else:
                     if not tmp_att_id_n:
-                        node_temp = node_arr_idx(temp_id, val_temp)
+                        node_temp = node_arr_idx(temp_id, val_temp) # iden[1]
                     else:
-                        node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val_temp)
+                        node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val_temp) # iden.iden[1]
                 
                 if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
-                    self.ERROR_expected_operator()
-                elif not self.match("]"):
+                    self.ERROR_expected_operator() # if it got [value  value]
+
+                elif not self.match("]"): # no prev err so try to match ending ]
                     is_valid_value = False
                     self.ERROR_unclosed_square_bracket()
-                if (self.currToken and self.currToken["tokenType"] == "["):
-                    if temp_id:
-                        if not tmp_att_id_n:
-                            node_temp = self.is_2d_arr(temp_id, val_temp)
-                        else:
-                            node_temp = self.is_2d_arr(temp_id, val_temp, tmp_att_id_n)
+                if (self.currToken and self.currToken["tokenType"] == "["):  # after matching first closing bracket [] <--, if [ is found then it can be a 2d array
+                    
+                    if not tmp_att_id_n:
+                        node_temp = self.is_2d_arr(temp_id, val_temp)
                     else:
-                        node_temp = self.is_2d_arr()
+                        node_temp = self.is_2d_arr(temp_id, val_temp, tmp_att_id_n)
             else:
                 self.ERROR_expected_pos_integer_value()
 

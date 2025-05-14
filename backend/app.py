@@ -46,13 +46,14 @@ def compile_code():
         
         # #--- SYNTAX ANALYZER ---
         syn_analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)  # instantiate syntax analyzer
-        parseErrs, parseTree = syn_analyzer.parse()  # returns list of errors and parse tree
+        parseErrs, parseTree, main_n = syn_analyzer.parse()  # returns list of errors and parse tree
         errors += parseErrs  # add syntax errors to list of errors
 
         # # syntax parsing success
         if "Parsing completed successfully. No Syntax Errors found." in parseErrs and not lexerrors: 
             #-- SEMANTIC ANALYZER ---  
             seman_analyzer = semantic_analyzer.SemanticAnalyzer() # instantiate semantic analyzer
+            seman_analyzer.setMain(main_n)
             semanErrs = seman_analyzer.interpret(parseTree)  # pass parse tree to semantic analyzer. returns list of semantic errors
             errors += semanErrs  # add semantic errors to list of errors
 
