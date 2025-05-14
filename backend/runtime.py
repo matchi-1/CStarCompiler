@@ -90,6 +90,7 @@ class SymbolTable:
         return {sym_name: sym_content}
 
     def set_array(self, sym_name, value, dtype, arr_info, priv=False, const=False):
+        _printlog(f"(runtime)(dbg) setting array {sym_name}, value is: ", value)
         sym_content = self._create_symbol_entry(value, dtype, priv, const)
         sym_content["arr_info"] = arr_info  
         self.syms[sym_name] = sym_content
@@ -1285,15 +1286,15 @@ class Runtime:
         if arr_dim == 1:
             match assign_op:
                 case "=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] = value
+                    self.address_list[arr_symbol["value"]][1][idx1_val] = value
                 case "+=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] += value
+                    self.address_list[arr_symbol["value"]][1][idx1_val] += value
                 case "-=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] -= value
+                    self.address_list[arr_symbol["value"]][1][idx1_val] -= value
                 case "*=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] *= value
+                    self.address_list[arr_symbol["value"]][1][idx1_val] *= value
                 case "/=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] /= value
+                    self.address_list[arr_symbol["value"]][1][idx1_val] /= value
                 case "%=":
                     if value == 0:
                         self.logError("Modulo by 0 is not allowed.", val_err_n)
@@ -1301,19 +1302,22 @@ class Runtime:
                         self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err_n)
                     if arr_symbol["dtype"][1] == "int" and value_type[1] == "long":
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {arr_symbol["dtype"][1]} and {value_type[1]}.", val_err_n)
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val] %= value
+                    self.address_list[arr_symbol["value"]][1][idx1_val] %= value
         else:
             match assign_op:
                 case "=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] = value
+                    _printlog("(runtime)(dbg) assigning to 2d array: ")
+                    _printlog(f"arr_symbol['value']: {arr_symbol["value"]}")
+                    _printlog("arr_symbol: ", arr_symbol)
+                    self.address_list[arr_symbol["value"]][1][idx1_val][idx2_val] = value
                 case "+=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] += value
+                    self.address_list[arr_symbol["value"]][1][idx1_val][idx2_val] += value
                 case "-=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] -= value
+                    self.address_list[arr_symbol["value"]][1][idx1_val][idx2_val] -= value
                 case "*=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] *= value
+                    self.address_list[arr_symbol["value"]][1][idx1_val][idx2_val] *= value
                 case "/=":
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] /= value
+                    self.address_list[arr_symbol["value"]][1][idx1_val][idx2_val] /= value
                 case "%=":
                     if value == 0:
                         self.logError("Modulo by 0 is not allowed.", val_err_n)
@@ -1321,7 +1325,7 @@ class Runtime:
                         self.logError("Type mismatch for arithmetic expression, modulo operation only supports whole numbers (int, long)", val_err_n)
                     if arr_symbol["dtype"][1] == "int" and value_type[1] == "long":
                         self.logError(f"Type mismatch for arithmetic expression, expected numeric value (int, long) for both operands, but got {arr_symbol["dtype"][1]} and {value_type[1]}.", val_err_n)
-                    self.address_list[check_scope.syms[arr_name]["value"]][1][idx1_val][idx2_val] %= value
+                    self.address_list[arr_symbol["value"]][1][idx1_val][idx2_val] %= value
 
 
     def visit_node_assign_stmt_object_att(self,node):
@@ -1723,7 +1727,8 @@ class Runtime:
                 return ('double', res)
             
             case "array_length":
-                return ('int', len(sym_details.get(func_symbol["param_names"][0])[1]["value"]) if sym_details.get(func_symbol["param_names"][0]) else len(lit_details[0][1]))
+                _printlog(f"array length {func_symbol["param_names"][0]} returning: {len(self.address_list[sym_details.get(func_symbol["param_names"][0])[1]["value"]]) if sym_details.get(func_symbol["param_names"][0]) else len(lit_details[0][1])}")
+                return ('int', len(self.address_list[sym_details.get(func_symbol["param_names"][0])[1]["value"]][1]) if sym_details.get(func_symbol["param_names"][0]) else len(lit_details[0][1]))
             
             case "array_isEmpty":
                 return ('bool', False)
@@ -2215,7 +2220,7 @@ class Runtime:
             else: arr_vals = values_list
         _printlog('(runtime)(dbg) arr_info', {'dimension': dim, 'size1': size_1, 'size2':size_2})
         # classReturn.append(self.curr_scope.set_array(id, len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
-        class_app = self.curr_scope.set_array(id, len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b)
+        class_app = copy.deepcopy(self.curr_scope.set_array(id, len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
         class_app[id]["value"] = arr_vals
         classReturn.append(class_app)
         self.address_list.append([self.scope_depth, arr_vals])
@@ -2251,7 +2256,7 @@ class Runtime:
 
             # classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], arrdec_vals, dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
             # classReturn.append(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
-            class_app = self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b)
+            class_app = copy.deepcopy(self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b))
             class_app[id]["value"] = arr_vals
             classReturn.append(class_app)
             self.address_list.append([self.scope_depth, arrdec_vals])
