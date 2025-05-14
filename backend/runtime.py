@@ -200,7 +200,7 @@ class Runtime:
     scope_depth = 0
     address_list = []
     # index will act as address
-    # each element will be a tuple, where the first element is the scope depth (for removing addresses when exiting a scope),
+    # each element will be an array, where the first element is the scope depth (for removing addresses when exiting a scope),
     # and the second element is the value
 
     numtypes = ['int', 'long', 'float', 'double']
@@ -277,8 +277,16 @@ class Runtime:
         _printlog(F'\n(runtime)(dbg) EXITING scope {nodeName}, table: ')
         #print table dbg
         self.print_symbols(self.curr_scope.syms, indent=2)
-        self.address_list = [i for i in self.address_list if i[0] != self.scope_depth]
+        _printlog("(runtime)(dbg) EXITING SCOPE, ADDRESS LIST BEFORE REMOVAL", self.address_list)
+        # self.address_list = [i for i in self.address_list if i[0] != self.scope_depth]
+        _printlog(f"removing depth {self.scope_depth}..")
+        temp = []
+        for i in range(len(self.address_list)):
+            if self.address_list[i][0] != self.scope_depth:
+                temp.append(self.address_list[i])
+        self.address_list = temp
         self.scope_depth -= 1
+        _printlog("(runtime)(dbg) ADDRESS LIST AFTER REMOVAL", self.address_list)
         self.curr_scope = self.curr_scope.parent
 
     def visit_node(self, node, funcExpectedVal = True, fromRetBlock = False):
@@ -623,7 +631,7 @@ class Runtime:
                     class_elem_info = self.curr_scope.get(param.class_id_n.id_t["tokenName"])["class_info"]["class_body_content"]
                     class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
                     _printlog(f">>>>>>>>>>>>>SET OBJ (CONSTRUCTOR): {self.curr_scope.set_obj(param_name, None, class_name, len(self.address_list))}")
-                    self.address_list.append((self.scope_depth, class_elem_info))
+                    self.address_list.append([self.scope_depth, class_elem_info])
 
 
                 elif type(param).__name__ == "node_funcpar_arr":
@@ -631,7 +639,7 @@ class Runtime:
                     arr_dim = param.arrdim_i if param.arrdim_i else None   # for any dimensions -- std lib Carray
                     _printlog(arr_dtype)
                     _printlog(f'>>>>>>>>>>>>>SET ARR: {self.curr_scope.set_array(param_name, value=len(self.address_list), dtype=arr_dtype, arr_info={"dimension": arr_dim, "size1": 1, "size2": 2 if arr_dim == 2 else None}, const=False)}')
-                    self.address_list.append((self.scope_depth, None if not arr_dtype else [self.default_vals[arr_dtype[1]]]))
+                    self.address_list.append([self.scope_depth, None if not arr_dtype else [self.default_vals[arr_dtype[1]]]])
 
                 elif type(param).__name__ == "node_funcpar_var":
                     var_dtype = ('var', param.dtype_t["tokenName"])
@@ -745,13 +753,7 @@ class Runtime:
                             if type(val).__name__ == "node_input":
                                 _, input_val, _ = self.visit_node(val)
                                 arr_val[idx] = input_val  # ← this updates the actual list
-        #load arrays into address list, and change value into the addresses
-        for k, v in class_elem_obj.items():
-            _printlog('(runtime)(dbg) checking type of class elem', type(v['value']))
-            if type(v['value']) is list:
-                vals = v['value']
-                class_elem_obj[k]['value'] = len(self.address_list)
-                self.address_list.append((self.scope_depth, vals))
+        
         init_val = None
         if class_inst_cont:
             #constructor_call_id = class_inst_cont.class_id_n.id_t["tokenName"]
@@ -767,16 +769,29 @@ class Runtime:
             #self.evaluate_func(class_id, class_inst_cont.func_arg_n)
             #_printlog(f'\n(runtime)(dbg) Now evaluating constructor in class "{class_id}"\n')
             #self.visit_node_code_block(class_inst_cont.code_block_n, class_id, class_inst_cont.class_id_n)
-
+            _printlog("entering scope for classinst cont")
             self.enter_scope(class_id)
-            self.curr_scope.syms = class_elem_info
+            self.curr_scope.syms = copy.deepcopy(class_elem_info)
             self.evaluate_func(class_id, init_val, fromConstrcutor=True)
+            class_elem_info = copy.deepcopy(self.curr_scope.syms)
             self.exit_scope(class_id)
 
-        _printlog('(runtime)(dbg) class inst class_elem_obj', class_elem_obj)
+        #load arrays into address list, and change value into the addresses
+        for k, v in class_elem_info.items():
+            _printlog('(runtime)(dbg) checking type of class elem', type(v['value']))
+            if type(v['value']) is list:
+                _printlog("class inst v['value'] is list, v['value'] is ", v["value"])
+                vals = v['value']
+                class_elem_info[k]['value'] = len(self.address_list)
+                self.address_list.append([self.scope_depth, vals])
+        _printlog('(runtime)(dbg) class inst class_elem_info', class_elem_info)
+        _printlog(f"(runtime)(dbg) adding object {obj_id} to address list at index {len(self.address_list)}")
         self.curr_scope.set_obj(obj_id, init_val, dtype, len(self.address_list))
-        self.address_list.append((self.scope_depth, class_elem_obj))
-        _printlog('(runtime)(dbg) address list after obj inst: ', self.address_list)
+        self.address_list.append([self.scope_depth, copy.deepcopy(class_elem_info)])
+        _printlog('(runtime)(dbg) address list after obj inst: ')
+        for i in self.address_list:
+            _printlog(i)
+            _printlog('---------------------------------------------------')
 
 
     def visit_node_class_att(self, node):   #iden.iden
@@ -1880,10 +1895,11 @@ class Runtime:
     def visit_node_class_method_call(self,node, expected_val):
         obj_name = node.obj_id_n.id_t["tokenName"]
         class_elem = node.method_id_n.id_t["tokenName"]
+        inner_scope_syms = None
 
         obj_info = self.curr_scope.get(obj_name)
         self.enter_scope(obj_name)
-        self.curr_scope.syms = self.address_list[obj_info["obj_info"]][1] if obj_info else None
+        self.curr_scope.syms = copy.deepcopy(self.address_list[obj_info["obj_info"]][1]) if obj_info else None
         _printlog(f"SCOPE SYMS INFO:     {self.curr_scope.syms}")
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
@@ -1911,7 +1927,9 @@ class Runtime:
             self.evaluate_func(class_elem, node.args_n)
         else:
             val = self.evaluate_func(class_elem, node.args_n, class_info[class_elem])
+        inner_scope_syms = copy.deepcopy(self.curr_scope.syms)
         self.exit_scope(obj_name)
+        self.address_list[obj_info["obj_info"]][1] = copy.deepcopy(inner_scope_syms)
         _printlog(f"RETURNED FROM METHOD_CALL: {class_info[class_elem]["dtype"], val, node.obj_id_n}")
         return (class_info[class_elem]["dtype"], val, node.obj_id_n)
     
@@ -2200,7 +2218,7 @@ class Runtime:
         class_app = self.curr_scope.set_array(id, len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b)
         class_app[id]["value"] = arr_vals
         classReturn.append(class_app)
-        self.address_list.append((self.scope_depth, arr_vals))
+        self.address_list.append([self.scope_depth, arr_vals])
     
         for arrdec_node in arr_rec or []:
             arrdec_vals = []
@@ -2236,7 +2254,7 @@ class Runtime:
             class_app = self.curr_scope.set_array(arrdec_node.id_n.id_t["tokenName"], len(self.address_list), dtype=dtype, arr_info={'dimension': dim, 'size1': size_1, 'size2':size_2}, priv=priv, const = node.const_b)
             class_app[id]["value"] = arr_vals
             classReturn.append(class_app)
-            self.address_list.append((self.scope_depth, arrdec_vals))
+            self.address_list.append([self.scope_depth, arrdec_vals])
         return classReturn
 
     # binary and unary operations
@@ -2948,6 +2966,11 @@ class Runtime:
         _printlog(f'\n(runtime)(dbg) Visiting node_output\n')
         print_stmts_n = node.print_stmts_n 
         print_params_n = node.print_params_n  
+        _printlog("address list ")
+        for i in self.address_list:
+            _printlog(i)
+            _printlog('---------------------------------------------------')
+
     
 
         # if not print_params_n:
