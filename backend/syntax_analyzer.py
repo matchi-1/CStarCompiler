@@ -1135,7 +1135,7 @@ class SyntaxAnalyzer:
         else: self.ERROR_expected_token(["[", "("] + PREDICT_SETS["assign_operator"])
 
 
-    def body(self, stopChars, isVoid = False, inControlStruct = False):     # TODO: Check for return statements reachable only within if/code_blocks, thats one semantic error
+    def body(self, stopChars, isVoid = False, inControlStruct = False):     
         print(f"(parser) Processing <body>: {self.currToken['tokenName'] if self.currToken else 'None'}")
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["body"]:
             
@@ -2034,7 +2034,6 @@ class SyntaxAnalyzer:
                     is_valid_value = False
                     self.ERROR_unclosed_square_bracket()
                 if (self.currToken and self.currToken["tokenType"] == "["):  # after matching first closing bracket [] <--, if [ is found then it can be a 2d array
-                    
                     if not tmp_att_id_n:
                         node_temp = self.is_2d_arr(temp_id, val_temp)
                     else:
@@ -2056,9 +2055,9 @@ class SyntaxAnalyzer:
             else:
                 if (temp_id and val1):
                     if not tmp_att_id_n:
-                        node_temp = node_arr_idx(temp_id, val1, val_temp)
+                        node_temp = node_arr_idx(temp_id, val1, val_temp)  # iden[1][1]
                     else:
-                        node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val1, val_temp)
+                        node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val1, val_temp) # iden.iden[1][1]
                 else:
                     node_temp = True
             if not self.match("]"):
@@ -2339,7 +2338,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"ret_value\"")
         return ret_value_n
 
-    # bare-minimum tested
+
     def break_stmt(self):
         '''<break_stmt> → break;'''
         print("(parser) entered production: \"break_stmt\"")
@@ -2351,7 +2350,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"break_stmt\"")
         return node_break_stmt(break_t)
 
-    # bare-minimum tested
+
     def continue_stmt(self):
         '''<continue_stmt> → continue;'''
         print("(parser) entered production: \"continue_stmt\"")
@@ -2363,7 +2362,6 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"continue_stmt\"")
         return node_continue_stmt(continue_t)
 
-    # bare-minimum tested
     def init_arg(self):
         '''<init_arg> → <data_type> <var_iden>| <assign_stmt> | null'''
 
@@ -2384,7 +2382,6 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"init_arg\"")
         return None
 
-    # to continue testing
     def inc_arg(self):
         '''<inc_arg> → Identifier <inc_arg_post>
                         ++Identifier
@@ -2424,7 +2421,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"inc_arg\"")
         return None
 
-    # bare-minimum tested
+
     def else_chain(self, isVoid = False):
         '''<else_stmt> → <if_stmt> | { <ctrl_stmt_body> }'''
         print("(parser) entered production: \"else_chain\"")
@@ -2471,7 +2468,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"else_stmt\"")
         return None
 
-    # bare-minimum tested
+
     def switch_stmt(self, isVoid = False):
         '''<switch_stmt> → switch (<value>) {<case_stmt> <default_stmt>}'''
         print("(parser) entered production: \"switch_stmt\"")
@@ -2483,8 +2480,7 @@ class SyntaxAnalyzer:
 
             if not self.match("(", False):
                 self.ERROR_missing_condition("switch")
-            
-            ## TODO: FIX!!!!!
+
             value_temp_n = None
 
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["switch_value"]:
@@ -2512,7 +2508,6 @@ class SyntaxAnalyzer:
         
         return node_switch_stmt(value_temp_n, case_temp_n, default_temp_n)
 
-    # bare-minimum tested
     def case_stmt(self, isVoid = False):
         '''<case_stmt> → case <case_value>: <ctrl_stmt_body> <case_stmt_rec>'''
         print("(parser) entered production: \"case_stmt\"")
@@ -2537,7 +2532,6 @@ class SyntaxAnalyzer:
         return case_stmt_n
     
 
-    # bare-minimum tested
     def case_value(self):
         '''<switch_value> → string_lit | whole_lit | <negative_exp> '''
         print("(parser) entered production: \"case_value\"") 
@@ -2567,8 +2561,6 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"case_value\"")
         return case_value_temp_t
 
-
-    # bare-minimum tested
     def default_stmt(self, isVoid = False):
         ctrl_stmt_body_temp_n = None
         
@@ -2578,8 +2570,7 @@ class SyntaxAnalyzer:
             ctrl_stmt_body_temp_n = node_ctrl_stmt_body(self.ctrl_stmt_body(isVoid))
 
         return node_default_stmt(ctrl_stmt_body_temp_n)
-    
-    # bare-minimum tested
+
     def loop_stmt(self, isVoid = False):
         print("(parser) entered production: \"loop_stmt\"")
         
@@ -2598,8 +2589,7 @@ class SyntaxAnalyzer:
         print (node_loop_stmt(loop_stmt_temp_n))
         return node_loop_stmt(loop_stmt_temp_n)
         
-    
-    # bare-minimum tested
+  
     def forloop_stmt(self, isVoid = False):
         print("(parser) entered production: \"forloop_stmt\"")
 
@@ -2652,7 +2642,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"forloop_stmt\"")
         return node_forloop(init_arg_temp_n, condition_temp_n, inc_arg_temp_n, ctrl_stmt_body_temp_n)
     
-    # bare-minimum tested
+
     def while_stmt(self, isVoid = False):
         print("(parser) entered production: \"while_stmt\"")
 
@@ -2681,7 +2671,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"while_stmt\"")
         return node_while(condition_temp_n, ctrl_stmt_body_temp_n)
 
-    # bare-minimum tested
+
     def do_stmt(self, isVoid = False):
         print("(parser) entered production: \"do_stmt\"")
         
@@ -2717,7 +2707,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"do_stmt\"")
         return node_do(condition_temp_n, ctrl_stmt_body_temp_n)
 
-    # bare-minimum tested
+
     def repeat_stmt(self, isVoid = False):
         print("(parser) entered production: \"repeat_stmt\"")
 
@@ -2761,7 +2751,7 @@ class SyntaxAnalyzer:
         print("(parser) exited production: \"return_block\"")
         return node_return_block(return_t, ret_value_n)
     
-    # bare-minimum tested
+
     def ctrl_stmt_body(self, isVoid = False):
         print("(parser) entered production: \"ctrl_stmt_body\"")
         
@@ -2785,7 +2775,7 @@ class SyntaxAnalyzer:
         
         return statements_n
 
-#jeh
+
     def input(self):
         print("(parser) entered production: \"input\"")
         '''<input> → in<data_type>(<input_params>)'''
