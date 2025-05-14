@@ -391,6 +391,10 @@ class Runtime:
 
     def _format_output(self, dtype, target_dtype, value):
         _printlog(f"Formatting output: type: {dtype}, value: {value}, target: {target_dtype}")
+
+        if target_dtype == 'bool':
+            return 'true' if value else 'false'
+
         if target_dtype in ['float', 'double']:
             if dtype in ['int', 'long']:
                 match dtype:
@@ -439,6 +443,8 @@ class Runtime:
                         return str(self.MIN_LONG)
                     
             return str(value)
+        
+
 
         norm_value = value.normalize()
         _, digits, exponent = norm_value.as_tuple()
@@ -2914,18 +2920,24 @@ class Runtime:
             raw_input_val = raw_input_val[:(count_value)]
 
         try:
-            if expected_dtype == "int":
-                strValue = int(raw_input_val)  
+            if expected_dtype == "int":  # all other values here except bool/string, when typecasted into py, should be checked in ctsr's check_type_and_range
+                castedVal = int(raw_input_val)  
             elif expected_dtype == "long":
-                strValue = int(raw_input_val)  
+                castedVal = int(raw_input_val)  
             elif expected_dtype == "float":
-                strValue = float(raw_input_val) 
+                castedVal = float(raw_input_val) 
             elif expected_dtype == "double":
-                strValue = float(raw_input_val)  
+                castedVal = float(raw_input_val)  
             elif expected_dtype == "string":
-                strValue = str(raw_input_val)  
-            elif expected_dtype == "bool":
-                strValue = bool(raw_input_val)  
+                castedVal = str(raw_input_val)  
+            elif expected_dtype == "bool": # should just check "true" or "false"
+                if raw_input_val == "true":
+                    castedVal = True
+                elif raw_input_val == "false":
+                    castedVal = False
+                else:
+                    self.logError(f"Cannot convert input '{raw_input_val}' to 'bool'. Input must either be 'true' or 'false' only.", err_n)
+                
             else:
                 self.logError(f"Unsupported data type for input: {expected_dtype}", err_n)
                 return None
@@ -2934,8 +2946,8 @@ class Runtime:
             return None
         
         
-        _printlog(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), strValue)}")
-        return (('lit', expected_dtype), strValue, err_n)
+        _printlog(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), castedVal)}")
+        return (('lit', expected_dtype), castedVal, err_n)
     
        
     def handle_backspace_escapes(self, s):

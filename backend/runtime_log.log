@@ -13,20 +13,74 @@
 
 (runtime)(dbg) VISITING node_code_block!!
 
+(runtime)(dbg) VISITING node_vardec!!
+
+(runtime)(dbg) VISITING node_input!!
+
+(runtime)(dbg) VISITING node_str!!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'enter a bool: ', <runtime.ErrorNode object at 0x000001ECCF9EDCD0>)
+>>>> START GET INPUT FROM USER
+>>>> EMIT REQUEST INPUT
+>>>> WAITING INPUT FROM FRONTEND.....
+>>>> PROMPT FROM BACKEND: enter a bool: 
+Received user input: {'response': 'true'}
+>>>> DONEEE WAITING INPUT FROM FRONTEND.....
+>>>> User entered: true
+RETURNED FROM NODE_INPUT: (('lit', 'bool'), True)
+(runtime)(dbg) dec valtype:  ('lit', 'bool')
+ -------------------------------------------> val_type: bool d_type: bool
+PRINT >>>>>>>>>>>>>>>>> DEC_TYPE: variable
+PRINT >>>>>>>>>>>>>>>>> DTYPE: ('var', 'bool')
+PRINT >>>>>>>>>>>>>>>>> VAL_TYPE: ('lit', 'bool')
+PRINT >>>>>>>>>>>>>>>>> ID_N: x
+PRINT >>>>>>>>>>>>>>>>> VALUE: True
+PRINT >>>>>>>>>>>>>>>>> INDEX_1D: None
+PRINT >>>>>>>>>>>>>>>>> INDEX_2D: None
+PRINT >>>>>>>>>>>>>>>>> index: None
+AAAAAAAAAAA CODE BLOCK RET [{'x': {'value': True, 'dtype': ('var', 'bool'), 'priv': False, 'const': False}}]
+AAAAAAA RETURN PROMISES []
+
+(runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
+		x : {
+			value : True
+			dtype : ('var', 'bool')
+			priv : False
+			const : False
+		}
+
 (runtime)(dbg) VISITING node_output!!
 
 (runtime)(dbg) Visiting node_output
 
 address list 
 
+(runtime)(dbg) VISITING node_bi_op!!
+
 (runtime)(dbg) VISITING node_str!!
-(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'Hello World!', <runtime.ErrorNode object at 0x0000017D7FDCAF90>)
-(runtime)(OUTPUT) printing:  Hello World!
+(runtime)(dbg) RETURNED FROM node_str!! : (('lit', 'string'), 'bool: ', <runtime.ErrorNode object at 0x000001ECCF9A38C0>)
+
+(runtime)(dbg) VISITING node_un_op!!
+
+(runtime)(dbg) VISITING node_iden!!
+VISITING IDEN: x
+IDEN_SMYBOL:  {'value': True, 'dtype': ('var', 'bool'), 'priv': False, 'const': False}
+RETURNED FROM NODE_IDEN: iden_symbol["dtype"]: ('var', 'bool'), iden_symbol["value"]:True
+AAAA CHECK VALUE NODE ('var', 'bool') True
+AAAA CHECK VALUE NODE ('lit', 'string') True
+(runtime) bi_op left_type: ('lit', 'string') left_val: bool: 
+(runtime) bi_op right_type: ('lit', 'string') right_val: True
+AAAA CHECK VALUE NODE ('lit', 'string') bool: True
+(runtime)(OUTPUT) printing:  bool: True
 AAAAAAAAAAA CODE BLOCK RET None
 AAAAAAA RETURN PROMISES []
 
 (runtime)(dbg) CURRENT LOCAL SCOPE TABLE: 
-		{ }
+		x : {
+			value : True
+			dtype : ('var', 'bool')
+			priv : False
+			const : False
+		}
 AAAAAAAAAAAAAAAA BODY RET None
 
 (runtime)(dbg) VISITING node_return_block!!
@@ -36,7 +90,12 @@ ENTERED RETURN BLOCK
  node: None
 
 (runtime)(dbg) EXITING scope node_body, table: 
-		{ }
+		x : {
+			value : True
+			dtype : ('var', 'bool')
+			priv : False
+			const : False
+		}
 (runtime)(dbg) EXITING SCOPE, ADDRESS LIST BEFORE REMOVAL []
 removing depth 1..
 (runtime)(dbg) ADDRESS LIST AFTER REMOVAL []
@@ -52,94 +111,15 @@ node_imports_list: (stdlib_n: []),
 node_program_constructs: (
 ),
 
-node_body: { body_codeblock_n: node_code_block(node_output: (print_stmts_n: print, print_params_n: ["Hello World!"])
+node_body: { body_codeblock_n: node_code_block(node_vardec: 
+	(const_b: False, dtype_t: bool, id_n: x, node_vardec_cont: (value_n: in<{'tokenName': 'bool', 'tokenType': 'bool', 'tokenLine': 2, 'tokenCol': 18}>("enter a bool: ", None), 
+	idec_rec_n: [])
+),
+node_output: (print_stmts_n: print, print_params_n: [node_bi_op: ("bool: " + node_un_op: (unary_op: string, id_n: x))])
 ), 
 body_return_stmt_n: node_return_block: (ret_value_n: None) }
  
 }
 Received user input: {'response': ''}
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
-Client connected
 Client connected
 Client connected
