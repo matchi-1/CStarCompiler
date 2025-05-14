@@ -620,7 +620,7 @@ class LexicalAnalyzer:
 
             case 's130':
                 match currChar:
-                    case 'd':  currState = 'VOID_CHECK'
+                    case 'd':  currState = 'VOID_CHECK'  # s131
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -828,7 +828,7 @@ class LexicalAnalyzer:
             currState = 's0'
 
         print("(dbgl ----------SCAN START--------")
-        for i in range(len(code)): #need index for later
+        for i in range(len(code)): # need index for later
             print('(dbg) ---NEW CHAR---')
             print('(dbg) state: ', currState)
             print('(dbg) ', code[i])
@@ -851,28 +851,33 @@ class LexicalAnalyzer:
                 currCol += 1  # regardless, add 1 to col 
                 lineContent += code[i]  # add char to line content
 
-            #if no transitions, it means it's time for delim checking
+            # DEFINED = there's a path to another state
+            # UNDEFINED = delim checking bc there is no more paths
+            # ANY = any character
+
+            # if no transitions, it means it's time for delim checking
             if (self.transition(currState, 'ANY') != 'DEFINED'):
                 print('(dbg) delim checking')
                 match currState:
-                #data type keywords
-                    case 'BOOL_CHECK':
+                
+                # Data type keywords (bool, int, long, string, float, double)
+                    case 'BOOL_CHECK':  # "bool" keyword
                         expected = self.type_iden_delim
                         if (code[i] in self.type_iden_delim):
                             add_token(currToken, 'bool', currLine, currCol)
-                        elif (code[i] in self.alphanum + ['_']):
-                            currToken += code[i]
-                            currState ='s205'
-                            print('(dbg) now in state 215')
+                        elif (code[i] in self.alphanum + ['_']):  # bool_  or boola
+                            currToken += code[i]  # add char to token
+                            currState ='s205'  # go to iden states
+                            print('(dbg) now in state 205')
                             if reset_col:
                                 currLine += 1
                                 currCol = 1
                                 reset_col = False
                             continue
                         else:
-                            currToken += code[i]
+                            currToken += code[i]  # invalid delim to bool
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    case 'DOUBLE_CHECK':
+                    case 'DOUBLE_CHECK':  # "double" keyword
                         expected = self.type_iden_delim
                         if (code[i] in self.type_iden_delim):
                             add_token(currToken, 'double', currLine, currCol)
@@ -888,7 +893,7 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    case 'FLOAT_CHECK':
+                    case 'FLOAT_CHECK': # "float" keyword
                         expected = self.type_iden_delim
                         if (code[i] in self.type_iden_delim):
                             add_token(currToken, 'float', currLine, currCol)
@@ -904,7 +909,7 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    case 'INT_CHECK':
+                    case 'INT_CHECK':   # "int" keyword
                         print('(dbg) in int_check')
                         expected = self.type_iden_delim
                         if (code[i] in self.type_iden_delim):
@@ -921,7 +926,7 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    case 'LONG_CHECK':
+                    case 'LONG_CHECK': # "long" keyword
                         expected = self.type_iden_delim
                         if (code[i] in self.type_iden_delim):
                             add_token(currToken, 'long', currLine, currCol)
@@ -937,7 +942,7 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-                    case 'STRING_CHECK':
+                    case 'STRING_CHECK': # "string" keyword
                         expected = self.type_iden_delim
                         if (code[i] in self.type_iden_delim):
                             add_token(currToken, 'string', currLine, currCol)
@@ -953,8 +958,9 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
+                    
                     #break statement
-                    case 'BREAK_CHECK':
+                    case 'BREAK_CHECK': # "break" keyword
                         expected = self.break_ret_cont_delim
                         if (code[i] in self.break_ret_cont_delim):
                             add_token(currToken, 'break', currLine, currCol)
@@ -970,6 +976,11 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
+                    
+                    # SYMBOLS 
+                    # -- if it's a symbol, it doesn't have a pathway to go to an iden (s205)
+                    # -- if the symbol has a continuation like --, -= and !=, then it just changes the state (and we go to the next iteration)
+
                     # ( symbol
                     case 'OPEN_PAREN_CHECK':
                         expected = ['alphanum', ' ', '\"', '!', ')', '+', '-', '/']
@@ -1000,7 +1011,7 @@ class LexicalAnalyzer:
                         if (code[i] in self.negative_delim):
                             add_token(currToken, '-', currLine, currCol)
                         elif (code[i] in ['-', '=']):
-                            print('(dbg) going to s143')
+                            print('(dbg) going to s139')
                             currState = 's139'
                         else:
                             currToken += code[i]
@@ -1138,13 +1149,15 @@ class LexicalAnalyzer:
                             add_token(currToken, '=', currLine, currCol)
                         else:
                             currState = 's201'
+
+
                     # in statement
                     case 'IN_CHECK':
                         expected = ['<', '/']
                         if (code[i] in self.in_delim):
                             add_token(currToken, 'in', currLine, currCol)
                         elif(code[i] in self.alphanum + ['_']):
-                            currState = 's75'
+                            currState = 's75' 
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1263,7 +1276,7 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # void statement
-                    case 'VOID_CHECK':
+                    case 'VOID_CHECK': # s131
                         expected = self.whitespace + self.newline + ['/']
                         if (code[i] in self.void_delim):
                             add_token(currToken, 'void', currLine, currCol)
@@ -1279,6 +1292,7 @@ class LexicalAnalyzer:
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
+                    
                     # while statement
                     case 'WHILE_CHECK':
                         expected = self.loop_delim
@@ -1599,6 +1613,7 @@ class LexicalAnalyzer:
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
             # end of delim checking if statement
             
+
             #------------------ SPECIAL STATES ------------------
             # s205 - Identifier
             # s207 - Single line comment
@@ -1665,12 +1680,12 @@ class LexicalAnalyzer:
                 if (code[i] in self.numbers):  # if the next char is still a number 
                     print("(dbg) got another number")
                     currWholeCount += 1  # increment the whole count
-                    currToken += code[i]
-                    if (currWholeCount > 19):
-                        if (wholeError):
+                    currToken += code[i]  # add the current digit to the number being built
+                    if (currWholeCount > 19):  # if the current whole number count is above 19, then it exceeded max digit count for whole numbers
+                        if (wholeError):  # if there is a whole error before, then u pop the last error to keep updating the error to the new one
                             errors.pop()
-                        errors.append(self.wholeRangeError(currToken, currLine, currCol, lineContent, leadingSpaces))
-                        wholeError = True
+                        errors.append(self.wholeRangeError(currToken, currLine, currCol, lineContent, leadingSpaces)) # add the latest exceeded max digit count error
+                        wholeError = True 
                         if reset_col:
                             currLine += 1
                             currCol = 1
@@ -1682,19 +1697,19 @@ class LexicalAnalyzer:
                             currCol = 1
                             reset_col = False
                         continue
-                if (code[i] in self.nbl_delim and not wholeError):
-                    add_token(currToken, 'whole_lit', currLine, currCol)
-                    currWholeCount = 0
+                if (code[i] in self.nbl_delim and not wholeError): # if we're currently still in the whole number loop, and we encounter a numbool delim, and there were no errors,
+                    add_token(currToken, 'whole_lit', currLine, currCol) # then we just add the whole num token
+                    currWholeCount = 0 # reset the digit counters
                     currFracCount = 0
-                elif (code[i] != '.' and not wholeError):
+                elif (code[i] != '.' and not wholeError): # no errors, and the next symbol is not a decimal point, then the delim is invalid for the number
                     currToken += code[i]
                     expected = self.nbl_delim
                     print('(dbg) whole lit delim error')
                     add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     currWholeCount = 0
                     currFracCount = 0
-                elif (code[i] != '.'):
-                    wholeError = False
+                elif (code[i] != '.'): # there was a whole error found, and no fractional part, then just reset the flags, states, tokens, and count
+                    wholeError = False # reset everything so u continue to scan for next chars (continue analysis)
                     currState = 's0'
                     currToken = ''
                     currWholeCount = 0
@@ -1703,16 +1718,16 @@ class LexicalAnalyzer:
 
 
             # >>> fractional part of number
-            if (currState == 's216'):
-                if (code[i] in self.numbers):
-                    need_frac_num = False
-                    currFracCount += 1
-                    currToken += code[i]
-                    if (currFracCount > 16): 
+            if (currState == 's216'): # is after the decimal state (fractional part)
+                if (code[i] in self.numbers): # if its a number,
+                    need_frac_num = False # no more for this error bc u found a number
+                    currFracCount += 1 # increment digit count for fra num 
+                    currToken += code[i] # add the num to the token
+                    if (currFracCount > 16):  # exceeded frac max digit count
                         if (fracError):
-                            errors.pop()
-                        errors.append(self.fracPrecError(currToken, currLine, currCol, lineContent, leadingSpaces))
-                        fracError = True
+                            errors.pop() # same logic in whole number, just remove last err
+                        errors.append(self.fracPrecError(currToken, currLine, currCol, lineContent, leadingSpaces)) # then update with current one
+                        fracError = True 
                         if reset_col:
                             currLine += 1
                             currCol = 1
@@ -1724,24 +1739,24 @@ class LexicalAnalyzer:
                             currCol = 1
                             reset_col = False
                         continue
-                elif need_frac_num:
-                    need_frac_num = False
+                elif need_frac_num: # we had a decimal point without a number next to it
+                    need_frac_num = False #reset
                     currToken += code[i]
                     expected = self.nbl_delim
-                    add_error(self.missingNumError(currToken, currLine, currCol, lineContent, leadingSpaces))
+                    add_error(self.missingNumError(currToken, currLine, currCol, lineContent, leadingSpaces)) # throw this err
                     currWholeCount = 0
                     currFracCount = 0
-                elif (code[i] in self.nbl_delim and not (wholeError or fracError)):
-                        add_token(currToken, 'frac_lit', currLine, currCol)
+                elif (code[i] in self.nbl_delim and not (wholeError or fracError)): # we found a valid delim in the frac num loop
+                        add_token(currToken, 'frac_lit', currLine, currCol) # so we add the token
                         currWholeCount = 0
                         currFracCount = 0
-                elif not (wholeError or fracError):
+                elif not (wholeError or fracError): # we didn't have any whole/frac digit count err, then we encountered an invalid delim
                     currToken += code[i]
                     expected = self.nbl_delim
                     add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     currWholeCount = 0
                     currFracCount = 0
-                else:
+                else: # there was a digit count err, so we reset everything and just continue checking
                     wholeError = False
                     fracError = False
                     currState = 's0'
@@ -1752,22 +1767,22 @@ class LexicalAnalyzer:
             
             
             # >>> string
-            if (currState == 's213'):
-                if (code[i] == '\\' and not char_esc):
-                    char_esc = True
-                    currToken += code[i]
+            if (currState == 's213'):  # we encountered " or encountered " before so we are inside the string loop
+                if (code[i] == '\\' and not char_esc): # if the curr char is a backslash , and we didnt encounter a backslash before, then we know that we are escaping a char
+                    char_esc = True     # will be treated as an attempt to escape a char
+                    currToken += code[i]  # add to the string token
                     if reset_col:
                         currLine += 1
                         currCol = 1
                         reset_col = False
                     continue
-                if (char_esc):
-                    if (code[i] not in ['\'', '\"', '\\', 't', 'n', 'b']):
-                        print('(dbg) esc seq error')
+                if (char_esc):  # if we found a backslash before, 
+                    if (code[i] not in ['\"', '\\', 't', 'n']):  # and the next character is not a valid escape sequence, then we know that the escape sequence is invalid
+                        print('(dbg) esc seq error') 
                         add_error(self.escSeqError(currToken, currLine, currCol, lineContent, leadingSpaces))
-                    else:
+                    else: # it was a valid esc char
                         currToken += code[i]
-                    char_esc = False
+                    char_esc = False  # reset the esc flag
                     if reset_col:
                         currLine += 1
                         currCol = 1
