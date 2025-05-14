@@ -2538,6 +2538,8 @@ class Runtime:
                             return (('lit', 'bool'), right_val != 0.0, left_err)
                     # return (('lit', 'bool'), None)
                 case 'string':
+                    if right_type[1] == 'bool':
+                        right_val = 'true' if right_val else 'false'
                     return (('lit', 'string'), str(right_val), left_err)
                     # return (('lit', 'string',), None)
                 case 'int':
