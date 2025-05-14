@@ -2958,7 +2958,7 @@ class Runtime:
             self.logError(f"Cannot convert input '{raw_input_val}' to '{expected_dtype}'.", err_n)
             return None
         
-        #self.check_type_and_range('input value', expected_dtype, expected_dtype, castedVal, err_n = err_n)
+        self.check_type_and_range('input value', expected_dtype, expected_dtype, castedVal, err_n = err_n)
         _printlog(f"RETURNED FROM NODE_INPUT: {(('lit', expected_dtype), castedVal)}")
         return (('lit', expected_dtype), castedVal, err_n)
     
