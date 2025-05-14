@@ -117,9 +117,11 @@ class SymbolTable:
         return {sym_name: sym_content}
     
     
-    def set_constructor(self, sym_name, param_types):
+    def set_constructor(self, sym_name, param_types, param_names, value):
         sym_content = {}
+        sym_content["value"] = value # body node to be visited
         sym_content["params"] = param_types
+        sym_content["param_names"] = param_names
         self.syms[sym_name] = sym_content
         return {sym_name: sym_content}
     
@@ -219,23 +221,6 @@ class Runtime:
 
     RETURN_PROMISES = list()
 
-    CONSTRUCTOR_NODES = []
-
-    def extract_constructors(self, node_program_constructs):
-        constructors = []
-
-        constructs = node_program_constructs.program_constructs_statement_n
-
-        for construct in constructs:
-            print(construct)
-            if not isinstance(construct, node_class_dec):
-                continue
-
-            if construct and construct.constructor_dec_n:
-                constructors.append(construct.constructor_dec_n)
-
-        return constructors
-
 
     def interpret(self, node):
         start_time = time.time()
@@ -248,8 +233,7 @@ class Runtime:
             print('---------GLOBAL TABLE---------\n\t\t')
             self.print_symbols(self.curr_scope.syms, indent=2)
             print('-----------AST-----------------\n\t\t', node)
-            self.CONSTRUCTOR_NODES = self.extract_constructors(node.program_structure_stmts[1])
-            print('-----------CONSTRUCTORS------------------\n\t\t', self.CONSTRUCTOR_NODES)
+            
             #print('-----------OUTPUT--------------\n\t\t', self.output)
             
             
@@ -577,6 +561,7 @@ class Runtime:
             self.logError(f"Only one constructor allowed for each class. Duplicate constructor definition found at class '{className}'.", err_n)
             return
         param_types = []
+        param_names = []
         if node.params_n: # if params_n isn't None
             for param in node.params_n:
                 if type(param).__name__ == "node_funcpar_class":
@@ -598,13 +583,15 @@ class Runtime:
 
                 elif type(param).__name__ == "node_funcpar_var":
                     param_types.append({
-                        "dtype": ("var", param.dtype_t["tokenName"])
+                        "dtype": ("var", param.dtype_t["tokenName"] if param.dtype_t else None)
                     }) 
+                param_names.append(param.id_n.id_t["tokenName"])
 
         # Ensure param_types is set to None if empty
         param_types = param_types if param_types else None
+        param_names = param_names if param_names else None
         constructorInfo = {}
-        constructorInfo = self.curr_scope.set_constructor(className, param_types)
+        constructorInfo = self.curr_scope.set_constructor(className, param_types, param_names, node.code_block_n)
 
         #self.enter_scope(type(node).__name__)
         print(f"\n(runtime)(dbg) ENTERING scope Constructor for class '{className}'")
@@ -709,6 +696,9 @@ class Runtime:
         obj_id = node.obj_id_n.id_t["tokenName"]
         class_inst_cont = node.class_instcont_n
 
+        print("a90q8310923", class_id)
+        print("a90q8310123123123923", class_inst_cont)
+
         # if self.curr_scope.get(obj_id, False):
         #     self.logError(f"Symbol '{obj_id}' has already been declared in local scope.", node.obj_id_n)
 
@@ -725,7 +715,7 @@ class Runtime:
         class_elem_info = {k: v for k, v in class_elem_info.items() if not v["priv"]}       #filter items
         class_elem_obj = copy.deepcopy(class_elem_info)
         for att_method, att_method_info in class_elem_obj.items():
-            print(f"!#@$%@$!^%$@!^%$@!%^$%@!%^$@^!$@^%!$@^$!@^@!^%$^@!$^\natt_method: {att_method}\\\\\ {type(att_method).__name__}\n att_method_info: {att_method_info} |||| {type(att_method_info).__name__}")
+            #print(f"!#@$%@$!^%$@!^%$@!%^$%@!%^$@^!$@^%!$@^$!@^@!^%$^@!$^\natt_method: {att_method}\\\\\ {type(att_method).__name__}\n att_method_info: {att_method_info} |||| {type(att_method_info).__name__}")
             
             if type(att_method_info["value"]).__name__ == "node_input":
                 _, input_val, _ = self.visit_node(att_method_info["value"])
@@ -733,7 +723,7 @@ class Runtime:
 
             if type(att_method_info["value"]).__name__ == "list":
                 arr_vals = att_method_info["value"]
-                print(f"***************************************************\narr_vals: {arr_vals}")
+                #print(f"***************************************************\narr_vals: {arr_vals}")
                 if att_method_info["arr_info"]["dimension"] == 1:
                     for idx, arr_val in enumerate(arr_vals):
                         if type(arr_val).__name__ == "node_input":
@@ -761,17 +751,19 @@ class Runtime:
             while not check_scope_class.get(class_id, False):
                 check_scope_class = check_scope_class.parent
             
-            class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"]
+            class_constructor_info = check_scope_class.get(class_id)["class_info"]["constructor_dec"][class_id]
             
-            self.check_function_params(class_constructor_info[class_id], class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
+            self.check_function_params(class_constructor_info, class_inst_cont.func_arg_n, class_inst_cont.class_id_n, "constructor")
             init_val = class_inst_cont.func_arg_n
             #self.evaluate_func(class_id, class_inst_cont.func_arg_n)
             #print(f'\n(runtime)(dbg) Now evaluating constructor in class "{class_id}"\n')
             #self.visit_node_code_block(class_inst_cont.code_block_n, class_id, class_inst_cont.class_id_n)
-            for constructors in self.CONSTRUCTOR_NODES:
-                    if constructors and constructors.class_id_n == class_id:
-                        self.visit_node(constructors.code_block_n)
-                        break
+
+            self.enter_scope(class_id)
+            self.curr_scope.syms = class_elem_info
+            self.evaluate_func(class_id, init_val, fromConstrcutor=True)
+            self.exit_scope(class_id)
+
         print('(runtime)(dbg) class inst class_elem_obj', class_elem_obj)
         self.curr_scope.set_obj(obj_id, init_val, dtype, len(self.address_list))
         self.address_list.append((self.scope_depth, class_elem_obj))
@@ -1513,11 +1505,13 @@ class Runtime:
         print(f"\n(runtime)(dbg) EXITED node_assign_stmt_object_att_arr!! New local object '{{' info: {{")
 
     # func call evaluation
-    def evaluate_func(self, func_name, args_list, method_symbol= None):
+    def evaluate_func(self, func_name, args_list, method_symbol= None, fromConstrcutor= False):
         print(f'\n(runtime)(dbg) Now evaluating funtion {func_name}\n')
         func_symbol = self.curr_scope.get(func_name)
         if not func_symbol:
             func_symbol = method_symbol
+        if fromConstrcutor:
+            func_symbol = func_symbol["class_info"]["constructor_dec"][func_name]
         print(f"FUNC SYMBOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {func_symbol}")
                 
         #populate symbol table with arguments
@@ -1525,8 +1519,10 @@ class Runtime:
         sym_details = {}
         for i, arg_n in enumerate(args_list):
             nodeName = type(arg_n).__name__
+            print('019238091283092183', arg_n, "   a    ", nodeName,"\n\n", args_list, "\n\n", func_symbol)
             if nodeName != 'node_iden':
                 dtype, val, _ = self.visit_node(arg_n)
+                print("01011001010109381209.", (func_symbol["param_names"][i], val, dtype))
                 lit_details.append((func_symbol["param_names"][i], val, dtype)) 
             else:
                 sym_details[func_symbol["param_names"][i]] = (arg_n.id_t["tokenName"], self.curr_scope.get(arg_n.id_t["tokenName"]))
@@ -1542,15 +1538,15 @@ class Runtime:
             elif sym_details[param][1]["dtype"][0] == 'arr':
                 self.curr_scope.set_array(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"], sym_details[param][1]["arr_info"])
             #else: obj
-        self.curr_scope.set_function(func_name, func_symbol["dtype"], func_symbol["params"], func_symbol["param_names"], func_symbol["value"], priv=func_symbol["priv"], isStd_lib=func_symbol["isStd_lib"])
+        self.curr_scope.set_function(func_name, func_symbol["dtype"] if not fromConstrcutor else None, func_symbol["params"], func_symbol["param_names"], func_symbol["value"], priv=func_symbol["priv"] if not fromConstrcutor else None, isStd_lib=func_symbol["isStd_lib"] if not fromConstrcutor else None)
         print(f'ABOUT TO ENTER {func_name} BODY WITH SYMBOL TABLE:')
         self.print_symbols(self.curr_scope.syms, indent=2)
 
         print(f'\n(runtime)(dbg) About to visit {func_name}\'s body node...')
-        body_ret = self.visit_node_body(func_symbol["value"])
+        body_ret = self.visit_node_body(func_symbol["value"]) if not fromConstrcutor else self.visit_node(func_symbol["value"])
         ret_type = None
         ret_val = None
-        if body_ret:
+        if body_ret:    
             print('AAAAAAAAAAAAAAAAAAAAAA BODY RET', body_ret)
             # # format A: direct tuple (ex. (('var', 'string'), 'bdbdbd', <ErrorNode>))
             # if isinstance(body_ret, tuple) and len(body_ret) == 3:
@@ -1873,7 +1869,7 @@ class Runtime:
 
         obj_info = self.curr_scope.get(obj_name)
         self.enter_scope(obj_name)
-        self.curr_scope.syms = self.address_list[obj_info["obj_info"]][1]
+        self.curr_scope.syms = self.address_list[obj_info["obj_info"]][1] if obj_info else None
         print(f"SCOPE SYMS INFO:     {self.curr_scope.syms}")
         if not obj_info:
             self.logError(f"Object '{obj_name}' is not yet declared.", node.obj_id_n)
