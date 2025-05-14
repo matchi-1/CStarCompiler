@@ -778,37 +778,46 @@ class LexicalAnalyzer:
 
     #---TOKEN EXTRACTION AND CLASSIFICATION---#
     def scan(self, code):
-        code = code.replace('\r\n', '\n')   
+        code = code.replace('\r\n', '\n')    # replace keyboard return carriages
+
         for char in code:
             print(f'(debug) {char} : {ord(char)}')
-        tokens = [] #list of tokens (token.tokenName, token.tokenType)
-        errors = [] #will hold strings of error msges
-        currToken = ''
-        currState = 's0'
-        lineContent = ''
-        currLine = 1
-        currCol = 1
-        currWholeCount = 0
-        currFracCount = 0
-        wholeError = False
+
+        tokens = [] # list of tokens -- token object with attributes: token.tokenName, token.tokenType, token_line, token_column
+        errors = [] # will hold strings of error msges
+
+        currToken = ''    # set current token to empty string at start
+        currState = 's0'  # set current state to s0 at start
+        lineContent = ''  # empty line content at star
+        currLine = 1      # start at line 1
+        currCol = 1       # start at column 1
+        currWholeCount = 0   # set whole count at start to 0 
+        currFracCount = 0     # set frac count at start to 0 
+
+        # flags 
+        wholeError = False     
         fracError = False
-        char_esc = False
-        leadingSpaces = 0
-        isLeadingSpace = True
-        global need_frac_num
-        global multi_line_start_found
+        char_esc = False  # backslash caught inside string
+
+
+        leadingSpaces = 0  # start with 0 leading spaces per line for err msgs
+        isLeadingSpace = True # flag (true == increment leading spaces)
+
+        global need_frac_num   # flag for whole number loop (if there's "." there should be a digit after)
+        global multi_line_start_found   # flag to check multi line (used to determine if multiline was never closed)
+
         multi_line_start_found = False
-        multi_line_start_line = 0
+        multi_line_start_line = 0  # for err tracking
         multi_line_start_col = 0
         reset_col = False
-        # first_char = True
+
 
         # Helper function inside lexer to add a token(set its properties), append to token list, and reset current token and state
-        def add_token(name, type, line, column): # alex: added line and column for syntax error tracing
+        def add_token(name, type, line, column):  
             nonlocal currToken, currState, currLine, currCol # use nonlocal keyword to access currToken, currState
-            token = Token(name, type, line, column - 2) 
-            tokens.append(token)
-            currToken = ''
+            token = Token(name, type, line, column - 2)   # -2 for column bc fsr it's off by 2
+            tokens.append(token)  # append token
+            currToken = '' # reset state and currtoken 
             currState = 's0'
 
         # Helper function to reset state and token when appending errors
@@ -826,21 +835,21 @@ class LexicalAnalyzer:
             print('(dbg) ascii: ', ord(code[i]))
 
             #update line and col
-            if (code[i] == '\n' and i != len(code)-1): 
-                reset_col = True
-                leadingSpaces = 0
-                isLeadingSpace = True
+            if (code[i] == '\n' and i != len(code)-1):   # user pressed enter -- new line  (not the last /n)
+                reset_col = True   # reset column
+                leadingSpaces = 0   # reset spaces
+                isLeadingSpace = True # the very first position (potentially a space)
                 lineContent = ''
-            elif code[i] == '/' and i + 1 < len(code) and code[i + 1] == '*' and not multi_line_start_found:
+            elif code[i] == '/' and i + 1 < len(code) and code[i + 1] == '*' and not multi_line_start_found:  # check if current char is / and followed by *, then it means it might be an unclosed multiline comment
                 multi_line_start_line = currLine
                 multi_line_start_col = currCol - 1
             else:
                 if code[i] != ' ':
-                    isLeadingSpace = False
+                    isLeadingSpace = False  # no more leading space for that line 
                 if isLeadingSpace:
-                    leadingSpaces += 1
-                currCol += 1
-                lineContent += code[i]
+                    leadingSpaces += 1  # there is a leading space
+                currCol += 1  # regardless, add 1 to col 
+                lineContent += code[i]  # add char to line content
 
             #if no transitions, it means it's time for delim checking
             if (self.transition(currState, 'ANY') != 'DEFINED'):
@@ -1590,8 +1599,15 @@ class LexicalAnalyzer:
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
             # end of delim checking if statement
             
-            #---SPECIAL STATES---
-            #identifier state
+            #------------------ SPECIAL STATES ------------------
+            # s205 - Identifier
+            # s207 - Single line comment
+            # s210 - Multi-line comment
+            # s213 - String literal
+            # s216 - Whole number
+            # s249 - Fractional number
+
+            # >>> identifier state
             if (currState == 's205'):
                 print('(dbg) in identifier check state now')
                 if (code[i] in self.iden_delim):
@@ -1614,8 +1630,9 @@ class LexicalAnalyzer:
                     expected = self.iden_delim
                     # add_error((currToken, f'Lexical Error: In line {currLine}, column {currCol-len(currToken)}; Unexpected \'{code[i]}\' for \'{currToken[:-1]}\'')) #can be expanded with conditions to check what error
                     add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
-            #end of identifier looping
-            #single line comment
+            # >>> end of identifier looping
+
+            # >>> single line comment
             if (currState == 's207'):
                 if (code[i] == '\n'):
                     add_token(currToken, 'single_comment', currLine, currCol)
@@ -1631,13 +1648,16 @@ class LexicalAnalyzer:
                         currCol = 1
                         reset_col = False
                     continue
-            #end of single line comment
-            #multi-line comment
+            # >>> end of single line comment
+
+            # >>> multi-line comment
             if (currState == 's210'):
                 if (code[i] != '/'):
                     currState = 's209'
-            #end of multi-line comment
-            #whole number
+            # >>> end of multi-line comment
+            
+
+            # >>> whole number
             if (currState == 's216'):
                 if (code[i] in self.numbers):
                     print("(dbg) got another number")
@@ -1676,8 +1696,10 @@ class LexicalAnalyzer:
                     currToken = ''
                     currWholeCount = 0
                     currFracCount = 0
-            #end of whole number
-            #fractional part of number
+            # >>> end of whole number
+
+
+            # >>> fractional part of number
             if (currState == 's249'):
                 if (code[i] in self.numbers):
                     need_frac_num = False
@@ -1723,34 +1745,10 @@ class LexicalAnalyzer:
                     currToken = ''
                     currWholeCount = 0
                     currFracCount = 0
-            #end of fractional number
-            #& symbol
-            if (currState == 's153'):
-                currToken += code[i]
-                if(code[i] == '&'):
-                    currState = 'LOGICAND_CHECK'
-                    if reset_col:
-                        currLine += 1
-                        currCol = 1
-                        reset_col = False
-                    continue
-                else:
-                    add_error(self.unexpectedSymbol('&', currLine, currCol, lineContent, leadingSpaces))
-            # end of | symbol
-            #& symbol
-            if (currState == 's184'):
-                currToken += code[i]
-                if(code[i] == '|'):
-                    currState = 'LOGICOR_CHECK'
-                    if reset_col:
-                        currLine += 1
-                        currCol = 1
-                        reset_col = False
-                    continue
-                else:
-                    add_error(self.unexpectedSymbol('|', currLine, currCol, lineContent, leadingSpaces))
-            # end of | symbol
-            #string
+            # >>> end of fractional number
+            
+            
+            # >>> string
             if (currState == 's213'):
                 if (code[i] == '\\' and not char_esc):
                     char_esc = True
@@ -1772,26 +1770,31 @@ class LexicalAnalyzer:
                         currCol = 1
                         reset_col = False
                     continue
+            # >>> end of string
+             
+            # -------------- END OF SPECIAL STATES  --------------
 
-            #end of special states
 
-            #iterating through chars
-            #check whitespaces
-            if (currState not in ['s213', 's207', 's209']):
+            # ------------- REGULAR STATES: Iterating through chars that aren't special states -------------
+
+            # Check whitespaces
+            # Check s213 = string, s207 = single line comment, s209 = multi-line comment (bc if ur in these states, space is a part of the token)
+            if (currState not in ['s213', 's207', 's209']):  
                 if (code[i] == ' '):
-                    if (self.transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):
-                        if currToken not in ['&', '|']:
-                            add_token(currToken, 'Identifier', currLine, currCol)
-                        else:
+                    if (self.transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):  # still in a valid token, not delim checking
+                        if currToken not in ['&', '|']:  
+                            add_token(currToken, 'Identifier', currLine, currCol)  # if we ever get to this point, we know that we didn't reach any keyword and was delimited by a space
+                        else: # check if the token is & or | and was delimited by a space, throw an error bc we dont have those symbols 
                             add_error(self.unexpectedSymbol(currToken, currLine, currCol, lineContent, leadingSpaces))
-                    if reset_col:
+                    if reset_col:  # if there's a newline character, reset col, add new line.
                         currLine += 1
                         currCol = 1
                         reset_col = False
                     continue
+
                 if (code[i] == '\n'):
-                    if (i != len(code)-1):
-                        if (self.transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):
+                    if (i != len(code)-1):  # if it's a newline character and its not the helper newline in the end
+                        if (self.transition(currState, 'ANY') == 'DEFINED' and currState != 's0'):  # same logic as above
                             if currToken not in ['&', '|']:
                                 add_token(currToken, 'Identifier', currLine, currCol)
                             else:
@@ -1802,33 +1805,34 @@ class LexicalAnalyzer:
                             reset_col = False
                         continue
                     
-            #check states
+            # ------ CHECK REGULAR STATE TRANSITIONS
             print(f'(dbg) transition val {self.transition(currState, code[i])}')
-            if (self.transition(currState, code[i]) != 'UNDEFINED'):
+            # if it's a valid char start, it exists in the next transition of the current state
+            if (self.transition(currState, code[i]) != 'UNDEFINED'):  
                 print(f'(dbg) in {currState} transitions')  
-                currToken += code[i]
+                currToken += code[i]  # add the char to the token being built
                 print(f'(dbg) transitioning: {currState} - {code[i]} -> {self.transition(currState, code[i])}')
-                currState = self.transition(currState, code[i])
+                currState = self.transition(currState, code[i])  # update currstate to the next state
                 if reset_col:
                     currLine += 1
                     currCol = 1
                     reset_col = False
                 continue
-            else: #if not in s0 transitions assume identifier, go to state 420
+            else:  # if not a valid character in transitions
                 print(f"(dbg) not in {currState} transitions")
-                if (currState == 's0'):
-                    if (code[i] in self.numbers):
-                        currToken += code[i]
+                if (currState == 's0'):   
+                    if (code[i] in self.numbers):  # in s0, it saw a number
+                        currToken += code[i]  # add to token buildin
                         print("(dbg)s0 is num")
-                        #go to whole num loop state
-                        currWholeCount += 1
-                        currState = 's216'  
+                        # go to whole num loop state
+                        currWholeCount += 1  # start counting whole number
+                        currState = 's216'  # s216 = whole number start loop 
                         if reset_col:
                             currLine += 1
                             currCol = 1
                             reset_col = False
                         continue
-                    elif (code[i] not in self.alphanum and i != len(code)-1):
+                    elif (code[i] not in self.alphanum and i != len(code)-1):  # not an alphanum, it's a symbol not in Transitions
                         print("(dbg) unexpected")
                         add_error(self.unexpectedSymbol(currToken, currLine, currCol, lineContent, leadingSpaces))
                         if reset_col:
@@ -1837,40 +1841,41 @@ class LexicalAnalyzer:
                             reset_col = False
                         continue
                     currToken += code[i]
-                    if (code[i] in self.alphabetic_chars and i != len(code)-1):
+                    if (code[i] in self.alphabetic_chars and i != len(code)-1):  # found an alphabetic char at start, is an identifier bc it doesn't have any valid transitions above
                         print(f'(dbg) index {i}')
                         print(f'(dbg) length {len(code)}')
-                        currState = 's205'
+                        currState = 's205'  # s205 - identifier state
                     if reset_col:
                         currLine += 1
                         currCol = 1
                         reset_col = False
                     continue
                 else:
-                    print('(dbg) not in s0')
-                    if (currState == 's209'):
+                    print('(dbg) not in s0')  # not at the start, meaning it doesn't have a valid transition after the start
+                    if (currState == 's209'): # if it's a multi-line comment state, just keep adding to the token cos it's a comment. it's searching for */
                         currToken += code[i]
                         if reset_col:
                             currLine += 1
                             currCol = 1
                             reset_col = False
                         continue
-                    if (currState == 's213'):
-                        if (code[i] == '\n'):
+                    if (currState == 's213'): # if it's a string literal, just keep adding to the token cos it's a string. it's searching for "
+                        if (code[i] == '\n'): # if it encounters newline, then it means the string is not closed (we do not support multiline strings)
                             add_error(self.stringMissingClose(currToken, currLine, currCol, lineContent, leadingSpaces))
                             if reset_col:
                                 currLine += 1
                                 currCol = 1
                                 reset_col = False
                             continue
-                        else:
+                        else: # else if its any char, just add it to the string (unless it's ", it won't reach this part)
                             currToken += code[i]
                             if reset_col:
                                 currLine += 1
                                 currCol = 1
                                 reset_col = False
                             continue
-                    if (code[i] in self.alphanum + ['_']):
+                    if (code[i] in self.alphanum + ['_']): # if it's an alphanum or underscore, it's part of an identifier probably
+                                                            #(_ is not a start bc we already checked that above. ex. print vs prin_)
                         currToken += code[i]
                         currState = 's205'
                         if reset_col:
@@ -1878,8 +1883,8 @@ class LexicalAnalyzer:
                             currCol = 1
                             reset_col = False
                         continue
-                    elif (code[i] in self.iden_delim): #check delim
-                        if (currToken):
+                    elif (code[i] in self.iden_delim): # the end of any random characters at the end of some identifiers. check delim if valid iden delim
+                        if (currToken):  # if currToken is not empty, you have built an identifier
                             print(f'(dbg) currtoken valid: {currToken}')
                             if (currToken[0] not in self.alphabetic_chars + ['_']):
                                 print('(dbg) other idnefirst error')
@@ -1896,7 +1901,7 @@ class LexicalAnalyzer:
                                     add_token(currToken, 'Identifier', currLine, currCol)
                                 currToken = code[i]
                                 currState = self.transition('s0', code[i])
-                        else:
+                        else:  # you didn't build a proper start for an identifier
                             add_error(self.idenFirstError(currToken, currLine, currCol,lineContent, leadingSpaces))
                     else:
                         currToken += code[i]
