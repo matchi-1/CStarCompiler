@@ -1608,41 +1608,44 @@ class LexicalAnalyzer:
             # s249 - Fractional number
 
             # >>> identifier state
-            if (currState == 's205'):
+            if (currState == 's205'):  # you're still in the iden loop state
                 print('(dbg) in identifier check state now')
-                if (code[i] in self.iden_delim):
+                if (code[i] in self.iden_delim):  # u found an iden delim during the loop of iden state
                     print('(dbg) correct delim')    
-                    if (currToken[0] not in self.alphabetic_chars):
+                    if (currToken[0] not in self.alphabetic_chars):  # if the first char of the iden is not an alphabetic char, then it wasnt a valid iden start
                             add_error(self.idenFirstError(currToken, currLine, currCol,lineContent, leadingSpaces))
-                    else:
+                    else: # found a valid iden and delimeter, so add the identifier
                         add_token(currToken, 'Identifier', currLine, currCol)
-                elif (code[i] in self.alphanum + ['_']): #if not delim but still valid, keep looping
+
+                elif (code[i] in self.alphanum + ['_']): # if not delim but still a valid char for an identifier (alphanum and _), keep looping
                         currToken += code[i]
                         print('(dbg) accepted for iden')
-                        currState ='s205'
+                        currState ='s205'  # keep the state at 205
                         if reset_col:
                             currLine += 1
                             currCol = 1
                             reset_col = False
                         continue
                 else:
+                    # the identifier wasn't delimeted by a valid iden delim
                     currToken += code[i]
                     expected = self.iden_delim
                     # add_error((currToken, f'Lexical Error: In line {currLine}, column {currCol-len(currToken)}; Unexpected \'{code[i]}\' for \'{currToken[:-1]}\'')) #can be expanded with conditions to check what error
+                    
                     add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
             # >>> end of identifier looping
 
             # >>> single line comment
             if (currState == 's207'):
-                if (code[i] == '\n'):
-                    add_token(currToken, 'single_comment', currLine, currCol)
+                if (code[i] == '\n'): # if we're inside the single line comment loop (anything after "//") and we find a new line, then we know that the comment is over
+                    add_token(currToken, 'single_comment', currLine, currCol) # so we add the token
                     if reset_col:
                         currLine += 1
                         currCol = 1
                         reset_col = False
                     continue
                 else:
-                    currToken += code[i]
+                    currToken += code[i]  # else we just keep adding any char to the single line comment token
                     if reset_col:
                         currLine += 1
                         currCol = 1
@@ -1651,17 +1654,17 @@ class LexicalAnalyzer:
             # >>> end of single line comment
 
             # >>> multi-line comment
-            if (currState == 's210'):
-                if (code[i] != '/'):
+            if (currState == 's210'):  # 210 is the asterisk transition before the ending /
+                if (code[i] != '/'):   # if it's not / then it'll just keep looping with the chars inside /* * _______
                     currState = 's209'
             # >>> end of multi-line comment
             
 
             # >>> whole number
-            if (currState == 's216'):
-                if (code[i] in self.numbers):
+            if (currState == 's216'): # start of a number 
+                if (code[i] in self.numbers):  # if the next char is still a number 
                     print("(dbg) got another number")
-                    currWholeCount += 1
+                    currWholeCount += 1  # increment the whole count
                     currToken += code[i]
                     if (currWholeCount > 19):
                         if (wholeError):
@@ -1883,45 +1886,44 @@ class LexicalAnalyzer:
                             currCol = 1
                             reset_col = False
                         continue
-                    elif (code[i] in self.iden_delim): # the end of any random characters at the end of some identifiers. check delim if valid iden delim
-                        if (currToken):  # if currToken is not empty, you have built an identifier
-                            print(f'(dbg) currtoken valid: {currToken}')
-                            if (currToken[0] not in self.alphabetic_chars + ['_']):
-                                print('(dbg) other idnefirst error')
-                                print('(dbg) symbol ', code[i])
-                                if code[i] not in self.symbols:
-                                    add_error(self.idenFirstError(currToken, currLine, currCol,lineContent, leadingSpaces))
-                                else:
-                                    add_error(self.unexpectedSymbol(currToken, currLine, currCol, lineContent, leadingSpaces))
-                            else:
-                                print("(dbg) other iden append")
-                                if (currToken[0] not in self.alphabetic_chars):
-                                    add_error(self.idenFirstError(currToken, currLine, currCol,lineContent, leadingSpaces))
-                                else:
-                                    add_token(currToken, 'Identifier', currLine, currCol)
-                                currToken = code[i]
-                                currState = self.transition('s0', code[i])
-                        else:  # you didn't build a proper start for an identifier
+
+                    # if you're building a token and you found a char that isn't in the transition of that keyword, you check if its a delim of idens
+                    elif (code[i] in self.iden_delim): # check delim if valid iden delim
+                       
+                        print("(dbg) other iden append")
+                        if (currToken[0] not in self.alphabetic_chars):  # if the first of token is not a valid start, then it throws an invalid start symbol for iden
                             add_error(self.idenFirstError(currToken, currLine, currCol,lineContent, leadingSpaces))
-                    else:
-                        currToken += code[i]
-                        expected = self.iden_delim
-                        if (code[i-1] in self.arithmetic_operator):
+                        else:
+                            add_token(currToken, 'Identifier', currLine, currCol) # else it's a valid identifier
+
+                        currToken = code[i]  # add the symbol (bc when u added the identifier, the token was reset)
+                        currState = self.transition('s0', code[i]) # find the next transition of the next curr char 
+                        
+                    
+                    else: # if it's not a valid delim to any transition
+                        currToken += code[i]  # just add the char to the current token building to add in err msgs
+                        expected = self.iden_delim  # you're expecting an identifier delim here bc we never rly finished any valid keyword
+                        if (code[i-1] in self.arithmetic_operator): # if the prev char was an arith op, then add the ff delims
                             expected = ['alphanum', ' ', '(']
-                        if (code[i-1] == '+'):
+                        if (code[i-1] == '+'): # if it was a plus, add " cos of string concat
                             expected.append('\"')
                         print('(dbg) currState: ', currState)
+
+                        # add delim error (for idens)
                         add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
         
+        # mulitline unclosed error
         if multi_line_start_found:
             multi_line_errorMsg = f'Lexical Error ({multi_line_start_line}, {multi_line_start_col}): Unterminated multi-line comment.\n/*\n^'
             add_error(multi_line_errorMsg)
 
+        # reset col if last char was newline
         if reset_col:
             currLine += 1
             currCol = 1
             reset_col = False
 
+        # return a list of tokens and errors (list of tokens and lis of errors)
         lexerResults = [tokens, errors] 
         return lexerResults
 

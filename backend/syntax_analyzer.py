@@ -1598,7 +1598,7 @@ class SyntaxAnalyzer:
             else:
                 self.ERROR_missing_initializer()
 
-            if self.currToken["tokenType"] == "[":
+            if self.currToken and self.currToken["tokenType"] == "[":
                 self.logError("Array of objects is not supported. Expected '=' or ';'")
             
             elif self.currToken and self.currToken["tokenType"] == '=': # check if there is object instantiation
