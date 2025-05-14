@@ -12,3 +12,4 @@ __pycache__/
 Thumbs.db
 .vscode/
 backend/runtime_log.log
+backend/pos_char.log

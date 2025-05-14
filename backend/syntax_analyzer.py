@@ -741,7 +741,7 @@ class SyntaxAnalyzer:
             # If the current token is None, use the last valid token for line/column info
             currToken = self.tokens[self.currToken_index - 1]
             currLine = currToken["tokenLine"] 
-            currCol = currToken["tokenCol"] + 1
+            currCol = currToken["tokenCol"]
             tokenName = "<EOF>"
             print(">>>>>>>> LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
             print(">>>>>>>> LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
@@ -750,7 +750,7 @@ class SyntaxAnalyzer:
             # Use current token's details
             tokenName = self.currToken["tokenName"]
             currLine = self.currToken["tokenLine"] 
-            currCol = self.currToken["tokenCol"] - len(tokenName) + 2
+            currCol = self.currToken["tokenCol"] - len(tokenName)
             print("!!!!!!!!! LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
             print("!!!!!!!!! LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
             print("!!!!!!!!! LOG ERROR CURRENT TOKEN: " + str(self.currToken))

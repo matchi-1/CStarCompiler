@@ -1,3 +1,8 @@
+def _printlog(*args, sep=' ', end='\n'):
+    message = sep.join(str(arg) for arg in args) + end
+    with open('pos_char.log', 'a', encoding="utf-8") as f:
+        f.write(message)
+    print(*args, sep=sep, end=end)
 class LexicalAnalyzer:
     #---DEFINITIONS---
     alpha_small = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
@@ -778,6 +783,7 @@ class LexicalAnalyzer:
 
     #---TOKEN EXTRACTION AND CLASSIFICATION---#
     def scan(self, code):
+        open('pos_char.log', 'w').close()
         code = code.replace('\r\n', '\n')    # replace keyboard return carriages
 
         for char in code:
@@ -790,7 +796,7 @@ class LexicalAnalyzer:
         currState = 's0'  # set current state to s0 at start
         lineContent = ''  # empty line content at star
         currLine = 1      # start at line 1
-        currCol = 1       # start at column 1
+        currCol = 0      # start at column 1
         currWholeCount = 0   # set whole count at start to 0 
         currFracCount = 0     # set frac count at start to 0 
 
@@ -815,7 +821,7 @@ class LexicalAnalyzer:
         # Helper function inside lexer to add a token(set its properties), append to token list, and reset current token and state
         def add_token(name, type, line, column):  
             nonlocal currToken, currState, currLine, currCol # use nonlocal keyword to access currToken, currState
-            token = Token(name, type, line, column - 2)   # -2 for column bc fsr it's off by 2
+            token = Token(name, type, line, column)   # -2 for column bc fsr it's off by 2
             tokens.append(token)  # append token
             currToken = '' # reset state and currtoken 
             currState = 's0'
@@ -842,13 +848,14 @@ class LexicalAnalyzer:
                 lineContent = ''
             elif code[i] == '/' and i + 1 < len(code) and code[i + 1] == '*' and not multi_line_start_found:  # check if current char is / and followed by *, then it means it might be an unclosed multiline comment
                 multi_line_start_line = currLine
-                multi_line_start_col = currCol - 1
+                multi_line_start_col = currCol
             else:
                 if code[i] != ' ':
                     isLeadingSpace = False  # no more leading space for that line 
                 if isLeadingSpace:
                     leadingSpaces += 1  # there is a leading space
                 currCol += 1  # regardless, add 1 to col 
+                _printlog(f'({currLine}, {currCol}) : {code[i]}')
                 lineContent += code[i]  # add char to line content
 
             # DEFINED = there's a path to another state
@@ -871,7 +878,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 205')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -887,7 +894,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -903,7 +910,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -920,7 +927,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -936,7 +943,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -952,7 +959,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -970,7 +977,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1182,7 +1189,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1199,7 +1206,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1216,7 +1223,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1233,7 +1240,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1251,7 +1258,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1269,7 +1276,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1286,7 +1293,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1304,7 +1311,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1443,7 +1450,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1460,7 +1467,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1477,7 +1484,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1494,7 +1501,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1511,7 +1518,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1537,7 +1544,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1554,7 +1561,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1571,7 +1578,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1588,7 +1595,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1605,7 +1612,7 @@ class LexicalAnalyzer:
                             print('(dbg) now in state 215')
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else:
@@ -1638,7 +1645,7 @@ class LexicalAnalyzer:
                         currState ='s205'  # keep the state at 205
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                 else:
@@ -1656,14 +1663,14 @@ class LexicalAnalyzer:
                     add_token(currToken, 'single_comment', currLine, currCol) # so we add the token
                     if reset_col:
                         currLine += 1
-                        currCol = 1
+                        currCol = 0
                         reset_col = False
                     continue
                 else:
                     currToken += code[i]  # else we just keep adding any char to the single line comment token
                     if reset_col:
                         currLine += 1
-                        currCol = 1
+                        currCol = 0
                         reset_col = False
                     continue
             # >>> end of single line comment
@@ -1688,13 +1695,13 @@ class LexicalAnalyzer:
                         wholeError = True 
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                     else:
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                 if (code[i] in self.nbl_delim and not wholeError): # if we're currently still in the whole number loop, and we encounter a numbool delim, and there were no errors,
@@ -1730,13 +1737,13 @@ class LexicalAnalyzer:
                         fracError = True 
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                     else:
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                 elif need_frac_num: # we had a decimal point without a number next to it
@@ -1773,7 +1780,7 @@ class LexicalAnalyzer:
                     currToken += code[i]  # add to the string token
                     if reset_col:
                         currLine += 1
-                        currCol = 1
+                        currCol = 0
                         reset_col = False
                     continue
                 if (char_esc):  # if we found a backslash before, 
@@ -1785,7 +1792,7 @@ class LexicalAnalyzer:
                     char_esc = False  # reset the esc flag
                     if reset_col:
                         currLine += 1
-                        currCol = 1
+                        currCol = 0
                         reset_col = False
                     continue
             # >>> end of string
@@ -1806,7 +1813,7 @@ class LexicalAnalyzer:
                             add_error(self.unexpectedSymbol(currToken, currLine, currCol, lineContent, leadingSpaces))
                     if reset_col:  # if there's a newline character, reset col, add new line.
                         currLine += 1
-                        currCol = 1
+                        currCol = 0
                         reset_col = False
                     continue
 
@@ -1819,7 +1826,7 @@ class LexicalAnalyzer:
                                 add_error(self.unexpectedSymbol(currToken, currLine, currCol, lineContent, leadingSpaces))
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                     
@@ -1833,7 +1840,7 @@ class LexicalAnalyzer:
                 currState = self.transition(currState, code[i])  # update currstate to the next state
                 if reset_col:
                     currLine += 1
-                    currCol = 1
+                    currCol = 0
                     reset_col = False
                 continue
             else:  # if not a valid character in transitions
@@ -1847,7 +1854,7 @@ class LexicalAnalyzer:
                         currState = 's249'  # s249 = whole number start loop 
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                     elif (code[i] not in self.alphanum and i != len(code)-1):  # not an alphanum, it's a symbol not in Transitions
@@ -1855,7 +1862,7 @@ class LexicalAnalyzer:
                         add_error(self.unexpectedSymbol(currToken, currLine, currCol, lineContent, leadingSpaces))
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                     currToken += code[i]
@@ -1865,7 +1872,7 @@ class LexicalAnalyzer:
                         currState = 's205'  # s205 - identifier state
                     if reset_col:
                         currLine += 1
-                        currCol = 1
+                        currCol = 0
                         reset_col = False
                     continue
                 else:
@@ -1874,7 +1881,7 @@ class LexicalAnalyzer:
                         currToken += code[i]
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
                     if (currState == 's213'): # if it's a string literal, just keep adding to the token cos it's a string. it's searching for "
@@ -1882,14 +1889,14 @@ class LexicalAnalyzer:
                             add_error(self.stringMissingClose(currToken, currLine, currCol, lineContent, leadingSpaces))
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                         else: # else if its any char, just add it to the string (unless it's ", it won't reach this part)
                             currToken += code[i]
                             if reset_col:
                                 currLine += 1
-                                currCol = 1
+                                currCol = 0
                                 reset_col = False
                             continue
                     if (code[i] in self.alphanum + ['_']): # if it's an alphanum or underscore, it's part of an identifier probably
@@ -1898,7 +1905,7 @@ class LexicalAnalyzer:
                         currState = 's205'
                         if reset_col:
                             currLine += 1
-                            currCol = 1
+                            currCol = 0
                             reset_col = False
                         continue
 
@@ -1935,7 +1942,7 @@ class LexicalAnalyzer:
         # reset col if last char was newline
         if reset_col:
             currLine += 1
-            currCol = 1
+            currCol = 0
             reset_col = False
 
         # return a list of tokens and errors (list of tokens and lis of errors)
@@ -1949,10 +1956,10 @@ class LexicalAnalyzer:
         """
         print('(dbg) currToken ', currToken)
         print('(dbg) ERROR msg currCol ', currCol)
-        errorMsg = f'Lexical Error ({currLine}, {currCol - 1}): {errorType} {currToken}\n'
+        errorMsg = f'Lexical Error ({currLine}, {currCol}): {errorType} {currToken}\n'
         errorMsg += str(lineContent )+ '\n'
         print(f'(dbg) ERROR lineContent |{lineContent}')
-        errorMsg += '_' * (currCol - 2) + '^\n'
+        errorMsg += '_' * (currCol) + '^\n'
         if additionalInfo:
             errorMsg += additionalInfo
         print("(debug) ", errorMsg)
