@@ -150,7 +150,7 @@ class SemanticAnalyzer:
                 for s in node.stdlib_n:
                     print("CHECKING STDLIBS!!!!!!")
                     if s not in ['Cmath', 'Cstring', 'Carray']:
-                        self.logError("Invalid import. Must be a standard library ('Cmath', 'Cstring', 'Carray').")
+                        self.logError(f"Invalid import '{s}'. Must be a standard library ('Cmath', 'Cstring', 'Carray').")
             else: print(f"\n(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
             print(f'\n(semantic)(dbg) VISITING {nodeName}!!')
@@ -251,7 +251,7 @@ class SemanticAnalyzer:
         for s in node.stdlibs:
             print("CHECKING STDLIBS!!!!!!")
             if s not in ['Cmath', 'Cstring', 'Carray']:
-                self.logError("Invalid import. Must be a standard library ('Cmath', 'Cstring', 'Carray').", node.err_t)
+                self.logError(f"Invalid import '{s}'. Must be a standard library ('Cmath', 'Cstring', 'Carray').", node.err_t)
             
 
         for statement in node.program_structure_stmts:  # iterate thru imports list, prog constructs, body (main body) (if existing)

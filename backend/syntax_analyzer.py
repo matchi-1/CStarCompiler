@@ -1302,12 +1302,12 @@ class SyntaxAnalyzer:
                         std_lib_func_dec_nodes.append(node_func_dec(double_type_t, math_sqrt_iden_n, math_sqrt_params_n, None, True))
 
             else:
-                self.match("Identifier", False)    
+                iden_inval = self.match("Identifier", False)    
                 err_t = Token("inval", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
-                errid_n = node_iden(err_t)
+                errid_n = node_iden(iden_inval)
                 errparams_n = None
              
-                stdlibs.append("inval")
+                stdlibs.append(iden_inval["tokenName"])
           
                 
                 #  self.logError(
@@ -1323,7 +1323,7 @@ class SyntaxAnalyzer:
             # Handle potential recursive imports
             if self.currToken and self.currToken["tokenType"] == "import":
                 self.imports_list(stdlibs, std_lib_func_dec_nodes)
-
+        
         return (node_imports_list(stdlibs), std_lib_func_dec_nodes, stdlibs, errid_n)
 
 

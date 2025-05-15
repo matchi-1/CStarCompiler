@@ -44,28 +44,29 @@ def compile_code():
         tokens, lexerrors = lexer_results  # unpack 
         errors += lexerrors  # add lexer errors to the list
         
-        # #--- SYNTAX ANALYZER ---
-        syn_analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)  # instantiate syntax analyzer
-        parseErrs, parseTree, main_n = syn_analyzer.parse()  # returns list of errors and parse tree
-        errors += parseErrs  # add syntax errors to list of errors
+        if not errors:
+            # #--- SYNTAX ANALYZER ---
+            syn_analyzer = syntax_analyzer.SyntaxAnalyzer(tokens)  # instantiate syntax analyzer
+            parseErrs, parseTree, main_n = syn_analyzer.parse()  # returns list of errors and parse tree
+            errors += parseErrs  # add syntax errors to list of errors
 
-        # # syntax parsing success
-        if "Parsing completed successfully. No Syntax Errors found." in parseErrs and not lexerrors: 
-            #-- SEMANTIC ANALYZER ---  
-            seman_analyzer = semantic_analyzer.SemanticAnalyzer() # instantiate semantic analyzer
-            seman_analyzer.setMain(main_n)
-            semanErrs = seman_analyzer.interpret(parseTree)  # pass parse tree to semantic analyzer. returns list of semantic errors
-            errors += semanErrs  # add semantic errors to list of errors
+            # # syntax parsing success
+            if "Parsing completed successfully. No Syntax Errors found." in parseErrs and not lexerrors: 
+                #-- SEMANTIC ANALYZER ---  
+                seman_analyzer = semantic_analyzer.SemanticAnalyzer() # instantiate semantic analyzer
+                seman_analyzer.setMain(main_n)
+                semanErrs = seman_analyzer.interpret(parseTree)  # pass parse tree to semantic analyzer. returns list of semantic errors
+                errors += semanErrs  # add semantic errors to list of errors
 
-            # remove parsing success message since there's a semantic error
-            if "Semantic analysis completed successfully. No Semantic Errors found." not in semanErrs:
-                errors.remove("Parsing completed successfully. No Syntax Errors found.")
-            
-            # semantic parsing success
-            else:   
-                runtime_res = runtime.Runtime()  # instantiate runtime
-                runtimeErrs = runtime_res.interpret(parseTree)  # pass parse tree to runtime to go over the code and execute them. returns list of runtime errors
+                # remove parsing success message since there's a semantic error
+                if "Semantic analysis completed successfully. No Semantic Errors found." not in semanErrs:
+                    errors.remove("Parsing completed successfully. No Syntax Errors found.")
                 
+                # semantic parsing success
+                else:   
+                    runtime_res = runtime.Runtime()  # instantiate runtime
+                    runtimeErrs = runtime_res.interpret(parseTree)  # pass parse tree to runtime to go over the code and execute them. returns list of runtime errors
+                    
     except SyntaxError as e:
         print(e)
 
