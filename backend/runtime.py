@@ -241,6 +241,7 @@ class Runtime:
 
 
     def interpret(self, node):
+        self.address_list.clear() # clear address list for arrs and objs
         open('runtime_log.log', 'w').close()
         start_time = time.time()
         try:
@@ -293,7 +294,7 @@ class Runtime:
         # self.address_list = [i for i in self.address_list if i[0] != self.scope_depth]
         _printlog(f"removing depth {self.scope_depth}..")
         temp = []
-        for i in range(len(self.address_list)):
+        for i in range(len(self.address_list)): # removes all of the addresses of the items that belong to the scope that we're exiting
             if self.address_list[i][0] != self.scope_depth:
                 temp.append(self.address_list[i])
         self.address_list = temp
