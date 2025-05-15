@@ -1304,8 +1304,8 @@ class SyntaxAnalyzer:
                     
             else:
                  self.logError(
-                    f"Expected a standard library (Cstring, Carray or Cmath), found '{self.currToken['tokenName']}'."
-                    if self.currToken else "Expected a standard library (Cstring, Carray, or Cmath), but reached EOF instead.")
+                    f"Expected a standard library token with token names (Cstring, Carray or Cmath), found '{self.currToken['tokenName']}'."
+                    if self.currToken else "Expected a standard library token with token names (Cstring, Carray, or Cmath), but reached EOF instead.")
 
             if not self.match(">"):
                 self.ERROR_unclosed_angled_bracket()   
