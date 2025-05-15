@@ -485,9 +485,9 @@ class node_program_constructs:
         return f"{self.__class__.__name__}: ({statements}\n)"
 
 class program_node:
-    def __init__(self, program_structure_stmts):
+    def __init__(self, program_structure_stmts, stdlibs):
         self.program_structure_stmts = program_structure_stmts  # list of statements -- imports list, prog constructs, body (main body)
-
+        self.stdlibs = stdlibs
     def __repr__(self):
         statements = ",\n\n".join(map(str, self.program_structure_stmts))
         return f"program: {{ \n{statements} \n}}"
@@ -913,7 +913,7 @@ class SyntaxAnalyzer:
         
         # check if the very start of the program, it matches any word that can be a valid token start
         if self.matchPredictSet("program", False):
-            imports_list_node, std_lib_func_dec_nodes = self.imports_list([], [])  # unpack imports_list_node and the stdlib nodes from the imports_list method
+            imports_list_node, std_lib_func_dec_nodes, stdlibs_list = self.imports_list([], [])  # unpack imports_list_node and the stdlib nodes from the imports_list method
             
             program_stmts.append(imports_list_node)  # we add the imports_list_node to the program_stmts list
             
@@ -958,7 +958,7 @@ class SyntaxAnalyzer:
                         print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
                         self.logError(f"Unreachable code detected. Remove unreachable code to execute the program.")
                         
-            return program_node(program_stmts)
+            return program_node(program_stmts, stdlibs_list)
 
 
     # CODE BLOCKS START HERE
@@ -1170,7 +1170,8 @@ class SyntaxAnalyzer:
         print("(parser) production: \"imports_list\" detected")
 
         # should return tuple, stdlibs node and array of stdlibs func dec nodes to be passed to program constructs' statements
-        
+        std_lib_header_line = self.currToken["tokenLine"]
+        std_lib_header_col = self.currToken["tokenCol"]
         # Only parse if the current token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.match("import", False)
@@ -1297,20 +1298,19 @@ class SyntaxAnalyzer:
                         math_sqrt_params_n = [node_funcpar_var(double_type_t, num_iden_n)]
                         std_lib_func_dec_nodes.append(node_func_dec(double_type_t, math_sqrt_iden_n, math_sqrt_params_n, None, True))
 
-                else:
-                    error_msg = f"Semantic Error ({std_lib_header_line}, {std_lib_header_col}): Duplicate library import: Standard library '{std_lib_header}' has already been imported."
-                    self.errors.append(error_msg)
-                    raise SyntaxError(error_msg)
-                    
             else:
+                self.match("Identifier", False)    
                 err_t = Token("inval", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
                 errid_n = node_iden(err_t)
                 errparams_n = None
-                std_lib_func_dec_nodes.append(node_func_dec(None, errid_n, errparams_n, None, True))
+             
+                stdlibs.append("inval")
+          
+                
                 #  self.logError(
-                #     f"Expected a standard library token with token names (Cstring, Carray or Cmath), found '{self.currToken['tokenName']}'."
+                # f"Expected a standard library token with token names (Cstring, Carray or Cmath), found '{self.currToken['tokenName']}'."
                 #     if self.currToken else "Expected a standard library token with token names (Cstring, Carray, or Cmath), but reached EOF instead.")
-
+            
             if not self.match(">"):
                 self.ERROR_unclosed_angled_bracket()   
 
@@ -1321,7 +1321,7 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] == "import":
                 self.imports_list(stdlibs, std_lib_func_dec_nodes)
 
-        return (node_imports_list(stdlibs), std_lib_func_dec_nodes)
+        return (node_imports_list(stdlibs), std_lib_func_dec_nodes, stdlibs)
 
 
 
@@ -1534,7 +1534,7 @@ class SyntaxAnalyzer:
         
         is_private_b = False
         inClassBody = True
-        if self.matchPredictSet("class_body", False):   #throws no error if currToken not in here
+        if self.matchPredictSet("class_body", True):   #throws no error if currToken not in here
             
             if self.currToken:
                 if self.currToken["tokenType"] == "private":

@@ -147,7 +147,10 @@ class SemanticAnalyzer:
 
         if visit_func is None:
             if nodeName == 'node_imports_list':
-                print()
+                for s in node.stdlib_n:
+                    print("CHECKING STDLIBS!!!!!!")
+                    if s not in ['Cmath', 'Cstring', 'Carray']:
+                        self.logError("Invalid import. Must be a standard library ('Cmath', 'Cstring', 'Carray').")
             else: print(f"\n(semantic)(dbg) Not implemented yet!!!!!!!!!!!!!!!!!! node name: {nodeName}")
         else:
             print(f'\n(semantic)(dbg) VISITING {nodeName}!!')
@@ -242,7 +245,16 @@ class SemanticAnalyzer:
         #self.visit_node(node.program_structure_stmts[2])
         self.has_main = False
         
+
+        print("AAAAAAAAAAAAAAAAAA " + str(node.stdlibs))
+        for s in node.stdlibs:
+            print("CHECKING STDLIBS!!!!!!")
+            if s not in ['Cmath', 'Cstring', 'Carray']:
+                self.logError("Invalid import. Must be a standard library ('Cmath', 'Cstring', 'Carray').")
+            
+
         for statement in node.program_structure_stmts:  # iterate thru imports list, prog constructs, body (main body) (if existing)
+            
             if type(statement).__name__ == "node_body": # this is main body
                 self.has_main = True
                 self.current_function_name = "main"  # assign main as the func name
