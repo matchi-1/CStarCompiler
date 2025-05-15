@@ -141,7 +141,7 @@ class LexicalAnalyzer:
             
             case 's3':
                 match currChar:
-                    case 'l': currState = 'BOOL_CHECK'
+                    case 'l': currState = 'BOOL_CHECK' #s4 -> s5
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -159,7 +159,7 @@ class LexicalAnalyzer:
 
             case 's8':
                 match currChar:
-                    case 'k':  currState = 'BREAK_CHECK'
+                    case 'k':  currState = 'BREAK_CHECK' #s9 -> s10
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
                 
@@ -179,7 +179,7 @@ class LexicalAnalyzer:
 
             case 's13':
                 match currChar:
-                    case 'e':  currState = 'CASE_CHECK' 
+                    case 'e':  currState = 'CASE_CHECK' #s14 -> s15
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -197,7 +197,7 @@ class LexicalAnalyzer:
             
             case 's18':
                 match currChar:
-                    case 's':  currState = 'CLASS_CHECK'
+                    case 's':  currState = 'CLASS_CHECK' #s19 -> s20
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
             
@@ -234,13 +234,13 @@ class LexicalAnalyzer:
 
             case 's26':
                 match currChar:
-                    case 'e':  currState = 'CONTINUE_CHECK'
+                    case 'e':  currState = 'CONTINUE_CHECK' #s27 -> s28
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's29':
                 match currChar:
-                    case 't':  currState = 'CONST_CHECK'
+                    case 't':  currState = 'CONST_CHECK' #s30 -> s31
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -277,7 +277,7 @@ class LexicalAnalyzer:
 
             case 's37':
                 match currChar:
-                    case 't':  currState = 'DEFAULT_CHECK'
+                    case 't':  currState = 'DEFAULT_CHECK' #s38 -> s39
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -301,7 +301,7 @@ class LexicalAnalyzer:
 
             case 's44':
                 match currChar:
-                    case 'e':  currState = 'DOUBLE_CHECK'
+                    case 'e':  currState = 'DOUBLE_CHECK' #s45 -> s46
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -319,7 +319,7 @@ class LexicalAnalyzer:
 
             case 's49':
                 match currChar:
-                    case 'e':  currState = 'ELSE_CHECK'
+                    case 'e':  currState = 'ELSE_CHECK' #s50 -> s51
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -345,7 +345,7 @@ class LexicalAnalyzer:
 
             case 's55':
                 match currChar:
-                    case 'e':  currState = 'FALSE_CHECK'
+                    case 'e':  currState = 'FALSE_CHECK' #s56 -> s57
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -363,20 +363,20 @@ class LexicalAnalyzer:
 
             case 's60':
                 match currChar:
-                    case 't':  currState = 'FLOAT_CHECK'
+                    case 't':  currState = 'FLOAT_CHECK' #s61 -> s62
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's63':
                 match currChar:
-                    case 'r':  currState = 'FOR_CHECK'
+                    case 'r':  currState = 'FOR_CHECK' #s64 -> s65
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's66':
                 print("(dbg) in s66 now")
                 match currChar:
-                    case 'f':  currState = 'IF_CHECK'
+                    case 'f':  currState = 'IF_CHECK' #s67 -> s68
                     case 'm':  currState = 's69'
                     case 'n':  currState = 'IN_CHECK'
                     case 'ANY': 
@@ -406,13 +406,13 @@ class LexicalAnalyzer:
 
             case 's72':
                 match currChar:
-                    case 't':  currState = 'IMPORT_CHECK'
+                    case 't':  currState = 'IMPORT_CHECK' #s73 -> s74
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's75':
                 match currChar:
-                    case 't':  currState = 'INT_CHECK'
+                    case 't':  currState = 'INT_CHECK' #s77 -> s78
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -430,13 +430,13 @@ class LexicalAnalyzer:
         
             case 's81':
                 match currChar:
-                    case 'g':  currState = 'LONG_CHECK'
+                    case 'g':  currState = 'LONG_CHECK' #s82 -> s83
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's84':
                 match currChar:
-                    case 'r':  currState = 's85'
+                    case 'r':  currState = 's85' 
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -455,7 +455,7 @@ class LexicalAnalyzer:
             
             case 's87':
                 match currChar:
-                    case 't':  currState = 'PRINT_CHECK'
+                    case 't':  currState = 'PRINT_CHECK' #s88 -> s89
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -467,7 +467,7 @@ class LexicalAnalyzer:
 
             case 's90':
                 match currChar:
-                    case 'n':  currState = 'PRINTLN_CHECK'
+                    case 'n':  currState = 'PRINTLN_CHECK' #s91 -> s92
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
             
@@ -485,7 +485,7 @@ class LexicalAnalyzer:
 
             case 's95':
                 match currChar:
-                    case 'e':  currState = 'PRIVATE_CHECK'
+                    case 'e':  currState = 'PRIVATE_CHECK' #s96 -> s97
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -516,7 +516,7 @@ class LexicalAnalyzer:
 
             case 's102':
                 match currChar:
-                    case 't':  currState = 'REPEAT_CHECK'
+                    case 't':  currState = 'REPEAT_CHECK' #s103 -> s104
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -534,7 +534,7 @@ class LexicalAnalyzer:
 
             case 's107':
                 match currChar:
-                    case 'n':  currState = 'RETURN_CHECK'
+                    case 'n':  currState = 'RETURN_CHECK' #s108 -> s109
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
         
@@ -565,7 +565,7 @@ class LexicalAnalyzer:
 
             case 's114':
                 match currChar:
-                    case 'g':  currState = 'STRING_CHECK'
+                    case 'g':  currState = 'STRING_CHECK' #s115 -> s116
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -589,7 +589,7 @@ class LexicalAnalyzer:
 
             case 's120':
                 match currChar:
-                    case 'h':  currState = 'SWITCH_CHECK'
+                    case 'h':  currState = 'SWITCH_CHECK' #s121 -> s122
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
             
@@ -607,7 +607,7 @@ class LexicalAnalyzer:
 
             case 's125':
                 match currChar:
-                    case 'e':  currState = 'TRUE_CHECK'
+                    case 'e':  currState = 'TRUE_CHECK' #s126 -> s127
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -625,7 +625,7 @@ class LexicalAnalyzer:
 
             case 's130':
                 match currChar:
-                    case 'd':  currState = 'VOID_CHECK'  # s131
+                    case 'd':  currState = 'VOID_CHECK'  #s131 -> s132
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -649,7 +649,7 @@ class LexicalAnalyzer:
 
             case 's136':
                 match currChar:
-                    case 'e':  currState = 'WHILE_CHECK'
+                    case 'e':  currState = 'WHILE_CHECK' #s137 -> s138
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -657,32 +657,32 @@ class LexicalAnalyzer:
 
             case 's139':
                 match currChar:
-                    case '-':  currState = 'DECREMENT_CHECK'
-                    case '=':  currState = 'MINUS_ASS_CHECK'
+                    case '-':  currState = 'DECREMENT_CHECK' #s141 -> s142
+                    case '=':  currState = 'MINUS_ASS_CHECK' #s143 -> s144
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's145':
                 match currChar:
-                    case '=':  currState = 'NOT_EQUAL_CHECK'
+                    case '=':  currState = 'NOT_EQUAL_CHECK' #s147 -> s148
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case '149':
                 match currChar:
-                    case '=':  currState = 'MODULO_ASS_CHECK'
+                    case '=':  currState = 'MODULO_ASS_CHECK' #s149 -> s150
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's153':
                 match currChar:
-                    case '&':  currState = 'LOGICAND_CHECK'
+                    case '&':  currState = 'LOGICAND_CHECK' #s154 -> s155
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case '160':
                 match currChar:
-                    case '=':  currState = 'MULT_ASS_CHECK'
+                    case '=':  currState = 'MULT_ASS_CHECK' #s162 -> s163
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
