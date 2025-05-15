@@ -822,11 +822,11 @@ class SyntaxAnalyzer:
         
         self.logError(error_message)
 
-    def ERROR_expected_constructor_param_closing(self):
+    def ERROR_expected_constructor_param_closing(self, expected):
         if self.currToken is None:
-            self.logError("Expected constructor parameter or closing ')', but reached EOF.")
+            self.logError(f"Expected constructor parameter or closing ')', but reached EOF. \n\nExpected: {expected}.")
         else:
-            self.logError(f"Expected constructor parameter or closing ')', but found '{self.currToken['tokenName']}'.")
+            self.logError(f"Expected constructor parameter or closing ')', but found '{self.currToken['tokenName']}'. \n\nExpected: {expected}.")
 
 
     def ERROR_missing_condition(self, condType):
@@ -1648,7 +1648,7 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] == ")":
                 self.match(')')
             elif (self.currToken is None or self.currToken["tokenType"] not in PREDICT_SETS["func_arg"]):
-                self.ERROR_expected_constructor_param_closing()
+                self.ERROR_expected_constructor_param_closing(PREDICT_SETS["func_arg"])
             else:
                 self.ERROR_expected_token([")", ","])
 
