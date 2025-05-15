@@ -1682,7 +1682,7 @@ class SyntaxAnalyzer:
         self.match(',')
 
         if self.currToken:
-            self.matchPredictSet["value"]
+            self.matchPredictSet("value")
             # if self.currToken["tokenType"] not in PREDICT_SETS["value"]:
             #     self.logError(f"Expected another value after ',' but got '{self.currToken['tokenName']}'.\n\nExpected {PREDICT_SETS["value"]}.")
             self.func_arg(func_arg_n)
@@ -2440,6 +2440,9 @@ class SyntaxAnalyzer:
 
             elif self.currToken and self.currToken["tokenType"] == "{":
                 else_chain_n.append(self.else_stmt(isVoid))
+
+            else:
+                self.ERROR_expected_token(['if', '{'])
             
             print("(parser) exited production: \"else_chain\"")
             return else_chain_n
