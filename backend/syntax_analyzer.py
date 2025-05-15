@@ -485,9 +485,11 @@ class node_program_constructs:
         return f"{self.__class__.__name__}: ({statements}\n)"
 
 class program_node:
-    def __init__(self, program_structure_stmts, stdlibs):
+    def __init__(self, program_structure_stmts, stdlibs, err_t):
         self.program_structure_stmts = program_structure_stmts  # list of statements -- imports list, prog constructs, body (main body)
         self.stdlibs = stdlibs
+        self.err_t = err_t
+
     def __repr__(self):
         statements = ",\n\n".join(map(str, self.program_structure_stmts))
         return f"program: {{ \n{statements} \n}}"
@@ -913,7 +915,7 @@ class SyntaxAnalyzer:
         
         # check if the very start of the program, it matches any word that can be a valid token start
         if self.matchPredictSet("program", False):
-            imports_list_node, std_lib_func_dec_nodes, stdlibs_list = self.imports_list([], [])  # unpack imports_list_node and the stdlib nodes from the imports_list method
+            imports_list_node, std_lib_func_dec_nodes, stdlibs_list, err_t = self.imports_list([], [])  # unpack imports_list_node and the stdlib nodes from the imports_list method
             
             program_stmts.append(imports_list_node)  # we add the imports_list_node to the program_stmts list
             
@@ -958,7 +960,7 @@ class SyntaxAnalyzer:
                         print(f"warning: ({currLine}, {currCol}): Unreachable code detected")
                         self.logError(f"Unreachable code detected. Remove unreachable code to execute the program.")
                         
-            return program_node(program_stmts, stdlibs_list)
+            return program_node(program_stmts, stdlibs_list, err_t)
 
 
     # CODE BLOCKS START HERE
@@ -1172,6 +1174,7 @@ class SyntaxAnalyzer:
         # should return tuple, stdlibs node and array of stdlibs func dec nodes to be passed to program constructs' statements
         std_lib_header_line = self.currToken["tokenLine"]
         std_lib_header_col = self.currToken["tokenCol"]
+        errid_n = None
         # Only parse if the current token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.match("import", False)
@@ -1321,7 +1324,7 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] == "import":
                 self.imports_list(stdlibs, std_lib_func_dec_nodes)
 
-        return (node_imports_list(stdlibs), std_lib_func_dec_nodes, stdlibs)
+        return (node_imports_list(stdlibs), std_lib_func_dec_nodes, stdlibs, errid_n)
 
 
 
