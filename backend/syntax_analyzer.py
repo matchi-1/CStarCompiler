@@ -1691,9 +1691,9 @@ class SyntaxAnalyzer:
         if self.currToken:
             self.matchPredictSet("value")
             if self.currToken["tokenType"] not in PREDICT_SETS["value"]:
-                self.logError(f"Expected another value starting with {PREDICT_SETS["value"]} after ',' but got '{self.currToken['tokenName']}'.\n\nExpected {PREDICT_SETS["value"]}.")
+                self.logError(f"Expected another value after ',' but got '{self.currToken['tokenName']}'.\nExpected: {PREDICT_SETS["value"]}")
             self.func_arg(func_arg_n)
-        else: self.logError(f"Expected another value after ',' but reached EOF.\n\nExpected {PREDICT_SETS["value"]}.")
+        else: self.logError(f"Expected another value after ',' but reached EOF.\nExpected: {PREDICT_SETS["value"]}")
         
     # def func_method_call(self):    
     #     print("(parser) production: \"func_method_call\" detected")
@@ -2725,7 +2725,7 @@ class SyntaxAnalyzer:
 
             self.match("repeat", False)
             if not self.match("("):
-                self.logError("Expected '(' after 'repeat'.")
+                self.logError("Expected '(' after 'repeat' statement.")
 
             repeat_value_temp_n = self.arith_exp([")"])
 
@@ -2809,7 +2809,7 @@ class SyntaxAnalyzer:
                 if self.currToken["tokenType"] in PREDICT_SETS["string_value"]:
                     node_temp = self.input_params(in_stmt, type_t)
                 else:  # semantic check if string or syntax error
-                    self.logError("Expected a valid value of type \"string\" for an input function's first parameter.")
+                    self.logError("Expected a valid \"string\" value starting with '\"' or Identifier for an input function's first parameter.")
 
             
             if not self.match(")"):
@@ -2862,7 +2862,7 @@ class SyntaxAnalyzer:
                 self.match("=", False)
                 value_temp_n = self.value(PREDICT_SETS["var_init"])
                 if not value_temp_n:
-                    self.logError(f"Invalid value for variable declaration.\nExpected{PREDICT_SETS["value"]}")
+                    self.logError(f"Invalid value for variable declaration. Expected: {PREDICT_SETS["var_init"]}")
                 print("(parser) exited production: \"var_init\"")
                 return value_temp_n
         print("(parser) exited production: \"var_init\"")
