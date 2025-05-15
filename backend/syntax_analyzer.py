@@ -866,13 +866,13 @@ class SyntaxAnalyzer:
         self.logError("Increment or decrement operation is not allowed on constants.")
     def ERROR_expected_valid_value(self):
         if self.currToken:
-            self.logError(f"Expected a valid value, instead got '{self.currToken['tokenName']}'.")
+            self.logError(f"Expected a valid value starting with {PREDICT_SETS["value"]}, instead got '{self.currToken['tokenName']}'.")
         else:
-            self.logError("Expected a valid value, instead reached EOF.")
+            self.logError(f"Expected a valid value starting with {PREDICT_SETS["value"]}, instead reached EOF.")
     def ERROR_inc_dec_not_int(self):
         self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.")
-    def ERROR_expected_operator(self):
-        self.logError(f"Expected a valid operator before '{self.currToken['tokenName'] if self.currToken else "EOF"}'.\nEnsure that there is a valid operator before a valid operand.")
+    def ERROR_expected_operator(self, expected):
+        self.logError(f"Expected a valid operator or a stop character before '{self.currToken['tokenName'] if self.currToken else "EOF"}'.\nExpected: {str(expected)}")
     def ERROR_further_class_access(self):
         self.logError(f"Cstar doesn't allow subclasses. An attempt to access a subclass and/or its attributes or methods is not supported. Expected ';' but found '{self.currToken['tokenName'] if self.currToken else "EOF"}' instead.")
 
@@ -1177,7 +1177,7 @@ class SyntaxAnalyzer:
             self.match("<", False)
 
             # Process content inside '<>'  -- no more header files import
-            if self.currToken["tokenName"] in PREDICT_SETS["std_lib"]:
+            if self.currToken["tokenName"] in ["Cstring", "Carray", "Cmath"]:
                 print("STANDARD LIBRARY FOUND: " + str(self.currToken["tokenName"]))
                 std_lib_header_line = self.currToken["tokenLine"]
                 std_lib_header_col = self.currToken["tokenCol"]
@@ -1308,7 +1308,7 @@ class SyntaxAnalyzer:
                     if self.currToken else "Expected a standard library (Cstring, Carray, or Cmath), but reached EOF instead.")
 
             if not self.match(">"):
-                self.ERROR_unclosed_angled_bracket()
+                self.ERROR_unclosed_angled_bracket()   
 
             if not self.match(";"):
                 self.ERROR_terminating_token(";")
@@ -1723,9 +1723,9 @@ class SyntaxAnalyzer:
     # Uses of predict sets in value:
     #  - when checking for cont. if the next operator is any of the expressions, only enter cont prods
     def stopCharOrOperatorCheck(self, stopChars):
-        # if the currtoken is a valid value and not in any valid term joinin operators, then throw an expected operator
+        # if the currtoken is a valid value and not in any valid term join operators, then throw an expected operator
         if self.currToken["tokenType"] not in PREDICT_SETS["term_join_operators"] + stopChars and self.currToken["tokenType"] in PREDICT_SETS["value"]:  # throw an error for missing operator
-            self.ERROR_expected_operator()
+            self.ERROR_expected_operator(PREDICT_SETS["term_join_operators"] + stopChars)
     
     def value(self, stopChars):
         print("(parser-value-chain): Entered \"value\", current token: " + (self.currToken["tokenType"] if self.currToken else "EOF"))
