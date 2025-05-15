@@ -118,7 +118,7 @@ class LexicalAnalyzer:
                     case '"':  currState = 's213'
                     case '+':  currState = 'PLUS_CHECK'
                     case '<':  currState = 'OPEN_ANGLE_CHECK'
-                    case '>':  currState = 'CLOSING_ANGLE_CHECK'
+                    case '>':  currState = 'CLOSING_ANGLE_CHECK' #s197 -> s198
                     case '=':  currState = 'ASSIGN_CHECK'
                     case ';': currState = 'SEMICOLON_CHECK'
                     case 'ANY':  currState = 'DEFINED'
@@ -690,38 +690,38 @@ class LexicalAnalyzer:
                 match currChar:
                     case '*':  currState = 's209'
                     case '/':  currState = 's207'
-                    case '=':  currState = 'DIV_ASS_CHECK'
+                    case '=':  currState = 'DIV_ASS_CHECK' 
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's184':
                 match currChar:
-                    case '|':  currState = 'LOGICOR_CHECK'
+                    case '|':  currState = 'LOGICOR_CHECK' #s184 -> s185
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's187':
                 match currChar:
-                    case '+':  currState = 'INCREMENT_CHECK'
+                    case '+':  currState = 'INCREMENT_CHECK' #s187 -> s189
                     case '=':  currState = 'ADD_ASS_CHECK'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
             
             case 's193':
                 match currChar:
-                    case '=':  currState = 'LESS_OR_EQUAL_CHECK'
+                    case '=':  currState = 'LESS_OR_EQUAL_CHECK' #s195 -> s196
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's197':
                 match currChar:
-                    case '=':  currState = 'GREATER_OR_EQUAL_CHECK'
+                    case '=':  currState = 'GREATER_OR_EQUAL_CHECK' #s199 -> s200 
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
         
             case 's201':
                 match currChar:
-                    case '=':  currState = 'EQUAL_CHECK'
+                    case '=':  currState = 'EQUAL_CHECK' #s201 -> s202
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
@@ -750,13 +750,13 @@ class LexicalAnalyzer:
 
             case 's210':
                 match currChar:
-                    case '/':  currState = 'MULTI_COMMENT_CHECK'
+                    case '/':  currState = 'MULTI_COMMENT_CHECK' #s210 -> 211
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
 
             case 's213':
                 match currChar:
-                    case '"':  currState = 'STRING_LIT_CHECK' #catches " before ascii check
+                    case '"':  currState = 'STRING_LIT_CHECK' #catches " before ascii check #213 - > 214
                     case _ if currChar in self.ascii:  currState = 's213'
                     case 'ANY':  currState = 'DEFINED'
                     case _:   currState = 'UNDEFINED'
@@ -1135,7 +1135,7 @@ class LexicalAnalyzer:
                             print("(dbg) arithmetic spotted for <")
                             add_token(currToken, '<', currLine, currCol)
                         elif (code[i] == '='):
-                            currState = 's193'
+                            currState = 's193' #s193 -> s194
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1145,7 +1145,7 @@ class LexicalAnalyzer:
                         if (code[i] in self.great_delim):
                             add_token(currToken, '>', currLine, currCol)
                         elif (code[i] == '='):
-                            currState = 's197'
+                            currState = 's197' #s197 -> s198
                         else:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
@@ -1377,7 +1377,7 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # || symbol
-                    case 'LOGICOR_CHECK':
+                    case 'LOGICOR_CHECK': #s184 -> s185
                         expected = ['alphabetic_chars', ' ', '(', '/', '!']
                         if (code[i] in self.and_or_delim):
                             add_token(currToken, '||', currLine, currCol)
@@ -1385,7 +1385,7 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # ++ symbol
-                    case 'INCREMENT_CHECK':
+                    case 'INCREMENT_CHECK':  #s187 -> s189
                         expected = self.whitespace + ['alphabetic_chars', ')', ';', '/', '-', '*', '%', '(', ']', ',']
                         if (code[i] in self.increment_delim):
                             add_token(currToken, '++', currLine, currCol)
@@ -1404,7 +1404,7 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # <= symbol
-                    case 'LESS_OR_EQUAL_CHECK':
+                    case 'LESS_OR_EQUAL_CHECK': #s195 -> s196
                         expected = ['alphanum', ' ', '(', '+', '-', '/']
                         if (code[i] in self.great_less_delim):
                             add_token(currToken, '<=', currLine, currCol)
@@ -1412,7 +1412,7 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # >= symbol
-                    case 'GREATER_OR_EQUAL_CHECK':
+                    case 'GREATER_OR_EQUAL_CHECK': #s199 -> s200 
                         expected = ['alphanum', ' ', '(', '+', '-', '/']
                         if (code[i] in self.great_less_delim):
                             add_token(currToken, '>=', currLine, currCol)
@@ -1420,7 +1420,7 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # == symbol
-                    case 'EQUAL_CHECK':
+                    case 'EQUAL_CHECK': #s201 -> s202
                         expected = ['alphanum', ' ', '(', '\"', '+', '-', '/', '!']
                         if (code[i] in self.equal_equal_delim):
                             add_token(currToken, '==', currLine, currCol)
@@ -1428,7 +1428,7 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # string literal
-                    case 'STRING_LIT_CHECK':
+                    case 'STRING_LIT_CHECK': #s210 -> s211
                         expected = self.str_lit_delim
                         if (code[i] in self.str_lit_delim):
                             add_token(currToken, 'string_lit', currLine, currCol)
@@ -1436,7 +1436,7 @@ class LexicalAnalyzer:
                             currToken += code[i]
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # multicomments 
-                    case 'MULTI_COMMENT_CHECK':
+                    case 'MULTI_COMMENT_CHECK': #s210 -> 211
                         multi_line_start_found = False
                         add_token(currToken, 'multi-line comment', currLine, currCol)
                     # case statement 
