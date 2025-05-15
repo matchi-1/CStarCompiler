@@ -829,11 +829,11 @@ class SyntaxAnalyzer:
             self.logError(f"Expected constructor parameter or closing ')', but found '{self.currToken['tokenName']}'. \n\nExpected: {expected}.")
 
 
-    def ERROR_missing_condition(self, condType):
-        self.logError(f"Expected condition after '{condType}' statement.")
+    def ERROR_missing_condition(self, condType, expected):
+        self.logError(f"Expected condition after '{condType}' statement. \n\nExpected: {expected}.")
 
-    def ERROR_invalid_condition(self, condType):
-        self.logError(f"Invalid condition for '{condType}' statement.")
+    def ERROR_invalid_condition(self, condType, expected):
+        self.logError(f"Invalid condition for '{condType}' statement.  \n\nExpected: {expected}.")
 
     def ERROR_empty_condition(self, condType):
         self.logError(f"Condition cannot be empty for '{condType}' statement.")
@@ -2197,9 +2197,9 @@ class SyntaxAnalyzer:
             condition_temp_n = self.value(stopChar)
             if not condition_temp_n:
                 if self.currToken["tokenType"] == stopChar:
-                    self.ERROR_missing_condition(condType)
+                    self.ERROR_missing_condition(condType, PREDICT_SETS["value"])
                 else:
-                    self.ERROR_invalid_condition(condType)
+                    self.ERROR_invalid_condition(condType, PREDICT_SETS["value"])
         
         print("(parser) exited production: \"condition\"")
         return node_condition_value(condition_temp_n)
@@ -2301,7 +2301,7 @@ class SyntaxAnalyzer:
 
         self.match("if", False)
         if not self.match("(", False):
-            self.ERROR_missing_condition("if")
+            self.ERROR_missing_condition("if", PREDICT_SETS["value"])
         condition_n = self.condition("if",[")"])
         if not self.match(")"): 
             self.ERROR_unclosed_parentheses()
@@ -2483,7 +2483,7 @@ class SyntaxAnalyzer:
             self.match("switch", False)
 
             if not self.match("(", False):
-                self.ERROR_missing_condition("switch")
+                self.ERROR_missing_condition("switch", PREDICT_SETS["value"])
 
             value_temp_n = None
 
@@ -2491,7 +2491,7 @@ class SyntaxAnalyzer:
                 value_temp_n = self.value([")", "{"])
             else:
                 if not self.value([")", "{"]):
-                    self.ERROR_empty_condition("switch") 
+                    self.ERROR_missing_condition("switch", PREDICT_SETS["value"])
                 self.logError(f"Invalid value for 'switch' statement. Expected: 'string_lit' or 'whole_lit' but got '{self.tokens[self.currToken_index-1]["tokenName"]}' instead.")
     
             if not self.match(")"): 
@@ -2619,7 +2619,7 @@ class SyntaxAnalyzer:
             ## CONDITION
             condition_temp_n = self.condition("for-loop",[";"])
             if not condition_temp_n:
-                self.ERROR_empty_condition("for-loop")
+                self.ERROR_missing_condition("for-loop", PREDICT_SETS["value"])
             
             if not self.match(";"):
                 self.logError(f"Condition argument is expected to be terminated by ';', but found '{self.currToken["tokenType"] if self.currToken else "EOF"}'.")
@@ -2656,7 +2656,7 @@ class SyntaxAnalyzer:
             self.match("while", False)
             
             if not self.match("(", False):
-                self.ERROR_missing_condition("while")
+                self.ERROR_missing_condition("while", PREDICT_SETS["value"])
 
             condition_temp_n = self.condition("while",[")"])
 
@@ -2700,7 +2700,7 @@ class SyntaxAnalyzer:
             
             ## CONTINUE
             if not self.match("(", False):
-                self.ERROR_missing_condition("do-while")
+                self.ERROR_missing_condition("do-while", PREDICT_SETS["value"])
             condition_temp_n = self.condition("do-while",[")"])
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
