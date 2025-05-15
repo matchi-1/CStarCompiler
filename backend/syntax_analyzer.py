@@ -1667,7 +1667,7 @@ class SyntaxAnalyzer:
                 self.func_arg_rec(func_arg_n)
         else:
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-                self.logError(f"Unexpected token: '{self.currToken["tokenName"]}'. Function call arguments cannot accept declarations.\nExpected {PREDICT_SETS["value"]+[")"]}")
+                self.logError(f"Unexpected token: '{self.currToken["tokenName"]}'. Function call arguments cannot accept declarations.\n\nExpected {PREDICT_SETS["value"]+[")"]}")
             elif self.currToken and self.currToken["tokenType"] != ")":
                 self.ERROR_expected_token(PREDICT_SETS["value"]+[")"])
             else: 
@@ -1683,9 +1683,9 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             if self.currToken["tokenType"] not in PREDICT_SETS["value"]:
-                self.logError(f"Expected another value after ',' but got '{self.currToken['tokenName']}'.")
+                self.logError(f"Expected another value after ',' but got '{self.currToken['tokenName']}'.\n\nExpected {PREDICT_SETS["value"]}.")
             self.func_arg(func_arg_n)
-        else: self.logError("Expected another value after ',' but reached EOF.")
+        else: self.logError(f"Expected another value after ',' but reached EOF.\n\nExpected {PREDICT_SETS["value"]}.")
         
     # def func_method_call(self):    
     #     print("(parser) production: \"func_method_call\" detected")
