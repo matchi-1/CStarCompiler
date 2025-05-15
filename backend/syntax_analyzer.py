@@ -2122,7 +2122,7 @@ class SyntaxAnalyzer:
             if self.currToken["tokenType"] == ",":
                 self.match(",")
                 if not self.currToken or self.currToken and self.currToken["tokenType"] not in PREDICT_SETS["data_type"] and self.currToken["tokenType"] != "Identifier":
-                    self.logError(f"Expected data type or Identifier (Class name), instead got '{self.currToken["tokenName"]}'.")
+                    self.logError(f"Expected data type ({PREDICT_SETS["data_type"]}) or Identifier (Class name), instead got '{self.currToken["tokenName"]}'.")
                 return self.params_dec(params_n)
     
         print("(parser) production: \"params_var_rec\" exited!!!!!")
@@ -2142,10 +2142,10 @@ class SyntaxAnalyzer:
             arrdim = 2
 
         if self.currToken and self.currToken["tokenType"] == "[":
-            self.logError("Only up to 2-dimensional arrays are supported.")
+            self.logError("Only up to 2-dimensional arrays are supported. Expected ',' or ')'. ")
 
         if self.currToken and self.currToken["tokenType"] == "=":
-            self.logError("Default array values are not supported.")
+            self.logError("Default array values are not supported. Expected ',' or ')'.")
         print("(parser) production: \"is_array\" exited!!!!!")
         return arrdim
 
@@ -2241,7 +2241,7 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] != ")":
                 value_n = self.value([",", ")"])
                 if not value_n: #gets commented out for dbg
-                    self.logError("Invalid 'print' statement parameter.")
+                    self.logError(f"Invalid 'print' statement parameter.\nExpected: {PREDICT_SETS["value"] + [")"]}")
                 print_params_n.append(value_n)
 
                 if self.currToken and self.currToken["tokenType"] == ",":
@@ -2263,7 +2263,7 @@ class SyntaxAnalyzer:
         if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
             value_n = self.value([",", ")"]) 
             if not value_n:
-                message = f"Expected value after ',', got '{self.currToken['tokenType'] if self.currToken else 'EOF'}' instead."
+                message = f"Expected value starting with '{PREDICT_SETS["value"]}'after ',', got '{self.currToken['tokenType'] if self.currToken else 'EOF'}' instead."
                 self.logError(message)
             print_params_n.append(value_n)
 
@@ -2323,12 +2323,12 @@ class SyntaxAnalyzer:
         print("(parser) entered production: \"ret_value\", isVoid: ", isVoid)
 
         if self.hasFunctionReturned:
-            self.logError("Function already has a return statement.")
+            self.logError("Function already has a return statement. Expected '}'.")
 
         ret_value_n = None
         if self.currToken:
             if not isVoid and self.currToken["tokenType"] == ";" and not self.hasMainFunction:
-                self.logError("Non-Void functions must return a value.")
+                self.logError(f"Non-Void functions must return a value starting with {PREDICT_SETS["value"]}.")
             
             elif isVoid and self.currToken["tokenType"] != ";":
                 self.logError(f"Void functions cannot return a value. Return statements in void functionts must be immediately terminated by ';', but found '{self.currToken["tokenName"] if self.currToken else "EOF"}'.")        
@@ -2411,7 +2411,7 @@ class SyntaxAnalyzer:
                 elif self.currToken["tokenType"] in PREDICT_SETS["assign_func_method_mods"]:
                     inc_arg_temp_n = self.assign_func_method_mods(id_temp_t)
 
-                else: self.logError("Expected: unary operation, assignment statement, function call, method call.")
+                else: self.logError("Expected: increment argument of for loop to start with '++', '--', 'print', 'println','Identifier")
 
             elif currentTokenType in PREDICT_SETS["print_stmts"]:
                 inc_arg_temp_n = self.output()
@@ -2601,7 +2601,7 @@ class SyntaxAnalyzer:
 
             self.match("for", False)
             if not self.match("("):
-                self.logError("Missing forloop arguments.")
+                self.logError("Missing for loop arguments. Expected '('")
 
             ## INIT ARG
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["init_arg"]:
@@ -2715,7 +2715,7 @@ class SyntaxAnalyzer:
 
             self.match("repeat", False)
             if not self.match("("):
-                self.logError("Expected argument for 'repeat' statement")
+                self.logError("Expected '(' after 'repeat'.")
 
             repeat_value_temp_n = self.arith_exp([")"])
 
@@ -2852,7 +2852,7 @@ class SyntaxAnalyzer:
                 self.match("=", False)
                 value_temp_n = self.value(PREDICT_SETS["var_init"])
                 if not value_temp_n:
-                    self.logError("Invalid value for variable declaration.")
+                    self.logError(f"Invalid value for variable declaration.\nExpected{PREDICT_SETS["value"]}")
                 print("(parser) exited production: \"var_init\"")
                 return value_temp_n
         print("(parser) exited production: \"var_init\"")
@@ -2903,7 +2903,7 @@ class SyntaxAnalyzer:
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
                 if self.currToken and self.currToken["tokenType"] == "[":
-                    self.logError("Only up to 2 dimensions of arrays are allowed.")
+                    self.logError("Only up to 2 dimensions of arrays are allowed. Expected:'=', ',', or ';'.")
                 return self.var_id_arr2D(dtype_temp_t, id_temp_n, size1_temp_n, size2_temp_n, const_b)
         
         print("(parser) exited production: \"var_id_arr1D\"")
@@ -3012,7 +3012,7 @@ class SyntaxAnalyzer:
                 if not self.match("]"):
                     self.ERROR_unclosed_square_bracket()
                 if self.currToken["tokenType"] == "[":
-                    self.logError("Only up to 2 dimensions of arrays are allowed.")
+                    self.logError("Only up to 2 dimensions of arrays are allowed. Expected ',' or ';'.")
                 arr_dec_rec_temp_n.append(node_arr_dec_rec(id_temp_n, size1_temp_n, size2_temp_n))
                 if self.currToken and self.currToken["tokenType"] == ",":
                     self.array2D_iden_rec(arr_dec_rec_temp_n)
