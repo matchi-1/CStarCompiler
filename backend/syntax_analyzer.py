@@ -1168,13 +1168,13 @@ class SyntaxAnalyzer:
         return None
         
 
-    def imports_list(self, stdlibs=[], std_lib_func_dec_nodes = []):
+    def imports_list(self, stdlibs=[], std_lib_func_dec_nodes = [], errid_n = []):
         print("(parser) production: \"imports_list\" detected")
 
         # should return tuple, stdlibs node and array of stdlibs func dec nodes to be passed to program constructs' statements
         std_lib_header_line = self.currToken["tokenLine"]
         std_lib_header_col = self.currToken["tokenCol"]
-        errid_n = None
+        #errid_n = None
         # Only parse if the current token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.match("import", False)
@@ -1186,6 +1186,7 @@ class SyntaxAnalyzer:
                 std_lib_header_line = self.currToken["tokenLine"]
                 std_lib_header_col = self.currToken["tokenCol"]
                 std_lib_header = self.match("Identifier")["tokenName"]  
+                errid_n.append("")
                 
 
                 if std_lib_header not in stdlibs:
@@ -1304,7 +1305,7 @@ class SyntaxAnalyzer:
             else:
                 iden_inval = self.match("Identifier", False)    
                 err_t = Token("inval", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
-                errid_n = node_iden(iden_inval)
+                errid_n.append(node_iden(err_t))
                 errparams_n = None
              
                 stdlibs.append(iden_inval["tokenName"])
@@ -1322,8 +1323,8 @@ class SyntaxAnalyzer:
 
             # Handle potential recursive imports
             if self.currToken and self.currToken["tokenType"] == "import":
-                self.imports_list(stdlibs, std_lib_func_dec_nodes)
-        
+                self.imports_list(stdlibs, std_lib_func_dec_nodes, errid_n)
+
         return (node_imports_list(stdlibs), std_lib_func_dec_nodes, stdlibs, errid_n)
 
 
