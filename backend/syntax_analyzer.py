@@ -1417,6 +1417,7 @@ class SyntaxAnalyzer:
         if self.currToken:
 
             if self.currToken["tokenType"] == "(":
+                self.match("(", False)
                 return self.params_dec_start(dtype_temp_t, id_temp_n)
             else:
                 node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n, const_b)
@@ -1470,7 +1471,6 @@ class SyntaxAnalyzer:
         
         if not self.hasMainFunction:
             print(f"(parser) production: \"params_dec_start\" detected , isVoid = {isVoid}")
-            self.match("(")
             self.matchPredictSet("params_dec", False)
             params_n = self.params_dec([])
             if not self.match(")"):
@@ -1609,7 +1609,7 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] == "Identifier":
                 obj_id_n = node_iden(self.match("Identifier", False))
             else:
-                self.ERROR_missing_initializer()
+                self.ERROR_expected_token('Identifier')
 
             if self.currToken and self.currToken["tokenType"] == "[":
                 self.logError("Array of objects is not supported. Expected '=' or ';'")
