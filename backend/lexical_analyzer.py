@@ -8,7 +8,7 @@ class LexicalAnalyzer:
     alpha_small = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
     alpha_capital = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     alphabetic_chars = alpha_small + alpha_capital
-    symbols = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '?', ':', ';']
+    symbols = ['"',',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', ':', ';']
     whitespace = [' ']
 
     zero = ['0']
@@ -16,7 +16,7 @@ class LexicalAnalyzer:
     numbers = zero + digit
 
     alphanum = alphabetic_chars + numbers
-    basic_punctuation_symbols = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', '\\', '|', ':', ';', '\'', '\"', ',', '<', '>', '.', '/', '?']
+    basic_punctuation_symbols = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', '\\', '|', ':', ';', '\'', '\"', ',', '<', '>', '.', '/']
     ascii = alphanum + basic_punctuation_symbols
 
     arithmetic_operator = ['+', '-', '*', '/', '%']
@@ -36,7 +36,7 @@ class LexicalAnalyzer:
     type_iden_delim = newline + whitespace + ['[', '>', '/',')']
     get_set_delim = newline + whitespace + ['{', ';', '/']
     open_paren_delim = list(set(arithmetic_delim + ['\"', '!', ')', '\n', '/', '+', '-', ';']))
-    closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '?', '}', '"',',']))
+    closing_delim = list(set(arithmetic_operator + arithmetic_delim + logical_operator_delim + newline_delim + relational_operator_delim + whitespace + ['=', '|', '{', ';', ')', '(', '/', ':', ']', '}', '"',',']))
     close_paren_delim = list(set(closing_delim))
     semicolon_delim = newline_delim + plaintext_delim + ['}', '/', '(', ')']
     negative_delim = list(set(arithmetic_delim + ['/', '+', '.']))
@@ -72,9 +72,9 @@ class LexicalAnalyzer:
     block_delim = whitespace + newline + ['{', '/']
     break_ret_cont_delim = newline_delim + [';', '/']
     case_delim = newline_delim + ['(', '/']
-    iden_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '{', '}', '?', ':', ';']
-    str_lit_delim = list(set(newline + whitespace + logical_operator_delim + ['+', ')', ',', ';', '/', ':', '!', '=', '}', '?']))
-    nbl_delim = list(set(arithmetic_operator + relational_operator_delim + logical_operator_delim + whitespace + newline + [',', ')', ']', '}', ':', '=', ';', '/', '?']))
+    iden_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '.', '|', '(', ')', '[', ']', '{', '}', ':', ';']
+    str_lit_delim = list(set(newline + whitespace + logical_operator_delim + ['+', ')', ',', ';', '/', ':', '!', '=', '}']))
+    nbl_delim = list(set(arithmetic_operator + relational_operator_delim + logical_operator_delim + whitespace + newline + [',', ')', ']', '}', ':', '=', ';', '/']))
     func_delim = newline_delim + ['(']
     closing_bracket_delim = newline_delim + [',', '+', '-', '*', '/', '%', '>', '<', '!', '=', '&', '|', ')', '}', '[', ']', ':', ';']
     
@@ -998,7 +998,7 @@ class LexicalAnalyzer:
                             add_error(self.delimError(currToken, currLine, currCol, code[i], lineContent, expected, leadingSpaces))
                     # ) symbol
                     case 'CLOSING_PAREN_CHECK': #s159
-                        expected = ['alphanum', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', ']','?',','] + [';', '\n', '/']
+                        expected = ['alphanum', '=', '&', '|', '{', '(', ')', ';', '\n', ',', '/', ':', ']',','] + [';', '\n', '/']
                         if (code[i] in self.close_paren_delim):
                             add_token(currToken, ')', currLine, currCol)
                         else:
