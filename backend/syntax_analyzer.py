@@ -863,7 +863,7 @@ class SyntaxAnalyzer:
         else:
             self.logError("Expected closing bracket ']', but reached EOF.")
     def ERROR_inc_dec_constant(self):
-        self.logError("Increment or decrement operation is not allowed on constants.")
+        self.logError(f"Increment or decrement operation is not allowed on constants. Expected an identifier, instead got '{self.currToken["tokenName"]}'.")
     def ERROR_expected_valid_value(self):
         if self.currToken:
             self.logError(f"Expected a valid value starting with {PREDICT_SETS["value"]}, instead got '{self.currToken['tokenName']}'.")
@@ -1352,7 +1352,7 @@ class SyntaxAnalyzer:
                 self.match("const")  # match token then move on
                 const_b = True # const found
                 if self.currToken["tokenType"] == "void":  # const void not allowed
-                    self.logError("Void function cannot be preceded by 'const'.")
+                    self.logError("Void function cannot be preceded by 'const'. Expected ", PREDICT_SETS["data_type"])
                 elif self.currToken["tokenType"] in PREDICT_SETS["data_type"]:  # const then data type
                     dtype_temp_t = self.data_type()  # get the data type token 
                     iden_temp_n = node_iden(self.match("Identifier",False)) # create the identifier node
@@ -1366,7 +1366,7 @@ class SyntaxAnalyzer:
 
             # currtoken not a dtype or void (so not a func dec or var dec)
             elif currentTokenType not in PREDICT_SETS["data_type"] and currentTokenType != "void":
-                self.logError(f"Expected data type or void, found '{currentTokenType}' instead.")
+                self.logError(f"Expected {PREDICT_SETS["data_type"] + ["void"]} found '{currentTokenType}' instead.")
 
             # void -- then func name
             elif currentTokenType == "void":
@@ -1417,6 +1417,7 @@ class SyntaxAnalyzer:
         if self.currToken:
 
             if self.currToken["tokenType"] == "(":
+                self.match("(", False)
                 return self.params_dec_start(dtype_temp_t, id_temp_n)
             else:
                 node_temp = self.var_dec_cont(dtype_temp_t, id_temp_n, const_b)
@@ -1470,7 +1471,6 @@ class SyntaxAnalyzer:
         
         if not self.hasMainFunction:
             print(f"(parser) production: \"params_dec_start\" detected , isVoid = {isVoid}")
-            self.match("(")
             self.matchPredictSet("params_dec", False)
             params_n = self.params_dec([])
             if not self.match(")"):
@@ -1580,7 +1580,7 @@ class SyntaxAnalyzer:
                     self.ERROR_unclosed_curly_braces()
 
                 if class_id_n.id_t["tokenName"] != self.classNames[-1]: 
-                    error_msg = f"Semantic Error ({class_id_n.id_t["tokenLine"]}, {class_id_n.id_t["tokenCol"] - len(class_id_n.id_t["tokenName"]) + 1}): Constructors must have the same name as its class."
+                    error_msg = f"Semantic Error ({class_id_n.id_t["tokenLine"]}, {class_id_n.id_t["tokenCol"] - len(class_id_n.id_t["tokenName"]) + 1}): Constructors must have the same name as its class. Expected {self.classNames[-1]}"
                     self.errors.append(error_msg)
                     raise SyntaxError(error_msg)
                     #TODO: maybe fix error message here, just a placeholder
@@ -1609,7 +1609,7 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] == "Identifier":
                 obj_id_n = node_iden(self.match("Identifier", False))
             else:
-                self.ERROR_missing_initializer()
+                self.ERROR_expected_token('Identifier')
 
             if self.currToken and self.currToken["tokenType"] == "[":
                 self.logError("Array of objects is not supported. Expected '=' or ';'")
@@ -1682,8 +1682,9 @@ class SyntaxAnalyzer:
         self.match(',')
 
         if self.currToken:
-            if self.currToken["tokenType"] not in PREDICT_SETS["value"]:
-                self.logError(f"Expected another value after ',' but got '{self.currToken['tokenName']}'.\n\nExpected {PREDICT_SETS["value"]}.")
+            self.matchPredictSet["value"]
+            # if self.currToken["tokenType"] not in PREDICT_SETS["value"]:
+            #     self.logError(f"Expected another value after ',' but got '{self.currToken['tokenName']}'.\n\nExpected {PREDICT_SETS["value"]}.")
             self.func_arg(func_arg_n)
         else: self.logError(f"Expected another value after ',' but reached EOF.\n\nExpected {PREDICT_SETS["value"]}.")
         
@@ -1874,9 +1875,9 @@ class SyntaxAnalyzer:
             return val_temp
         else:
             if self.currToken:
-                self.logError(f"Expected a data type for typecasting or a valid value, instead got '{self.currToken["tokenName"]}'.\n\nExpected: {PREDICT_SETS["data_type"] + PREDICT_SETS["value"]}")
+                self.logError(f"Expected {PREDICT_SETS["data_type"]} for typecasting or a valid value starting with {PREDICT_SETS["value"]}, instead got '{self.currToken["tokenName"]}'.\n\nExpected: {PREDICT_SETS["data_type"] + PREDICT_SETS["value"]}")
             else:
-                self.logError(f"Expected a data type for typecasting or a valid value, instead reached EOF.\n\nExpected: {PREDICT_SETS["data_type"] + PREDICT_SETS["value"]}")
+                self.logError(f"Expected {PREDICT_SETS["data_type"]} for typecasting or a valid value {PREDICT_SETS["value"]}, instead reached EOF.\n\nExpected: {PREDICT_SETS["data_type"] + PREDICT_SETS["value"]}")
         return is_valid_value
 
     def atom(self):
@@ -1891,10 +1892,10 @@ class SyntaxAnalyzer:
             temp_id = self.match("Identifier")
             if not temp_id:
                 is_valid_value = False
-                if self.currToken and self.currToken["tokenType"] == "whole_lit":
+                if self.currToken and self.currToken["tokenType"] == ["whole_lit", "frac_lit", "string_lit", "bool_lit"]:
                     self.ERROR_inc_dec_constant()
-                elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
-                    self.ERROR_inc_dec_not_int()
+                # elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
+                #     self.ERROR_inc_dec_not_int()
                 else:
                     self.ERROR_expected_token("Identifier")
             if self.currToken and self.currToken["tokenType"] == ".":
