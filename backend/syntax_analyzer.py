@@ -869,8 +869,8 @@ class SyntaxAnalyzer:
             self.logError(f"Expected a valid value starting with {PREDICT_SETS["value"]}, instead got '{self.currToken['tokenName']}'.")
         else:
             self.logError(f"Expected a valid value starting with {PREDICT_SETS["value"]}, instead reached EOF.")
-    def ERROR_inc_dec_not_int(self):
-        self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.")
+    # def ERROR_inc_dec_not_int(self, expected):
+    #     self.logError("Increment or decrement operation is only allowed for identifiers of type 'int' or 'long'.\nExpected: {str(expected)}")
     def ERROR_expected_operator(self, expected):
         self.logError(f"Expected a valid operator or a stop character before '{self.currToken['tokenName'] if self.currToken else "EOF"}'.\nExpected: {str(expected)}")
     def ERROR_further_class_access(self):
@@ -882,8 +882,8 @@ class SyntaxAnalyzer:
         else:
             self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead reached EOF. \n\nExpected: {str(expected)}")
 
-    def ERROR_inc_dec_objects(self):
-        self.logError(f"Cstar doesn't allow incrementing or decrementing object attributes.")
+    def ERROR_inc_dec_objects(self, expected):
+        self.logError(f"Cstar doesn't allow incrementing or decrementing object attributes. \nExpected: {str(expected)}")
 
 
     #-------------------- PARSER START --------------------  method that's being called in app.py to start parsing each token in the sequence
@@ -1530,7 +1530,7 @@ class SyntaxAnalyzer:
         
         is_private_b = False
         inClassBody = True
-        if self.matchPredictSet("class_body", False):   #throws no error if currToken not in here
+        if self.matchPredictSet("class_body", True):   #throws no error if currToken not in here
             
             if self.currToken:
                 if self.currToken["tokenType"] == "private":
@@ -1899,7 +1899,7 @@ class SyntaxAnalyzer:
                 else:
                     self.ERROR_expected_token("Identifier")
             if self.currToken and self.currToken["tokenType"] == ".":
-                self.ERROR_inc_dec_objects()
+                self.ERROR_inc_dec_objects(["*", "/", "+", '-', "==", "!=", ">", ">=", "<", "<=", "&&", "||", "," , ")", ";", "}" , "]"])
             else:
                 print(f"RETURNED FROM VALUE CHAIN: {node_un_op(left_t, node_iden(temp_id))}")
                 return node_un_op(left_t, node_iden(temp_id))
@@ -1916,7 +1916,7 @@ class SyntaxAnalyzer:
                     self.ERROR_expected_token("Identifier")
             
             if self.currToken and self.currToken["tokenType"] == ".":
-                self.ERROR_inc_dec_objects()
+                self.ERROR_inc_dec_objects(["*", "/", "+", '-', "==", "!=", ">", ">=", "<", "<=", "&&", "||", "," , ")", ";", "}" , "]"])
             else:
                 print(f"RETURNED FROM VALUE CHAIN: {node_un_op(left_t, node_iden(temp_id))}")
                 return node_un_op(left_t, node_iden(temp_id))

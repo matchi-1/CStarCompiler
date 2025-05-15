@@ -2384,8 +2384,8 @@ class Runtime:
                     # _printlog("(runtime)(dbg) ERROR: DIVIDE BY 0")
                         self.logError("Division by 0 is not allowed.", right_err)
                     if left_type[1] in ["long", "int"] and right_type[1] in ["long", "int"]:
-                        return (dtype, int(left_val / right_val), left_err)
-                    return (dtype, left_val / right_val, left_err)
+                        return (dtype, int(Decimal(left_val) / Decimal(right_val)), left_err)
+                    return (dtype, Decimal(left_val) / Decimal(right_val), left_err)    
                     # return (dtype, None)
                 if fromRetBlock:
                     if right_type[0] == "lit" and right_val == 0:
