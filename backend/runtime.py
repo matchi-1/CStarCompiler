@@ -2114,7 +2114,7 @@ class Runtime:
         id = node.id_n.id_t["tokenName"]
         const = node.const_b
         vals_for_class = []
-        if self.curr_scope.get(id, checkParent=False):
+        if self.curr_scope.get(id, checkParent=False) and self.loop_depth > 0:
             self.logError(f"Symbol '{id}' has already been declared.", node.id_n)
 
         dtype = ('arr', node.dtype_t["tokenName"])
