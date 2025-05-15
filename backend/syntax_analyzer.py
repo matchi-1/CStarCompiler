@@ -2699,8 +2699,7 @@ class SyntaxAnalyzer:
             self.hasFunctionReturned = False
             
             ## WHILE STMT
-            if not self.match("while"):
-                self.logError("'do' statement must include 'while' condition after '}'.")
+            self.match("while", False)
             
             ## CONTINUE
             if not self.match("(", False):
