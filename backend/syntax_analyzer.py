@@ -1303,9 +1303,13 @@ class SyntaxAnalyzer:
                     raise SyntaxError(error_msg)
                     
             else:
-                 self.logError(
-                    f"Expected a standard library token with token names (Cstring, Carray or Cmath), found '{self.currToken['tokenName']}'."
-                    if self.currToken else "Expected a standard library token with token names (Cstring, Carray, or Cmath), but reached EOF instead.")
+                err_t = Token("inval", "Identifier", std_lib_header_line, std_lib_header_col).to_dict()
+                errid_n = node_iden(err_t)
+                errparams_n = None
+                std_lib_func_dec_nodes.append(node_func_dec(None, errid_n, errparams_n, None, True))
+                #  self.logError(
+                #     f"Expected a standard library token with token names (Cstring, Carray or Cmath), found '{self.currToken['tokenName']}'."
+                #     if self.currToken else "Expected a standard library token with token names (Cstring, Carray, or Cmath), but reached EOF instead.")
 
             if not self.match(">"):
                 self.ERROR_unclosed_angled_bracket()   
