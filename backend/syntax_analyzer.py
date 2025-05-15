@@ -876,11 +876,11 @@ class SyntaxAnalyzer:
     def ERROR_further_class_access(self):
         self.logError(f"Cstar doesn't allow subclasses. An attempt to access a subclass and/or its attributes or methods is not supported. Expected ';' but found '{self.currToken['tokenName'] if self.currToken else "EOF"}' instead.")
 
-    def ERROR_expected_int_value_in_stmt(self):
+    def ERROR_expected_int_value_in_stmt(self, expected):
         if self.currToken:
-            self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead got '{self.currToken['tokenName']}'.")
+            self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead got '{self.currToken['tokenName']}'. \n\nExpected: {str(expected)}")
         else:
-            self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead reached EOF.")
+            self.logError(f"The input statement's second parameter must be a value of \"int\" type. Instead reached EOF. \n\nExpected: {str(expected)}")
 
     def ERROR_inc_dec_objects(self):
         self.logError(f"Cstar doesn't allow incrementing or decrementing object attributes.")
@@ -2835,11 +2835,11 @@ class SyntaxAnalyzer:
             if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["arith_exp"]:
                 ret = self.arith_exp([")"])
                 if not ret:
-                    self.ERROR_expected_int_value_in_stmt()
+                    self.ERROR_expected_int_value_in_stmt(PREDICT_SETS["arith_exp"])
                 else:
                     return ret
             else:
-                self.ERROR_expected_int_value_in_stmt()
+                self.ERROR_expected_int_value_in_stmt(PREDICT_SETS["arith_exp"])
 
         
         print("(parser) exited production: \"in_param_two\"")
