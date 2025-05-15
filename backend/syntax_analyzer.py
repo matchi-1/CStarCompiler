@@ -915,7 +915,7 @@ class SyntaxAnalyzer:
         
         # check if the very start of the program, it matches any word that can be a valid token start
         if self.matchPredictSet("program", False):
-            imports_list_node, std_lib_func_dec_nodes, stdlibs_list, err_t = self.imports_list([], [])  # unpack imports_list_node and the stdlib nodes from the imports_list method
+            imports_list_node, std_lib_func_dec_nodes, stdlibs_list, err_t = self.imports_list([], [], [])  # unpack imports_list_node and the stdlib nodes from the imports_list method
             
             program_stmts.append(imports_list_node)  # we add the imports_list_node to the program_stmts list
             
@@ -1186,7 +1186,7 @@ class SyntaxAnalyzer:
                 std_lib_header_line = self.currToken["tokenLine"]
                 std_lib_header_col = self.currToken["tokenCol"]
                 std_lib_header = self.match("Identifier")["tokenName"]  
-                errid_n.append("")
+                errid_n.append(std_lib_header)
                 
 
                 if std_lib_header not in stdlibs:
