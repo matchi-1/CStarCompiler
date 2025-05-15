@@ -652,7 +652,7 @@ class SyntaxAnalyzer:
 
     
     # Matches the current token with the expected type. Returns True if matched, False otherwise.
-    def match(self, expected_token, hasSpecError=False): 
+    def match(self, expected_token, hasSpecError=True): 
         if self.currToken is not None and self.currToken["tokenType"] == expected_token: # check if the current token is not None and if it matches the expected token
             # print(f"('match' function) token {expected_token} matched")
             retToken = self.currToken  # return the token for AST
@@ -669,7 +669,7 @@ class SyntaxAnalyzer:
 
 
     # Match the current token with the expected tokens in the predict set
-    def matchPredictSet(self, non_terminal, hasSpecError=False):  # non_terminal here is the key to the PREDICT_SETS dict
+    def matchPredictSet(self, non_terminal, hasSpecError=True):  # non_terminal here is the key to the PREDICT_SETS dict
         expected_predict_set = PREDICT_SETS.get(non_terminal, [])  # get the list of predict set for that specific non-terminal, else return none
         
         # reached EOF but still expects a predict set
@@ -972,7 +972,7 @@ class SyntaxAnalyzer:
             if currentTokenType == "Identifier":
                 iden_temp_n = node_iden(self.match("Identifier",False))
                 code_block_statement_n.append(self.class_as_func_post(iden_temp_n))
-                if not self.match(";"):
+                if not self.match(";", True):
                     self.ERROR_terminating_token(";")
 
             elif currentTokenType in ["const"] + PREDICT_SETS["data_type"]: 
@@ -1473,7 +1473,7 @@ class SyntaxAnalyzer:
             print(f"(parser) production: \"params_dec_start\" detected , isVoid = {isVoid}")
             self.matchPredictSet("params_dec", False)
             params_n = self.params_dec([])
-            if not self.match(")"):
+            if not self.match(")", True):
                 self.ERROR_unclosed_parentheses()
         
             self.match("{", False)
@@ -1515,7 +1515,7 @@ class SyntaxAnalyzer:
         if not self.match("}"):
             self.ERROR_expected_token(PREDICT_SETS['class_body'] + ['}'])
 
-        if not self.match(";"):
+        if not self.match(";", True):
             self.logError("Class Declaration is expected to be terminated by ';' after '}'.")
 
         class_body_n = node_class_body(class_body_stmt_n)
@@ -1683,8 +1683,8 @@ class SyntaxAnalyzer:
 
         if self.currToken:
             self.matchPredictSet("value")
-            # if self.currToken["tokenType"] not in PREDICT_SETS["value"]:
-            #     self.logError(f"Expected another value after ',' but got '{self.currToken['tokenName']}'.\n\nExpected {PREDICT_SETS["value"]}.")
+            if self.currToken["tokenType"] not in PREDICT_SETS["value"]:
+                self.logError(f"Expected another value starting with {PREDICT_SETS["value"]} after ',' but got '{self.currToken['tokenName']}'.\n\nExpected {PREDICT_SETS["value"]}.")
             self.func_arg(func_arg_n)
         else: self.logError(f"Expected another value after ',' but reached EOF.\n\nExpected {PREDICT_SETS["value"]}.")
         
@@ -1908,10 +1908,10 @@ class SyntaxAnalyzer:
             temp_id = self.match("Identifier")
             if not temp_id:
                 is_valid_value = False
-                if self.currToken and self.currToken["tokenType"] == "whole_lit":
+                if self.currToken and self.currToken["tokenType"] == ["whole_lit", "frac_lit", "string_lit", "bool_lit"]:
                     self.ERROR_inc_dec_constant()
-                elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
-                    self.ERROR_inc_dec_not_int()
+                # elif self.currToken and self.currToken["tokenType"] in ["frac_lit", "string_lit", "bool_lit"]:
+                #     self.ERROR_inc_dec_not_int()
                 else:
                     self.ERROR_expected_token("Identifier")
             
@@ -2705,7 +2705,7 @@ class SyntaxAnalyzer:
             if not self.match(")"):
                 self.ERROR_unclosed_parentheses()
             
-            if not self.match(";"):
+            if not self.match(";", True):
                 self.logError("'while' statements must be terminated by ';' in a do-while statement.")
 
         print("(parser) exited production: \"do_stmt\"")
@@ -2788,8 +2788,8 @@ class SyntaxAnalyzer:
             in_stmt = self.match("in", False)
             self.match("<", False)
 
-            # if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
-            if self.matchPredictSet("data_type"):
+            if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["data_type"]:
+            # if self.matchPredictSet("data_type"):
                 type_t = self.data_type()
             else:
                 self.ERROR_expected_token(PREDICT_SETS["data_type"])
