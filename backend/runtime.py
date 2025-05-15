@@ -827,6 +827,7 @@ class Runtime:
         # _printlog(f"Obj_info : {obj_info} \nobj_name: {obj_name} \nclass_elem: {class_elem}")
 
         if obj_info.get("dtype")[0] != 'object':
+            _printlog("not object then what is it? ", obj_info.get("dtype")[0])
             self.logError(f"Symbol '{obj_name}' not an object instance.", node.obj_id_n)
 
         check_scope_class = self.curr_scope
@@ -1583,7 +1584,9 @@ class Runtime:
                 self.curr_scope.set(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"])
             elif sym_details[param][1]["dtype"][0] == 'arr':
                 self.curr_scope.set_array(param, sym_details[param][1]["value"], sym_details[param][1]["dtype"], sym_details[param][1]["arr_info"])
-            #else: obj
+            else:
+                _printlog("object thing", sym_details[param][1])
+                self.curr_scope.set_obj(param, sym_details[param][1]['init_val'], sym_details[param][1]['dtype'], sym_details[param][1]['obj_info'])
         self.curr_scope.set_function(func_name, func_symbol["dtype"] if not fromConstrcutor else None, func_symbol["params"], func_symbol["param_names"], func_symbol["value"], priv=func_symbol["priv"] if not fromConstrcutor else None, isStd_lib=func_symbol["isStd_lib"] if not fromConstrcutor else None)
         _printlog(f'ABOUT TO ENTER {func_name} BODY WITH SYMBOL TABLE:')
         self.print_symbols(self.curr_scope.syms, indent=2)
