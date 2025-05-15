@@ -1874,9 +1874,9 @@ class SyntaxAnalyzer:
             return val_temp
         else:
             if self.currToken:
-                self.logError(f"Expected a data type for typecasting or a valid value, instead got '{self.currToken["tokenName"]}'.")
+                self.logError(f"Expected a data type for typecasting or a valid value, instead got '{self.currToken["tokenName"]}'.\n\nExpected: {PREDICT_SETS["data_type"] + PREDICT_SETS["value"]}")
             else:
-                self.logError(f"Expected a data type for typecasting or a valid value, instead reached EOF.")
+                self.logError(f"Expected a data type for typecasting or a valid value, instead reached EOF.\n\nExpected: {PREDICT_SETS["data_type"] + PREDICT_SETS["value"]}")
         return is_valid_value
 
     def atom(self):
