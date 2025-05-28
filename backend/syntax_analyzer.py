@@ -2037,7 +2037,7 @@ class SyntaxAnalyzer:
                         node_temp = node_class_arr_idx(temp_id, tmp_att_id_n, val_temp) # iden.iden[1]
                 
                 if self.currToken and self.currToken["tokenType"] in PREDICT_SETS["value"]:
-                    self.ERROR_expected_operator() # if it got [value  value]
+                    self.ERROR_expected_operator(PREDICT_SETS["value"]) # if it got [value  value]
 
                 elif not self.match("]"): # no prev err so try to match ending ]
                     is_valid_value = False
