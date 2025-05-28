@@ -753,9 +753,9 @@ class SyntaxAnalyzer:
             tokenName = self.currToken["tokenName"]
             currLine = self.currToken["tokenLine"] 
             currCol = self.currToken["tokenCol"] - len(tokenName)
-            print("!!!!!!!!! LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
-            print("!!!!!!!!! LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
-            print("!!!!!!!!! LOG ERROR CURRENT TOKEN: " + str(self.currToken))
+            #print("!!!!!!!!! LOG ERROR PREV PREV TOKEN: " + str(self.tokens[self.currToken_index - 2]))
+            #print("!!!!!!!!! LOG ERROR PREV TOKEN: " + str(self.tokens[self.currToken_index - 1]))
+            #print("!!!!!!!!! LOG ERROR CURRENT TOKEN: " + str(self.currToken))
             
 
         # full error message
@@ -1174,7 +1174,7 @@ class SyntaxAnalyzer:
         # should return tuple, stdlibs node and array of stdlibs func dec nodes to be passed to program constructs' statements
         std_lib_header_line = self.currToken["tokenLine"]
         std_lib_header_col = self.currToken["tokenCol"]
-        #errid_n = None
+        #errid_n = node_iden(self.currToken) if self.currToken["tokenType"] == "Identifier" else
         # Only parse if the current token is "import"
         if self.currToken and self.currToken["tokenType"] == "import":
             self.match("import", False)
